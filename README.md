@@ -8,7 +8,7 @@ These skills are platform-agnostic and can be used in any software project.
 
 ## About L-GEVITY
 
-[L-GEVITY](https://l-gevity.com) is a longevity-focused health platform that
+[L-GEVITY](https://l-gevity.nl) is a longevity-focused health platform that
 translates peer-reviewed biomedical research into personalized, actionable
 insights. By combining biometric data with epidemiological evidence, it helps
 users understand how lifestyle choices — sleep, exercise, nutrition, stress — 
