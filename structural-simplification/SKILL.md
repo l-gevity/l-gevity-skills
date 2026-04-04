@@ -12,8 +12,7 @@ description:
 
 > This skill governs **structural complexity analysis and reduction**. It
 > applies universally to any structure — logical, spatial, temporal, or
-> organizational. For coding style see `coding-standard`; for design discipline
-> see `architecture-guidelines`.
+> organizational. For for design discipline see `architecture-guidelines`.
 
 > **Core Directives**
 >
