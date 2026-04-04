@@ -6,6 +6,19 @@ and continuous improvement.
 
 These skills are platform-agnostic and can be used in any software project.
 
+## About L-GEVITY
+
+[L-GEVITY](https://l-gevity.com) is a longevity-focused health platform that
+translates peer-reviewed biomedical research into personalized, actionable
+insights. By combining biometric data with epidemiological evidence, it helps
+users understand how lifestyle choices — sleep, exercise, nutrition, stress — 
+affect their long-term health outcomes.
+
+This skills repository contains the platform-agnostic engineering principles we
+developed while building L-GEVITY. They encode hard-won lessons about
+architectural discipline, complexity reduction, and continuous improvement that
+apply to any software project — not just ours.
+
 ## Skills
 
 | Skill | Description |
