@@ -42,39 +42,21 @@ Use `continuous-improvement` as a meta-layer to evolve the skills themselves.
 
 ## Usage
 
-### As a git submodule (recommended)
-
-Add this repo as a submodule inside your project's `.claude/skills/` directory:
+Copy the skills into your project's `.claude/skills/` directory (plain file
+copy, no git repo is created):
 
 ```bash
-git submodule add https://github.com/l-gevity/l-gevity-skills .claude/skills/l-gevity-skills
+git clone --depth 1 https://github.com/l-gevity/l-gevity-skills ~/.claude/skills && rm -rf ~/.claude/skills/.git
 ```
 
 Then reference skills from your `CLAUDE.md`:
 
 ```markdown
-- [architecture-guidelines](./.claude/skills/l-gevity-skills/architecture-guidelines/)
-- [structural-simplification](./.claude/skills/l-gevity-skills/structural-simplification/)
+- [architecture-guidelines](./.claude/skills/architecture-guidelines/)
+- [structural-simplification](./.claude/skills/structural-simplification/)
 ```
 
-For new clones, initialize the submodule:
-
-```bash
-git clone --recurse-submodules <your-repo>
-# or if already cloned:
-git submodule update --init
-```
-
-To pull the latest skill updates:
-
-```bash
-git submodule update --remote .claude/skills/l-gevity-skills
-```
-
-### Manual copy
-
-Alternatively, copy individual skill directories into your `.claude/skills/`
-folder.
+To update to the latest skills, re-run the same command.
 
 ## License
 
