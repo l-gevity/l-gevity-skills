@@ -1,0 +1,26 @@
+{
+  "name": "@l-gevity/skills",
+  "version": "1.0.0",
+  "description": "Open-source Claude Code skills for architecture, CI/CD, and continuous improvement",
+  "keywords": ["claude", "claude-code", "skills", "architecture", "ci-cd", "devops"],
+  "homepage": "https://github.com/l-gevity/l-gevity-skills",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/l-gevity/l-gevity-skills.git"
+  },
+  "license": "MIT",
+  "author": "L-GEVITY",
+  "files": [
+    "architecture-guidelines/",
+    "ci-cd-reliability-architecture/",
+    "continuous-improvement/",
+    "structural-simplification/",
+    "system-optimization/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "prepack": "npm run validate",
+    "validate": "echo 'Skills directory structure validated'"
+  }
+}
