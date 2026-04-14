@@ -11,22 +11,21 @@ description:
 
 > **Core Directives**
 >
-> 1. **Patternization & Local Suboptimality**: Accept suboptimal local
->    implementations if they allow the system to use universal patterns. A
->    unified, simpler whole is ALWAYS more valuable than a fragmented system of
->    locally perfect solutions. _(See `structural-simplification` §7a
->    Conformance for the formal justification.)_
-> 2. **Minimalism First**: Deliver the smallest viable solution. ZERO
->    speculative extensibility (YAGNI).
-> 3. **Duplication Over Wrong Abstraction**: Always copy < 20 lines of code
->    rather than creating a premature abstraction. Wait for the proven business
->    need (Rule of 3).
-> 4. **Architectural Traceability**: Names of functions, variables, directories,
->    and all structural components MUST explicitly reflect their architectural
->    layer, domain logic, and technical purpose.
-> 5. **A design is perfect when there is nothing left to remove.**
-> 6. **Dependency Graph Discipline**: Dependency graphs MUST be directed,
->    acyclic, and shallow. Cycles are forbidden. Depth is cost.
+> - **Patternization & Local Suboptimality**: Accept suboptimal local
+>   implementations if they allow the system to use universal patterns. A
+>   unified, simpler whole is ALWAYS more valuable than a fragmented system of
+>   locally perfect solutions.
+> - **Minimalism First**: Deliver the smallest viable solution. ZERO speculative
+>   extensibility (YAGNI).
+> - **Duplication Over Wrong Abstraction**: Always copy < 20 lines of code
+>   rather than creating a premature abstraction. Wait for the proven business
+>   need (Rule of 3).
+> - **Architectural Traceability**: Names of functions, variables, directories,
+>   and all structural components MUST explicitly reflect their architectural
+>   layer, domain logic, and technical purpose.
+> - **A design is perfect when there is nothing left to remove.**
+> - **Dependency Graph Discipline**: Dependency graphs MUST be directed,
+>   acyclic, and shallow. Cycles are forbidden. Depth is cost.
 
 ## 1. Minimalism & Abstraction
 
@@ -37,8 +36,12 @@ description:
 
 ## 2. Consistency & Coupling
 
+- **Eventual Consistency by Default**: Strong consistency couples components.
+  Prefer eventual consistency — accept operational complexity (idempotency,
+  compensation) to preserve modularity.
 - **Full Migration**: When adopting a new pattern, migrate all sibling
-  components in the same PR.
+  components in the same PR but **always ask the user** and choose a pattern
+  that fits both new and existing logic.
 - **Dependency Inversion**: Domain logic depends on abstractions, never concrete
   implementations.
 
@@ -53,10 +56,29 @@ description:
 
 ## 4. Resilience
 
-- **Fail Fast**: Validate and sanitize inputs at all system boundaries.
-- **Idempotency**: Design operations to be safe for multiple executions.
+- **Fail Fast**: Validate and sanitize inputs at all system or atomicity
+  boundaries.
+- **Idempotency**: Design operations to be safe for multiple executions by
+  achieving the desired end state. Distinguish:
+    - **DELETE on 404** (already deleted) → return success ✓
+    - **CREATE on 409** (already exists) → return existing resource ✓
+    - **GET on 404** (missing) → return null/empty ✓
+    - **PATCH/PUT on 404** (user/target gone) → log & observe degradation, do
+      not silently succeed ⚠️
+    - **Race conditions (409 on write)** → throw error; let client
+      retry/reconcile ✗
+
+    _Principle_: Idempotency succeeds when the desired outcome is already true.
+    It does not suppress errors that prevent achieving the outcome.
+
 - **Statelessness**: Prefer stateless services to minimize side effects and
   simplify scaling and testing.
+- **Failure Classification**: When coordinating external API calls, categorize
+  each as **hard** (blocks subsequent steps) or **best-effort** (logged, does
+  not cascade). Design the failure model before implementation.
+- **Atomicity**: Determine whether partial success is acceptable or full
+  rollback is required.
+- **State Visibility**: Log decision point and outcome at each step.
 
 ## 5. Naming & Traceability
 
