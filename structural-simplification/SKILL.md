@@ -12,7 +12,8 @@ description:
 
 > This skill governs **structural complexity analysis and reduction**. It
 > applies universally to any structure — logical, spatial, temporal, or
-> organizational. For for design discipline see `architecture-guidelines`.
+> organizational. For coding style see `coding-standard`; for design discipline
+> see `architecture-guidelines`.
 
 > **Core Directives**
 >
@@ -236,6 +237,26 @@ Remove special functionality if its structural footprint exceeds its utility.
 Special cases are complexity multipliers: D↑ (unique patterns), K↑ (conditional
 paths), P↑ (extended chains), n↑ (supporting parts). The cost of a feature is
 not its own code — it is every special case it forces elsewhere.
+
+### 7c. Atomicity Requirements (Multi-System Orchestration)
+
+When an operation coordinates multiple external systems, decide **before
+implementation** whether atomicity is structurally required or eventual
+consistency suffices.
+
+**Atomicity is required when any of:**
+
+1. **Irreversibility** — the operation cannot be undone.
+2. **Cross-system invariant** — partial failure violates business or regulatory
+   rules.
+3. **Compliance boundary** — legal guarantees demand verifiable completeness.
+
+| Decision             | Structural effect | Action                                        |
+| -------------------- | ----------------- | --------------------------------------------- |
+| Atomicity required   | K↑ P↑             | Accept coupling; use fail-fast / compensation |
+| Eventual consistency | K↓ P↓             | Document acceptable partial-failure states    |
+
+**Anti-Pattern:** Design multi-step operations without deciding atomicity first.
 
 ---
 
