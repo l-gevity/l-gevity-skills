@@ -74,6 +74,11 @@ For identifying constraints, waste, and root causes in operational analysis:
   committing.
 - **Inversion**: "How do I guarantee failure?" — then build guardrails against
   it.
+- **Simple Functional Refactor Over Complex Technical Solution**: Prefer
+  reasonable functional or UX changes (clear a cache, reorder steps, show a waiting state)
+  before technical solutions (polling, retries, new abstractions). Technical
+  complexity carries hidden costs — validate that simple alternatives don't
+  solve it first.
 - **Pre-mortem**: Assume the fix already failed; work backward to find the
   oversight.
 - **Side Effect Audit**: When eliminating redundancy, trace all downstream paths
