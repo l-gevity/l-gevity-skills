@@ -1,4 +1,4 @@
-# L-GEVITY Skills
+# The L-GEVITY Software Architecture and Design Skills
 
 Open-source [Claude Code](https://claude.ai/claude-code) skills for software
 architecture, CI/CD reliability, structural simplification, system optimization,
