@@ -26,6 +26,7 @@ apply to any software project — not just ours.
 | [architecture-guidelines](./architecture-guidelines/SKILL.md) | Core architectural principles: consistency, minimalism, reliability, and traceability. Use when designing or modifying any system component. |
 | [ci-cd-reliability-architecture](./ci-cd-reliability-architecture/SKILL.md) | Idempotency, self-containment, immutable artifacts, self-healing, zero-downtime, and zero-knowledge security for CI/CD pipelines. |
 | [continuous-improvement](./continuous-improvement/SKILL.md) | Meta-learning protocol for evolving skills based on user feedback and root-cause analysis. |
+| [functionality-complexity-tradeoff](./functionality-complexity-tradeoff/SKILL.md) | First-principles framework for deciding whether functionality is worth its complexity cost — applies to both proposed features (build/defer/drop) and existing code (keep/simplify/delete). |
 | [structural-simplification](./structural-simplification/SKILL.md) | First-principles framework for reducing structural complexity in any domain — code, data models, workflows, UI layouts, org structures. |
 | [system-optimization](./system-optimization/SKILL.md) | Lean, Kaizen, Six Sigma, Theory of Constraints, and DevOps principles to eliminate waste and improve flow. |
 
@@ -37,6 +38,11 @@ The architecture skills form a natural pipeline:
 architecture-guidelines → structural-simplification → system-optimization
        (create)                  (evaluate)                 (improve)
 ```
+
+`functionality-complexity-tradeoff` complements this pipeline by deciding
+**whether** a piece of functionality is worth its cost — both prospectively
+(build / defer / drop) and retrospectively (keep / simplify / delete) —
+consuming complexity measurements from `structural-simplification`.
 
 Use `continuous-improvement` as a meta-layer to evolve the skills themselves.
 
