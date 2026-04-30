@@ -28,6 +28,23 @@ description:
 
 ---
 
+## Order of Operations
+
+Apply these steps **in order**. The most expensive mistake is optimizing or
+automating something that should have been deleted — work done out of order is
+work to undo later.
+
+1. **Question the requirement.** The requirement is the most upstream waste.
+   Strip it to first principles before touching the implementation; the cheapest
+   step is the one that no longer needs to exist.
+2. **Delete it.** Try removing the step, file, stage, or component entirely. If
+   you don't end up restoring ~10% of what you deleted, you weren't aggressive
+   enough.
+3. **Simplify what remains.** Only optimize parts that survived deletion.
+4. **Speed it up.** Parallelize, cache, batch — but only after simplification.
+5. **Automate last.** Automating an unnecessary or unsimplified process locks in
+   the waste.
+
 ## 1. Scan Layers
 
 | Layer                      | Red flags                                                           |
@@ -142,8 +159,6 @@ For identifying constraints, waste, and root causes in operational analysis:
 - Use the four axes (D, K, P, n) from `structural-simplification` to compare
   per-axis deltas before and after each improvement.
 
-> **Litmus Test**: Before adding any pipeline stage, automation, or process step
-> — ask: _"Does this unequivocally increase velocity or quality of value
-> delivered to the end user?"_ If not measurable, drop it. If the change worsens
-> any complexity axis (D, K, P, n) without improving another, it is not an
+> **Litmus Test**: If a change worsens any complexity axis (D, K, P, n) from
+> `structural-simplification` without improving another, it is not an
 > optimization.
