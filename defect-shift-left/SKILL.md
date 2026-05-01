@@ -164,3 +164,76 @@ unrepresentable?_ If yes, the check belongs at Stage 0.
 
 If a gap remains, state: _"Detection Gap: defect class catchable at Stage [X],
 currently at Stage [Y]. Mechanism: [...]."_
+
+---
+
+## 7. Stack-Aware Tooling Survey
+
+The ladder is universal; the tools that staff each rung are not. When auditing
+or designing a pipeline, derive the toolset from the project's actual stack — do
+not assume one. Names go stale; categories do not.
+
+### 7.1 Detect the stack
+
+Inspect, in order, only what exists:
+
+1. **Language / runtime** — manifest files (`package.json`, `pyproject.toml`,
+   `go.mod`, `Cargo.toml`, `pom.xml`, `*.csproj`, `Gemfile`, `composer.json`,
+   etc.), lockfiles, and primary source extensions.
+2. **Build / package system** — declared scripts, build tool, bundler.
+3. **Test frameworks** — already-declared test runners and assertion libs.
+4. **CI / CD** — `.github/workflows/`, `.gitlab-ci.yml`, `azure-pipelines.yml`,
+   `Jenkinsfile`, etc.
+5. **Infra / deploy targets** — IaC files (`*.tf`, `*.bicep`, `serverless.yml`,
+   `Dockerfile`, k8s manifests), platform configs (`staticwebapp.config.json`,
+   `vercel.json`, `netlify.toml`).
+6. **VCS hooks** — `husky`, `pre-commit`, `lefthook`, native `.git/hooks`.
+7. **Editor config** — `.editorconfig`, `.vscode/`, declared LSPs.
+
+Record what is present. Record what is absent — absence is the gap.
+
+### 7.2 Map stages to tool categories
+
+For each ladder stage, the survey asks _what category of tool belongs here_,
+never _which specific tool_:
+
+| Stage  | Tool category to look for                                         |
+| ------ | ----------------------------------------------------------------- |
+| **0**  | Type system / compiler strictness flags / schema-as-code library  |
+| **1**  | ADR template, schema registry, threat-model artifact              |
+| **2**  | LSP, editor lint integration, formatter-on-save                   |
+| **3**  | Hook runner, secret scanner, commit-message linter                |
+| **4**  | Compiler / type-checker invoked in build                          |
+| **5**  | Linter, dependency auditor, SAST, license checker, IaC scanner    |
+| **6**  | Unit test runner, property-test library, coverage gate            |
+| **7**  | Integration / contract test harness, container build verifier     |
+| **8a** | Migration dry-run, config validator, IAM diff, cost projector     |
+| **8b** | Smoke-test runner, health-probe spec, orchestrator readiness gate |
+| **9**  | Canary controller, load generator, perf-regression gate           |
+| **10** | Runtime monitoring, error tracker, SLO alerting                   |
+| **11** | Incident-record system, RCA template                              |
+
+### 7.3 Find stack-compatible options
+
+For every stage where a category is unstaffed in the detected stack:
+
+1. **Search the ecosystem of the detected stack** for current tools in that
+   category. Use a web search; do not rely on training-time recall, which is
+   stale.
+2. **Filter for compatibility.** Reject candidates that require a runtime,
+   package manager, or platform the project does not already use, unless the
+   benefit clearly justifies adopting it.
+3. **Prefer tools the stack already pulls in.** A linter plugin beats a new
+   linter; a built-in compiler flag beats a third-party checker.
+4. **Cite each candidate** with its source URL and last-release signal so the
+   user can verify currency.
+
+### 7.4 Output
+
+Produce a survey table — one row per stage that has a gap:
+
+| Stage | Defect class at risk | Detected stack signal | Candidate tool category
+| Specific options (cited) | Effort |
+
+Do not propose a tool without naming the stage it staffs and the defect class it
+catches. A tool that does not map to a rung on §1 has no place in the output.
