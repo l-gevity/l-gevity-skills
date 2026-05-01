@@ -1,19 +1,23 @@
 ---
 name: structural-simplification
 description:
-    A first-principles framework for reducing structural complexity in any
-    domain — code, data models, workflows, UI layouts, org structures, or
-    temporal processes. Use this skill when evaluating a refactoring, designing
-    a restructuring, or deciding whether a proposed change makes a system
-    simpler or more complex.
+    A domain-agnostic complexity model and decision protocol. Complexity
+    is treated as a 4-axis vector — D (diversity), K (coupling), P (depth),
+    n (quantity) — and any proposed restructuring is judged by its per-axis
+    effect rather than by intuition. Applies to code, data models,
+    workflows, UI layouts, organizational structures, and temporal
+    processes.
+    TRIGGER when: evaluating a refactoring, designing a restructuring, or
+    deciding whether a proposed change makes a system simpler or more
+    complex.
+    SKIP for: trivial renames, content edits, dependency bumps, isolated
+    bug fixes that touch no structure. For coding style see
+    `coding-standard`; for module-level design discipline see
+    `architecture-guidelines`; for spatial dependency-graph constraints
+    see `geometric-architecture`.
 ---
 
 # Structural Simplification
-
-> This skill governs **structural complexity analysis and reduction**. It
-> applies universally to any structure — logical, spatial, temporal, or
-> organizational. For coding style see `coding-standard`; for design discipline
-> see `architecture-guidelines`.
 
 > **Core Directives**
 >
@@ -136,63 +140,15 @@ Fast proxies — not substitutes for measurement:
 
 ## 5. Geometric Constraint
 
-The most natural way to bound all four axes simultaneously is to treat the
-structure _as if it were a physical object_ — with surfaces, orientation, finite
-volume, and locality. Physical geometry is a **complexity budget**: it imposes
-limits that abstract structures lack by default.
+Treating a structure as a physical object — with surfaces, orientation, finite
+volume, and locality — bounds all four axes simultaneously: surface and locality
+cap K, orientation caps P, volume caps n, and conforming form factors cap D.
+Subsystem decomposition (vertical) reduces K and n; aspect- system decomposition
+(horizontal) reduces D.
 
-### The constraints and what they bound
-
-| Physical property                       | What it forces                                                                                                                        | Axis |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---- |
-| **Surface / interface**                 | Only the outside is touchable — internals are unreachable without passing through a surface                                           | K↓   |
-| **Orientation** (front/back/top/bottom) | Flow is directed — front faces the consumer, back faces infrastructure. No wire runs from display through motherboard back to display | P↓   |
-| **Finite volume**                       | A container can only hold so many parts before it is full — growth requires explicit expansion                                        | n↓   |
-| **Locality / adjacency**                | Distant parts cannot easily interact — long-range coupling requires visible, costly effort (a cable, a pipe)                          | K↓   |
-| **Form factor**                         | Parts must conform to the container's shape — bespoke shapes do not fit                                                               | D↓   |
-
-### How to apply
-
-- **Layer front-to-back**: consumer-facing at the front, infrastructure at the
-  back; dependencies flow one direction. Reverse-flow relationships are
-  violations — eliminate or make them explicit.
-- **Group laterally by neighborhood**: parts that collaborate sit adjacent;
-  unrelated domains sit apart.
-- **Bound the surface**: every structure has an enumerable set of entry points;
-  everything else is internal.
-- **Cap the volume**: when a part outgrows its container, decompose — do not
-  stretch the container.
-- **Enforce locality**: long-range relationships are like cables across a room —
-  they must justify the cost.
-
-### Decomposition strategies
-
-Two complementary ways to partition a structure:
-
-| Strategy         | Cut direction | What it isolates                           | Example                             |
-| ---------------- | ------------- | ------------------------------------------ | ----------------------------------- |
-| **Subsystem**    | Vertical      | A cohesive, locally bound part             | Auth module, billing service        |
-| **Aspectsystem** | Horizontal    | A cross-cutting concern spanning all parts | Logging, validation, error handling |
-
-A subsystem is a **neighborhood** — spatially bounded, internally cohesive, with
-a defined surface. An aspectsystem is a **filter** — it selects a property
-across the entire structure, like "all red pixels of an image."
-
-Both reduce complexity, but through different axes:
-
-- Subsystem decomposition → K↓ (severs cross-boundary coupling), n↓ (per local
-  scope)
-- Aspectsystem decomposition → D↓ (unifies scattered variants of the same
-  concern)
-
-Choose subsystem when the seam is **between domains**. Choose aspectsystem when
-the seam is **within a shared concern**. Each resulting partition is itself a
-structure — evaluate D, K, P, n recursively to assess its internal complexity
-independently.
-
-> [!NOTE] The power of geometric constraint is that humans already have spatial
-> intuition. "The database is behind the API" is instantly understood — no rule
-> book required. The metaphor enforces the discipline.
+For a full treatment of spatial dependency-graph constraints — placement
+addresses, face directionality, locality rules, and lint enforcement — see
+`geometric-architecture`.
 
 ---
 
