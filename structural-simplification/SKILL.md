@@ -1,20 +1,17 @@
 ---
 name: structural-simplification
-description:
-    A domain-agnostic complexity model and decision protocol. Complexity
-    is treated as a 4-axis vector — D (diversity), K (coupling), P (depth),
-    n (quantity) — and any proposed restructuring is judged by its per-axis
-    effect rather than by intuition. Applies to code, data models,
-    workflows, UI layouts, organizational structures, and temporal
-    processes.
-    TRIGGER when: evaluating a refactoring, designing a restructuring, or
-    deciding whether a proposed change makes a system simpler or more
-    complex.
-    SKIP for: trivial renames, content edits, dependency bumps, isolated
-    bug fixes that touch no structure. For coding style see
-    `coding-standard`; for module-level design discipline see
-    `architecture-guidelines`; for spatial dependency-graph constraints
-    see `geometric-architecture`.
+description: >-
+    A domain-agnostic complexity model and decision protocol. Complexity is
+    treated as a 4-axis vector — D (diversity), K (coupling), P (depth), n
+    (quantity) — and any proposed restructuring is judged by its per-axis effect
+    rather than by intuition. Applies to code, data models, workflows, UI
+    layouts, organizational structures, and temporal processes. TRIGGER when:
+    evaluating a refactoring, designing a restructuring, or deciding whether a
+    proposed change makes a system simpler or more complex. SKIP for: trivial
+    renames, content edits, dependency bumps, isolated bug fixes that touch no
+    structure. For coding style see `coding-standard`; for module-level design
+    discipline see `architecture-guidelines`; for spatial dependency-graph
+    constraints see `geometric-architecture`.
 ---
 
 # Structural Simplification
