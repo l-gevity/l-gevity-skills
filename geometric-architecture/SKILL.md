@@ -17,7 +17,7 @@ description: >-
     actually reduces complexity see `structural-simplification`.
 ---
 
-# Geometric Architecture
+# Geometric Software Architecture
 
 Place every component at an address `(X, Y, Z)` in a 3-D grid; allow coupling
 only to face-adjacent neighbors. The medium itself resists long-range and cyclic
