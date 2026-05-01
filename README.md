@@ -27,17 +27,34 @@ apply to any software project — not just ours.
 | [ci-cd-reliability-architecture](./ci-cd-reliability-architecture/SKILL.md) | Idempotency, self-containment, immutable artifacts, self-healing, zero-downtime, and zero-knowledge security for CI/CD pipelines. |
 | [continuous-improvement](./continuous-improvement/SKILL.md) | Meta-learning protocol for evolving skills based on user feedback and root-cause analysis. |
 | [functionality-complexity-tradeoff](./functionality-complexity-tradeoff/SKILL.md) | First-principles framework for deciding whether functionality is worth its complexity cost — applies to both proposed features (build/defer/drop) and existing code (keep/simplify/delete). |
+| [geometric-architecture](./geometric-architecture/SKILL.md) | Maps software structure onto a 3D spatial grid (X=domain, Y=abstraction, Z=environment) where coupling is restricted to face-adjacent neighbors only — a cellular-automaton locality rule that makes long-range dependencies harder to express than short-range ones. |
 | [structural-simplification](./structural-simplification/SKILL.md) | First-principles framework for reducing structural complexity in any domain — code, data models, workflows, UI layouts, org structures. |
 | [system-optimization](./system-optimization/SKILL.md) | Lean, Kaizen, Six Sigma, Theory of Constraints, and DevOps principles to eliminate waste and improve flow. |
+
+### In-depth explanations
+
+For three of the skills, a longer essay accompanies the SKILL spec — useful
+when you want the reasoning, not just the rules:
+
+| Essay | Companion to |
+| :---- | :----------- |
+| [READ-geometric-architecture](./READ-geometric-architecture.md) | `geometric-architecture` — why locality is a first principle, what emerges for free, and how to encode the rules as ESLint boundaries. |
+| [READ-structural-simplification](./READ-structural-simplification.md) | `structural-simplification` — the deeper "why" behind the framework. |
+| [READ-system-optimization](./READ-system-optimization.md) | `system-optimization` — extended rationale for Lean/TOC/DevOps integration. |
 
 ### Workflow
 
 The architecture skills form a natural pipeline:
 
 ```
-architecture-guidelines → structural-simplification → system-optimization
-       (create)                  (evaluate)                 (improve)
+geometric-architecture → architecture-guidelines → structural-simplification → system-optimization
+   (place / locality)         (build cleanly)         (evaluate complexity)        (improve flow)
 ```
+
+`geometric-architecture` answers **where** a component belongs — its address on
+the grid and which neighbors it may couple to. The remaining three skills then
+answer **how** to build it, **whether** it is too complex, and **how to make
+its operations flow**.
 
 `functionality-complexity-tradeoff` complements this pipeline by deciding
 **whether** a piece of functionality is worth its cost — both prospectively

@@ -103,6 +103,13 @@ rebuild to change target environment.
   staging — not triggering a new build
 - Rollback means redeploying a **previous known-good artifact**, not reverting
   code and rebuilding
+- **Never delegate the build to the deploy platform's implicit builder** (Oryx,
+  Cloud Native Buildpacks, Vercel/Netlify auto-build, etc.). Platform builders
+  frequently report `success` even when a sub-build (TS compile, webpack, native
+  module) fails, silently shipping stale or incomplete artifacts. Run every
+  build in a dedicated CI step with `continue-on-error: false`, and pass the
+  pre-built output to the deploy action (`skip_app_build: true`,
+  `skip_api_build: true`, or equivalent)
 
 ---
 
@@ -238,6 +245,38 @@ When managing infrastructure at scale (multi-tenant, scaling policies, resource
 groups), use **declarative IaC** (Bicep, Terraform, Pulumi). Declarative tools
 enforce idempotency by design; imperative scripts require manual guards.
 
+### Delete-and-Recreate Pattern (Immutable Resources)
+
+Some resources cannot be updated in-place (e.g., AWS security groups, Azure
+Entra policies, some Kubernetes resources). For these, use definition-based
+comparison to detect changes and safely replace:
+
+```bash
+# 1. Compute hash of desired state
+DESIRED_HASH=$(echo "${DEFINITION}" | sha256sum | cut -d' ' -f1)
+
+# 2. Fetch existing resource and hash its definition
+EXISTING=$(curl -s https://api/resource/current)
+EXISTING_HASH=$(echo "${EXISTING}" | sha256sum | cut -d' ' -f1)
+
+# 3. If unchanged, skip (idempotent)
+if [ "${DESIRED_HASH}" = "${EXISTING_HASH}" ]; then
+  echo "Resource up-to-date, skipping"
+  exit 0
+fi
+
+# 4. If changed, delete old and create new (atomic from API perspective)
+curl -X DELETE https://api/resource/current
+curl -X POST https://api/resource -d "${DEFINITION}"
+```
+
+**Rules:**
+
+- Always hash/checksum the definition, not just presence checks
+- Delete before create (not after) to avoid transient conflicts
+- Wrap creation in idempotent guard (e.g., check if already exists)
+- Log state transitions: "definition changed, updating"
+
 ---
 
 ## Pre-Merge Checklist
@@ -248,6 +287,9 @@ enforce idempotency by design; imperative scripts require manual guards.
 - [ ] **Timeouts**: All long-running steps have explicit timeout values
 - [ ] **Immutable artifacts**: Build once, promote same artifact; config
       injected at deploy time
+- [ ] **Build in CI, not in the deploy platform**: every build runs as a
+      dedicated fail-fast CI step; deploy action receives a pre-built artifact
+      (no reliance on Oryx/Buildpacks/Vercel auto-build)
 - [ ] **Secrets**: OIDC/federated identity for cloud auth; no stored cloud
       credentials
 - [ ] **Health check**: Post-deploy validation present; rollback on failure
