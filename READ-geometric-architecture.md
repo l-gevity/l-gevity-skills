@@ -1,4 +1,4 @@
-# Geometric Architecture — Companion
+# Geometric Software Architecture — Companion
 
 > **Companion to [`SKILL.md`](./SKILL.md).** Read SKILL.md first — that is the
 > canonical operational reference (axes, faces, failure modes, lint rules,
