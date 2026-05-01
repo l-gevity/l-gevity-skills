@@ -1,21 +1,19 @@
 ---
 name: architecture-guidelines
-description:
-    First-principles architectural rules for this project: minimalism
-    (YAGNI, Rule of 3, DRY), modularity (SoC, SRP, interface discipline,
-    dependency inversion), functional core (pure domain logic, I/O at the
-    edges), resilience (fail-fast, idempotency, atomicity, failure
-    classification), domain-driven naming, and concurrency on shared
-    mutable state.
-    TRIGGER when: introducing a new module/service/abstraction, refactoring
-    across module boundaries, applying SOLID, or reviewing a PR for
-    architectural concerns (purity, idempotency, naming, fail-fast).
-    SKIP for: bug fixes within an existing module, content/copy edits,
-    CSS-only changes, dependency bumps, trivial renames. For
-    implementation patterns specific to this app see `technical-design`;
-    for refactor cost/benefit analysis see `structural-simplification`;
-    for spatial dependency-graph constraints and lint enforcement see
-    `geometric-architecture`.
+description: >-
+    First-principles architectural rules for this project: minimalism (YAGNI,
+    Rule of 3, DRY), modularity (SoC, SRP, interface discipline, dependency
+    inversion), functional core (pure domain logic, I/O at the edges),
+    resilience (fail-fast, idempotency, atomicity, failure classification),
+    domain-driven naming, and concurrency on shared mutable state. TRIGGER when:
+    introducing a new module/service/abstraction, refactoring across module
+    boundaries, applying SOLID, or reviewing a PR for architectural concerns
+    (purity, idempotency, naming, fail-fast). SKIP for: bug fixes within an
+    existing module, content/copy edits, CSS-only changes, dependency bumps,
+    trivial renames. For implementation patterns specific to this app see
+    `technical-design`; for refactor cost/benefit analysis see
+    `structural-simplification`; for spatial dependency-graph constraints and
+    lint enforcement see `geometric-architecture`.
 ---
 
 # Architectural Discipline (First Principles)

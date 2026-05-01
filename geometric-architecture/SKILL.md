@@ -1,20 +1,18 @@
 ---
 name: geometric-architecture
-description:
-    A 3-D spatial coordinate system for the dependency graph. Every
-    component is given an address (X = domain, Y = abstraction level,
-    Z = depth), coupling is restricted to face-adjacent neighbors, and
-    connection direction is encoded by which face links to which. Long-range
-    and cyclic connections become structurally expensive instead of merely
-    discouraged. Includes ESLint enforcement via `eslint-plugin-boundaries`
-    and `no-restricted-imports`.
-    TRIGGER when: deciding where a new module/service/layer lives,
-    designing or refactoring the dependency graph, diagnosing
+description: >-
+    A 3-D spatial coordinate system for the dependency graph. Every component is
+    given an address (X = domain, Y = abstraction level, Z = depth), coupling is
+    restricted to face-adjacent neighbors, and connection direction is encoded
+    by which face links to which. Long-range and cyclic connections become
+    structurally expensive instead of merely discouraged. Includes ESLint
+    enforcement via `eslint-plugin-boundaries` and `no-restricted-imports`.
+    TRIGGER when: deciding where a new module/service/layer lives, designing or
+    refactoring the dependency graph, diagnosing
     layer/cycle/god-object/cross-domain tangles, or configuring dependency-
-    guard lint rules.
-    SKIP for: routine business logic inside an existing module, bug
-    fixes, content/copy edits, CSS-only changes, dependency bumps, trivial
-    renames. For first-principles rules on what goes inside a module see
+    guard lint rules. SKIP for: routine business logic inside an existing
+    module, bug fixes, content/copy edits, CSS-only changes, dependency bumps,
+    trivial renames. For first-principles rules on what goes inside a module see
     `architecture-guidelines`; for evaluating whether a structural change
     actually reduces complexity see `structural-simplification`.
 ---
