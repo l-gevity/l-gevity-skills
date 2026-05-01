@@ -50,10 +50,6 @@ Complexity grows when multiple axes increase simultaneously — the interaction 
 worse than any single axis alone. Evaluate each axis independently; do not
 collapse them into a single number.
 
-> [!IMPORTANT] The axes are conceptually distinct but may correlate (more parts
-> often means more diversity and depth). This is why per-axis comparison matters
-> — a composite score would double-count shared variance.
-
 ---
 
 ## 2. Domain Mapping
@@ -157,21 +153,17 @@ limits that abstract structures lack by default.
 
 ### How to apply
 
-- **Assign layers** (depth — 3rd dimension): stack structures front-to-back,
-  consumer-facing at the front, infrastructure at the back. Dependencies flow in
-  one direction through layers. A relationship that flows against the layer
-  direction is a violation — make it explicit or eliminate it.
-- **Assign lateral position** (2D within a layer): parts within the same layer
-  have spatial adjacency. Group related parts into neighborhoods. Parts that
-  collaborate belong next to each other; parts in different domains sit apart.
-- **Assign boundaries**: every structure MUST have a finite surface — an
-  enumerable set of entry points. Anything not on the surface is internal and
-  unreachable from outside.
-- **Assign size**: treat the structure as having finite capacity. When a part
-  grows beyond its volume, decompose it — do not stretch the container.
-- **Enforce locality**: prefer relationships between adjacent parts — both
-  within a layer and across layers. Every long-range relationship MUST justify
-  its existence — it is the equivalent of running a cable across the room.
+- **Layer front-to-back**: consumer-facing at the front, infrastructure at the
+  back; dependencies flow one direction. Reverse-flow relationships are
+  violations — eliminate or make them explicit.
+- **Group laterally by neighborhood**: parts that collaborate sit adjacent;
+  unrelated domains sit apart.
+- **Bound the surface**: every structure has an enumerable set of entry points;
+  everything else is internal.
+- **Cap the volume**: when a part outgrows its container, decompose — do not
+  stretch the container.
+- **Enforce locality**: long-range relationships are like cables across a room —
+  they must justify the cost.
 
 ### Decomposition strategies
 
@@ -240,23 +232,17 @@ not its own code — it is every special case it forces elsewhere.
 
 ### 7c. Atomicity Requirements (Multi-System Orchestration)
 
-When an operation coordinates multiple external systems, decide **before
-implementation** whether atomicity is structurally required or eventual
-consistency suffices.
-
-**Atomicity is required when any of:**
-
-1. **Irreversibility** — the operation cannot be undone.
-2. **Cross-system invariant** — partial failure violates business or regulatory
-   rules.
-3. **Compliance boundary** — legal guarantees demand verifiable completeness.
+When an operation coordinates multiple external systems, the atomicity decision
+has direct structural cost. Decide **before implementation** — see
+`architecture-guidelines` §5 _Atomicity_ for when atomicity is required.
 
 | Decision             | Structural effect | Action                                        |
 | -------------------- | ----------------- | --------------------------------------------- |
 | Atomicity required   | K↑ P↑             | Accept coupling; use fail-fast / compensation |
 | Eventual consistency | K↓ P↓             | Document acceptable partial-failure states    |
 
-**Anti-Pattern:** Design multi-step operations without deciding atomicity first.
+**Anti-Pattern:** Designing multi-step operations without deciding atomicity
+first.
 
 ---
 
