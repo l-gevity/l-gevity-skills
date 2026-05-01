@@ -1,4 +1,11 @@
-# Structural Simplification — In-Depth Explanation
+# Structural Simplification — Companion
+
+> **Companion to [`SKILL.md`](./SKILL.md).** Read SKILL.md first — that is the
+> canonical operational reference (the four-axis model, reduction operations,
+> trade-off matrix, asymmetric trades, decision protocol). This file argues
+> _why_ the model has four axes and not one, walks through worked examples, and
+> explains the framing of measurement-as-discipline. It does not repeat
+> definitions; it justifies them.
 
 > **The core claim:** "Simpler" is the most overused and least falsifiable word
 > in software engineering. Every refactor claims to simplify. Most refactors
@@ -9,7 +16,7 @@
 
 ---
 
-## 1. Why "Simpler" Fails as an Argument
+## 1. Why "simpler" fails as an argument
 
 When two engineers disagree about whether a refactor simplifies a system, they
 almost always turn out to be measuring different things. One says "this is
@@ -24,13 +31,13 @@ claim about simplification is unfalsifiable: someone can always point to the
 axis that improved and ignore the ones that worsened, and someone else can do
 the opposite.
 
-This skill exists to end that argument. By forcing every restructuring to
-declare its effect on **each axis separately**, it converts a vague rhetorical
-claim into a measurable, comparable proposition.
+The skill exists to end that argument. By forcing every restructuring to declare
+its effect on **each axis separately**, it converts a vague rhetorical claim
+into a measurable, comparable proposition.
 
 ---
 
-## 2. The Single-Number Trap
+## 2. The single-number trap
 
 The temptation when measuring complexity is to collapse everything into a single
 score — cyclomatic complexity, lines of code, file count, or some weighted
@@ -49,39 +56,6 @@ Extracting a common part reduces diversity and coupling but adds quantity. A
 composite score erases these trade-offs by averaging — which is exactly the
 information you need to preserve.
 
-The four axes must be tracked separately. Their interaction _is_ the design
-problem.
-
----
-
-## 3. The Four Axes
-
-Each axis answers a distinct question about a structure:
-
-**Diversity (D) — How many different shapes are there?** The number of distinct
-patterns, conventions, or kinds of thing in the vocabulary of the structure. Two
-ways of doing the same task is D=2; one way is D=1. A codebase with seven naming
-conventions, three competing error-handling patterns, and a handful of bespoke
-modules has high D. Diversity is the cost of _learning the system_ — every
-unique shape is one more thing a reader must understand from scratch.
-
-**Coupling (K) — How densely are the parts connected?** The ratio of actual
-relationships to possible relationships: edges divided by n×(n−1). High K means
-changing one part forces changes in many others. Low K means parts can be
-modified, replaced, or reasoned about in isolation. Coupling is the cost of
-_changing the system_ — every relationship is a path along which a change can
-propagate.
-
-**Depth (P) — How long is the longest chain?** The maximum path from any source
-to any sink. Depth determines how many components a request, signal, or change
-has to traverse. Depth is the cost of _tracing the system_ — every level adds
-latency, indirection, and opportunities for misunderstanding.
-
-**Quantity (n) — How many parts are there?** The total number of discrete units.
-n is the simplest axis but the easiest to underestimate. Adding parts is cheap
-locally but expensive globally — every new part is a candidate for new coupling,
-new diversity, new depth. Quantity is the cost of _holding the system in mind_.
-
 The four axes correspond to four irreducibly different costs: **learning,
 changing, tracing, and holding**. A system can be cheap on some axes and
 expensive on others. The job of architecture is to manage the _vector_, not
@@ -89,13 +63,12 @@ minimize a scalar.
 
 ---
 
-## 4. Why Independence Matters
+## 3. Worked example: three refactorings of the same starting point
 
 The axes are conceptually independent — moving along one does not determine
 motion along the others — even though they correlate in practice. Independence
-is what makes per-axis comparison rigorous.
-
-Consider three refactorings of the same starting point:
+is what makes per-axis comparison rigorous. Consider three refactorings of the
+same starting point:
 
 - **Extract a helper used three times.** D↓ (one fewer pattern shape), K↓ (three
   direct dependencies become one shared dependency), P— (no new layer), n↑ (one
@@ -114,13 +87,10 @@ improvement on and _which_ you paid for it on.
 
 ---
 
-## 5. The Trade-Off Principle
+## 4. The trade-off principle: why pure wins are rare
 
 Most architectural moves are not pure wins — they shift complexity along the
-axis-vector. The skill's trade-off matrix exists because this is the rule, not
-the exception.
-
-Three patterns recur:
+axis-vector. Three patterns recur:
 
 - **Reducing K usually raises P or n.** Decoupling means inserting indirection,
   extracting interfaces, or splitting things. Each of those adds depth or
@@ -137,48 +107,15 @@ degrading any other are rare and precious**. When you find one, take it. They
 are typically deletions: removing a feature, eliminating a special case,
 dropping an unused abstraction. Pure deletions are the only changes that improve
 every axis simultaneously, which is why "delete over mitigate" is the most
-powerful directive in the skill.
+powerful directive in the SKILL.
 
 ---
 
-## 6. The Reduction Toolkit
+## 5. Asymmetric trades: why local cost can be a global win
 
-The skill organizes simplification operations by which axis they target. This
-organization matters because it forces you to know _what you are buying_.
-
-**To reduce diversity (D↓)** — unify, normalize, generalize, abstract,
-symmetrize, deduplicate, patternize. All of these collapse multiple shapes into
-one canonical shape. They reduce the vocabulary of the system.
-
-**To reduce coupling (K↓)** — encapsulate, indirect, invert, stratify, cohere,
-temporally decouple, eliminate edges. All of these reduce the density or
-directness of relationships. The most underrated of these is _cohesion_: when
-you group what changes together, the external links to the group sever
-automatically — coupling reduction as a side effect of cohesion increase.
-
-**To reduce depth (P↓)** — flatten, inline, direct-bind. All of these shorten
-chains. The crucial warning here is that a _facade_ hides depth without reducing
-it — the chain still exists, you just can't see it. The skill is explicit:
-verify actual P, not visible P.
-
-**To reduce quantity (n↓)** — eliminate, merge. Of these, elimination is the
-strongest move available in the entire toolkit. Removing a part doesn't just
-drop n; it drops absolute coupling as K×n² (every potential edge to that part
-disappears). One deletion can have outsized global effect.
-
-**Multi-axis operations** — decomposition, factoring, separation of concerns.
-These are the rare moves that reduce multiple axes at once, by partitioning the
-structure along a natural seam where the axes align with the partition boundary.
-
-The toolkit is not a menu of techniques. It is a map of _which lever moves which
-dial_. When you reach for a tool, you should know the axis it targets and the
-axis it likely costs.
-
----
-
-## 7. Asymmetric Trades: Conform, Delete, Atomicity
-
-Three asymmetric moves are powerful enough to deserve their own treatment.
+Three asymmetric moves are powerful enough to deserve their own treatment in the
+SKILL. Each violates naive "minimize-everywhere" intuition. Each accepts a local
+cost to win a larger global gain.
 
 **Conform over customize.** When a system has nine uniform components and one
 snowflake, the snowflake inflates D disproportionately — it is the reason
@@ -204,59 +141,25 @@ partial-failure documentation. The mistake is implementing the operation
 _without making this choice consciously_ — at which point the structural cost
 lands somewhere accidental and uncontrolled.
 
-These three trades are special because they all violate naive
-"minimize-everywhere" intuition. Each accepts a local cost — overengineering one
-component, removing useful functionality, accepting eventual rather than perfect
-consistency — to win a larger global gain.
-
 ---
 
-## 8. The Decision Protocol: Measurement as Discipline
+## 6. Measurement as discipline
 
-The protocol is the heart of the skill. It is deliberately mechanical:
-
-1. Model the structure before the change. Record (D₁, K₁, P₁, n₁).
-2. Model the structure after the change. Record (D₂, K₂, P₂, n₂).
-3. Compute the deltas.
-4. Classify the result:
-    - All axes improve or hold → proceed.
-    - Mixed → consult the trade-off matrix, apply asymmetric reasoning if it
-      applies.
-    - No axis improves while any worsens → reject or redesign.
-
-The mechanical nature is the point. Without the protocol, "this is simpler" is a
-feeling — and feelings are reliably partisan. With the protocol, "this is
-simpler" becomes a claim with a structure: it asserts specific values for ΔD,
-ΔK, ΔP, and Δn, and it can be challenged on any of them. The conversation moves
-from "I think this is cleaner" to "you reduced K by 0.3 but raised P from 4 to 6
-and added two parts — what was the net intent?"
+The decision protocol in the SKILL is deliberately mechanical. The mechanical
+nature is the point. Without the protocol, "this is simpler" is a feeling — and
+feelings are reliably partisan. With the protocol, "this is simpler" becomes a
+claim with a structure: it asserts specific values for ΔD, ΔK, ΔP, and Δn, and
+it can be challenged on any of them. The conversation moves from "I think this
+is cleaner" to "you reduced K by 0.3 but raised P from 4 to 6 and added two
+parts — what was the net intent?"
 
 This is the same shift that made other engineering disciplines mature: from
 intuition to instrumentation. You cannot improve what you do not measure. And in
 architecture, the thing to measure is not a scalar — it is the four-axis vector
 of structural complexity.
 
----
-
-## 9. Summary: What the Four-Axis Model Gives You
-
-| Property                        | Without four-axis model               | With four-axis model                      |
-| ------------------------------- | ------------------------------------- | ----------------------------------------- |
-| **"Simpler" claims**            | Unfalsifiable, partisan               | Specific deltas, debatable on the data    |
-| **Trade-off recognition**       | Hidden behind "cleaner" rhetoric      | Explicit per-axis costs and gains         |
-| **Hidden complexity (facades)** | Invisible — looks like simplification | Caught — actual P doesn't drop            |
-| **Refactor evaluation**         | Intuition-driven, individual taste    | Mechanical protocol with clear verdict    |
-| **Architectural debate**        | Loudest voice wins                    | Vector comparison, evidence-based         |
-| **Special-case cost**           | Localized to the case itself          | Multiplied across every axis it touches   |
-| **Snowflake components**        | Tolerated locally                     | Identified as global D-inflators          |
-| **Pure wins (deletions)**       | Indistinguishable from trade-offs     | Clearly visible as four-axis improvements |
-| **Discipline required**         | High — relies on judgment alone       | Low — protocol does the heavy lifting     |
-
 The model does not make architecture easier. It makes architecture _measurable_.
 The hard part — knowing where to cut, which axis to spend, what to delete —
 remains. But the conversation about whether a change is genuinely a
 simplification stops being a matter of opinion. It becomes a matter of
 arithmetic on a four-dimensional vector.
-
-That is the entire claim of the skill: **complexity has four dimensions, and any
-architectural decision that does not respect all four is gambling.**

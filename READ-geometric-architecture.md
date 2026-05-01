@@ -1,4 +1,10 @@
-# Geometric Architecture — In-Depth Explanation
+# Geometric Architecture — Companion
+
+> **Companion to [`SKILL.md`](./SKILL.md).** Read SKILL.md first — that is the
+> canonical operational reference (axes, faces, failure modes, lint rules,
+> rollout). This file argues _why_ the model is shaped the way it is, derives it
+> from first principles, and walks through a complete ESLint configuration. It
+> does not repeat definitions; it explains them.
 
 > **The core claim:** Spaghetti architecture is not a discipline problem. It is
 > a vocabulary problem. When a system has no spatial structure, every connection
@@ -8,7 +14,7 @@
 
 ---
 
-## 1. Why Software Rots: The Unconstrained Graph Problem
+## 1. Why software rots: the unconstrained graph problem
 
 Every software system is, at its root, a directed graph. Modules are nodes.
 Dependencies are edges. And in the default state — the state you get without
@@ -33,7 +39,7 @@ ones?**
 
 ---
 
-## 2. The Physical Analogy: Why Geometry Works
+## 2. The physical analogy: why geometry works
 
 Consider a physical building. Every room has a position. Connections between
 rooms — doors, windows, pipes, cables — are constrained by adjacency and
@@ -60,11 +66,11 @@ way a wall enforces separation between rooms.
 
 ---
 
-## 3. The Cellular Automaton: Locality as a First Principle
+## 3. The cellular automaton: locality as a first principle
 
-The locality rule this skill uses is taken directly from cellular automata — the
-computational model introduced by John von Neumann and popularized by Conway's
-Game of Life. In a cellular automaton:
+The locality rule the SKILL prescribes is taken directly from cellular automata
+— the computational model introduced by John von Neumann and popularized by
+Conway's Game of Life. In a cellular automaton:
 
 - The world is a grid of cells.
 - Each cell has a state.
@@ -78,216 +84,24 @@ operating on a two-dimensional grid with a six-word ruleset, can simulate a
 Turing machine. Complexity is not achieved by allowing long-range connections.
 It is achieved by **chaining short-range ones**.
 
-This is the insight that geometric architecture applies to software. A system
-does not need unrestricted coupling to be powerful. It needs **well-structured
-local coupling** that composes. The global behavior — the full capability of the
+This is the insight geometric architecture applies to software. A system does
+not need unrestricted coupling to be powerful. It needs **well-structured local
+coupling** that composes. The global behavior — the full capability of the
 system — emerges from the chain of face-adjacent interactions, not from
 individual components reaching across the entire graph.
 
 The benefit is not just cleanliness. It is **predictability**. In a cellular
 automaton, you can reason about a cell's behavior by looking at its six
 neighbors. You do not need to understand the entire grid. The same property
-holds in a geographically structured software system: you can reason about a
+holds in a geometrically structured software system: you can reason about a
 component by reading its six neighbors. The cognitive surface area is bounded by
 geometry, not by the size of the codebase.
 
 ---
 
-## 4. The Three Axes and What They Encode
+## 4. The cognitive benefit: bounded reasoning surface
 
-The grid is three-dimensional. Each axis encodes a distinct architectural
-concern. This is not arbitrary — the three concerns are orthogonal in the
-mathematical sense: changing position on one axis does not imply anything about
-position on the others.
-
-### Z — Depth (Environmental Layer)
-
-The Z-axis runs from **front** (consumer-facing) to **back** (infrastructure).
-It encodes how far a component is from the outside world. A REST handler sits at
-Z=0. An ORM sits at Z=3. A raw database connection sits at Z=4.
-
-This axis directly encodes the principle behind Clean Architecture and Hexagonal
-Architecture: **domain logic must not know about infrastructure**. In geometric
-terms: domain logic sits at some Z position, and infrastructure sits at a higher
-Z. For domain logic to depend on infrastructure, it would need to form a
-connection across multiple Z-layers — a direct violation of the locality rule.
-The geometry makes the violation visible and costly before a single line of code
-is written.
-
-The Z-axis also encodes **dependency direction**. Dependencies flow from front
-to back (Z increases). A connection that flows back-to-front is a direction
-violation — it means a lower-level component is reaching up to control a
-higher-level one, which is the classic inversion smell. The face role of the
-Back face (outward calls) and the Front face (inward interface) make this
-impossible to do accidentally: you would be connecting the wrong face to the
-wrong face, and the geometry flags it immediately.
-
-### X — Width (Domain / Bounded Context)
-
-The X-axis runs left to right and encodes **business domain**. A `billing`
-component sits at some X-position. `identity` sits at another. `inventory` at
-another. Components in the same domain share an X-column. Components in
-different domains occupy different columns.
-
-The locality rule on this axis directly produces Domain-Driven Design's bounded
-contexts. A component can only couple to the column immediately to its left or
-right. To reach a domain two columns away, the signal must propagate through the
-intermediate domain — or the intermediate domain must be refactored so that a
-shared neighbor is extracted at the boundary.
-
-This has a profound consequence for microservices. When each X-column becomes
-independently deployable, the locality rule _automatically defines the correct
-service boundaries_. You do not need to decide where to draw the microservice
-line. The geometry draws it for you: a service boundary sits between any two
-X-columns that have only face-to-face connections. No lateral jump, no shared
-database hidden beneath both domains — because the hidden shared database would
-be a violation.
-
-### Y — Height (Abstraction Level)
-
-The Y-axis runs from **top** (orchestrators, coordinators, use-case handlers) to
-**bottom** (primitives, utilities, pure functions). It encodes how abstract or
-foundational a component is.
-
-The locality rule on this axis prevents two classic failure modes. First, it
-prevents **god objects**: a component at Y=2 cannot directly reach Y=5 — it must
-delegate to Y=3, which delegates to Y=4, and so on. Each level has a limited,
-well-defined abstraction responsibility. Second, it prevents **upward
-coupling**: a utility function at Y=5 cannot reach up to an orchestrator at Y=1
-— that would require a face-direction violation (connecting Bottom face to
-Bottom face, or forming an upward Z-direction connection). Low-level components
-remain ignorant of the high-level world that uses them.
-
----
-
-## 5. The Six Faces: Directionality as a First-Class Constraint
-
-Most architectural models talk about coupling but not direction. The six-face
-model adds direction as a structural constraint, not a convention.
-
-Each face of a component's cell corresponds to one of the six possible
-connection directions. Each face has a fixed semantic role:
-
-- **Front** — the public interface that callers see. This is the only face
-  through which incoming calls are valid.
-- **Back** — the outward face for external calls, I/O, infrastructure access.
-- **Top** — receives orchestration from above (the use-case layer calls down).
-- **Bottom** — delegates to primitives below.
-- **Left / Right** — cross-domain communication at the same abstraction level.
-
-A connection is valid only when two matching faces connect: A's Back face
-connects to B's Front face. Any other combination is a direction violation.
-
-This is more powerful than it first appears. Consider the classic problem of
-circular dependencies: A depends on B and B depends on A. In geometric terms,
-A's Back face connects to B's Front face (valid), and B's Back face connects to
-A's Front face (valid in isolation). But together they form a cycle — a loop in
-the dependency graph. The face model catches this immediately: you cannot have
-both A→B and B→A without one of the connections traversing a face in the wrong
-direction. The geometry rules out cycles structurally.
-
-This is the same reason a physical building does not have circular pipe loops
-between rooms: the geometry of space makes it impossible to plumb from A to B
-and simultaneously from B to A without the pipe visibly crossing itself. In
-software, the face model provides the same self-crossing detection.
-
----
-
-## 6. How Geometry Prevents Spaghetti: A Precise Account
-
-Spaghetti architecture has several distinct failure modes. The geometry
-addresses each one through a different structural constraint:
-
-**Failure mode 1: Unrestricted long-range coupling.** Any component can import
-any other. Results in a fully connected graph with no discernible structure.
-_Geometric fix:_ Locality rule. Direct coupling costs distance. Long-range
-connections require naming and building every intermediate cell. The cost is
-legible and proportional to the architectural violation.
-
-**Failure mode 2: Circular dependencies.** A depends on B depends on C depends
-on A. Breaks build systems, prevents independent testing, makes change cascades
-unpredictable. _Geometric fix:_ Face directionality. Every connection has a
-direction encoded in which face it uses. Cycles require at least one connection
-to traverse a face in the wrong direction — a direction violation that is
-detectable before coding.
-
-**Failure mode 3: Layer violations.** A UI component imports from the database
-layer directly. A domain entity imports a logging framework. High-level policy
-depends on low-level detail. _Geometric fix:_ Z-axis + face roles. A UI
-component sits at Z=0; a database layer at Z=4. A direct connection is a Δ4 skip
-— an immediate violation. The back face of Z=0 connects only to Z=1. You cannot
-reach Z=4 without building through Z=1, Z=2, and Z=3.
-
-**Failure mode 4: God objects.** One class or service accumulates
-responsibilities across many concerns. Every other component depends on it. The
-graph converges on a single node. _Geometric fix:_ The god cell rule. A cell
-with all six faces occupied is a god object by definition. The face model makes
-the symptom immediately visible: count the faces. If all six are used,
-decompose. The geometry shows _which_ axis to decompose along: the axis with the
-most connections is the seam.
-
-**Failure mode 5: Hidden shared state.** Two domains secretly share a database,
-a global variable, or a singleton. They appear decoupled in the call graph but
-are tightly coupled through the shared state. _Geometric fix:_ The phantom
-neighbor rule. Hidden shared state is a phantom neighbor — a coupling that
-exists without a declared cell. Making it a real cell at a declared address
-forces it into the open. Now it has a position, a set of faces, and its
-connections are subject to the locality rule. The hidden coupling becomes an
-explicit component — and explicit components can be reasoned about, refactored,
-and replaced.
-
-**Failure mode 6: Semantic drift.** Over time, a module accumulates
-responsibilities that no longer match its name or position. The name says
-`UserService`, but it now handles billing, notifications, and audit logging. The
-graph topology tells the true story, but nobody reads graphs. _Geometric fix:_
-The single-address rule. A component that has drifted semantically will
-accumulate connections that pull it in multiple directions — toward different
-X-domains, different Y-levels, or different Z-layers simultaneously. These show
-up as diagonal connections or multi-axis violations. The geometry diagnoses
-drift early, before it becomes technical debt.
-
----
-
-## 7. What Emerges for Free
-
-The most important property of the geometric model is what it produces without
-explicit effort. When you enforce locality consistently, the following patterns
-appear as consequences — not as additional rules you have to remember and apply:
-
-**Clean / Hexagonal Architecture.** When Z-flow is strict (front-to-back only),
-domain logic is automatically isolated from infrastructure. The geometry
-produces the ports-and-adapters pattern without naming it.
-
-**Domain-Driven Design bounded contexts.** When X-columns are independent (no
-skips, no phantom neighbors), each column is a bounded context. The context
-boundary is the face between column X and column X+1. The geometry draws the
-boundary.
-
-**Microservice boundaries.** When X-columns are independently deployable, the
-locality rule defines correct service cuts. Services share only through their
-adjacent face — the interface boundary — and nothing beneath it.
-
-**Layered abstractions.** When Y-stratification is enforced (no orchestrator
-reaching directly to a primitive), abstraction levels are automatically
-respected. Each layer knows only the layer immediately below it.
-
-**Explicit dependency chains.** When long-range connections must propagate,
-every intermediate step becomes an explicit, named component. There are no
-hidden paths through the graph. The chain from consumer to infrastructure is
-always fully visible in the grid.
-
-These are not aspirational outcomes that require additional architectural
-effort. They are **geometric consequences** — they appear automatically when the
-locality rule is followed. The architecture improves not because developers are
-more disciplined, but because the grid makes the correct structure the path of
-least resistance.
-
----
-
-## 8. The Cognitive Benefit: Bounded Reasoning Surface
-
-The final benefit is the one that matters most at scale: **bounded cognitive
-surface**.
+The benefit that matters most at scale is **bounded cognitive surface**.
 
 In a fully connected graph of N components, understanding any one component
 requires potentially understanding all N. The cognitive surface scales with the
@@ -314,91 +128,211 @@ the system** — and at scale, that is the constraint that matters most.
 
 ---
 
-## 9. Mechanical Enforcement: From Mental Model to Lint
+## 5. Worked example: a complete ESLint configuration
 
-The grid is a thinking tool — but a useful subset of it can be turned into a
-_checking_ tool. ESLint does not understand "address" or "Manhattan distance,"
-but it understands file paths, import statements, and AST nodes. That is enough
-to make the locality rule self-enforce on the parts that matter most.
+The SKILL summarizes which lint mechanisms map to which geometric rule. This
+section walks through a working setup end-to-end. A complete config has three
+layers, each answering one question.
 
-### What lint can enforce
+### Layer 1 — define the cells
 
-| Geometric rule                                                       | Lint mechanism                                                             | Tool                       |
-| -------------------------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------- |
-| Coupling restricted to face-adjacent neighbors                       | `boundaries/dependencies` with `from`/`disallow`                           | `eslint-plugin-boundaries` |
-| External code must use the engine facade, not internal tiers         | Declare each tier as an element; disallow imports from outside the engine  | `eslint-plugin-boundaries` |
-| Y-stratified tiers (lower may not import higher)                     | One disallow rule per tier                                                 | `eslint-plugin-boundaries` |
-| External SDKs reachable only via their wrapping cells                | `no-restricted-imports` with `paths` + per-file overrides for the wrappers | ESLint built-in            |
-| Dynamic import path must be a literal (no runtime-computed coupling) | `no-restricted-syntax` matching `ImportExpression[source.type!="Literal"]` | ESLint built-in            |
-| Tests not imported by production                                     | Dependencies rule disallowing `test` from prod elements                    | `eslint-plugin-boundaries` |
+Every cell becomes an _element_: a name plus a glob that matches its files. Most
+plugins resolve files first-match-wins, so list specific patterns before
+catch-alls. Use a `*` capture in the glob to turn a path segment into a
+matchable attribute — that is what makes X-axis (domain) rules expressible
+without enumerating every domain by hand.
 
-The pattern: each cell becomes an _element_ (a glob), and the directional rules
-become `disallow` lists between element types. A wormhole — A→C skipping B —
-surfaces as a glob of A trying to import a glob of C that the rule forbids.
+```js
+settings: {
+    'boundaries/elements': [
+        // Z-axis: depth (front → back). Listed front-to-back for clarity.
+        { type: 'controller', pattern: 'src/controllers/**' },
+        { type: 'service',    pattern: 'src/services/**' },
+        { type: 'repository', pattern: 'src/repositories/**' },
 
-### What lint cannot enforce
+        // Y-axis: stratified engine. The facade is `mode: 'file'` so the
+        // single entry point is distinguishable from its internals.
+        { type: 'engine-facade', pattern: 'src/engine/index.ts', mode: 'file' },
+        { type: 'engine-tier1',  pattern: 'src/engine/tier1/**' },
+        { type: 'engine-tier2',  pattern: 'src/engine/tier2/**' },
+        { type: 'engine-tier3',  pattern: 'src/engine/tier3/**' },
 
-Three classes of geometric truth stay out of reach:
+        // X-axis: domains. The `*` captures the folder name; the rule
+        // below uses `captured.name` to compare two domains.
+        { type: 'domain', pattern: 'src/domains/*/**', capture: ['name'] },
+    ],
+},
+```
 
-1. **Address quality.** Lint cannot judge whether a component is _placed
-   correctly_. It only checks the consequences of placement. A component placed
-   at the wrong (X, Y, Z) may still pass lint because its imports happen to fit
-   the rule for its declared zone. Address quality is a review-time judgment.
-2. **Behavioral coupling.** A pub/sub bus, a runtime registry, an event
-   listener, or a global window can connect two cells without a static `import`
-   statement. Lint sees no edge; the geometric model still recognizes one.
-   Detection requires runtime tooling or convention.
-3. **Face roles beyond direction.** Lint can express "A may import B." It cannot
-   express "A's _Back_ face connects to B's _Front_ face." The directional
-   semantics live in the human mental model, not in glob rules.
+### Layer 2 — express direction and locality
 
-### How to roll it out without breaking the build
+A geometric rule is a `from → disallow.to` relation. Group rules by axis so
+violation messages stay legible.
 
-A complete rule set will catch real violations on first run. Promoting them all
-to `error` immediately turns the dependency-guard rollout into a
-mass-merge-block event. Two-phase rollout works better:
+```js
+rules: {
+    'boundaries/dependencies': [
+        'warn', // start as `warn`; promote per rule once violations clear
+        {
+            default: 'allow',
+            rules: [
+                // Z-axis: controller may not skip the service layer.
+                {
+                    from: { type: 'controller' },
+                    disallow: { to: { type: 'repository' } },
+                    message: 'Z-skip: route the call through a service.',
+                },
 
-1. **Phase 1 — warnings.** Add every rule at `warn`. Lint exits zero, CI passes,
-   violations become visible. The team sees which cells are misplaced.
-2. **Phase 2 — promotion.** As each rule's existing violations are resolved (or
-   accepted with explicit overrides), flip that rule to `error`. Promote one
-   rule at a time so each promotion is a small, reviewable PR.
+                // Y-axis: lower engine tiers may not import higher ones.
+                {
+                    from: { type: 'engine-tier1' },
+                    disallow: {
+                        to: { type: ['engine-tier2', 'engine-tier3', 'engine-facade'] },
+                    },
+                    message: 'tier1 is foundation; it cannot reach upward.',
+                },
 
-A rule that starts as `error` on a green codebase enforces forever. A rule that
-starts as `error` on a codebase with twenty violations gets disabled the first
-time someone needs to merge.
+                // External callers reach the facade, not the internals.
+                {
+                    from: { type: ['controller', 'service'] },
+                    disallow: {
+                        to: { type: ['engine-tier1', 'engine-tier2', 'engine-tier3'] },
+                    },
+                    message: 'Use the facade; do not reach into engine internals.',
+                },
 
-### Where the configuration lives
+                // X-axis: each domain is isolated. The capture comparison
+                // says "A may not import B when their captured names differ."
+                {
+                    from: { type: 'domain', captured: { name: '*' } },
+                    disallow: {
+                        to: {
+                            type: 'domain',
+                            captured: { name: '!{{from.captured.name}}' },
+                        },
+                    },
+                    message:
+                        'Cross-domain: {{from.captured.name}} → {{to.captured.name}}. Extract a shared neighbor.',
+                },
+            ],
+        },
+    ],
+},
+```
 
-In practice, lint enforcement lives in `eslint.config.js` (or `.eslintrc`) at
-the repo root. Each tier or layer of the geometric model becomes an _element_
-glob; rules express directional constraints between them. Build tooling —
-directory-walking validators, ESM-from-CJS configs, codegen scripts — should
-be excluded from the dependency rules because computed paths are legitimate
-there.
+### Layer 3 — lock external boundaries
 
-The geometric model is the _why_. The lint config is the _how_. The two should
-be read together: when a rule fires, it is not the lint catching a typo — it is
-the geometry refusing a connection.
+Two ESLint built-ins close the holes the boundaries plugin cannot.
+`no-restricted-imports` pins each external SDK to exactly one wrapper cell.
+`no-restricted-syntax` blocks runtime-computed imports and direct call-site
+escape hatches (e.g. `fetch()` from a presentation cell that should call its
+service neighbor instead).
+
+```js
+// SDK lockdown: only the declared wrapper imports the package.
+{
+    files: ['**/*.{js,ts}'],
+    rules: {
+        'no-restricted-imports': [
+            'error',
+            {
+                paths: [
+                    { name: 'pg',    message: 'Use repositories/db-client.ts.' },
+                    { name: 'redis', message: 'Use repositories/cache-client.ts.' },
+                ],
+            },
+        ],
+    },
+},
+// The wrapper exempts itself.
+{
+    files: ['src/repositories/db-client.ts'],
+    rules: { 'no-restricted-imports': 'off' },
+},
+
+// Dynamic imports with a non-literal path defeat static analysis.
+{
+    files: ['src/**/*.{js,ts}'],
+    rules: {
+        'no-restricted-syntax': [
+            'error',
+            {
+                selector: 'ImportExpression[source.type!="Literal"]',
+                message: 'Dynamic import path must be a string literal.',
+            },
+        ],
+    },
+},
+
+// Call-site discipline: ban network calls from cells that should delegate.
+{
+    files: ['src/views/**', 'src/components/**'],
+    rules: {
+        'no-restricted-syntax': [
+            'warn',
+            {
+                selector: "CallExpression[callee.name='fetch']",
+                message: 'Z-skip: call a service neighbor instead of fetch().',
+            },
+        ],
+    },
+},
+```
+
+Build tooling and validation scripts that legitimately use computed paths or
+reach into SDKs (directory walkers, codegen, test harnesses) need an explicit
+exemption block — list them in `files` and turn the relevant rule `off`.
 
 ---
 
-## 10. Summary: What the Geometry Gives You
+## 6. Reading a violation
 
-| Property                  | Without geometry                        | With geometry                                                   |
-| ------------------------- | --------------------------------------- | --------------------------------------------------------------- |
-| **Coupling vocabulary**   | All connections equally expressible     | Long-range connections are harder and more expensive to express |
-| **Circular dependencies** | Possible anywhere, caught only by tools | Ruled out structurally by face directionality                   |
-| **Layer violations**      | Caught only by convention or review     | Visible as ΔZ violations before code is written                 |
-| **God objects**           | Identified by counting responsibilities | Identified by counting occupied faces                           |
-| **Hidden shared state**   | Invisible until it breaks               | Must become a named cell subject to locality                    |
-| **Semantic drift**        | Diagnosed by reading all imports        | Diagnosed by multi-axis violations in the grid                  |
-| **Clean Architecture**    | Must be explicitly imposed and enforced | Emerges from Z-axis locality                                    |
-| **Bounded contexts**      | Must be explicitly drawn and documented | Emerge from X-axis locality                                     |
-| **Reasoning surface**     | Grows with the system                   | Constant: at most six neighbors                                 |
-| **Discipline required**   | High — relies on humans, reviews, wikis | Low — the grid resists bad connections structurally             |
+A violation message tells you what the geometry sees. Translate it back to the
+model and the fix becomes obvious:
 
-The geometry is not a diagram you draw once and hang on a wall. It is a living
-coordinate system in which every design decision has a position, every
-connection has a direction, and every violation has a measurable distance. The
-architecture is not described by the geometry. **It is the geometry.**
+| Lint message                                                | Geometric reading              | Standard fix                                             |
+| ----------------------------------------------------------- | ------------------------------ | -------------------------------------------------------- |
+| `from: controller, to: repository, disallow`                | Z-skip (wormhole through Z)    | Add or use the intermediate service cell                 |
+| `from: tier1, to: tier3, disallow`                          | Y-skip (layer skip)            | Split tier1 or fix the tier boundary                     |
+| `from: domain (name=billing), to: domain (name=invoice)`    | Cross-domain X-edge            | Extract a shared neighbor on the X-boundary              |
+| `no-restricted-imports: 'pg'`                               | SDK wormhole                   | Route through the declared wrapper cell                  |
+| `no-restricted-syntax: ImportExpression`                    | Hidden edge (runtime coupling) | Replace with a static registry of factories              |
+| `no-restricted-syntax: CallExpression[callee.name='fetch']` | Call-site Z-skip               | Move the call into a service; the cell delegates instead |
+
+When a rule fires, it is not the lint catching a typo — it is the geometry
+refusing a connection.
+
+---
+
+## 7. Resolver gotchas
+
+The boundaries plugin is only as good as its module resolver. Three things are
+silently invisible to it unless configured:
+
+- **TypeScript imports without an explicit extension** (`from './foo'` resolving
+  to `foo.ts`). Install `eslint-import-resolver-typescript` and register it
+  under `settings['import/resolver']`. Without this, every extension-less TS
+  edge is a phantom — the rule never sees it.
+- **Absolute paths used at runtime** (`from '/js/foo.js'` served from a static
+  site root). The plugin treats these as filesystem-root paths and finds
+  nothing. Either configure an alias resolver or normalize source files to
+  relative imports.
+- **Path aliases from `tsconfig.json`** (`@/services/foo`). The TS resolver
+  above also reads `tsconfig.json` `paths` — but only when wired in.
+
+If a known violation does not surface, suspect the resolver before the rule.
+
+---
+
+## 8. A caution: lint flags edges, not value
+
+The lint plugin sees every disallowed edge as equally bad. The geometry does
+not. A rule that fires on a routine, single-use call wrapped behind a thin
+service can flag _ceremony_ rather than a real wormhole. Before promoting a rule
+to `error`, ask: does the violation describe coupling that will hurt at scale,
+or does the rule force every call into a wrapper whose body is a single
+passthrough? Locality is about the coupling vocabulary, not about an abstraction
+quota. If extracting a cell to satisfy the rule produces a service file with one
+function and no logic, the rule is over-fitting — narrow the glob, lower the
+severity, or accept the inline call where the destination is genuinely a
+one-of-one.
