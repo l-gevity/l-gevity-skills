@@ -11,6 +11,7 @@
   "license": "MIT",
   "author": "L-GEVITY",
   "files": [
+    "architecture-as-code-javascript/",
     "architecture-guidelines/",
     "ci-cd-reliability-architecture/",
     "continuous-improvement/",

@@ -23,6 +23,7 @@ apply to any software project — not just ours.
 
 | Skill | Description |
 | :---- | :---------- |
+| [architecture-as-code-javascript](./architecture-as-code-javascript/SKILL.md) | JavaScript/ESLint mechanism for declaring and enforcing component boundaries via `eslint.architecture.mjs` files in the source tree. Each module declares its own internals; rules merge recursively into one ESLint flat-config rule set. Turns implicit architecture into lint-time enforcement. |
 | [architecture-guidelines](./architecture-guidelines/SKILL.md) | Core architectural principles: consistency, minimalism, reliability, and traceability. Use when designing or modifying any system component. |
 | [ci-cd-reliability-architecture](./ci-cd-reliability-architecture/SKILL.md) | Idempotency, self-containment, immutable artifacts, self-healing, zero-downtime, and zero-knowledge security for CI/CD pipelines. |
 | [continuous-improvement](./continuous-improvement/SKILL.md) | Meta-learning protocol for evolving skills based on user feedback and root-cause analysis. |
@@ -34,11 +35,12 @@ apply to any software project — not just ours.
 
 ### In-depth explanations
 
-For three of the skills, a longer essay accompanies the SKILL spec — useful
+For some of the skills, a longer essay accompanies the SKILL spec — useful
 when you want the reasoning, not just the rules:
 
 | Essay | Companion to |
 | :---- | :----------- |
+| [READ-architecture-as-code-javascript](./READ-architecture-as-code-javascript.md) | `architecture-as-code-javascript` — strategic guide: why move architecture rules from implicit agreements to enforced code, what it solves, and how it scales. |
 | [READ-geometric-architecture](./READ-geometric-architecture.md) | `geometric-architecture` — why locality is a first principle, what emerges for free, and how to encode the rules as ESLint boundaries. |
 | [READ-structural-simplification](./READ-structural-simplification.md) | `structural-simplification` — the deeper "why" behind the framework. |
 | [READ-system-optimization](./READ-system-optimization.md) | `system-optimization` — extended rationale for Lean/TOC/DevOps integration. |
