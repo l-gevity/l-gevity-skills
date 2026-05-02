@@ -22,8 +22,6 @@ description: >-
 Place every component at an address `(X, Y, Z)` in a 3-D grid; allow coupling
 only to face-adjacent neighbors. The medium itself resists long-range and cyclic
 connections — the way a building's geometry resists impossible plumbing.
-Locality is taken from cellular automata: complex global behavior emerges from
-chained short-range coupling, so no node ever needs to reach across the graph.
 
 ## 1. Three axes (orthogonal concerns)
 
