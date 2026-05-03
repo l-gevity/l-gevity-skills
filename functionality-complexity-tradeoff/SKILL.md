@@ -18,7 +18,7 @@ description: >-
     or generality without instantiation.
 ---
 
-# Functionality–Complexity Tradeoff
+# Functionality pruner
 
 > This skill governs **decisions about whether functionality justifies its
 > existence**. It runs in two stages: a **necessity gate** (does the problem
