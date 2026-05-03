@@ -1,6 +1,6 @@
 ---
 name: functionality-pruner
-description:
+description: >-
     A first-principles framework for deciding whether a piece of functionality
     is (a) addressing a problem that exists in this context and (b) worth its
     complexity cost. Applies to two modes: prospective (should we build this?)
