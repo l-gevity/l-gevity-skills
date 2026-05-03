@@ -56,15 +56,16 @@ execution requires rollback.
 Before adding any check at Stage ≥1, ask: _can a type or schema make this defect
 unrepresentable?_ If yes, the check belongs at Stage 0.
 
-| Technique                       | Eliminates                       |
-| ------------------------------- | -------------------------------- |
-| Strong / branded types          | Type confusion, semantic mixing  |
-| Sum types + exhaustive matching | Missing case, silent fallthrough |
-| Option / Result types           | Null deref, silent failure       |
-| Refinement types                | Range, off-by-one                |
-| Linear / affine types           | Use-after-free, double-close     |
-| Schema-as-code                  | Config drift, contract mismatch  |
-| Const / immutable default       | Accidental mutation, race        |
+| Technique                                                                                    | Eliminates                                                                                     |
+| -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Strong / branded types                                                                       | Type confusion, semantic mixing                                                                |
+| Sum types + exhaustive matching                                                              | Missing case, silent fallthrough                                                               |
+| Option / Result types                                                                        | Null deref, silent failure                                                                     |
+| Refinement types                                                                             | Range, off-by-one                                                                              |
+| Linear / affine types                                                                        | Use-after-free, double-close                                                                   |
+| Schema-as-code                                                                               | Config drift, contract mismatch                                                                |
+| Const / immutable default                                                                    | Accidental mutation, race                                                                      |
+| Strict compiler flags (`strict`, `noUncheckedIndexedAccess`, `strictNullChecks`, `--strict`) | Whole defect classes without writing new types — flip a flag, the compiler enumerates the gaps |
 
 ---
 
@@ -167,13 +168,124 @@ currently at Stage [Y]. Mechanism: [...]."_
 
 ---
 
-## 7. Stack-Aware Tooling Survey
+## 7. Common Shift Patterns
+
+Recurring moves that shift a defect class from a later stage to an earlier one.
+Recognise them; apply them deliberately.
+
+### 7.1 Untyped → strict-typed source
+
+|            |                                                                                       |
+| ---------- | ------------------------------------------------------------------------------------- |
+| **Shifts** | Type errors, null deref, registry-shape drift, silent `undefined` from bracket access |
+| **From**   | Stage 6+ (unit test) or Stage 10 (production)                                         |
+| **To**     | Stage 0 (type system)                                                                 |
+
+Convert source to a language with a checking compiler (JS → TS, Python → typed
+Python under `mypy`/`pyright`, Ruby → RBS/Sorbet). Then progressively enable the
+strictest flags — `strict`, `noUncheckedIndexedAccess`, `strictNullChecks` — and
+retire every `@ts-nocheck` / `# type: ignore` escape hatch. Each flag flip is
+its own shift: the compiler enumerates the defects, you fix them in batches.
+
+The shift completes only when the strict typecheck is a **blocking gate** at
+both pre-commit (fast feedback on staged files) and CI (full-repo backstop). A
+typecheck nobody runs is theatre — see §7.4.
+
+### 7.2 ADR → executable architectural rule
+
+|            |                                                                                            |
+| ---------- | ------------------------------------------------------------------------------------------ |
+| **Shifts** | Forbidden imports, layering violations, banned API usage, accidental cross-module coupling |
+| **From**   | Stage 1 (design doc) or Stage 7+ (code review)                                             |
+| **To**     | Stage 5 (static analysis)                                                                  |
+
+Architectural rules expressed in prose are advice; rules expressed in lint
+config are enforcement. `eslint-plugin-boundaries`,
+`import/no-restricted- paths`, `dependency-cruiser`, ArchUnit (JVM), Pyright
+import rules — all turn an ADR sentence into a build failure.
+
+The recipe: encode each architectural decision as a rule that fails the build
+when violated. The ADR document remains as rationale; the lint config is the
+enforcement.
+
+For the in-repo implementation see `architecture-as-code-javascript`,
+`architecture-guidelines` (first principles), and `geometric-architecture`
+(spatial rationale).
+
+### 7.3 Hand-validated boundary → schema-as-code
+
+|            |                                                                                                            |
+| ---------- | ---------------------------------------------------------------------------------------------------------- |
+| **Shifts** | Config drift, API contract mismatch, malformed input, doc-vs-reality skew                                  |
+| **From**   | Stage 6+ (hand-rolled `if`-chain validators) or Stage 10 (runtime parse errors, prose-as-contract)         |
+| **To**     | Stage 0 (codegen), Stage 2 (editor), Stage 5 (build), Stage 8a (deploy) — **one artifact, multiple rungs** |
+
+Schemas are the highest-leverage shift in this catalogue because the same
+artifact powers checks at every stage that can read it:
+
+- **Stage 0** — codegen produces static types: JSON Schema →
+  `json-schema-to-typescript`; OpenAPI → server / client stubs; Protobuf → typed
+  clients; XSD → C# / Java classes.
+- **Stage 2** — editor schemas drive autocomplete and inline validation for
+  hand-edited files (`$schema` in JSON, `xsi:schemaLocation` in XML, YAML
+  language server hints).
+- **Stage 5** — CI validates committed files against the schema (`ajv`,
+  `xmllint`, `spectral` for OpenAPI, `buf lint` for Protobuf).
+- **Stage 8a** — pre-deploy gate rejects config that does not match the schema
+  before it reaches a running service.
+- **Boundary runtime** — schema-bridged TS libraries (`zod`, `typebox`, `io-ts`,
+  `valibot`) make the schema the single source: static type plus runtime
+  validator generated from one declaration. Use at every external- input
+  boundary (HTTP body, env vars, message payload).
+
+Catalogue: JSON Schema (configs, `package.json`), OpenAPI (HTTP), gRPC /
+Protobuf (service-to-service), GraphQL SDL, AsyncAPI (events), Avro (streaming),
+XSD (XML / SOAP).
+
+The win is not _"we validate"_ — it is _"validation comes from a single artifact
+that fans out to every appropriate stage."_ Two checks for the same shape from
+two hand-written sources is exactly the layering §Directive 3 forbids; one
+schema is the antidote.
+
+### 7.4 Optional check → blocking gate
+
+|            |                                                 |
+| ---------- | ----------------------------------------------- |
+| **Shifts** | The check itself, from advisory to enforced     |
+| **From**   | Stage where the check exists but does not block |
+| **To**     | Same stage, now a gate                          |
+
+The most common shift-left failure is having the right check at the right stage
+and not making it block. A typecheck run as a manual `npm run` command has zero
+shift-left value relative to no typecheck at all. Audit:
+
+- Pre-commit hook fails → does it block the commit, or just print?
+- CI job fails → does branch protection require it before merge?
+- Lint warning → is the rule severity `error` or `warn`?
+- Coverage drop → does it fail the build, or land in a report nobody opens?
+
+### Layering exception: scope-justified defense-in-depth
+
+§Directive 3 says _"replace, don't layer."_ The exception is when two layers run
+the same check on different scopes:
+
+- **Pre-commit** — staged files only, fast, narrow, bypassable with
+  `--no-verify`.
+- **CI** — full repo, slow, complete, un-bypassable behind branch protection.
+
+Both are warranted: different blast radii (single commit vs. branch), different
+bypass costs. Layering pays when the earlier layer is faster _and_ bypassable —
+the later layer is the un-bypassable backstop, not a duplicate.
+
+---
+
+## 8. Stack-Aware Tooling Survey
 
 The ladder is universal; the tools that staff each rung are not. When auditing
 or designing a pipeline, derive the toolset from the project's actual stack — do
 not assume one. Names go stale; categories do not.
 
-### 7.1 Detect the stack
+### 8.1 Detect the stack
 
 Inspect, in order, only what exists:
 
@@ -192,7 +304,7 @@ Inspect, in order, only what exists:
 
 Record what is present. Record what is absent — absence is the gap.
 
-### 7.2 Map stages to tool categories
+### 8.2 Map stages to tool categories
 
 For each ladder stage, the survey asks _what category of tool belongs here_,
 never _which specific tool_:
@@ -213,7 +325,7 @@ never _which specific tool_:
 | **10** | Runtime monitoring, error tracker, SLO alerting                   |
 | **11** | Incident-record system, RCA template                              |
 
-### 7.3 Find stack-compatible options
+### 8.3 Find stack-compatible options
 
 For every stage where a category is unstaffed in the detected stack:
 
@@ -228,7 +340,7 @@ For every stage where a category is unstaffed in the detected stack:
 4. **Cite each candidate** with its source URL and last-release signal so the
    user can verify currency.
 
-### 7.4 Output
+### 8.4 Output
 
 Produce a survey table — one row per stage that has a gap:
 
