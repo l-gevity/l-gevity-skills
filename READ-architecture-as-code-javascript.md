@@ -1,6 +1,6 @@
 # Architecture-as-Code
 
-A build step that enforces your architectural rules. You declare which modules may import from which; violations fail the build.
+A build step that enforces your architectural rules (the dependency graph). You declare which modules may import from which; violations fail the build.
 
 ```
 Before:  Code review (24h later) — "Components shouldn't import services directly"
