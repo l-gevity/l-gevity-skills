@@ -32,77 +32,43 @@ plain-English overview).
 
 ### Architectural foundations — *what should the system look like?*
 
-- **[architecture-guidelines](./architecture-guidelines/SKILL.md)** —
-  ([primer](../documentation/READ-architecture-guidelines.md)) A
-  first-principles ruleset for module design. Minimalism, modularity,
-  functional core, resilience, naming, concurrency — the things every module
-  decision should test against before code is written.
-
-- **[geometric-architecture](./geometric-architecture/SKILL.md)** —
-  ([primer](../documentation/READ-geometric-architecture.md)) A 3-D spatial
-  coordinate system for your dependency graph. Every component gets an
-  address `(X, Y, Z)` and may only couple to face-adjacent neighbors;
-  long-range and cyclic dependencies become structurally hard to express — the
-  way a building's geometry resists impossible plumbing.
+| Skill | Description |
+| :---- | :---------- |
+| [architecture-guidelines](./architecture-guidelines/SKILL.md) ([primer](../documentation/READ-architecture-guidelines.md)) | A first-principles ruleset for module design. Minimalism, modularity, functional core, resilience, naming, concurrency — the things every module decision should test against before code is written. |
+| [geometric-architecture](./geometric-architecture/SKILL.md) ([primer](../documentation/READ-geometric-architecture.md)) | A 3-D spatial coordinate system for your dependency graph. Every component gets an address `(X, Y, Z)` and may only couple to face-adjacent neighbors; long-range and cyclic dependencies become structurally hard to express — the way a building's geometry resists impossible plumbing. |
 
 ### Architectural enforcement — *how do we make the rules stick?*
 
-- **[architecture-as-code-javascript](./architecture-as-code-javascript/SKILL.md)**
-  — ([primer](../documentation/READ-architecture-as-code-javascript.md)) A
-  build step that enforces your architectural rules (the dependency graph).
-  You declare which modules may import from which; violations fail the build.
-
-- **[architecture-as-code-python](./architecture-as-code-python/SKILL.md)** —
-  ([primer](../documentation/READ-architecture-as-code-python.md)) A build
-  step that enforces your architectural rules in Python. You declare which
-  packages may import from which via per-package `architecture.toml` files; an
-  assembler turns them into `import-linter` contracts and the build fails on
-  violations.
+| Skill | Description |
+| :---- | :---------- |
+| [architecture-as-code-javascript](./architecture-as-code-javascript/SKILL.md) ([primer](../documentation/READ-architecture-as-code-javascript.md)) | A build step that enforces your architectural rules (the dependency graph). You declare which modules may import from which; violations fail the build. |
+| [architecture-as-code-python](./architecture-as-code-python/SKILL.md) ([primer](../documentation/READ-architecture-as-code-python.md)) | A build step that enforces your architectural rules in Python. You declare which packages may import from which via per-package `architecture.toml` files; an assembler turns them into `import-linter` contracts and the build fails on violations. |
 
 ### Pipeline reliability — *how do we catch defects early and ship safely?*
 
-- **[defect-shift-left](./defect-shift-left/SKILL.md)** —
-  ([primer](../documentation/READ-defect-shift-left.md)) A pipeline-design
-  SKILL that places every defect-detection check at the earliest stage it can
-  technically run. The cost of catching a defect grows geometrically with
-  stage; catching it later is always a regression.
-
-- **[ci-cd-reliability-architecture](./ci-cd-reliability-architecture/SKILL.md)**
-  — ([primer](../documentation/READ-ci-cd-reliability-architecture.md)) A
-  pipeline-design SKILL for builds and deployments that are safe to run any
-  number of times, build artifacts once, deploy without downtime, and
-  authenticate without storing secrets.
+| Skill | Description |
+| :---- | :---------- |
+| [defect-shift-left](./defect-shift-left/SKILL.md) ([primer](../documentation/READ-defect-shift-left.md)) | A pipeline-design SKILL that places every defect-detection check at the earliest stage it can technically run. The cost of catching a defect grows geometrically with stage; catching it later is always a regression. |
+| [ci-cd-reliability-architecture](./ci-cd-reliability-architecture/SKILL.md) ([primer](../documentation/READ-ci-cd-reliability-architecture.md)) | A pipeline-design SKILL for builds and deployments that are safe to run any number of times, build artifacts once, deploy without downtime, and authenticate without storing secrets. |
 
 ### Complexity & worth — *is this complexity earning its keep?*
 
-- **[structural-simplification](./structural-simplification/SKILL.md)** —
-  ([primer](../documentation/READ-structural-simplification.md)) Most refactors
-  claim to simplify; most just relocate complexity. A four-axis vector —
-  diversity, coupling, depth, parts — turns "simpler" from a feeling into a
-  falsifiable claim.
-
-- **[functionality-complexity-tradeoff](./functionality-complexity-tradeoff/SKILL.md)**
-  — ([primer](../documentation/READ-functionality-complexity-tradeoff.md)) A
-  first-principles SKILL for deciding whether a piece of functionality is
-  worth keeping or building. Two stages: a *necessity gate* ("does the problem
-  this code addresses actually occur in this stack?") followed by a *worth
-  ledger* ("does the value justify the cost?").
+| Skill | Description |
+| :---- | :---------- |
+| [structural-simplification](./structural-simplification/SKILL.md) ([primer](../documentation/READ-structural-simplification.md)) | Most refactors claim to simplify; most just relocate complexity. A four-axis vector — diversity, coupling, depth, parts — turns "simpler" from a feeling into a falsifiable claim. |
+| [functionality-complexity-tradeoff](./functionality-complexity-tradeoff/SKILL.md) ([primer](../documentation/READ-functionality-complexity-tradeoff.md)) | A first-principles SKILL for deciding whether a piece of functionality is worth keeping or building. Two stages: a *necessity gate* ("does the problem this code addresses actually occur in this stack?") followed by a *worth ledger* ("does the value justify the cost?"). |
 
 ### System flow — *is the work itself the right work?*
 
-- **[system-optimization](./system-optimization/SKILL.md)** —
-  ([primer](../documentation/READ-system-optimization.md)) Most optimization
-  effort makes systems worse — because it speeds up the wrong thing, in the
-  wrong order, at the wrong time. The correct sequence: question, delete,
-  simplify, speed up, automate.
+| Skill | Description |
+| :---- | :---------- |
+| [system-optimization](./system-optimization/SKILL.md) ([primer](../documentation/READ-system-optimization.md)) | Most optimization effort makes systems worse — because it speeds up the wrong thing, in the wrong order, at the wrong time. The correct sequence: question, delete, simplify, speed up, automate. |
 
 ### Meta-layer — *how do the skills themselves improve?*
 
-- **[continuous-improvement](./continuous-improvement/SKILL.md)** —
-  ([primer](../documentation/READ-continuous-improvement.md)) A protocol for
-  updating SKILL files when the agent makes a mistake. Trace each correction
-  to its root cause; prefer a test or linter over a written rule; shrink the
-  file before you grow it.
+| Skill | Description |
+| :---- | :---------- |
+| [continuous-improvement](./continuous-improvement/SKILL.md) ([primer](../documentation/READ-continuous-improvement.md)) | A protocol for updating SKILL files when the agent makes a mistake. Trace each correction to its root cause; prefer a test or linter over a written rule; shrink the file before you grow it. |
 
 ## How the skills compose
 
