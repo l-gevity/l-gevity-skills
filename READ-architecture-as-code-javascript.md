@@ -2,11 +2,6 @@
 
 A build step that enforces your architectural rules (the dependency graph). You declare which modules may import from which; violations fail the build.
 
-```
-Before:  Code review (24h later) — "Components shouldn't import services directly"
-After:   Build fails  (2s)        — "Components are presentation; use the event bridge instead"
-```
-
 ## Why use this
 
 - **Architectural violations are caught at build time**, not days later in review.
