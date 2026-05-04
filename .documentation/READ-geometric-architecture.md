@@ -2,11 +2,6 @@
 
 A 3-D spatial coordinate system for your dependency graph. Every component gets an address `(X, Y, Z)` and may only couple to face-adjacent neighbors; long-range and cyclic dependencies become structurally hard to express — the way a building's geometry resists impossible plumbing.
 
-```
-Before:  Controller imports Repository directly — service layer silently bypassed.
-After:   Build refuses the import: "Z-skip — route the call through a service."
-```
-
 ## Why use this
 
 - **Long-range coupling becomes structurally hard to express.** The grid resists wormholes the way a building resists pipes that jump three floors.
