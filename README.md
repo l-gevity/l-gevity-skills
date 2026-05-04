@@ -30,45 +30,77 @@ Each skill ships as a `SKILL.md` (the operational reference) paired with a
 `READ-<skill>.md` primer in [`../documentation/`](../documentation/) (the
 plain-English overview).
 
-### Architectural foundations — *what should the system look like?*
+## Architectural foundations — *what should the system look like?*
 
-| Skill | Description |
-| :---- | :---------- |
-| [architecture-guidelines](./architecture-guidelines/SKILL.md) ([primer](../documentation/READ-architecture-guidelines.md)) | A first-principles ruleset for module design. Minimalism, modularity, functional core, resilience, naming, concurrency — the things every module decision should test against before code is written. |
-| [geometric-architecture](./geometric-architecture/SKILL.md) ([primer](../documentation/READ-geometric-architecture.md)) | A 3-D spatial coordinate system for your dependency graph. Every component gets an address `(X, Y, Z)` and may only couple to face-adjacent neighbors; long-range and cyclic dependencies become structurally hard to express — the way a building's geometry resists impossible plumbing. |
+### First principles for module design
 
-### Architectural enforcement — *how do we make the rules stick?*
+| Name | Readme | Use it to |
+| :--- | :----- | :-------- |
+| [architecture-guidelines](./architecture-guidelines/SKILL.md) | [READ-architecture-guidelines.md](../documentation/READ-architecture-guidelines.md) | Test every module decision — minimalism, modularity, functional core, resilience, naming, concurrency — against a first-principles checklist before code is written. |
 
-| Skill | Description |
-| :---- | :---------- |
-| [architecture-as-code-javascript](./architecture-as-code-javascript/SKILL.md) ([primer](../documentation/READ-architecture-as-code-javascript.md)) | A build step that enforces your architectural rules (the dependency graph). You declare which modules may import from which; violations fail the build. |
-| [architecture-as-code-python](./architecture-as-code-python/SKILL.md) ([primer](../documentation/READ-architecture-as-code-python.md)) | A build step that enforces your architectural rules in Python. You declare which packages may import from which via per-package `architecture.toml` files; an assembler turns them into `import-linter` contracts and the build fails on violations. |
+### Locality as a first principle
 
-### Pipeline reliability — *how do we catch defects early and ship safely?*
+| Name | Readme | Use it to |
+| :--- | :----- | :-------- |
+| [geometric-architecture](./geometric-architecture/SKILL.md) | [READ-geometric-architecture.md](../documentation/READ-geometric-architecture.md) | Place a component on the `(X, Y, Z)` grid, and audit existing graphs for layer skips, cycles, god cells, and cross-domain coupling. |
 
-| Skill | Description |
-| :---- | :---------- |
-| [defect-shift-left](./defect-shift-left/SKILL.md) ([primer](../documentation/READ-defect-shift-left.md)) | A pipeline-design SKILL that places every defect-detection check at the earliest stage it can technically run. The cost of catching a defect grows geometrically with stage; catching it later is always a regression. |
-| [ci-cd-reliability-architecture](./ci-cd-reliability-architecture/SKILL.md) ([primer](../documentation/READ-ci-cd-reliability-architecture.md)) | A pipeline-design SKILL for builds and deployments that are safe to run any number of times, build artifacts once, deploy without downtime, and authenticate without storing secrets. |
+## Architectural enforcement — *how do we make the rules stick?*
 
-### Complexity & worth — *is this complexity earning its keep?*
+### Architecture as a build step (JavaScript / TypeScript)
 
-| Skill | Description |
-| :---- | :---------- |
-| [structural-simplification](./structural-simplification/SKILL.md) ([primer](../documentation/READ-structural-simplification.md)) | Most refactors claim to simplify; most just relocate complexity. A four-axis vector — diversity, coupling, depth, parts — turns "simpler" from a feeling into a falsifiable claim. |
-| [functionality-complexity-tradeoff](./functionality-complexity-tradeoff/SKILL.md) ([primer](../documentation/READ-functionality-complexity-tradeoff.md)) | A first-principles SKILL for deciding whether a piece of functionality is worth keeping or building. Two stages: a *necessity gate* ("does the problem this code addresses actually occur in this stack?") followed by a *worth ledger* ("does the value justify the cost?"). |
+| Name | Readme | Use it to |
+| :--- | :----- | :-------- |
+| [architecture-as-code-javascript](./architecture-as-code-javascript/SKILL.md) | [READ-architecture-as-code-javascript.md](../documentation/READ-architecture-as-code-javascript.md) | Encode the allowed imports between modules so architectural violations fail `eslint` instead of slipping through review. |
 
-### System flow — *is the work itself the right work?*
+### Architecture as a build step (Python)
 
-| Skill | Description |
-| :---- | :---------- |
-| [system-optimization](./system-optimization/SKILL.md) ([primer](../documentation/READ-system-optimization.md)) | Most optimization effort makes systems worse — because it speeds up the wrong thing, in the wrong order, at the wrong time. The correct sequence: question, delete, simplify, speed up, automate. |
+| Name | Readme | Use it to |
+| :--- | :----- | :-------- |
+| [architecture-as-code-python](./architecture-as-code-python/SKILL.md) | [READ-architecture-as-code-python.md](../documentation/READ-architecture-as-code-python.md) | Encode the allowed imports between Python packages — via per-package `architecture.toml` files — so violations fail `import-linter` instead of slipping through review. |
 
-### Meta-layer — *how do the skills themselves improve?*
+## Pipeline reliability — *how do we catch defects early and ship safely?*
 
-| Skill | Description |
-| :---- | :---------- |
-| [continuous-improvement](./continuous-improvement/SKILL.md) ([primer](../documentation/READ-continuous-improvement.md)) | A protocol for updating SKILL files when the agent makes a mistake. Trace each correction to its root cause; prefer a test or linter over a written rule; shrink the file before you grow it. |
+### Catch every defect at the earliest stage it can technically run
+
+| Name | Readme | Use it to |
+| :--- | :----- | :-------- |
+| [defect-shift-left](./defect-shift-left/SKILL.md) | [READ-defect-shift-left.md](../documentation/READ-defect-shift-left.md) | Audit your pipeline for shift-left opportunities, and decide where any new check belongs — type system, lint, pre-commit, CI gate, or beyond. |
+
+### Pipelines safe to retry, immutable artifacts, no stored secrets
+
+| Name | Readme | Use it to |
+| :--- | :----- | :-------- |
+| [ci-cd-reliability-architecture](./ci-cd-reliability-architecture/SKILL.md) | [READ-ci-cd-reliability-architecture.md](../documentation/READ-ci-cd-reliability-architecture.md) | Design or audit a CI/CD pipeline against six rules: idempotent, self-contained, immutable artifacts, self-healing, zero-downtime, zero-knowledge. |
+
+## Complexity & worth — *is this complexity earning its keep?*
+
+### Make "simpler" a measurable, falsifiable claim
+
+| Name | Readme | Use it to |
+| :--- | :----- | :-------- |
+| [structural-simplification](./structural-simplification/SKILL.md) | [READ-structural-simplification.md](../documentation/READ-structural-simplification.md) | Compare two designs along four independent axes — diversity, coupling, depth, parts — so "this is simpler" becomes a measurable, comparable claim instead of a feeling. |
+
+### Necessity gate, then worth ledger
+
+| Name | Readme | Use it to |
+| :--- | :----- | :-------- |
+| [functionality-complexity-tradeoff](./functionality-complexity-tradeoff/SKILL.md) | [READ-functionality-complexity-tradeoff.md](../documentation/READ-functionality-complexity-tradeoff.md) | Decide whether to BUILD / DEFER / DROP a proposed feature, or KEEP / SIMPLIFY / DELETE / OBSOLETE existing code — via a necessity gate followed by a worth ledger. |
+
+## System flow — *is the work itself the right work?*
+
+### Question, delete, simplify, speed up, automate — in that order
+
+| Name | Readme | Use it to |
+| :--- | :----- | :-------- |
+| [system-optimization](./system-optimization/SKILL.md) | [READ-system-optimization.md](../documentation/READ-system-optimization.md) | Run optimization in the right order — question, delete, simplify, speed up, automate — instead of caching or parallelizing work that should have been deleted. |
+
+## Meta-layer — *how do the skills themselves improve?*
+
+### Update the SKILLs at the root cause, not the symptom
+
+| Name | Readme | Use it to |
+| :--- | :----- | :-------- |
+| [continuous-improvement](./continuous-improvement/SKILL.md) | [READ-continuous-improvement.md](../documentation/READ-continuous-improvement.md) | Decide whether a correction becomes a test, a linter rule, or a SKILL edit — and which SKILL owns it — without letting the SKILL library bloat. |
 
 ## How the skills compose
 
