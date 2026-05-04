@@ -1,4 +1,6 @@
-# The L-GEVITY Essential Software Architecture Skills
+# The L-GEVITY Software Architecture AI Skills
+
+**SKILLs that put 30+ years of software development expertise in an AI assistant**
 
 Open-source [Claude Code](https://claude.ai/claude-code) skills for software
 architecture, CI/CD reliability, structural simplification, system optimization,
@@ -23,48 +25,48 @@ apply to any software project — not just ours.
 
 Ten skills, organized into six groups by the question each one answers. Every
 skill ships as a `SKILL.md` (the operational reference); a matching
-`READ-<skill>.md` primer in [`../documentation/`](../documentation/) gives the
+`READ-<skill>.md` primer in [`./.documentation/`](./.documentation/) gives the
 plain-English overview.
 
 ### Architectural foundations — *what should the system look like?*
 
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
-| [architecture-guidelines](./architecture-guidelines/SKILL.md) | [READ](../documentation/READ-architecture-guidelines.md) | Test every module decision — minimalism, modularity, functional core, resilience, naming, concurrency — against a first-principles checklist before code is written. |
-| [geometric-architecture](./geometric-architecture/SKILL.md) | [READ](../documentation/READ-geometric-architecture.md) | Place a component on the `(X, Y, Z)` grid, and audit existing graphs for layer skips, cycles, god cells, and cross-domain coupling. |
+| [architecture-guidelines](./architecture-guidelines/SKILL.md) | [READ](./.documentation/READ-architecture-guidelines.md) | Test every module decision — minimalism, modularity, functional core, resilience, naming, concurrency — against a first-principles checklist before code is written. |
+| [geometric-architecture](./geometric-architecture/SKILL.md) | [READ](./.documentation/READ-geometric-architecture.md) | Place a component on the `(X, Y, Z)` grid, and audit existing graphs for layer skips, cycles, god cells, and cross-domain coupling. |
 
 ### Architectural enforcement — *how do we make the rules stick?*
 
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
-| [architecture-as-code-javascript](./architecture-as-code-javascript/SKILL.md) | [READ](../documentation/READ-architecture-as-code-javascript.md) | Encode allowed imports between modules so architectural violations fail `eslint` instead of slipping through review. |
-| [architecture-as-code-python](./architecture-as-code-python/SKILL.md) | [READ](../documentation/READ-architecture-as-code-python.md) | Encode allowed imports between Python packages — via per-package `architecture.toml` — so violations fail `import-linter` instead of slipping through review. |
+| [architecture-as-code-javascript](./architecture-as-code-javascript/SKILL.md) | [READ](./.documentation/READ-architecture-as-code-javascript.md) | Encode allowed imports between modules so architectural violations fail `eslint` instead of slipping through review. |
+| [architecture-as-code-python](./architecture-as-code-python/SKILL.md) | [READ](./.documentation/READ-architecture-as-code-python.md) | Encode allowed imports between Python packages — via per-package `architecture.toml` — so violations fail `import-linter` instead of slipping through review. |
 
 ### Pipeline reliability — *how do we catch defects early and ship safely?*
 
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
-| [defect-shift-left](./defect-shift-left/SKILL.md) | [READ](../documentation/READ-defect-shift-left.md) | Audit a pipeline for shift-left opportunities, and decide where any new check belongs — type system, lint, pre-commit, CI gate, or beyond. |
-| [ci-cd-reliability-architecture](./ci-cd-reliability-architecture/SKILL.md) | [READ](../documentation/READ-ci-cd-reliability-architecture.md) | Design or audit a CI/CD pipeline against six rules: idempotent, self-contained, immutable artifacts, self-healing, zero-downtime, zero-knowledge. |
+| [defect-shift-left](./defect-shift-left/SKILL.md) | [READ](./.documentation/READ-defect-shift-left.md) | Audit a pipeline for shift-left opportunities, and decide where any new check belongs — type system, lint, pre-commit, CI gate, or beyond. |
+| [ci-cd-reliability-architecture](./ci-cd-reliability-architecture/SKILL.md) | [READ](./.documentation/READ-ci-cd-reliability-architecture.md) | Design or audit a CI/CD pipeline against six rules: idempotent, self-contained, immutable artifacts, self-healing, zero-downtime, zero-knowledge. |
 
 ### Complexity & worth — *is this complexity earning its keep?*
 
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
-| [structural-simplification](./structural-simplification/SKILL.md) | [READ](../documentation/READ-structural-simplification.md) | Compare two designs along four independent axes — diversity, coupling, depth, parts — so "this is simpler" becomes a measurable claim instead of a feeling. |
-| [functionality-complexity-tradeoff](./functionality-complexity-tradeoff/SKILL.md) | [READ](../documentation/READ-functionality-complexity-tradeoff.md) | Decide whether to BUILD / DEFER / DROP a proposed feature, or KEEP / SIMPLIFY / DELETE / OBSOLETE existing code — via a necessity gate followed by a worth ledger. |
+| [structural-simplification](./structural-simplification/SKILL.md) | [READ](./.documentation/READ-structural-simplification.md) | Compare two designs along four independent axes — diversity, coupling, depth, parts — so "this is simpler" becomes a measurable claim instead of a feeling. |
+| [functionality-complexity-tradeoff](./functionality-complexity-tradeoff/SKILL.md) | [READ](./.documentation/READ-functionality-complexity-tradeoff.md) | Decide whether to BUILD / DEFER / DROP a proposed feature, or KEEP / SIMPLIFY / DELETE / OBSOLETE existing code — via a necessity gate followed by a worth ledger. |
 
 ### System flow — *is the work itself the right work?*
 
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
-| [system-optimization](./system-optimization/SKILL.md) | [READ](../documentation/READ-system-optimization.md) | Run optimization in the right order — question, delete, simplify, speed up, automate — instead of caching or parallelizing work that should have been deleted. |
+| [system-optimization](./system-optimization/SKILL.md) | [READ](./.documentation/READ-system-optimization.md) | Run optimization in the right order — question, delete, simplify, speed up, automate — instead of caching or parallelizing work that should have been deleted. |
 
 ### Meta-layer — *how do the skills themselves improve?*
 
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
-| [continuous-improvement](./continuous-improvement/SKILL.md) | [READ](../documentation/READ-continuous-improvement.md) | Decide whether a correction becomes a test, a linter rule, or a SKILL edit — and which SKILL owns it — without letting the SKILL library bloat. |
+| [continuous-improvement](./continuous-improvement/SKILL.md) | [READ](./.documentation/READ-continuous-improvement.md) | Decide whether a correction becomes a test, a linter rule, or a SKILL edit — and which SKILL owns it — without letting the SKILL library bloat. |
 
 ## How the skills compose
 
