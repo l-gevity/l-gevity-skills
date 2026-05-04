@@ -1,6 +1,6 @@
 # Defect Shift-Left
 
-A pipeline-design framework that places every defect-detection check at the earliest stage it can technically run. The cost of catching a defect grows geometrically with stage; catching it later is always a regression.
+A pipeline-design SKILL that places every defect-detection check at the earliest stage it can technically run. The cost of catching a defect grows geometrically with stage; catching it later is always a regression.
 
 ## Why use this
 
