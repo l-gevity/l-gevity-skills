@@ -37,8 +37,15 @@ description: >-
 - **DRY (knowledge, not shape)**: A business rule, constant, or schema has
   exactly one authoritative representation. Code-shape duplication defers to
   Rule of 3.
-- **Complexity Threshold**: Reconsider any task requiring > 3 implementation
-  steps or a novel abstraction.
+- **Frame-check before execute**: When an issue, spec, or PRD prescribes
+  implementation steps (a numbered "Implementation Approach" section, a
+  multi-step task list, a build/CI plumbing plan), DO NOT start by executing
+  step 1. First run the necessity gate from `functionality–complexity-tradeoff`
+  §1 against the _framing_ the steps assume — what problem is this code actually
+  addressing, does that problem still occur in this stack, is it already owned
+  by another layer? Issue authors prescribe solutions; the gate asks whether the
+  prescription matches a problem we have. A prescribed plan exceeding 3 steps or
+  introducing a novel abstraction is the strongest trigger for this check.
 
 ## 2. Consistency & Coupling
 
