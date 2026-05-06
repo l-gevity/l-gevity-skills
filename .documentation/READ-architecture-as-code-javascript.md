@@ -2,6 +2,8 @@
 
 A build step that enforces your architectural rules (the dependency graph). You declare which modules may import from which; violations fail the build.
 
+<img width="1886" height="749" alt="image" src="https://github.com/user-attachments/assets/e6e1f085-dadd-400b-b2b5-e133e50fd650" />
+
 ## Why use this
 
 - **Architectural violations are caught at build time**, not days later in review.
