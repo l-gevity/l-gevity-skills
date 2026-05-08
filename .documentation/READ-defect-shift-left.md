@@ -2,6 +2,8 @@
 
 A pipeline-design SKILL that places every defect-detection check at the earliest stage it can technically run. The cost of catching a defect grows geometrically with stage; catching it later is always a regression.
 
+<img width="659" height="694" alt="image" src="https://github.com/user-attachments/assets/4daed750-a46d-460f-b19b-dd1255d8b63b" />
+
 ## Why use this
 
 - **Defects are caught at the earliest stage they technically can be.** Cost of detection grows geometrically with stage; earlier is always cheaper.
