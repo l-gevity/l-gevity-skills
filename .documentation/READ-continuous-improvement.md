@@ -1,5 +1,7 @@
 # Continuous Improvement (Meta-Learning)
 
+![Continuous Improvement](continuous_improvement.svg)
+
 A protocol for updating SKILL files when the agent makes a mistake. Trace each correction to its root cause; prefer a test or linter over a written rule; shrink the file before you grow it.
 
 ## Why use this

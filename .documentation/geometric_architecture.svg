@@ -1,0 +1,138 @@
+<svg width="680" height="1230" viewBox="0 0 680 1230" role="img" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif">
+<title>Geometric software architecture infographic</title>
+<desc>Infographic explaining geometric software architecture: components live at (X, Y, Z) coordinates, expose six semantic faces, and may only couple to face-adjacent neighbors. Includes the three axes, six faces, four principles, and six common defects.</desc>
+
+<rect width="680" height="1230" fill="#FFFFFF"/>
+
+<!-- ============ HERO ============ -->
+<rect x="40" y="40" width="40" height="3" fill="#534AB7" rx="1.5"/>
+<text x="40" y="74" font-size="22" font-weight="500" fill="#2C2C2A">Geometric software architecture</text>
+<text x="40" y="100" font-size="14" fill="#5F5E5A">Position every component at (X, Y, Z) — couple only to face-adjacent neighbors.</text>
+<text x="40" y="120" font-size="12" fill="#888780">Long-range edges become structurally hard to express; cycles become impossible.</text>
+
+<!-- ============ THE THREE AXES ============ -->
+<line x1="40" y1="148" x2="640" y2="148" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="178" font-size="16" font-weight="500" fill="#2C2C2A">The three axes</text>
+
+<!-- X axis card (teal) -->
+<rect x="40" y="200" width="190" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<rect x="56" y="216" width="32" height="32" rx="6" fill="#9FE1CB"/>
+<text x="72" y="232" font-size="18" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">X</text>
+<text x="98" y="232" font-size="14" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Domain</text>
+<text x="56" y="270" font-size="12" fill="#5F5E5A">One column per domain.</text>
+<text x="56" y="286" font-size="12" fill="#5F5E5A">Siblings stay isolated.</text>
+
+<!-- Y axis card (amber) -->
+<rect x="245" y="200" width="190" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<rect x="261" y="216" width="32" height="32" rx="6" fill="#FAC775"/>
+<text x="277" y="232" font-size="18" font-weight="500" fill="#633806" text-anchor="middle" dominant-baseline="central">Y</text>
+<text x="303" y="232" font-size="14" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Abstraction</text>
+<text x="261" y="270" font-size="12" fill="#5F5E5A">Orchestrators (top) →</text>
+<text x="261" y="286" font-size="12" fill="#5F5E5A">primitives (bottom).</text>
+
+<!-- Z axis card (purple) -->
+<rect x="450" y="200" width="190" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<rect x="466" y="216" width="32" height="32" rx="6" fill="#CECBF6"/>
+<text x="482" y="232" font-size="18" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Z</text>
+<text x="508" y="232" font-size="14" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Depth</text>
+<text x="466" y="270" font-size="12" fill="#5F5E5A">Consumer (Z=0) →</text>
+<text x="466" y="286" font-size="12" fill="#5F5E5A">infrastructure (Z=N).</text>
+
+<!-- ============ THE SIX FACES ============ -->
+<line x1="40" y1="325" x2="640" y2="325" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="355" font-size="16" font-weight="500" fill="#2C2C2A">The six faces</text>
+
+<!-- Row 1: Front | Back -->
+<rect x="40" y="375" width="290" height="56" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="397" font-size="14" font-weight="500" fill="#2C2C2A">Front</text>
+<text x="56" y="416" font-size="12" fill="#5F5E5A">Public interface for incoming calls.</text>
+
+<rect x="350" y="375" width="290" height="56" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="366" y="397" font-size="14" font-weight="500" fill="#2C2C2A">Back</text>
+<text x="366" y="416" font-size="12" fill="#5F5E5A">Outward calls, I/O, infrastructure.</text>
+
+<!-- Row 2: Top | Bottom -->
+<rect x="40" y="439" width="290" height="56" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="461" font-size="14" font-weight="500" fill="#2C2C2A">Top</text>
+<text x="56" y="480" font-size="12" fill="#5F5E5A">Receives orchestration from above.</text>
+
+<rect x="350" y="439" width="290" height="56" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="366" y="461" font-size="14" font-weight="500" fill="#2C2C2A">Bottom</text>
+<text x="366" y="480" font-size="12" fill="#5F5E5A">Delegates to primitives below.</text>
+
+<!-- Row 3: Left / Right (full width) -->
+<rect x="40" y="503" width="600" height="56" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="525" font-size="14" font-weight="500" fill="#2C2C2A">Left / Right</text>
+<text x="56" y="544" font-size="12" fill="#5F5E5A">Same-tier neighbors — cross-domain siblings.</text>
+
+<!-- Callout: directional rule -->
+<rect x="40" y="578" width="600" height="38" rx="8" fill="#F1EFE8"/>
+<text x="60" y="597" font-size="13" fill="#5F5E5A" dominant-baseline="central">Valid edges run <tspan font-weight="500" fill="#2C2C2A">A's Back</tspan> → <tspan font-weight="500" fill="#2C2C2A">B's Front</tspan> — geometry forbids the rest.</text>
+
+<!-- ============ FOUR PRINCIPLES ============ -->
+<line x1="40" y1="640" x2="640" y2="640" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="670" font-size="16" font-weight="500" fill="#2C2C2A">Four principles</text>
+
+<!-- Principle 1 -->
+<rect x="40" y="690" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="720" font-size="14" font-weight="500" fill="#2C2C2A">Position is meaningful</text>
+<text x="56" y="742" font-size="12" fill="#5F5E5A">Each component lives at (X, Y, Z) —</text>
+<text x="56" y="758" font-size="12" fill="#5F5E5A">domain, abstraction, depth. The</text>
+<text x="56" y="774" font-size="12" fill="#5F5E5A">address says what it can touch.</text>
+
+<!-- Principle 2 -->
+<rect x="350" y="690" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="366" y="720" font-size="14" font-weight="500" fill="#2C2C2A">Locality is a constraint</text>
+<text x="366" y="742" font-size="12" fill="#5F5E5A">Coupling is allowed only between</text>
+<text x="366" y="758" font-size="12" fill="#5F5E5A">face-adjacent cells. Long-range</text>
+<text x="366" y="774" font-size="12" fill="#5F5E5A">edges become structurally costly.</text>
+
+<!-- Principle 3 -->
+<rect x="40" y="810" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="840" font-size="14" font-weight="500" fill="#2C2C2A">Faces have direction</text>
+<text x="56" y="862" font-size="12" fill="#5F5E5A">Every connection runs from one</text>
+<text x="56" y="878" font-size="12" fill="#5F5E5A">cell's Back to its neighbor's Front.</text>
+<text x="56" y="894" font-size="12" fill="#5F5E5A">Cycles need a wrong-way crossing.</text>
+
+<!-- Principle 4 -->
+<rect x="350" y="810" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="366" y="840" font-size="14" font-weight="500" fill="#2C2C2A">Local rules, global complexity</text>
+<text x="366" y="862" font-size="12" fill="#5F5E5A">Conway's Game of Life is Turing-</text>
+<text x="366" y="878" font-size="12" fill="#5F5E5A">complete with neighbor-only rules.</text>
+<text x="366" y="894" font-size="12" fill="#5F5E5A">Local coupling composes into power.</text>
+
+<!-- ============ COMMON DEFECTS ============ -->
+<line x1="40" y1="945" x2="640" y2="945" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="975" font-size="16" font-weight="500" fill="#2C2C2A">Common defects</text>
+
+<!-- Defect 1: Z-skip -->
+<rect x="40" y="1000" width="140" height="24" rx="12" fill="#F5C4B3"/>
+<text x="110" y="1012" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Z-skip</text>
+<text x="200" y="1012" font-size="12" fill="#5F5E5A" dominant-baseline="central">Wormhole through Z — insert the intermediate cell.</text>
+
+<!-- Defect 2: Y-skip -->
+<rect x="40" y="1035" width="140" height="24" rx="12" fill="#F5C4B3"/>
+<text x="110" y="1047" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Y-skip</text>
+<text x="200" y="1047" font-size="12" fill="#5F5E5A" dominant-baseline="central">Layer violation — split the cell or fix the tier.</text>
+
+<!-- Defect 3: X-edge -->
+<rect x="40" y="1070" width="140" height="24" rx="12" fill="#F5C4B3"/>
+<text x="110" y="1082" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">X-edge</text>
+<text x="200" y="1082" font-size="12" fill="#5F5E5A" dominant-baseline="central">Sibling domains coupling — extract a shared neighbor.</text>
+
+<!-- Defect 4: God cell -->
+<rect x="40" y="1105" width="140" height="24" rx="12" fill="#F5C4B3"/>
+<text x="110" y="1117" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">God cell</text>
+<text x="200" y="1117" font-size="12" fill="#5F5E5A" dominant-baseline="central">All six faces occupied — decompose along the busiest axis.</text>
+
+<!-- Defect 5: Phantom neighbor -->
+<rect x="40" y="1140" width="140" height="24" rx="12" fill="#F5C4B3"/>
+<text x="110" y="1152" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Phantom neighbor</text>
+<text x="200" y="1152" font-size="12" fill="#5F5E5A" dominant-baseline="central">Hidden via globals — promote it to a real cell.</text>
+
+<!-- Defect 6: SDK wormhole -->
+<rect x="40" y="1175" width="140" height="24" rx="12" fill="#F5C4B3"/>
+<text x="110" y="1187" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">SDK wormhole</text>
+<text x="200" y="1187" font-size="12" fill="#5F5E5A" dominant-baseline="central">Many cells importing one SDK — route through a wrapper.</text>
+
+</svg>

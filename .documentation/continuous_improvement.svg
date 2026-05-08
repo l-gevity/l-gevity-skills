@@ -1,0 +1,171 @@
+<svg width="680" height="1180" viewBox="0 0 680 1180" role="img" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif">
+<title>Continuous improvement (meta-learning) infographic</title>
+<desc>Infographic explaining the continuous improvement protocol for updating SKILL files. Features a learning loop diagram showing the cycle from trigger through root-cause analysis to fix, four principles, five trigger types, and four root-cause questions.</desc>
+
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<rect width="680" height="1180" fill="#FFFFFF"/>
+
+<!-- ============ HERO ============ -->
+<rect x="40" y="40" width="40" height="3" fill="#534AB7" rx="1.5"/>
+<text x="40" y="74" font-size="22" font-weight="500" fill="#2C2C2A">Continuous improvement</text>
+<text x="40" y="100" font-size="14" fill="#5F5E5A">Trace each correction to its root cause. Prefer a test over a rule. Shrink before you grow.</text>
+<text x="40" y="120" font-size="12" fill="#888780">A SKILL file is operational memory. This protocol governs how it evolves.</text>
+
+<!-- ============ THE LEARNING LOOP ============ -->
+<line x1="40" y1="148" x2="640" y2="148" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="178" font-size="16" font-weight="500" fill="#2C2C2A">The learning loop</text>
+
+<!-- Loop: 4 stages arranged in a square cycle -->
+<!-- Stage positions: top-left, top-right, bottom-right, bottom-left -->
+<!-- TL: Trigger (x=100, y=220) -->
+<!-- TR: Diagnose (x=400, y=220) -->
+<!-- BR: Fix (x=400, y=350) -->
+<!-- BL: Verify (x=100, y=350) -->
+
+<!-- Stage 1: Trigger -->
+<rect x="80" y="210" width="170" height="56" rx="10" fill="#F5C4B3" stroke="#993C1D" stroke-width="0.5"/>
+<text x="125" y="232" font-size="14" font-weight="500" fill="#712B13" dominant-baseline="central">1</text>
+<text x="140" y="232" font-size="14" font-weight="500" fill="#712B13" dominant-baseline="central">Trigger</text>
+<text x="96" y="252" font-size="11" fill="#993C1D" dominant-baseline="central">Correction, regression, repeat</text>
+
+<!-- Arrow: Trigger → Diagnose -->
+<line x1="250" y1="238" x2="378" y2="238" stroke="#888780" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+<!-- Stage 2: Diagnose -->
+<rect x="380" y="210" width="170" height="56" rx="10" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="425" y="232" font-size="14" font-weight="500" fill="#3C3489" dominant-baseline="central">2</text>
+<text x="440" y="232" font-size="14" font-weight="500" fill="#3C3489" dominant-baseline="central">Diagnose</text>
+<text x="396" y="252" font-size="11" fill="#534AB7" dominant-baseline="central">Root cause, not symptom</text>
+
+<!-- Arrow: Diagnose → Fix -->
+<line x1="465" y1="266" x2="465" y2="328" stroke="#888780" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+<!-- Stage 3: Fix -->
+<rect x="380" y="330" width="170" height="56" rx="10" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="425" y="352" font-size="14" font-weight="500" fill="#085041" dominant-baseline="central">3</text>
+<text x="440" y="352" font-size="14" font-weight="500" fill="#085041" dominant-baseline="central">Fix</text>
+<text x="396" y="372" font-size="11" fill="#0F6E56" dominant-baseline="central">Test, lint, or SKILL edit</text>
+
+<!-- Arrow: Fix → Verify -->
+<line x1="380" y1="358" x2="252" y2="358" stroke="#888780" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+<!-- Stage 4: Verify -->
+<rect x="80" y="330" width="170" height="56" rx="10" fill="#FAC775" stroke="#854F0B" stroke-width="0.5"/>
+<text x="125" y="352" font-size="14" font-weight="500" fill="#633806" dominant-baseline="central">4</text>
+<text x="140" y="352" font-size="14" font-weight="500" fill="#633806" dominant-baseline="central">Verify</text>
+<text x="96" y="372" font-size="11" fill="#854F0B" dominant-baseline="central">Old mistake now impossible</text>
+
+<!-- Arrow: Verify → Trigger (return — curved, going up on left side) -->
+<path d="M80 358 C40 358, 40 238, 78 238" fill="none" stroke="#888780" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+<!-- Center label -->
+<text x="330" y="300" font-size="12" fill="#888780" text-anchor="middle" dominant-baseline="central">↻ repeat</text>
+
+<!-- Callout -->
+<rect x="40" y="408" width="600" height="38" rx="8" fill="#F1EFE8"/>
+<text x="60" y="427" font-size="13" fill="#5F5E5A" dominant-baseline="central">Each loop makes the <tspan font-weight="500" fill="#2C2C2A">same mistake structurally impossible</tspan> — not just documented.</text>
+
+<!-- ============ FOUR PRINCIPLES ============ -->
+<line x1="40" y1="470" x2="640" y2="470" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="500" font-size="16" font-weight="500" fill="#2C2C2A">Four principles</text>
+
+<!-- Principle 1 -->
+<rect x="40" y="520" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="550" font-size="14" font-weight="500" fill="#2C2C2A">Automation over rules</text>
+<text x="56" y="572" font-size="12" fill="#5F5E5A">A rule a linter can enforce should</text>
+<text x="56" y="588" font-size="12" fill="#5F5E5A">be a linter rule. A rule a test can</text>
+<text x="56" y="604" font-size="12" fill="#5F5E5A">enforce should be a test.</text>
+
+<!-- Principle 2 -->
+<rect x="350" y="520" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="366" y="550" font-size="14" font-weight="500" fill="#2C2C2A">Shrink, don't grow</text>
+<text x="366" y="572" font-size="12" fill="#5F5E5A">Density over volume. Aggressively</text>
+<text x="366" y="588" font-size="12" fill="#5F5E5A">prune or extract before adding.</text>
+<text x="366" y="604" font-size="12" fill="#5F5E5A">Skills that bloat stop being read.</text>
+
+<!-- Principle 3 -->
+<rect x="40" y="640" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="670" font-size="14" font-weight="500" fill="#2C2C2A">Root cause over symptom</text>
+<text x="56" y="692" font-size="12" fill="#5F5E5A">The fix is the missing invariant,</text>
+<text x="56" y="708" font-size="12" fill="#5F5E5A">not the surface error. Trace the</text>
+<text x="56" y="724" font-size="12" fill="#5F5E5A">correction to its origin.</text>
+
+<!-- Principle 4 -->
+<rect x="350" y="640" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="366" y="670" font-size="14" font-weight="500" fill="#2C2C2A">Zero redundancy</text>
+<text x="366" y="692" font-size="12" fill="#5F5E5A">A rule lives in exactly one SKILL.</text>
+<text x="366" y="708" font-size="12" fill="#5F5E5A">Cross-references replace</text>
+<text x="366" y="724" font-size="12" fill="#5F5E5A">duplication. One home per rule.</text>
+
+<!-- ============ TRIGGERS (LADDER) ============ -->
+<line x1="40" y1="778" x2="640" y2="778" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="808" font-size="16" font-weight="500" fill="#2C2C2A">Triggers for learning</text>
+
+<!-- Legend -->
+<rect x="40" y="828" width="12" height="12" fill="#F5C4B3" rx="2"/>
+<text x="58" y="834" font-size="12" fill="#5F5E5A" dominant-baseline="central">Frequency</text>
+<rect x="140" y="828" width="12" height="12" fill="#CECBF6" rx="2"/>
+<text x="158" y="834" font-size="12" fill="#5F5E5A" dominant-baseline="central">Signal strength</text>
+
+<!-- Trigger row 1: Correction -->
+<text x="40" y="876" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">1</text>
+<text x="68" y="876" font-size="13" fill="#2C2C2A" dominant-baseline="central">User correction</text>
+<rect x="270" y="867" width="250" height="18" fill="#F5C4B3" rx="3"/>
+<rect x="270" y="867" width="200" height="18" fill="#CECBF6" rx="3"/>
+<text x="530" y="876" font-size="12" fill="#5F5E5A" dominant-baseline="central">Most common</text>
+<line x1="40" y1="894" x2="640" y2="894" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Trigger row 2: Regression -->
+<text x="40" y="912" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">2</text>
+<text x="68" y="912" font-size="13" fill="#2C2C2A" dominant-baseline="central">Regression</text>
+<rect x="270" y="903" width="140" height="18" fill="#F5C4B3" rx="3"/>
+<rect x="270" y="903" width="230" height="18" fill="#CECBF6" rx="3"/>
+<text x="530" y="912" font-size="12" fill="#5F5E5A" dominant-baseline="central">Hidden boundary</text>
+<line x1="40" y1="930" x2="640" y2="930" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Trigger row 3: Systemic failure -->
+<text x="40" y="948" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">3</text>
+<text x="68" y="948" font-size="13" fill="#2C2C2A" dominant-baseline="central">Systemic failure</text>
+<rect x="270" y="939" width="180" height="18" fill="#F5C4B3" rx="3"/>
+<rect x="270" y="939" width="250" height="18" fill="#CECBF6" rx="3"/>
+<text x="530" y="948" font-size="12" fill="#5F5E5A" dominant-baseline="central">Strongest signal</text>
+<line x1="40" y1="966" x2="640" y2="966" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Trigger row 4: Process break -->
+<text x="40" y="984" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">4</text>
+<text x="68" y="984" font-size="13" fill="#2C2C2A" dominant-baseline="central">Process break</text>
+<rect x="270" y="975" width="160" height="18" fill="#F5C4B3" rx="3"/>
+<rect x="270" y="975" width="180" height="18" fill="#CECBF6" rx="3"/>
+<text x="530" y="984" font-size="12" fill="#5F5E5A" dominant-baseline="central">CI/CD symptom</text>
+<line x1="40" y1="1002" x2="640" y2="1002" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Trigger row 5: New pattern -->
+<text x="40" y="1020" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">5</text>
+<text x="68" y="1020" font-size="13" fill="#2C2C2A" dominant-baseline="central">New validated pattern</text>
+<rect x="270" y="1011" width="80" height="18" fill="#F5C4B3" rx="3"/>
+<rect x="270" y="1011" width="150" height="18" fill="#CECBF6" rx="3"/>
+<text x="530" y="1020" font-size="12" fill="#5F5E5A" dominant-baseline="central">Positive signal</text>
+
+<!-- ============ ROOT-CAUSE QUESTIONS ============ -->
+<line x1="40" y1="1052" x2="640" y2="1052" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="1082" font-size="16" font-weight="500" fill="#2C2C2A">Root-cause questions</text>
+
+<!-- Q1 -->
+<rect x="40" y="1100" width="150" height="24" rx="12" fill="#CECBF6"/>
+<text x="115" y="1112" font-size="12" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Missing or ambiguous?</text>
+<text x="210" y="1112" font-size="12" fill="#5F5E5A" dominant-baseline="central">Undocumented, or written softly.</text>
+
+<!-- Q2 -->
+<rect x="40" y="1132" width="150" height="24" rx="12" fill="#CECBF6"/>
+<text x="115" y="1144" font-size="12" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Conflict?</text>
+<text x="210" y="1144" font-size="12" fill="#5F5E5A" dominant-baseline="central">Two SKILL rules contradict each other.</text>
+
+<!-- Closing line -->
+<text x="340" y="1175" font-size="12" fill="#888780" text-anchor="middle">Before writing anything, ask why — not what.</text>
+
+</svg>

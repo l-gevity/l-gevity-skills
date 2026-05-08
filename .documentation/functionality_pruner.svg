@@ -1,0 +1,155 @@
+<svg width="680" height="1240" viewBox="0 0 680 1240" role="img" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif">
+<title>Functionality pruner infographic</title>
+<desc>Infographic explaining the functionality pruner skill: a two-stage decision model with a necessity gate followed by a worth ledger. Shows the gate-then-ledger flow, six necessity categories, five principles, and the worth formula.</desc>
+
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<rect width="680" height="1240" fill="#FFFFFF"/>
+
+<!-- ============ HERO ============ -->
+<rect x="40" y="40" width="40" height="3" fill="#534AB7" rx="1.5"/>
+<text x="40" y="74" font-size="22" font-weight="500" fill="#2C2C2A">Functionality pruner</text>
+<text x="40" y="100" font-size="14" fill="#5F5E5A">Does the problem actually occur? If yes, does the value justify the cost?</text>
+<text x="40" y="120" font-size="12" fill="#888780">YAGNI is the null hypothesis. If worth isn't clearly positive, the default is No.</text>
+
+<!-- ============ THE TWO-STAGE FLOW ============ -->
+<line x1="40" y1="148" x2="640" y2="148" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="178" font-size="16" font-weight="500" fill="#2C2C2A">The two-stage decision</text>
+
+<!-- Stage 1: Necessity gate (left block) -->
+<rect x="40" y="205" width="250" height="130" rx="14" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="165" y="235" font-size="16" font-weight="500" fill="#3C3489" text-anchor="middle">Stage 1</text>
+<text x="165" y="258" font-size="14" font-weight="500" fill="#26215C" text-anchor="middle">Necessity gate</text>
+<text x="165" y="282" font-size="12" fill="#534AB7" text-anchor="middle">Does the problem this code</text>
+<text x="165" y="298" font-size="12" fill="#534AB7" text-anchor="middle">addresses actually occur</text>
+<text x="165" y="314" font-size="12" fill="#534AB7" text-anchor="middle">in this stack?</text>
+
+<!-- Gate outcome: FAIL → OBSOLETE (exits downward-left) -->
+<line x1="165" y1="335" x2="165" y2="370" stroke="#E24B4A" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="105" y="372" width="120" height="26" rx="13" fill="#F5C4B3"/>
+<text x="165" y="385" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">OBSOLETE / DROP</text>
+<text x="165" y="412" font-size="11" fill="#888780" text-anchor="middle">Zero value — skip the ledger</text>
+
+<!-- Gate outcome: PASS → flows to stage 2 (arrow right) -->
+<line x1="290" y1="270" x2="368" y2="270" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<text x="330" y="260" font-size="11" fill="#1D9E75" text-anchor="middle">Pass</text>
+<text x="202" y="358" font-size="11" fill="#E24B4A">Fail</text>
+
+<!-- Stage 2: Worth ledger (right block) -->
+<rect x="370" y="205" width="270" height="130" rx="14" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="505" y="235" font-size="16" font-weight="500" fill="#085041" text-anchor="middle">Stage 2</text>
+<text x="505" y="258" font-size="14" font-weight="500" fill="#04342C" text-anchor="middle">Worth ledger</text>
+<text x="505" y="282" font-size="12" fill="#0F6E56" text-anchor="middle">Score value and cost</text>
+<text x="505" y="298" font-size="12" fill="#0F6E56" text-anchor="middle">independently. Don't</text>
+<text x="505" y="314" font-size="12" fill="#0F6E56" text-anchor="middle">collapse to one number.</text>
+
+<!-- Worth outcomes (below stage 2) -->
+<line x1="505" y1="335" x2="505" y2="370" stroke="#888780" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="390" y="372" width="80" height="26" rx="13" fill="#9FE1CB"/>
+<text x="430" y="385" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">BUILD</text>
+<rect x="480" y="372" width="80" height="26" rx="13" fill="#FAC775"/>
+<text x="520" y="385" font-size="11" font-weight="500" fill="#633806" text-anchor="middle" dominant-baseline="central">DEFER</text>
+<rect x="570" y="372" width="68" height="26" rx="13" fill="#F5C4B3"/>
+<text x="604" y="385" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">DROP</text>
+
+<!-- Callout -->
+<rect x="40" y="436" width="600" height="38" rx="8" fill="#F1EFE8"/>
+<text x="60" y="455" font-size="13" fill="#5F5E5A" dominant-baseline="central"><tspan font-weight="500" fill="#2C2C2A">Necessity precedes worth.</tspan> Code guarding impossible states has zero value — not low value.</text>
+
+<!-- ============ NECESSITY GATE CATEGORIES ============ -->
+<line x1="40" y1="498" x2="640" y2="498" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="528" font-size="16" font-weight="500" fill="#2C2C2A">The necessity gate</text>
+
+<!-- Legend -->
+<text x="40" y="548" font-size="12" fill="#888780">A single positive finding → OBSOLETE. No scoring needed.</text>
+
+<!-- 6 category rows (like the cost ladder) -->
+<text x="40" y="582" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">1</text>
+<text x="68" y="582" font-size="13" fill="#2C2C2A" dominant-baseline="central">Impossible-state guard</text>
+<text x="380" y="582" font-size="12" fill="#5F5E5A" dominant-baseline="central">Topology, types, or runtime rule it out.</text>
+<line x1="40" y1="598" x2="640" y2="598" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<text x="40" y="618" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">2</text>
+<text x="68" y="618" font-size="13" fill="#2C2C2A" dominant-baseline="central">Already defended elsewhere</text>
+<text x="380" y="618" font-size="12" fill="#5F5E5A" dominant-baseline="central">Another layer fully owns the concern.</text>
+<line x1="40" y1="634" x2="640" y2="634" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<text x="40" y="654" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">3</text>
+<text x="68" y="654" font-size="13" fill="#2C2C2A" dominant-baseline="central">Cargo-culted pattern</text>
+<text x="380" y="654" font-size="12" fill="#5F5E5A" dominant-baseline="central">Pattern's prerequisites don't hold here.</text>
+<line x1="40" y1="670" x2="640" y2="670" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<text x="40" y="690" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">4</text>
+<text x="68" y="690" font-size="13" fill="#2C2C2A" dominant-baseline="central">Phantom requirement</text>
+<text x="380" y="690" font-size="12" fill="#5F5E5A" dominant-baseline="central">Requirement lapsed or never existed.</text>
+<line x1="40" y1="706" x2="640" y2="706" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<text x="40" y="726" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">5</text>
+<text x="68" y="726" font-size="13" fill="#2C2C2A" dominant-baseline="central">Generality without instantiation</text>
+<text x="380" y="726" font-size="12" fill="#5F5E5A" dominant-baseline="central">Abstraction whose variation never came.</text>
+<line x1="40" y1="742" x2="640" y2="742" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<text x="40" y="762" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">6</text>
+<text x="68" y="762" font-size="13" fill="#2C2C2A" dominant-baseline="central">Logically dead branch</text>
+<text x="380" y="762" font-size="12" fill="#5F5E5A" dominant-baseline="central">Unreachable given upstream contracts.</text>
+
+<!-- ============ FIVE PRINCIPLES ============ -->
+<line x1="40" y1="792" x2="640" y2="792" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="822" font-size="16" font-weight="500" fill="#2C2C2A">Five principles</text>
+
+<!-- Row 1: 3 cards -->
+<rect x="40" y="842" width="190" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="868" font-size="14" font-weight="500" fill="#2C2C2A">Necessity first</text>
+<text x="56" y="890" font-size="12" fill="#5F5E5A">Code guarding impossible</text>
+<text x="56" y="906" font-size="12" fill="#5F5E5A">states has zero value.</text>
+<text x="56" y="922" font-size="12" fill="#5F5E5A">Skip the ledger entirely.</text>
+
+<rect x="245" y="842" width="190" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="261" y="868" font-size="14" font-weight="500" fill="#2C2C2A">Separate the ledger</text>
+<text x="261" y="890" font-size="12" fill="#5F5E5A">Value and cost are distinct</text>
+<text x="261" y="906" font-size="12" fill="#5F5E5A">axes. Score independently.</text>
+<text x="261" y="922" font-size="12" fill="#5F5E5A">Never collapse to one.</text>
+
+<rect x="450" y="842" width="190" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="466" y="868" font-size="14" font-weight="500" fill="#2C2C2A">Cost compounds</text>
+<text x="466" y="890" font-size="12" fill="#5F5E5A">Value is realized per use.</text>
+<text x="466" y="906" font-size="12" fill="#5F5E5A">Cost accrues on every</text>
+<text x="466" y="922" font-size="12" fill="#5F5E5A">future change and review.</text>
+
+<!-- Row 2: 2 cards -->
+<rect x="40" y="952" width="290" height="80" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="978" font-size="14" font-weight="500" fill="#2C2C2A">The default is No</text>
+<text x="56" y="1000" font-size="12" fill="#5F5E5A">If worth isn't clearly positive, reject or minimize.</text>
+<text x="56" y="1016" font-size="12" fill="#5F5E5A">YAGNI is the null hypothesis.</text>
+
+<rect x="350" y="952" width="290" height="80" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="366" y="978" font-size="14" font-weight="500" fill="#2C2C2A">Delete over refactor</text>
+<text x="366" y="1000" font-size="12" fill="#5F5E5A">Negative or failing-necessity worth prefers</text>
+<text x="366" y="1016" font-size="12" fill="#5F5E5A">removal to elaborate justification.</text>
+
+<!-- ============ WORTH FORMULA ============ -->
+<line x1="40" y1="1058" x2="640" y2="1058" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="1088" font-size="16" font-weight="500" fill="#2C2C2A">The worth ledger</text>
+
+<!-- Value side -->
+<rect x="40" y="1110" width="290" height="90" rx="12" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="56" y="1134" font-size="14" font-weight="500" fill="#085041">Value (V)</text>
+<text x="56" y="1156" font-size="13" fill="#0F6E56">U × F × R × I</text>
+<text x="56" y="1178" font-size="11" fill="#5F5E5A">utility · frequency · reach · irreplaceability</text>
+<text x="56" y="1194" font-size="11" fill="#888780">Any axis at zero ⇒ total value is zero.</text>
+
+<!-- Cost side -->
+<rect x="350" y="1110" width="290" height="90" rx="12" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="366" y="1134" font-size="14" font-weight="500" fill="#712B13">Cost (C)</text>
+<text x="366" y="1156" font-size="13" fill="#993C1D">ΔD + ΔK + ΔP + Δn + (M + X + E) × L</text>
+<text x="366" y="1178" font-size="11" fill="#5F5E5A">structural deltas + maintenance · risk ·</text>
+<text x="366" y="1194" font-size="11" fill="#5F5E5A">evolution tax over lifetime</text>
+
+<!-- Worth > 0 rule -->
+<text x="340" y="1226" font-size="12" fill="#888780" text-anchor="middle">Worth > 0 ⇔ V × L > C. Most production features are long-lived — plan for the ongoing term.</text>
+
+</svg>

@@ -1,5 +1,7 @@
 # Functionality Pruner
 
+![Functionality Pruner](functionality_pruner.svg)
+
 A first-principles SKILL for deciding whether a piece of functionality is worth keeping or building. Two stages: a **necessity gate** ("does the problem this code addresses actually occur in this stack?") followed by a **worth ledger** ("does the value justify the cost?").
 
 ## Why use this

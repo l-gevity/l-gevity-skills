@@ -1,5 +1,7 @@
 # CI/CD Reliability Architecture
 
+![CI/CD Reliability](cicd_reliability.svg)
+
 A pipeline-design SKILL for builds and deployments that are safe to run any number of times, build artifacts once, deploy without downtime, and authenticate without storing secrets.
 
 ## Why use this

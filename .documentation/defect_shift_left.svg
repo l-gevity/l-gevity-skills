@@ -1,0 +1,156 @@
+<svg width="680" height="1180" viewBox="0 0 680 1180" role="img" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif">
+<title>Defect shift-left infographic</title>
+<desc>Infographic explaining the defect shift-left principle. Shows a cost ladder across eight pipeline stage groups (with bars colored cheap, costly, damage), four core principles, and four common shifts.</desc>
+
+<rect width="680" height="1180" fill="#FFFFFF"/>
+
+<!-- ============ HERO ============ -->
+<rect x="40" y="40" width="40" height="3" fill="#534AB7" rx="1.5"/>
+<text x="40" y="74" font-size="22" font-weight="500" fill="#2C2C2A">Defect shift-left</text>
+<text x="40" y="100" font-size="14" fill="#5F5E5A">Catch every defect at the earliest stage it can technically run.</text>
+<text x="40" y="120" font-size="12" fill="#888780">Cost grows geometrically — later detection is always a regression, never a win.</text>
+
+<!-- ============ COST LADDER ============ -->
+<line x1="40" y1="148" x2="640" y2="148" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="178" font-size="16" font-weight="500" fill="#2C2C2A">The cost ladder</text>
+
+<!-- Legend -->
+<rect x="40" y="200" width="12" height="12" fill="#B4B2A9" rx="2"/>
+<text x="58" y="206" font-size="12" fill="#5F5E5A" dominant-baseline="central">Cheap</text>
+<rect x="120" y="200" width="12" height="12" fill="#EF9F27" rx="2"/>
+<text x="138" y="206" font-size="12" fill="#5F5E5A" dominant-baseline="central">Costly</text>
+<rect x="200" y="200" width="12" height="12" fill="#D85A30" rx="2"/>
+<text x="218" y="206" font-size="12" fill="#5F5E5A" dominant-baseline="central">Damage</text>
+
+<!-- Row 0: stage 0 -->
+<text x="40" y="258" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">0</text>
+<text x="80" y="258" font-size="13" fill="#2C2C2A" dominant-baseline="central">Language, compiler</text>
+<rect x="270" y="249" width="10" height="18" fill="#B4B2A9" rx="3"/>
+<text x="530" y="258" font-size="12" fill="#5F5E5A" dominant-baseline="central">Keystrokes</text>
+<line x1="40" y1="276" x2="640" y2="276" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Row 1: stages 1–3 -->
+<text x="40" y="294" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">1–3</text>
+<text x="80" y="294" font-size="13" fill="#2C2C2A" dominant-baseline="central">Pre-commit, design</text>
+<rect x="270" y="285" width="22" height="18" fill="#B4B2A9" rx="3"/>
+<text x="530" y="294" font-size="12" fill="#5F5E5A" dominant-baseline="central">Minutes</text>
+<line x1="40" y1="312" x2="640" y2="312" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Row 2: stages 4–5 -->
+<text x="40" y="330" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">4–5</text>
+<text x="80" y="330" font-size="13" fill="#2C2C2A" dominant-baseline="central">Build, static analysis</text>
+<rect x="270" y="321" width="42" height="18" fill="#EF9F27" rx="3"/>
+<text x="530" y="330" font-size="12" fill="#5F5E5A" dominant-baseline="central">Mins to hours</text>
+<line x1="40" y1="348" x2="640" y2="348" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Row 3: stages 6–7 -->
+<text x="40" y="366" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">6–7</text>
+<text x="80" y="366" font-size="13" fill="#2C2C2A" dominant-baseline="central">Unit, integration tests</text>
+<rect x="270" y="357" width="70" height="18" fill="#EF9F27" rx="3"/>
+<text x="530" y="366" font-size="12" fill="#5F5E5A" dominant-baseline="central">Hours</text>
+<line x1="40" y1="384" x2="640" y2="384" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Row 4: stage 8 -->
+<text x="40" y="402" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">8</text>
+<text x="80" y="402" font-size="13" fill="#2C2C2A" dominant-baseline="central">Pre-deploy, deploy</text>
+<rect x="270" y="393" width="107" height="18" fill="#EF9F27" rx="3"/>
+<text x="530" y="402" font-size="12" fill="#5F5E5A" dominant-baseline="central">Hours, plus rollback</text>
+<line x1="40" y1="420" x2="640" y2="420" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Row 5: stage 9 -->
+<text x="40" y="438" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">9</text>
+<text x="80" y="438" font-size="13" fill="#2C2C2A" dominant-baseline="central">Canary, staging</text>
+<rect x="270" y="429" width="150" height="18" fill="#D85A30" rx="3"/>
+<text x="530" y="438" font-size="12" fill="#5F5E5A" dominant-baseline="central">Some users hit</text>
+<line x1="40" y1="456" x2="640" y2="456" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Row 6: stage 10 -->
+<text x="40" y="474" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">10</text>
+<text x="80" y="474" font-size="13" fill="#2C2C2A" dominant-baseline="central">Production runtime</text>
+<rect x="270" y="465" width="200" height="18" fill="#D85A30" rx="3"/>
+<text x="530" y="474" font-size="12" fill="#5F5E5A" dominant-baseline="central">Customers affected</text>
+<line x1="40" y1="492" x2="640" y2="492" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Row 7: stage 11 -->
+<text x="40" y="510" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">11</text>
+<text x="80" y="510" font-size="13" fill="#2C2C2A" dominant-baseline="central">Post-incident</text>
+<rect x="270" y="501" width="250" height="18" fill="#D85A30" rx="3"/>
+<text x="530" y="510" font-size="12" fill="#5F5E5A" dominant-baseline="central">Trust, retros, RCAs</text>
+
+<!-- Callout -->
+<rect x="40" y="540" width="600" height="38" rx="8" fill="#F1EFE8"/>
+<text x="60" y="559" font-size="13" fill="#5F5E5A" dominant-baseline="central">Cost ratio between <tspan font-weight="500" fill="#2C2C2A">stage 0</tspan> and <tspan font-weight="500" fill="#2C2C2A">stage 10</tspan> routinely exceeds <tspan font-weight="500" fill="#2C2C2A">1000×</tspan>.</text>
+
+<!-- ============ FOUR PRINCIPLES ============ -->
+<line x1="40" y1="610" x2="640" y2="610" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="640" font-size="16" font-weight="500" fill="#2C2C2A">Four principles</text>
+
+<!-- Card 1 -->
+<rect x="40" y="660" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="690" font-size="14" font-weight="500" fill="#2C2C2A">Prevent over detect</text>
+<text x="56" y="712" font-size="12" fill="#5F5E5A">A type or schema that makes a</text>
+<text x="56" y="728" font-size="12" fill="#5F5E5A">defect unrepresentable beats any</text>
+<text x="56" y="744" font-size="12" fill="#5F5E5A">check that catches it.</text>
+
+<!-- Card 2 -->
+<rect x="350" y="660" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="366" y="690" font-size="14" font-weight="500" fill="#2C2C2A">Earliest stage is mandatory</text>
+<text x="366" y="712" font-size="12" fill="#5F5E5A">If a check can run at stage N,</text>
+<text x="366" y="728" font-size="12" fill="#5F5E5A">running it at N+1 is a regression</text>
+<text x="366" y="744" font-size="12" fill="#5F5E5A">— full stop.</text>
+
+<!-- Card 3 -->
+<rect x="40" y="780" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="810" font-size="14" font-weight="500" fill="#2C2C2A">Replace, don't layer</text>
+<text x="56" y="832" font-size="12" fill="#5F5E5A">When you shift a check earlier,</text>
+<text x="56" y="848" font-size="12" fill="#5F5E5A">remove the later one. Duplicates</text>
+<text x="56" y="864" font-size="12" fill="#5F5E5A">erode the signal.</text>
+
+<!-- Card 4 -->
+<rect x="350" y="780" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="366" y="810" font-size="14" font-weight="500" fill="#2C2C2A">Fail loud at the origin</text>
+<text x="366" y="832" font-size="12" fill="#5F5E5A">Errors must surface where they</text>
+<text x="366" y="848" font-size="12" fill="#5F5E5A">originated, not three layers</text>
+<text x="366" y="864" font-size="12" fill="#5F5E5A">downstream where the cause hides.</text>
+
+<!-- ============ COMMON SHIFTS (NEW) ============ -->
+<line x1="40" y1="912" x2="640" y2="912" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="940" font-size="16" font-weight="500" fill="#2C2C2A">Common shifts</text>
+
+<!-- Shift 1 -->
+<rect x="40" y="965" width="140" height="24" rx="12" fill="#D3D1C7"/>
+<text x="110" y="977" font-size="12" font-weight="500" fill="#2C2C2A" text-anchor="middle" dominant-baseline="central">Untyped source</text>
+<text x="190" y="977" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="200" y="965" width="140" height="24" rx="12" fill="#9FE1CB"/>
+<text x="270" y="977" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Typed, strict</text>
+<text x="360" y="970" font-size="12" fill="#5F5E5A" dominant-baseline="central">"Undefined" defects shift from prod</text>
+<text x="360" y="984" font-size="12" fill="#5F5E5A" dominant-baseline="central">to compile time.</text>
+
+<!-- Shift 2 -->
+<rect x="40" y="1009" width="140" height="24" rx="12" fill="#D3D1C7"/>
+<text x="110" y="1021" font-size="12" font-weight="500" fill="#2C2C2A" text-anchor="middle" dominant-baseline="central">ADR (prose)</text>
+<text x="190" y="1021" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="200" y="1009" width="140" height="24" rx="12" fill="#9FE1CB"/>
+<text x="270" y="1021" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Lint rule</text>
+<text x="360" y="1014" font-size="12" fill="#5F5E5A" dominant-baseline="central">Architectural decisions become</text>
+<text x="360" y="1028" font-size="12" fill="#5F5E5A" dominant-baseline="central">build failures, not folklore.</text>
+
+<!-- Shift 3 -->
+<rect x="40" y="1053" width="140" height="24" rx="12" fill="#D3D1C7"/>
+<text x="110" y="1065" font-size="12" font-weight="500" fill="#2C2C2A" text-anchor="middle" dominant-baseline="central">Hand-validated</text>
+<text x="190" y="1065" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="200" y="1053" width="140" height="24" rx="12" fill="#9FE1CB"/>
+<text x="270" y="1065" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Schema-as-code</text>
+<text x="360" y="1058" font-size="12" fill="#5F5E5A" dominant-baseline="central">One schema powers codegen,</text>
+<text x="360" y="1072" font-size="12" fill="#5F5E5A" dominant-baseline="central">autocomplete, and deploy gates.</text>
+
+<!-- Shift 4 -->
+<rect x="40" y="1097" width="140" height="24" rx="12" fill="#D3D1C7"/>
+<text x="110" y="1109" font-size="12" font-weight="500" fill="#2C2C2A" text-anchor="middle" dominant-baseline="central">Optional check</text>
+<text x="190" y="1109" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="200" y="1097" width="140" height="24" rx="12" fill="#9FE1CB"/>
+<text x="270" y="1109" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Blocking gate</text>
+<text x="360" y="1102" font-size="12" fill="#5F5E5A" dominant-baseline="central">The right check at the right stage —</text>
+<text x="360" y="1116" font-size="12" fill="#5F5E5A" dominant-baseline="central">actually enforced.</text>
+
+</svg>

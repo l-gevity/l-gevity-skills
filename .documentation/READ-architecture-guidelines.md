@@ -1,5 +1,7 @@
 # Architecture Guidelines
 
+![Architecture Guidelines](architecture_guidelines.svg)
+
 A first-principles ruleset for module design. Minimalism, modularity, functional core, resilience, naming, concurrency — the things every module decision should test against before code is written.
 
 ## Why use this

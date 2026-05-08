@@ -1,5 +1,7 @@
 # Architecture-as-Code (Python)
 
+![Architecture as Code](architecture_as_code.svg)
+
 A build step that enforces your architectural rules in Python. You declare which packages may import from which via per-package `architecture.toml` files; an assembler turns them into `import-linter` contracts and the build fails on violations.
 
 ## Why use this

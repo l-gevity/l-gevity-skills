@@ -1,5 +1,7 @@
 # Structural Simplification — Companion
 
+![Structural Simplification](structural_simplification.svg)
+
 > **Companion to [`SKILL.md`](./SKILL.md).** Read SKILL.md first — that is the
 > canonical operational reference (the four-axis model, reduction operations,
 > trade-off matrix, asymmetric trades, decision protocol). This file argues

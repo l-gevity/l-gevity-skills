@@ -1,5 +1,7 @@
 # Geometric Software Architecture
 
+![Geometric Architecture](geometric_architecture.svg)
+
 A 3-D spatial coordinate system for your dependency graph. Every component gets an address `(X, Y, Z)` and may only couple to face-adjacent neighbors; long-range and cyclic dependencies become structurally hard to express — the way a building's geometry resists impossible plumbing.
 
 ## Why use this

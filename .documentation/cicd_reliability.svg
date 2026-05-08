@@ -1,0 +1,181 @@
+<svg width="680" height="1220" viewBox="0 0 680 1220" role="img" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif">
+<title>CI/CD reliability architecture infographic</title>
+<desc>Infographic explaining CI/CD reliability architecture: six principles (idempotent, self-contained, immutable artifacts, self-healing, zero-downtime, zero-knowledge), a pipeline flow diagram, nine anti-patterns with fixes, and a pre-merge checklist.</desc>
+
+<rect width="680" height="1220" fill="#FFFFFF"/>
+
+<!-- ============ HERO ============ -->
+<rect x="40" y="40" width="40" height="3" fill="#534AB7" rx="1.5"/>
+<text x="40" y="74" font-size="22" font-weight="500" fill="#2C2C2A">CI/CD reliability architecture</text>
+<text x="40" y="100" font-size="14" fill="#5F5E5A">Pipelines that are safe to retry, build once, deploy without downtime, and store no secrets.</text>
+<text x="40" y="120" font-size="12" fill="#888780">When pipelines fail surprisingly, one of six rules was assumed instead of designed.</text>
+
+<!-- ============ SIX PRINCIPLES ============ -->
+<line x1="40" y1="148" x2="640" y2="148" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="178" font-size="16" font-weight="500" fill="#2C2C2A">Six principles</text>
+
+<!-- Row 1: Idempotent | Self-contained | Immutable artifacts -->
+<rect x="40" y="200" width="190" height="80" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="224" font-size="14" font-weight="500" fill="#2C2C2A">Idempotent</text>
+<text x="56" y="246" font-size="12" fill="#5F5E5A">Safe to run 0, 1, or N</text>
+<text x="56" y="262" font-size="12" fill="#5F5E5A">times. Same result.</text>
+
+<rect x="245" y="200" width="190" height="80" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="261" y="224" font-size="14" font-weight="500" fill="#2C2C2A">Self-contained</text>
+<text x="261" y="246" font-size="12" fill="#5F5E5A">Each job declares inputs,</text>
+<text x="261" y="262" font-size="12" fill="#5F5E5A">outputs, failure mode.</text>
+
+<rect x="450" y="200" width="190" height="80" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="466" y="224" font-size="14" font-weight="500" fill="#2C2C2A">Immutable artifacts</text>
+<text x="466" y="246" font-size="12" fill="#5F5E5A">Build once, promote</text>
+<text x="466" y="262" font-size="12" fill="#5F5E5A">everywhere. Tag by SHA.</text>
+
+<!-- Row 2: Self-healing | Zero-downtime | Zero-knowledge -->
+<rect x="40" y="290" width="190" height="80" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="314" font-size="14" font-weight="500" fill="#2C2C2A">Self-healing</text>
+<text x="56" y="336" font-size="12" fill="#5F5E5A">Auto-retry transient fails.</text>
+<text x="56" y="352" font-size="12" fill="#5F5E5A">Fail fast on permanent.</text>
+
+<rect x="245" y="290" width="190" height="80" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="261" y="314" font-size="14" font-weight="500" fill="#2C2C2A">Zero-downtime</text>
+<text x="261" y="336" font-size="12" fill="#5F5E5A">Preview per PR, atomic</text>
+<text x="261" y="352" font-size="12" fill="#5F5E5A">promotion, no direct prod.</text>
+
+<rect x="450" y="290" width="190" height="80" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="466" y="314" font-size="14" font-weight="500" fill="#2C2C2A">Zero-knowledge</text>
+<text x="466" y="336" font-size="12" fill="#5F5E5A">OIDC federation; short-</text>
+<text x="466" y="352" font-size="12" fill="#5F5E5A">lived tokens, no secrets.</text>
+
+<!-- ============ ANTI-PATTERN LADDER ============ -->
+<line x1="40" y1="398" x2="640" y2="398" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="428" font-size="16" font-weight="500" fill="#2C2C2A">Anti-patterns and fixes</text>
+
+<!-- Legend -->
+<rect x="40" y="448" width="12" height="12" fill="#F5C4B3" rx="2"/>
+<text x="58" y="454" font-size="12" fill="#5F5E5A" dominant-baseline="central">Anti-pattern</text>
+<rect x="160" y="448" width="12" height="12" fill="#9FE1CB" rx="2"/>
+<text x="178" y="454" font-size="12" fill="#5F5E5A" dominant-baseline="central">Fix</text>
+<rect x="230" y="448" width="12" height="12" fill="#CECBF6" rx="2"/>
+<text x="248" y="454" font-size="12" fill="#5F5E5A" dominant-baseline="central">Rule violated</text>
+
+<!-- AP row 1 -->
+<rect x="40" y="478" width="150" height="24" rx="12" fill="#F5C4B3"/>
+<text x="115" y="490" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">npm install in CI</text>
+<text x="198" y="490" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="210" y="478" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="285" y="490" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">npm ci (lock-file)</text>
+<rect x="380" y="478" width="120" height="24" rx="12" fill="#CECBF6"/>
+<text x="440" y="490" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Idempotency</text>
+
+<!-- AP row 2 -->
+<rect x="40" y="510" width="150" height="24" rx="12" fill="#F5C4B3"/>
+<text x="115" y="522" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Rebuild per env</text>
+<text x="198" y="522" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="210" y="510" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="285" y="522" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Build once, promote</text>
+<rect x="380" y="510" width="120" height="24" rx="12" fill="#CECBF6"/>
+<text x="440" y="522" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Immutable</text>
+
+<!-- AP row 3 -->
+<rect x="40" y="542" width="150" height="24" rx="12" fill="#F5C4B3"/>
+<text x="115" y="554" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Baked-in secrets</text>
+<text x="198" y="554" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="210" y="542" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="285" y="554" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Inject at deploy time</text>
+<rect x="380" y="542" width="120" height="24" rx="12" fill="#CECBF6"/>
+<text x="440" y="554" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Immutable</text>
+
+<!-- AP row 4 -->
+<rect x="40" y="574" width="150" height="24" rx="12" fill="#F5C4B3"/>
+<text x="115" y="586" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Platform builds</text>
+<text x="198" y="586" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="210" y="574" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="285" y="586" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Dedicated CI step</text>
+<rect x="380" y="574" width="120" height="24" rx="12" fill="#CECBF6"/>
+<text x="440" y="586" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Immutable</text>
+
+<!-- AP row 5 -->
+<rect x="40" y="606" width="150" height="24" rx="12" fill="#F5C4B3"/>
+<text x="115" y="618" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Stored cloud creds</text>
+<text x="198" y="618" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="210" y="606" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="285" y="618" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">OIDC federation</text>
+<rect x="380" y="606" width="120" height="24" rx="12" fill="#CECBF6"/>
+<text x="440" y="618" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Zero-knowledge</text>
+
+<!-- AP row 6 -->
+<rect x="40" y="638" width="150" height="24" rx="12" fill="#F5C4B3"/>
+<text x="115" y="650" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">No health check</text>
+<text x="198" y="650" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="210" y="638" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="285" y="650" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Check + auto-rollback</text>
+<rect x="380" y="638" width="120" height="24" rx="12" fill="#CECBF6"/>
+<text x="440" y="650" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Self-healing</text>
+
+<!-- AP row 7 -->
+<rect x="40" y="670" width="150" height="24" rx="12" fill="#F5C4B3"/>
+<text x="115" y="682" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">No timeouts</text>
+<text x="198" y="682" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="210" y="670" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="285" y="682" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Explicit timeout: every step</text>
+<rect x="380" y="670" width="120" height="24" rx="12" fill="#CECBF6"/>
+<text x="440" y="682" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Self-healing</text>
+
+<!-- AP row 8 -->
+<rect x="40" y="702" width="150" height="24" rx="12" fill="#F5C4B3"/>
+<text x="115" y="714" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Shared paths</text>
+<text x="198" y="714" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="210" y="702" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="285" y="714" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Namespace by branch</text>
+<rect x="380" y="702" width="120" height="24" rx="12" fill="#CECBF6"/>
+<text x="440" y="714" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Self-contained</text>
+
+<!-- AP row 9 -->
+<rect x="40" y="734" width="150" height="24" rx="12" fill="#F5C4B3"/>
+<text x="115" y="746" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Racing deploys</text>
+<text x="198" y="746" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="210" y="734" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="285" y="746" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">cancel-in-progress</text>
+<rect x="380" y="734" width="120" height="24" rx="12" fill="#CECBF6"/>
+<text x="440" y="746" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Zero-downtime</text>
+
+<!-- ============ PRE-MERGE CHECKLIST ============ -->
+<line x1="40" y1="782" x2="640" y2="782" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="812" font-size="16" font-weight="500" fill="#2C2C2A">Pre-merge checklist</text>
+
+<!-- Checklist items as compact rows -->
+<rect x="40" y="835" width="600" height="340" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+
+<!-- Item 1 -->
+<rect x="56" y="855" width="16" height="16" rx="3" fill="none" stroke="#D3D1C7" stroke-width="1"/>
+<text x="82" y="867" font-size="13" fill="#2C2C2A">Idempotent: safe to run 0×, 1×, or N× — same result.</text>
+
+<!-- Item 2 -->
+<rect x="56" y="893" width="16" height="16" rx="3" fill="none" stroke="#D3D1C7" stroke-width="1"/>
+<text x="82" y="905" font-size="13" fill="#2C2C2A">Timeouts on every long-running step.</text>
+
+<!-- Item 3 -->
+<rect x="56" y="931" width="16" height="16" rx="3" fill="none" stroke="#D3D1C7" stroke-width="1"/>
+<text x="82" y="943" font-size="13" fill="#2C2C2A">Build once in a dedicated CI step; deploy receives artifact.</text>
+
+<!-- Item 4 -->
+<rect x="56" y="969" width="16" height="16" rx="3" fill="none" stroke="#D3D1C7" stroke-width="1"/>
+<text x="82" y="981" font-size="13" fill="#2C2C2A">OIDC / federated identity; no stored cloud credentials.</text>
+
+<!-- Item 5 -->
+<rect x="56" y="1007" width="16" height="16" rx="3" fill="none" stroke="#D3D1C7" stroke-width="1"/>
+<text x="82" y="1019" font-size="13" fill="#2C2C2A">Post-deploy health check; rollback on failure.</text>
+
+<!-- Item 6 -->
+<rect x="56" y="1045" width="16" height="16" rx="3" fill="none" stroke="#D3D1C7" stroke-width="1"/>
+<text x="82" y="1057" font-size="13" fill="#2C2C2A">Preview environment per PR; atomic promotion on merge.</text>
+
+<!-- Item 7 -->
+<rect x="56" y="1083" width="16" height="16" rx="3" fill="none" stroke="#D3D1C7" stroke-width="1"/>
+<text x="82" y="1095" font-size="13" fill="#2C2C2A">cancel-in-progress enabled; only latest commit deploys.</text>
+
+<!-- Callout -->
+<rect x="40" y="1140" width="600" height="38" rx="8" fill="#F1EFE8"/>
+<text x="60" y="1159" font-size="13" fill="#5F5E5A" dominant-baseline="central">The framework earns its keep the first time a flaky deploy <tspan font-weight="500" fill="#2C2C2A">drops traffic</tspan> — which is to say, <tspan font-weight="500" fill="#2C2C2A">immediately</tspan>.</text>
+
+</svg>

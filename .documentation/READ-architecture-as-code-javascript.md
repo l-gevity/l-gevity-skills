@@ -1,8 +1,8 @@
 # Architecture-as-Code
 
-A build step that enforces your architectural rules (the dependency graph). You declare which modules may import from which; violations fail the build.
+![Architecture as Code](architecture_as_code.svg)
 
-<img width="1886" height="749" alt="image" src="https://github.com/user-attachments/assets/e6e1f085-dadd-400b-b2b5-e133e50fd650" />
+A build step that enforces your architectural rules (the dependency graph). You declare which modules may import from which; violations fail the build.
 
 ## Why use this
 

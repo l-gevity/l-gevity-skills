@@ -1,0 +1,136 @@
+<svg width="680" height="1230" viewBox="0 0 680 1230" role="img" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif">
+<title>Structural simplification infographic</title>
+<desc>Infographic explaining the structural simplification model: complexity is a four-axis vector (D, K, P, n), not a scalar. Includes the four axes, trade-off principle, three asymmetric moves, and worked example verdicts.</desc>
+
+<rect width="680" height="1230" fill="#FFFFFF"/>
+
+<!-- ============ HERO ============ -->
+<rect x="40" y="40" width="40" height="3" fill="#534AB7" rx="1.5"/>
+<text x="40" y="74" font-size="22" font-weight="500" fill="#2C2C2A">Structural simplification</text>
+<text x="40" y="100" font-size="14" fill="#5F5E5A">Complexity is a four-axis vector, not a scalar. Measure every axis or measure nothing.</text>
+<text x="40" y="120" font-size="12" fill="#888780">"Simpler" is the most overused and least falsifiable word in software engineering.</text>
+
+<!-- ============ THE FOUR AXES ============ -->
+<line x1="40" y1="148" x2="640" y2="148" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="178" font-size="16" font-weight="500" fill="#2C2C2A">The four axes</text>
+
+<!-- D axis card (teal) -->
+<rect x="40" y="200" width="140" height="120" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<rect x="56" y="216" width="32" height="32" rx="6" fill="#9FE1CB"/>
+<text x="72" y="232" font-size="18" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">D</text>
+<text x="56" y="268" font-size="14" font-weight="500" fill="#2C2C2A">Diversity</text>
+<text x="56" y="288" font-size="12" fill="#5F5E5A">How many distinct</text>
+<text x="56" y="304" font-size="12" fill="#5F5E5A">patterns to learn.</text>
+
+<!-- K axis card (amber) -->
+<rect x="195" y="200" width="140" height="120" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<rect x="211" y="216" width="32" height="32" rx="6" fill="#FAC775"/>
+<text x="227" y="232" font-size="18" font-weight="500" fill="#633806" text-anchor="middle" dominant-baseline="central">K</text>
+<text x="211" y="268" font-size="14" font-weight="500" fill="#2C2C2A">Coupling</text>
+<text x="211" y="288" font-size="12" fill="#5F5E5A">How many things</text>
+<text x="211" y="304" font-size="12" fill="#5F5E5A">change together.</text>
+
+<!-- P axis card (purple) -->
+<rect x="350" y="200" width="140" height="120" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<rect x="366" y="216" width="32" height="32" rx="6" fill="#CECBF6"/>
+<text x="382" y="232" font-size="18" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">P</text>
+<text x="366" y="268" font-size="14" font-weight="500" fill="#2C2C2A">Depth</text>
+<text x="366" y="288" font-size="12" fill="#5F5E5A">How many hops</text>
+<text x="366" y="304" font-size="12" fill="#5F5E5A">to trace a call.</text>
+
+<!-- n axis card (coral) -->
+<rect x="505" y="200" width="140" height="120" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<rect x="521" y="216" width="32" height="32" rx="6" fill="#F5C4B3"/>
+<text x="537" y="232" font-size="18" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">n</text>
+<text x="521" y="268" font-size="14" font-weight="500" fill="#2C2C2A">Quantity</text>
+<text x="521" y="288" font-size="12" fill="#5F5E5A">How many parts</text>
+<text x="521" y="304" font-size="12" fill="#5F5E5A">to hold in mind.</text>
+
+<!-- Callout: cost mapping -->
+<rect x="40" y="340" width="600" height="38" rx="8" fill="#F1EFE8"/>
+<text x="60" y="359" font-size="13" fill="#5F5E5A" dominant-baseline="central">Four axes → four costs: <tspan font-weight="500" fill="#2C2C2A">learning</tspan> (D), <tspan font-weight="500" fill="#2C2C2A">changing</tspan> (K), <tspan font-weight="500" fill="#2C2C2A">tracing</tspan> (P), <tspan font-weight="500" fill="#2C2C2A">holding</tspan> (n).</text>
+
+<!-- ============ TRADE-OFF PRINCIPLE ============ -->
+<line x1="40" y1="400" x2="640" y2="400" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="430" font-size="16" font-weight="500" fill="#2C2C2A">The trade-off principle</text>
+
+<!-- Trade-off row 1 -->
+<rect x="40" y="452" width="600" height="50" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="471" font-size="14" font-weight="500" fill="#2C2C2A">Reducing K usually raises P or n</text>
+<text x="56" y="490" font-size="12" fill="#5F5E5A">Decoupling means inserting indirection — depth or quantity grows.</text>
+
+<!-- Trade-off row 2 -->
+<rect x="40" y="510" width="600" height="50" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="529" font-size="14" font-weight="500" fill="#2C2C2A">Reducing P usually raises K or D</text>
+<text x="56" y="548" font-size="12" fill="#5F5E5A">Flattening layers means buffered parts now talk directly — coupling rises.</text>
+
+<!-- Trade-off row 3 -->
+<rect x="40" y="568" width="600" height="50" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="587" font-size="14" font-weight="500" fill="#2C2C2A">Reducing n usually raises K or P internally</text>
+<text x="56" y="606" font-size="12" fill="#5F5E5A">Merging two parts pushes boundary logic inside a larger thing.</text>
+
+<!-- Callout: pure wins -->
+<rect x="40" y="636" width="600" height="38" rx="8" fill="#F1EFE8"/>
+<text x="60" y="655" font-size="13" fill="#5F5E5A" dominant-baseline="central">Pure wins are <tspan font-weight="500" fill="#2C2C2A">rare and precious</tspan> — typically <tspan font-weight="500" fill="#2C2C2A">deletions</tspan>. Delete over mitigate.</text>
+
+<!-- ============ THREE ASYMMETRIC MOVES ============ -->
+<line x1="40" y1="700" x2="640" y2="700" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="730" font-size="16" font-weight="500" fill="#2C2C2A">Three asymmetric moves</text>
+
+<!-- Move 1: Conform over customize -->
+<rect x="40" y="750" width="190" height="130" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="778" font-size="14" font-weight="500" fill="#2C2C2A">Conform over</text>
+<text x="56" y="796" font-size="14" font-weight="500" fill="#2C2C2A">customize</text>
+<text x="56" y="820" font-size="12" fill="#5F5E5A">Accept locally suboptimal</text>
+<text x="56" y="836" font-size="12" fill="#5F5E5A">code to shrink global D.</text>
+<text x="56" y="852" font-size="12" fill="#5F5E5A">One snowflake inflates</text>
+<text x="56" y="868" font-size="12" fill="#5F5E5A">the whole vocabulary.</text>
+
+<!-- Move 2: Delete over mitigate -->
+<rect x="245" y="750" width="190" height="130" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="261" y="778" font-size="14" font-weight="500" fill="#2C2C2A">Delete over</text>
+<text x="261" y="796" font-size="14" font-weight="500" fill="#2C2C2A">mitigate</text>
+<text x="261" y="820" font-size="12" fill="#5F5E5A">Special cases are</text>
+<text x="261" y="836" font-size="12" fill="#5F5E5A">complexity multipliers:</text>
+<text x="261" y="852" font-size="12" fill="#5F5E5A">D↑ K↑ P↑ n↑. Removing</text>
+<text x="261" y="868" font-size="12" fill="#5F5E5A">the source beats handling.</text>
+
+<!-- Move 3: Atomicity decision -->
+<rect x="450" y="750" width="190" height="130" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="466" y="778" font-size="14" font-weight="500" fill="#2C2C2A">Atomicity</text>
+<text x="466" y="796" font-size="14" font-weight="500" fill="#2C2C2A">decision</text>
+<text x="466" y="820" font-size="12" fill="#5F5E5A">Atomicity raises K and P.</text>
+<text x="466" y="836" font-size="12" fill="#5F5E5A">Eventual consistency</text>
+<text x="466" y="852" font-size="12" fill="#5F5E5A">lowers them but shifts</text>
+<text x="466" y="868" font-size="12" fill="#5F5E5A">cost to compensation.</text>
+
+<!-- ============ WORKED EXAMPLE ============ -->
+<line x1="40" y1="910" x2="640" y2="910" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="940" font-size="16" font-weight="500" fill="#2C2C2A">Three refactorings, three verdicts</text>
+
+<!-- Example 1: Extract helper -->
+<rect x="40" y="960" width="600" height="56" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="982" font-size="14" font-weight="500" fill="#2C2C2A">Extract a helper used three times</text>
+<text x="56" y="1002" font-size="12" fill="#5F5E5A">D↓  K↓  P—  n↑</text>
+<rect x="518" y="978" width="108" height="22" rx="11" fill="#9FE1CB"/>
+<text x="572" y="989" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Probably better</text>
+
+<!-- Example 2: Wrap in facade -->
+<rect x="40" y="1024" width="600" height="56" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="1046" font-size="14" font-weight="500" fill="#2C2C2A">Wrap a service in a facade</text>
+<text x="56" y="1066" font-size="12" fill="#5F5E5A">D↑  K—  P↑  n↑</text>
+<rect x="518" y="1042" width="108" height="22" rx="11" fill="#F5C4B3"/>
+<text x="572" y="1053" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Probably worse</text>
+
+<!-- Example 3: Unify error handling -->
+<rect x="40" y="1088" width="600" height="56" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="1110" font-size="14" font-weight="500" fill="#2C2C2A">Replace three error styles with one</text>
+<text x="56" y="1130" font-size="12" fill="#5F5E5A">D↓  K—  P—  n—</text>
+<rect x="518" y="1106" width="108" height="22" rx="11" fill="#9FE1CB"/>
+<text x="572" y="1117" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Clearly better</text>
+
+<!-- Callout: scalar trap -->
+<rect x="40" y="1164" width="600" height="38" rx="8" fill="#F1EFE8"/>
+<text x="60" y="1183" font-size="13" fill="#5F5E5A" dominant-baseline="central">A single-number metric gives <tspan font-weight="500" fill="#2C2C2A">one verdict</tspan>. The four-axis vector gives <tspan font-weight="500" fill="#2C2C2A">three — and explains why</tspan>.</text>
+
+</svg>

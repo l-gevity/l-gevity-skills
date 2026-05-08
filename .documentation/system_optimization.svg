@@ -1,0 +1,144 @@
+<svg width="680" height="1120" viewBox="0 0 680 1120" role="img" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif">
+<title>System optimization infographic</title>
+<desc>Infographic explaining the system optimization protocol: a five-step sequence (question, delete, simplify, speed up, automate) with a leverage ladder showing decreasing impact per step, four core principles, and five without-vs-with contrasts.</desc>
+
+<rect width="680" height="1120" fill="#FFFFFF"/>
+
+<!-- ============ HERO ============ -->
+<rect x="40" y="40" width="40" height="3" fill="#534AB7" rx="1.5"/>
+<text x="40" y="74" font-size="22" font-weight="500" fill="#2C2C2A">System optimization</text>
+<text x="40" y="100" font-size="14" fill="#5F5E5A">Most optimization makes systems worse — wrong thing, wrong order, wrong time.</text>
+<text x="40" y="120" font-size="12" fill="#888780">Fixing the order is worth more than any individual optimization.</text>
+
+<!-- ============ THE SEQUENCE (LEVERAGE LADDER) ============ -->
+<line x1="40" y1="148" x2="640" y2="148" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="178" font-size="16" font-weight="500" fill="#2C2C2A">The sequence</text>
+
+<!-- Legend -->
+<rect x="40" y="200" width="12" height="12" fill="#1D9E75" rx="2"/>
+<text x="58" y="206" font-size="12" fill="#5F5E5A" dominant-baseline="central">High leverage</text>
+<rect x="160" y="200" width="12" height="12" fill="#EF9F27" rx="2"/>
+<text x="178" y="206" font-size="12" fill="#5F5E5A" dominant-baseline="central">Moderate</text>
+<rect x="260" y="200" width="12" height="12" fill="#D85A30" rx="2"/>
+<text x="278" y="206" font-size="12" fill="#5F5E5A" dominant-baseline="central">Locks in</text>
+
+<!-- Row 1: Question -->
+<text x="40" y="253" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">1</text>
+<text x="68" y="253" font-size="13" fill="#2C2C2A" dominant-baseline="central">Question the requirement</text>
+<rect x="270" y="244" width="250" height="18" fill="#1D9E75" rx="3"/>
+<text x="530" y="253" font-size="12" fill="#5F5E5A" dominant-baseline="central">Entire workflows</text>
+<line x1="40" y1="271" x2="640" y2="271" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Row 2: Delete -->
+<text x="40" y="289" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">2</text>
+<text x="68" y="289" font-size="13" fill="#2C2C2A" dominant-baseline="central">Delete what you can</text>
+<rect x="270" y="280" width="188" height="18" fill="#1D9E75" rx="3"/>
+<text x="530" y="289" font-size="12" fill="#5F5E5A" dominant-baseline="central">Parts + all edges</text>
+<line x1="40" y1="307" x2="640" y2="307" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Row 3: Simplify -->
+<text x="40" y="325" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">3</text>
+<text x="68" y="325" font-size="13" fill="#2C2C2A" dominant-baseline="central">Simplify what survives</text>
+<rect x="270" y="316" width="125" height="18" fill="#EF9F27" rx="3"/>
+<text x="530" y="325" font-size="12" fill="#5F5E5A" dominant-baseline="central">Complexity vector</text>
+<line x1="40" y1="343" x2="640" y2="343" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Row 4: Speed up -->
+<text x="40" y="361" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">4</text>
+<text x="68" y="361" font-size="13" fill="#2C2C2A" dominant-baseline="central">Speed up what remains</text>
+<rect x="270" y="352" width="62" height="18" fill="#EF9F27" rx="3"/>
+<text x="530" y="361" font-size="12" fill="#5F5E5A" dominant-baseline="central">Local gain only</text>
+<line x1="40" y1="379" x2="640" y2="379" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Row 5: Automate -->
+<text x="40" y="397" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">5</text>
+<text x="68" y="397" font-size="13" fill="#2C2C2A" dominant-baseline="central">Automate what's proven</text>
+<rect x="270" y="388" width="25" height="18" fill="#D85A30" rx="3"/>
+<text x="530" y="397" font-size="12" fill="#5F5E5A" dominant-baseline="central">Locks things in</text>
+
+<!-- Callout -->
+<rect x="40" y="430" width="600" height="38" rx="8" fill="#F1EFE8"/>
+<text x="60" y="449" font-size="13" fill="#5F5E5A" dominant-baseline="central">Work done out of order is <tspan font-weight="500" fill="#2C2C2A">work to undo</tspan>. Speed-ups of deleted steps are <tspan font-weight="500" fill="#2C2C2A">wasted twice</tspan>.</text>
+
+<!-- ============ FOUR PRINCIPLES ============ -->
+<line x1="40" y1="493" x2="640" y2="493" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="523" font-size="16" font-weight="500" fill="#2C2C2A">Four principles</text>
+
+<!-- Principle 1: Constraint sets the ceiling -->
+<rect x="40" y="545" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="575" font-size="14" font-weight="500" fill="#2C2C2A">Constraint sets the ceiling</text>
+<text x="56" y="597" font-size="12" fill="#5F5E5A">System throughput = slowest step.</text>
+<text x="56" y="613" font-size="12" fill="#5F5E5A">Improving any other step has</text>
+<text x="56" y="629" font-size="12" fill="#5F5E5A">zero effect on the system.</text>
+
+<!-- Principle 2: Stabilize before optimizing -->
+<rect x="350" y="545" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="366" y="575" font-size="14" font-weight="500" fill="#2C2C2A">Stabilize before optimizing</text>
+<text x="366" y="597" font-size="12" fill="#5F5E5A">Variance swamps signal. You</text>
+<text x="366" y="613" font-size="12" fill="#5F5E5A">cannot optimize what you</text>
+<text x="366" y="629" font-size="12" fill="#5F5E5A">cannot reliably measure.</text>
+
+<!-- Principle 3: Flow over utilization -->
+<rect x="40" y="665" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="695" font-size="14" font-weight="500" fill="#2C2C2A">Flow over utilization</text>
+<text x="56" y="717" font-size="12" fill="#5F5E5A">Keep work moving, not people</text>
+<text x="56" y="733" font-size="12" fill="#5F5E5A">busy. Inventory is the most</text>
+<text x="56" y="749" font-size="12" fill="#5F5E5A">invisible waste in software.</text>
+
+<!-- Principle 4: Small steps compound -->
+<rect x="350" y="665" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="366" y="695" font-size="14" font-weight="500" fill="#2C2C2A">Small steps compound</text>
+<text x="366" y="717" font-size="12" fill="#5F5E5A">1% weekly = 67% in a year.</text>
+<text x="366" y="733" font-size="12" fill="#5F5E5A">Big bets underperform the</text>
+<text x="366" y="749" font-size="12" fill="#5F5E5A">steady stream of small ones.</text>
+
+<!-- ============ WITHOUT → WITH ============ -->
+<line x1="40" y1="800" x2="640" y2="800" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="830" font-size="16" font-weight="500" fill="#2C2C2A">Without vs with protocol</text>
+
+<!-- Row 1: Speed up first → Question first -->
+<rect x="40" y="860" width="150" height="24" rx="12" fill="#D3D1C7"/>
+<text x="115" y="872" font-size="12" font-weight="500" fill="#2C2C2A" text-anchor="middle" dominant-baseline="central">Speed up first</text>
+<text x="198" y="872" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="210" y="860" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="285" y="872" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Question first</text>
+<text x="380" y="865" font-size="12" fill="#5F5E5A" dominant-baseline="central">Each step changes what the</text>
+<text x="380" y="879" font-size="12" fill="#5F5E5A" dominant-baseline="central">next step works on.</text>
+
+<!-- Row 2: Optimize locally → Fix the constraint -->
+<rect x="40" y="904" width="150" height="24" rx="12" fill="#D3D1C7"/>
+<text x="115" y="916" font-size="12" font-weight="500" fill="#2C2C2A" text-anchor="middle" dominant-baseline="central">Optimize locally</text>
+<text x="198" y="916" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="210" y="904" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="285" y="916" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Fix the constraint</text>
+<text x="380" y="909" font-size="12" fill="#5F5E5A" dominant-baseline="central">Throughput = slowest step.</text>
+<text x="380" y="923" font-size="12" fill="#5F5E5A" dominant-baseline="central">Other gains don't propagate.</text>
+
+<!-- Row 3: Big-bang redesign → Small bets compound -->
+<rect x="40" y="948" width="150" height="24" rx="12" fill="#D3D1C7"/>
+<text x="115" y="960" font-size="12" font-weight="500" fill="#2C2C2A" text-anchor="middle" dominant-baseline="central">Big redesigns</text>
+<text x="198" y="960" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="210" y="948" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="285" y="960" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Small bets compound</text>
+<text x="380" y="953" font-size="12" fill="#5F5E5A" dominant-baseline="central">1% weekly = 67% in a year.</text>
+<text x="380" y="967" font-size="12" fill="#5F5E5A" dominant-baseline="central">Big bets underperform.</text>
+
+<!-- Row 4: Tolerate flakiness → Stabilize first -->
+<rect x="40" y="992" width="150" height="24" rx="12" fill="#D3D1C7"/>
+<text x="115" y="1004" font-size="12" font-weight="500" fill="#2C2C2A" text-anchor="middle" dominant-baseline="central">Tolerate flakiness</text>
+<text x="198" y="1004" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="210" y="992" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="285" y="1004" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Stabilize first</text>
+<text x="380" y="997" font-size="12" fill="#5F5E5A" dominant-baseline="central">Variance swamps signal. Can't</text>
+<text x="380" y="1011" font-size="12" fill="#5F5E5A" dominant-baseline="central">optimize what's unmeasured.</text>
+
+<!-- Row 5: Keep people busy → Keep work moving -->
+<rect x="40" y="1036" width="150" height="24" rx="12" fill="#D3D1C7"/>
+<text x="115" y="1048" font-size="12" font-weight="500" fill="#2C2C2A" text-anchor="middle" dominant-baseline="central">Keep people busy</text>
+<text x="198" y="1048" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="210" y="1036" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="285" y="1048" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Keep work moving</text>
+<text x="380" y="1041" font-size="12" fill="#5F5E5A" dominant-baseline="central">Utilization ≠ throughput.</text>
+<text x="380" y="1055" font-size="12" fill="#5F5E5A" dominant-baseline="central">Inventory is invisible waste.</text>
+
+</svg>

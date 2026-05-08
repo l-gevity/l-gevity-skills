@@ -1,5 +1,7 @@
 # System Optimization — In-Depth Explanation
 
+![System Optimization](system_optimization.svg)
+
 > **The core claim:** Most optimization effort makes systems worse — because it
 > speeds up the wrong thing, in the wrong order, at the wrong time. The single
 > most expensive mistake in optimization is doing the right things in the wrong
