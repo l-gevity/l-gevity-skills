@@ -28,6 +28,12 @@ Every skill ships as a `SKILL.md` (the operational reference); a matching
 `READ-<skill>.md` primer in [`./.documentation/`](./.documentation/) gives the
 plain-English overview.
 
+### The orchestrator — *which skills to run, in which order?*
+
+| Skill | Readme | Use it to |
+| :---- | :----- | :-------- |
+| [design-and-refactor](./design-and-refactor/SKILL.md) | [READ](./.documentation/READ-design-and-refactor.md) | Sequence the other skills into a deterministic seven-gate flow — necessity → first principles → placement → complexity → enforcement → shift-left → optimization — so enforcement never precedes design and speculative generality is caught at Gate 1, not after a rewrite. |
+
 ### Architectural foundations — *what should the system look like?*
 
 | Skill | Readme | Use it to |
@@ -61,12 +67,6 @@ plain-English overview.
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
 | [system-optimization](./system-optimization/SKILL.md) | [READ](./.documentation/READ-system-optimization.md) | Run optimization in the right order — question, delete, simplify, speed up, automate — instead of caching or parallelizing work that should have been deleted. |
-
-### Design orchestration — *which skills to run, in which order?*
-
-| Skill | Readme | Use it to |
-| :---- | :----- | :-------- |
-| [design-and-refactor](./design-and-refactor/SKILL.md) | [READ](./.documentation/READ-design-and-refactor.md) | Sequence the other skills into a deterministic seven-gate flow — necessity → first principles → placement → complexity → enforcement → shift-left → optimization — so enforcement never precedes design and speculative generality is caught at Gate 1, not after a rewrite. |
 
 ### Meta-layer — *how do the skills themselves improve?*
 
