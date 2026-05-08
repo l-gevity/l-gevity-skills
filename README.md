@@ -23,8 +23,8 @@ apply to any software project — not just ours.
 
 ## Skills
 
-Ten skills, organized into six groups by the question each one answers. Every
-skill ships as a `SKILL.md` (the operational reference); a matching
+Eleven skills, organized into seven groups by the question each one answers.
+Every skill ships as a `SKILL.md` (the operational reference); a matching
 `READ-<skill>.md` primer in [`./.documentation/`](./.documentation/) gives the
 plain-English overview.
 
@@ -62,6 +62,12 @@ plain-English overview.
 | :---- | :----- | :-------- |
 | [system-optimization](./system-optimization/SKILL.md) | [READ](./.documentation/READ-system-optimization.md) | Run optimization in the right order — question, delete, simplify, speed up, automate — instead of caching or parallelizing work that should have been deleted. |
 
+### Design orchestration — *which skills to run, in which order?*
+
+| Skill | Readme | Use it to |
+| :---- | :----- | :-------- |
+| [design-and-refactor](./design-and-refactor/SKILL.md) | [READ](./.documentation/READ-design-and-refactor.md) | Sequence the other skills into a deterministic seven-gate flow — necessity → first principles → placement → complexity → enforcement → shift-left → optimization — so enforcement never precedes design and speculative generality is caught at Gate 1, not after a rewrite. |
+
 ### Meta-layer — *how do the skills themselves improve?*
 
 | Skill | Readme | Use it to |
@@ -92,6 +98,13 @@ consuming complexity measurements from `structural-simplification`.
 `defect-shift-left` and `ci-cd-reliability-architecture` apply the same
 discipline to the pipeline that produces and ships the code: catch defects
 early, ship safely.
+
+`design-and-refactor` is the orchestration layer above all of the above. It
+codifies the order in which the other skills fire — upstream gates (necessity,
+first principles, placement, complexity) shape what gets built; downstream
+gates (architecture-as-code, defect-shift-left) enforce what was decided. The
+audit-mode inversion runs the same skills in reverse to drive
+delete-or-simplify verdicts on existing code.
 
 `continuous-improvement` is the meta-layer that evolves the skills themselves
 when reality disagrees with them.
