@@ -1,0 +1,209 @@
+<svg width="680" height="1340" viewBox="0 0 680 1340" role="img" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif">
+<title>Design and refactor infographic</title>
+<desc>Infographic explaining the design and refactor routing skill: a deterministic seven-gate pipeline for new designs, a four-step retrospective inversion for audits, five principles, and a failure-mode diagnostic mapping symptoms to skipped gates.</desc>
+
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<rect width="680" height="1340" fill="#FFFFFF"/>
+
+<!-- ============ HERO ============ -->
+<rect x="40" y="40" width="40" height="3" fill="#534AB7" rx="1.5"/>
+<text x="40" y="74" font-size="22" font-weight="500" fill="#2C2C2A">Design and refactor</text>
+<text x="40" y="100" font-size="14" fill="#5F5E5A">A routing skill that sequences architecture skills into a deterministic gate flow.</text>
+<text x="40" y="120" font-size="12" fill="#888780">Most over-engineering is timing, not capability. The gates fix the order.</text>
+
+<!-- ============ THE SEVEN GATES (LADDER) ============ -->
+<line x1="40" y1="148" x2="640" y2="148" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="178" font-size="16" font-weight="500" fill="#2C2C2A">The seven gates — forward (design)</text>
+
+<!-- Legend -->
+<rect x="40" y="198" width="12" height="12" fill="#9FE1CB" rx="2"/>
+<text x="58" y="204" font-size="12" fill="#5F5E5A" dominant-baseline="central">Shape what gets built</text>
+<rect x="220" y="198" width="12" height="12" fill="#CECBF6" rx="2"/>
+<text x="238" y="204" font-size="12" fill="#5F5E5A" dominant-baseline="central">Enforce what was decided</text>
+<rect x="430" y="198" width="12" height="12" fill="#FAC775" rx="2"/>
+<text x="448" y="204" font-size="12" fill="#5F5E5A" dominant-baseline="central">Deferred</text>
+
+<!-- Gate 1 -->
+<rect x="40" y="228" width="28" height="28" rx="6" fill="#9FE1CB"/>
+<text x="54" y="242" font-size="13" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">1</text>
+<text x="80" y="236" font-size="13" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Necessity check</text>
+<text x="340" y="236" font-size="12" fill="#888780" dominant-baseline="central">functionality-pruner</text>
+<text x="530" y="236" font-size="12" fill="#5F5E5A" dominant-baseline="central">PASS / DROP</text>
+<line x1="40" y1="264" x2="640" y2="264" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Gate 2 -->
+<rect x="40" y="274" width="28" height="28" rx="6" fill="#9FE1CB"/>
+<text x="54" y="288" font-size="13" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">2</text>
+<text x="80" y="282" font-size="13" font-weight="500" fill="#2C2C2A" dominant-baseline="central">First principles</text>
+<text x="340" y="282" font-size="12" fill="#888780" dominant-baseline="central">architecture-guidelines</text>
+<text x="530" y="282" font-size="12" fill="#5F5E5A" dominant-baseline="central">Smallest design</text>
+<line x1="40" y1="310" x2="640" y2="310" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Gate 3 -->
+<rect x="40" y="320" width="28" height="28" rx="6" fill="#9FE1CB"/>
+<text x="54" y="334" font-size="13" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">3</text>
+<text x="80" y="328" font-size="13" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Geometric placement</text>
+<text x="340" y="328" font-size="12" fill="#888780" dominant-baseline="central">geometric-architecture</text>
+<text x="530" y="328" font-size="12" fill="#5F5E5A" dominant-baseline="central">(X, Y, Z) + edges</text>
+<line x1="40" y1="356" x2="640" y2="356" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Gate 4 -->
+<rect x="40" y="366" width="28" height="28" rx="6" fill="#9FE1CB"/>
+<text x="54" y="380" font-size="13" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">4</text>
+<text x="80" y="374" font-size="13" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Complexity measurement</text>
+<text x="340" y="374" font-size="12" fill="#888780" dominant-baseline="central">structural-simplification</text>
+<text x="530" y="374" font-size="12" fill="#5F5E5A" dominant-baseline="central">ΔD, ΔK, ΔP, Δn</text>
+<line x1="40" y1="402" x2="640" y2="402" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Gate 5 -->
+<rect x="40" y="412" width="28" height="28" rx="6" fill="#CECBF6"/>
+<text x="54" y="426" font-size="13" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">5</text>
+<text x="80" y="420" font-size="13" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Architecture as code</text>
+<text x="340" y="420" font-size="12" fill="#888780" dominant-baseline="central">architecture-as-code-js</text>
+<text x="530" y="420" font-size="12" fill="#5F5E5A" dominant-baseline="central">eslint rules</text>
+<line x1="40" y1="448" x2="640" y2="448" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Gate 6 -->
+<rect x="40" y="458" width="28" height="28" rx="6" fill="#CECBF6"/>
+<text x="54" y="472" font-size="13" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">6</text>
+<text x="80" y="466" font-size="13" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Shift defect detection left</text>
+<text x="340" y="466" font-size="12" fill="#888780" dominant-baseline="central">defect-shift-left</text>
+<text x="530" y="466" font-size="12" fill="#5F5E5A" dominant-baseline="central">Earliest stage</text>
+<line x1="40" y1="494" x2="640" y2="494" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Gate 7 -->
+<rect x="40" y="504" width="28" height="28" rx="6" fill="#FAC775"/>
+<text x="54" y="518" font-size="13" font-weight="500" fill="#633806" text-anchor="middle" dominant-baseline="central">7</text>
+<text x="80" y="512" font-size="13" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Optimize the value stream</text>
+<text x="340" y="512" font-size="12" fill="#888780" dominant-baseline="central">system-optimization</text>
+<text x="530" y="512" font-size="12" fill="#5F5E5A" dominant-baseline="central">Deferred to iter 2</text>
+
+<!-- Callout -->
+<rect x="40" y="548" width="600" height="38" rx="8" fill="#F1EFE8"/>
+<text x="60" y="567" font-size="13" fill="#5F5E5A" dominant-baseline="central">Gates 1–4 shape <tspan font-weight="500" fill="#2C2C2A">what</tspan> gets built. Gates 5–6 enforce <tspan font-weight="500" fill="#2C2C2A">what was decided</tspan>. Gate 7 waits for stability.</text>
+
+<!-- ============ RETROSPECTIVE INVERSION ============ -->
+<line x1="40" y1="610" x2="640" y2="610" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="640" font-size="16" font-weight="500" fill="#2C2C2A">Retrospective inversion — audit mode</text>
+
+<!-- Two columns: Forward (left, faded) and Reverse (right, active) -->
+<!-- Forward column -->
+<text x="170" y="668" font-size="12" font-weight="500" fill="#B4B2A9" text-anchor="middle">Forward</text>
+<rect x="100" y="680" width="140" height="28" rx="6" fill="#F1EFE8"/>
+<text x="170" y="694" font-size="11" fill="#B4B2A9" text-anchor="middle" dominant-baseline="central">1 → 2 → 3 → 4 → 5 → 6</text>
+
+<!-- Arrow between -->
+<text x="310" y="694" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">vs</text>
+
+<!-- Reverse column (active) -->
+<text x="470" y="668" font-size="12" font-weight="500" fill="#534AB7" text-anchor="middle">Retrospective</text>
+
+<rect x="350" y="684" width="28" height="24" rx="5" fill="#CECBF6"/>
+<text x="364" y="696" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">1</text>
+<text x="386" y="696" font-size="12" fill="#2C2C2A" dominant-baseline="central">Score complexity → hot-spots</text>
+
+<rect x="350" y="716" width="28" height="24" rx="5" fill="#CECBF6"/>
+<text x="364" y="728" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">2</text>
+<text x="386" y="728" font-size="12" fill="#2C2C2A" dominant-baseline="central">Necessity gate → prune</text>
+
+<rect x="350" y="748" width="28" height="24" rx="5" fill="#CECBF6"/>
+<text x="364" y="760" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">3</text>
+<text x="386" y="760" font-size="12" fill="#2C2C2A" dominant-baseline="central">Add eslint rules → lock shape</text>
+
+<rect x="350" y="780" width="28" height="24" rx="5" fill="#CECBF6"/>
+<text x="364" y="792" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">4</text>
+<text x="386" y="792" font-size="12" fill="#2C2C2A" dominant-baseline="central">Shift-left remaining defects</text>
+
+<!-- Callout -->
+<rect x="40" y="822" width="600" height="38" rx="8" fill="#F1EFE8"/>
+<text x="60" y="841" font-size="13" fill="#5F5E5A" dominant-baseline="central">Forward: new design. Reverse: start from <tspan font-weight="500" fill="#2C2C2A">observed state</tspan>, work toward minimum structure.</text>
+
+<!-- ============ FAILURE-MODE DIAGNOSTIC ============ -->
+<line x1="40" y1="884" x2="640" y2="884" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="914" font-size="16" font-weight="500" fill="#2C2C2A">Failure-mode diagnostic</text>
+<text x="40" y="934" font-size="12" fill="#888780">Symptom → skipped gate → recovery.</text>
+
+<!-- Diagnostic row 1 -->
+<rect x="40" y="956" width="210" height="24" rx="12" fill="#F5C4B3"/>
+<text x="145" y="968" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Interface, no 2nd implementation</text>
+<text x="258" y="968" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="270" y="956" width="60" height="24" rx="12" fill="#CECBF6"/>
+<text x="300" y="968" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Gate 1</text>
+<text x="345" y="968" font-size="12" fill="#5F5E5A" dominant-baseline="central">Rule of 3 not met.</text>
+
+<!-- Diagnostic row 2 -->
+<rect x="40" y="988" width="210" height="24" rx="12" fill="#F5C4B3"/>
+<text x="145" y="1000" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Plugin system, one entry</text>
+<text x="258" y="1000" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="270" y="988" width="60" height="24" rx="12" fill="#CECBF6"/>
+<text x="300" y="1000" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Gate 1</text>
+<text x="345" y="1000" font-size="12" fill="#5F5E5A" dominant-baseline="central">Generality without instantiation.</text>
+
+<!-- Diagnostic row 3 -->
+<rect x="40" y="1020" width="210" height="24" rx="12" fill="#F5C4B3"/>
+<text x="145" y="1032" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">if (impossible_state) guard</text>
+<text x="258" y="1032" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="270" y="1020" width="60" height="24" rx="12" fill="#CECBF6"/>
+<text x="300" y="1032" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Gate 1</text>
+<text x="345" y="1032" font-size="12" fill="#5F5E5A" dominant-baseline="central">Impossible-state guard.</text>
+
+<!-- Diagnostic row 4 -->
+<rect x="40" y="1052" width="210" height="24" rx="12" fill="#F5C4B3"/>
+<text x="145" y="1064" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Cross-domain non-adjacent import</text>
+<text x="258" y="1064" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="270" y="1052" width="60" height="24" rx="12" fill="#CECBF6"/>
+<text x="300" y="1064" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Gate 3</text>
+<text x="345" y="1064" font-size="12" fill="#5F5E5A" dominant-baseline="central">Placement violated.</text>
+
+<!-- Diagnostic row 5 -->
+<rect x="40" y="1084" width="210" height="24" rx="12" fill="#F5C4B3"/>
+<text x="145" y="1096" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Refactor "felt simpler", no data</text>
+<text x="258" y="1096" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="270" y="1084" width="60" height="24" rx="12" fill="#CECBF6"/>
+<text x="300" y="1096" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Gate 4</text>
+<text x="345" y="1096" font-size="12" fill="#5F5E5A" dominant-baseline="central">Complexity not scored.</text>
+
+<!-- Diagnostic row 6 -->
+<rect x="40" y="1116" width="210" height="24" rx="12" fill="#F5C4B3"/>
+<text x="145" y="1128" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Eslint rules in follow-up PR</text>
+<text x="258" y="1128" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="270" y="1116" width="60" height="24" rx="12" fill="#CECBF6"/>
+<text x="300" y="1128" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Gate 5</text>
+<text x="345" y="1128" font-size="12" fill="#5F5E5A" dominant-baseline="central">Same-PR discipline broken.</text>
+
+<!-- Diagnostic row 7 -->
+<rect x="40" y="1148" width="210" height="24" rx="12" fill="#F5C4B3"/>
+<text x="145" y="1160" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Runtime defect types could catch</text>
+<text x="258" y="1160" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="270" y="1148" width="60" height="24" rx="12" fill="#CECBF6"/>
+<text x="300" y="1160" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Gate 6</text>
+<text x="345" y="1160" font-size="12" fill="#5F5E5A" dominant-baseline="central">Shift-left not applied.</text>
+
+<!-- Five principles row -->
+<line x1="40" y1="1192" x2="640" y2="1192" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="1222" font-size="16" font-weight="500" fill="#2C2C2A">Core rules</text>
+
+<rect x="40" y="1244" width="120" height="24" rx="12" fill="#9FE1CB"/>
+<text x="100" y="1256" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Order matters</text>
+
+<rect x="170" y="1244" width="120" height="24" rx="12" fill="#9FE1CB"/>
+<text x="230" y="1256" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Name the 2nd use</text>
+
+<rect x="300" y="1244" width="120" height="24" rx="12" fill="#9FE1CB"/>
+<text x="360" y="1256" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Same PR, same gates</text>
+
+<rect x="430" y="1244" width="120" height="24" rx="12" fill="#9FE1CB"/>
+<text x="490" y="1256" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Defer optimization</text>
+
+<rect x="40" y="1276" width="120" height="24" rx="12" fill="#9FE1CB"/>
+<text x="100" y="1288" font-size="11" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Audit reverses</text>
+
+<!-- Closing -->
+<text x="340" y="1326" font-size="12" fill="#888780" text-anchor="middle">Each gate is a sibling skill. This skill only fixes the order.</text>
+
+</svg>
