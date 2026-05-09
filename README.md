@@ -98,6 +98,10 @@ A few of the situations these skills are built for:
   of jumping to code, it weighs the feature's value against its complexity cost
   and proposes a smaller version — or pushes back entirely.
   *(`functionality-complexity-tradeoff`)*
+- **Shifting fault detection left** — refactor / structure the development process to
+  surface errors at the earliest possible stage (design > review > test > production),
+  where consequences are smallest and fixes are cheapest.
+  *(`defect-shift-left`)*
 - **Reviewing a pull request.** You ask the agent to review a diff. It checks
   the change against architectural principles — consistency with existing
   patterns, minimalism, reliability, traceability — and flags structural
