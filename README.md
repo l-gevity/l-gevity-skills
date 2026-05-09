@@ -8,6 +8,8 @@ and continuous improvement.
 
 These skills are platform-agnostic and can be used in any software project.
 
+![image](overview-abstract.png)
+
 ## About L-GEVITY
 
 [L-GEVITY](https://l-gevity.nl) is a longevity-focused health platform that
