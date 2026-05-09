@@ -8,7 +8,8 @@ and continuous improvement.
 
 These skills are platform-agnostic and can be used in any software project.
 
-![image](overview-abstract.png)
+[![image](overview-abstract.png)](overview.png)
+
 
 ## About L-GEVITY
 
@@ -132,3 +133,5 @@ To update to the latest skills, re-run the same command.
 ## License
 
 [MIT](./LICENSE)
+
+
