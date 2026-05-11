@@ -74,21 +74,3 @@ Hitting an obstacle: investigate. Never bypass with `--force`, `--no-verify`,
 `--no-gpg-sign`, or hook-skipping. Skipped checks are symptom management,
 and the next failure will be worse than the one you suppressed.
 
----
-
-## Conventions for extending this pack
-
-When adding or renaming a skill in this library:
-
-- **Skill `name:` frontmatter must match the directory name** (the slug
-  used in cross-references, README links, and `package.json`). The H1
-  title inside `SKILL.md` may differ for human readability — but the slug
-  is authoritative for triggering and routing.
-- **Cross-skill references use slugs**, not friendly titles. A reference
-  to "the pattern in `architecture-as-code`" resolves; a reference to
-  "the pattern in Architecture as Code" doesn't.
-- **`.documentation/READ-<slug>.md`** is the optional human primer for a
-  skill — same slug as the directory, prefixed `READ-`. Cross-references
-  inside primers point at `../.claude/skills/<slug>/` (or
-  `../.claude/skills/<slug>/SKILL.md`), not at `./SKILL.md` or
-  `../<slug>/`.
