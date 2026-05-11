@@ -170,6 +170,12 @@ Every skill ships as a `SKILL.md` (the operational reference); a matching
 `READ-<skill>.md` primer in [`./.documentation/`](./.documentation/) gives the
 plain-English overview where available.
 
+### CLAUD.md — *prime directives*
+
+| Skill | Readme | Use it to |
+| :---- | :----- | :-------- |
+| [CLAUD.md](./CLAUD.md) | [READ](./.documentation/READ-CLAUD.md) | How an agent thinks about tasks in any codebase using this skill library. 
+
 ### The orchestrator — *which skills to run, in which order?*
 
 | Skill | Readme | Use it to |
