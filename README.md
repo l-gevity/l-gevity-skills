@@ -72,71 +72,56 @@ architecture and pipeline reliability. They do **not** cover:
 These are real concerns; they're not architectural. Layer them on top of
 this pack with your own SKILLs.
  
-## Quick start
+## Quick Start
 
-This pack ships skills under `.claude/skills/<name>/` — the standard Agent
-Skills layout. Skills are intended to be **either referenced by path** from
-your agent's instructions file, or **symlinked / copied** into your project's
-own `.claude/skills/` for auto-discovery.
+Two ways to bring the skills into your project. Both put skills in
+`.claude/skills/` and `CLAUDE.md` in the project root.
 
-### As a git submodule (recommended)
+### Method 1 — Subrepo (track upstream)
 
-Submodule the pack into a stable location in your repo:
+Use when you want to pull future updates with one command.
 
-```bash
-git submodule add https://github.com/l-gevity/l-gevity-skills .external/l-gevity-skills
-```
+​```bash
+git submodule add https://github.com/l-gevity/l-gevity-skills .claude/skills-src
+ln -s skills-src/.claude/skills .claude/skills
+cp .claude/skills-src/CLAUDE.md ./CLAUDE.md
+​```
 
-For new clones, initialize the submodule:
+Update later:
 
-```bash
-git clone --recurse-submodules <your-repo>
-# or, if already cloned:
-git submodule update --init
-```
+​```bash
+git submodule update --remote .claude/skills-src
+cp .claude/skills-src/CLAUDE.md ./CLAUDE.md   # only if you haven't customized it
+​```
 
-Pull the latest skill updates:
+### Method 2 — Copy (vendor in, no upstream link)
 
-```bash
-git submodule update --remote .external/l-gevity-skills
-```
+Use when you want a frozen snapshot you can edit freely.
 
-Then choose one of two integration patterns:
+​```bash
+git clone --depth 1 https://github.com/l-gevity/l-gevity-skills /tmp/lgs
+mkdir -p .claude
+cp -r /tmp/lgs/.claude/skills .claude/skills
+cp /tmp/lgs/CLAUDE.md ./CLAUDE.md
+rm -rf /tmp/lgs
+​```
 
-#### Option A — Reference by path in your agent's instructions
+Update later: re-run the same block (overwrites `.claude/skills/` and `CLAUDE.md`;
+back up first if you've customized them).
 
-Add the skills you want to your agent's instructions file (`CLAUDE.md`,
-`AGENT.md`, `AGENTS.md`, etc.):
+### Result
 
-```markdown
-- [architecture-guidelines](./.external/l-gevity-skills/.claude/skills/architecture-guidelines/)
-- [functionality-complexity-tradeoff](./.external/l-gevity-skills/.claude/skills/functionality-complexity-tradeoff/)
-- [structural-simplification](./.external/l-gevity-skills/.claude/skills/structural-simplification/)
-```
+​```
+your-project/
+├── CLAUDE.md                    ← strategic directives
+└── .claude/skills/
+    ├── architecture-guidelines/
+    ├── structural-simplification/
+    └── ...
+​```
 
-#### Option B — Symlink into your local `.claude/skills/` for auto-discovery
-
-```bash
-mkdir -p .claude/skills
-for skill in .external/l-gevity-skills/.claude/skills/*/; do
-  name=$(basename "$skill")
-  ln -s "../../$skill" ".claude/skills/$name"
-done
-```
-
-After symlinking, agents that auto-discover skills under `.claude/skills/`
-will find each one with no additional configuration. For Antigravity, use
-`.agent/skills/`; for OpenCode, either path works.
-
-### Manual copy
-
-Alternatively, copy individual skill directories from the pack's
-`.claude/skills/` straight into your project's own `.claude/skills/`:
-
-```bash
-cp -r path/to/l-gevity-skills/.claude/skills/architecture-guidelines .claude/skills/
-```
- 
+`CLAUDE.md` already references skills by `./.claude/skills/<name>/` — no
+edits needed unless you move things. 
 ## Use cases
  
 A few of the situations these skills are built for:
