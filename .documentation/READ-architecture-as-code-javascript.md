@@ -1,69 +1,46 @@
-# Architecture-as-Code
+# Architecture-as-Code — JavaScript
 
-![Architecture as Code](architecture_as_code.svg)
-
-A build step that enforces your architectural rules (the dependency graph). You declare which modules may import from which; violations fail the build.
-
-## Why use this
-
-- **Architectural violations are caught at build time**, not days later in review.
-- **Refactors follow the architecture automatically.** Change a rule; lint flags every file that must update.
-- **Rules document themselves.** Every violation reports a plain-English reason.
-- **New developers learn the architecture from the rules**, not from mistakes.
-- **Architectural drift becomes impossible.** Year-five stays as clean as year-one.
-
-## Fundamental principles
-
-Architecture is largely the art of managing dependencies. Most rot in long-lived codebases isn't bad logic — it's tangled imports nobody dares touch.
-
-- **Dependencies flow one way.** Cycles couple modules; changes ripple unpredictably.
-- **Stable things sit at the bottom.** Volatile code depends on stable code, never the reverse.
-- **Boundaries enable local reasoning.** Constrained imports let you change a module without holding the whole system in your head.
-- **Fewer dependents = cheaper change.** Encapsulation isn't aesthetic; it's leverage.
-
-Architecture-as-code makes these principles *enforceable* instead of aspirational.
+> **Prerequisite.** Read
+> [`architecture-as-code`](./READ-architecture-as-code.md) first — it
+> defines the universal pattern (schema, rule placement, anti-patterns,
+> "why this works"). This primer documents the JavaScript / TypeScript
+> implementation: `eslint.architecture.mjs` files merged into one ESLint
+> flat-config and enforced by `eslint-plugin-boundaries`.
 
 ## How to use
 
-1. **Decide your architecture.** Identify the modules and the allowed dependencies between them.
-2. **Lay out a matching directory structure.** Each module gets its own path so globs can target it.
-3. **Prompt the AI.** Describe the architecture; the skill generates the matching `eslint.architecture.mjs` files.
+1. **Decide your architecture.** Identify modules and allowed dependency
+   edges. (Pattern primer covers the universals.)
+2. **Lay out a matching directory structure.** Each module gets its own
+   path so globs can target it.
+3. **Drop an `eslint.architecture.mjs` next to each module that needs its
+   own rules.** Most modules don't need their own file — they're declared
+   once higher up.
+4. **Prompt the AI.** Describe the architecture; the skill generates the
+   matching `.mjs` files.
 
-   > *"Set up architecture-as-code: UI in `src/ui`, business logic in `src/business/orders` and `src/business/billing` (independent), storage in `src/storage`. Enforce one-way layering."*
+   > *"Set up architecture-as-code in JS: UI in `src/ui`, business logic in
+   > `src/business/orders` and `src/business/billing` (independent),
+   > storage in `src/storage`. Enforce one-way layering."*
 
-4. **Run the linter.** Violations print their `why`. Fix and commit.
+5. **Run the linter.** Violations print their `why`.
 
    ```bash
    npx eslint .
    ```
 
-## The classic prefab: UI → Business → Storage
-
-A layered system with two business modules (`orders`, `billing`) that must stay independent.
-
-### Directory layout
-
-```
-src/
-├── ui/
-├── business/
-│   ├── orders/
-│   └── billing/
-└── storage/
-```
-
-### Rules
+## The classic prefab in JavaScript
 
 ```js
-// eslint.architecture.mjs
+// eslint.architecture.mjs — repo root
 export default {
-  elements: [
+  components: [
     { name: 'ui',      pattern: 'src/ui/**' },
     { name: 'orders',  pattern: 'src/business/orders/**' },
     { name: 'billing', pattern: 'src/business/billing/**' },
     { name: 'storage', pattern: 'src/storage/**' },
   ],
-  rules: [
+  forbidden: [
     // Layer direction
     { from: 'ui', to: 'storage',
       why: 'UI must not import storage directly. Go through a business module.' },
@@ -84,7 +61,18 @@ export default {
 };
 ```
 
-Allowed: `ui → { orders, billing } → storage`. No upward or lateral imports.
+## JavaScript-specific notes
+
+- **File extension matters.** Use `.mjs` only — `.js` trips source-discovery
+  walkers and ESLint's own config-loader.
+- **Facade-as-file.** Single-file facades use `mode: 'file'` plus an
+  exact-path `pattern` (no glob).
+- **Unresolved imports bypass enforcement.** `eslint-plugin-boundaries`
+  only enforces rules on imports it can resolve to a file path. Host-served
+  absolute paths (e.g. SWA's `/js/...`) need
+  `eslint-import-resolver-alias`.
+- **Repo-root `package.json` must include `"type": "module"`** for the
+  `.mjs` discovery and dynamic import to work.
 
 ## Escape hatch
 
@@ -95,11 +83,12 @@ import { db } from '../storage/db.js';
 
 Use sparingly. If you reach for it often, the rule is wrong.
 
-## When to skip
-
-Tiny projects, prototypes, throwaway scripts. Otherwise it pays off within a sprint.
-
 ## Next steps
 
-- See [SKILL.md](./SKILL.md) for full syntax (captures, parametric rules, facades).
-- Run `find . -name "eslint.architecture.mjs" | xargs cat` to read your repo's full architecture in one shot.
+- See [SKILL.md](../.claude/skills/architecture-as-code-javascript/SKILL.md)
+  for the full assembler code, advanced features (captures, parametric
+  rules), and JS-specific gotchas.
+- For the universal pattern, see
+  [READ-architecture-as-code](./READ-architecture-as-code.md).
+- Run `find . -name "eslint.architecture.mjs" | xargs cat` to read your
+  repo's full architecture in one shot.

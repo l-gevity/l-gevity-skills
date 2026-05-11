@@ -67,6 +67,6 @@ One-off scripts, throwaway prototypes, scratch repos with no deploy target. The 
 
 ## Next steps
 
-- See [SKILL.md](./SKILL.md) for the full reference (per-section anti-pattern tables, OIDC pseudocode, secret rotation procedure, IaC delete-and-recreate pattern, full pre-merge checklist).
-- For shifting reliability checks earlier in the pipeline, see [`defect-shift-left`](../defect-shift-left/).
-- For build-time architectural enforcement (the dependency graph itself), see [`architecture-as-code-javascript`](../architecture-as-code-javascript/) or [`architecture-as-code-python`](../architecture-as-code-python/).
+- See [SKILL.md](../.claude/skills/ci-cd-reliability-architecture/SKILL.md) for the full reference (per-section anti-pattern tables, OIDC pseudocode, secret rotation procedure, IaC delete-and-recreate pattern, full pre-merge checklist).
+- For shifting reliability checks earlier in the pipeline, see [`defect-shift-left`](../.claude/skills/defect-shift-left/).
+- For build-time architectural enforcement (the dependency graph itself), see [`architecture-as-code`](../.claude/skills/architecture-as-code/) (the pattern), with [`-javascript`](../.claude/skills/architecture-as-code-javascript/) and [`-python`](../.claude/skills/architecture-as-code-python/) as concrete implementations.

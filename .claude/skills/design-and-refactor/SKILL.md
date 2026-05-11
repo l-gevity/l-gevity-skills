@@ -14,9 +14,10 @@ description: >-
     CSS-only changes, dependency bumps, trivial renames. Defines NO new
     rules; every gate's content lives in a sibling. For first-principles
     rules see `architecture-guidelines`; for necessity / worth see
-    `functionality-pruner`; for complexity scoring see
+    `functionality-complexity-tradeoff`; for complexity scoring see
     `structural-simplification`; for placement see `geometric-architecture`;
-    for enforcement see `architecture-as-code`.
+    for enforcement see `architecture-as-code` (pattern), with
+    `architecture-as-code-javascript` / `-python` as concrete implementations.
 ---
 
 # Design & Refactor — Gate Sequence
@@ -45,11 +46,11 @@ description: >-
 
 | # | Gate | Skill | Output |
 |:--|:--|:--|:--|
-| 1 | Necessity check | `functionality-pruner` | PASS / DROP per type, method, parameter |
+| 1 | Necessity check | `functionality-complexity-tradeoff` | PASS / DROP per type, method, parameter |
 | 2 | First principles | `architecture-guidelines` | Smallest correct design |
 | 3 | Geometric placement | `geometric-architecture` | (X, Y, Z) per cell + allowed edges |
 | 4 | Complexity measurement | `structural-simplification` | ΔD, ΔK, ΔP, Δn vector |
-| 5 | Architecture as code | `architecture-as-code` | `eslint.architecture.mjs` files |
+| 5 | Architecture as code | `architecture-as-code` (pattern); `-javascript` / `-python` (impl) | Per-module architecture config |
 | 6 | Shift defect detection left | `defect-shift-left` | Each error path → earliest catchable stage |
 | 7 | Optimize value stream | `system-optimization` | Constraint analysis (deferred to iter 2) |
 
@@ -81,8 +82,8 @@ the order:
 | Step | Skill | Action |
 |:--|:--|:--|
 | 1 | `structural-simplification` | Score current ΔD, ΔK, ΔP, Δn — surface hot-spots |
-| 2 | `functionality-pruner` | Run necessity gate on every type / method / branch |
-| 3 | `architecture-as-code` | Add eslint rules so the pruned shape can't re-grow |
+| 2 | `functionality-complexity-tradeoff` | Run necessity gate on every type / method / branch |
+| 3 | `architecture-as-code` (pattern); `-javascript` / `-python` (impl) | Add lint rules so the pruned shape can't re-grow |
 | 4 | `defect-shift-left` | For each defect found, ask whether it could have been caught earlier |
 
 ---

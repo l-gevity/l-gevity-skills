@@ -49,46 +49,93 @@ skills are strategic.** They encode the architect's job:
 The result: an agent that doesn't just *write* your code, but argues with you
 about whether the code should exist — and whether it should look the way you
 proposed.
+
+## What this pack is *not*
+
+Scoped deliberately. The skills here teach an agent how to *think* about
+architecture and pipeline reliability. They do **not** cover:
+
+- **Coding standards** — language conventions (naming, error handling, async
+  discipline, type strictness, etc.) belong in your own per-project skill.
+- **Testing strategy** — what to test, when to mock, paper-validation
+  workflows, coverage targets.
+- **Security baseline** — input sanitization, secrets management, OWASP
+  defenses, threat modeling.
+- **PR / commit hygiene** — split discipline, conventional-commit format,
+  reviewer assignment.
+- **Release management** — versioning, changelog generation, deployment
+  cadence, hotfix protocol.
+- **UI / visual design** — component patterns, accessibility, templates.
+- **Domain-specific knowledge** — your business rules, your data model,
+  your customers.
+
+These are real concerns; they're not architectural. Layer them on top of
+this pack with your own SKILLs.
  
 ## Quick start
- 
+
+This pack ships skills under `.claude/skills/<name>/` — the standard Agent
+Skills layout. Skills are intended to be **either referenced by path** from
+your agent's instructions file, or **symlinked / copied** into your project's
+own `.claude/skills/` for auto-discovery.
+
 ### As a git submodule (recommended)
- 
+
+Submodule the pack into a stable location in your repo:
+
 ```bash
-git submodule add https://github.com/l-gevity/l-gevity-skills \
-  .claude/skills/l-gevity-skills
+git submodule add https://github.com/l-gevity/l-gevity-skills .external/l-gevity-skills
 ```
- 
-For Antigravity, replace `.claude/skills/` with `.agent/skills/`. For OpenCode,
-either path works (it discovers both).
- 
-Reference the skills you want from your agent's instructions file
-(`CLAUDE.md`, `AGENT.md`, `AGENTS.md`, etc.):
- 
-```markdown
-- [architecture-guidelines](./.claude/skills/l-gevity-skills/architecture-guidelines/)
-- [functionality-complexity-tradeoff](./.claude/skills/l-gevity-skills/functionality-complexity-tradeoff/)
-- [structural-simplification](./.claude/skills/l-gevity-skills/structural-simplification/)
-```
- 
+
 For new clones, initialize the submodule:
- 
+
 ```bash
 git clone --recurse-submodules <your-repo>
 # or, if already cloned:
 git submodule update --init
 ```
- 
+
 Pull the latest skill updates:
- 
+
 ```bash
-git submodule update --remote .claude/skills/l-gevity-skills
+git submodule update --remote .external/l-gevity-skills
 ```
- 
+
+Then choose one of two integration patterns:
+
+#### Option A — Reference by path in your agent's instructions
+
+Add the skills you want to your agent's instructions file (`CLAUDE.md`,
+`AGENT.md`, `AGENTS.md`, etc.):
+
+```markdown
+- [architecture-guidelines](./.external/l-gevity-skills/.claude/skills/architecture-guidelines/)
+- [functionality-complexity-tradeoff](./.external/l-gevity-skills/.claude/skills/functionality-complexity-tradeoff/)
+- [structural-simplification](./.external/l-gevity-skills/.claude/skills/structural-simplification/)
+```
+
+#### Option B — Symlink into your local `.claude/skills/` for auto-discovery
+
+```bash
+mkdir -p .claude/skills
+for skill in .external/l-gevity-skills/.claude/skills/*/; do
+  name=$(basename "$skill")
+  ln -s "../../$skill" ".claude/skills/$name"
+done
+```
+
+After symlinking, agents that auto-discover skills under `.claude/skills/`
+will find each one with no additional configuration. For Antigravity, use
+`.agent/skills/`; for OpenCode, either path works.
+
 ### Manual copy
- 
-Alternatively, copy individual skill directories straight into your skills
-folder.
+
+Alternatively, copy individual skill directories from the pack's
+`.claude/skills/` straight into your project's own `.claude/skills/`:
+
+```bash
+cp -r path/to/l-gevity-skills/.claude/skills/architecture-guidelines .claude/skills/
+```
  
 ## Use cases
  
@@ -133,56 +180,57 @@ A few of the situations these skills are built for:
 
 ## Skills
 
-Eleven skills, organized into seven groups by the question each one answers.
+Twelve skills, organized into seven groups by the question each one answers.
 Every skill ships as a `SKILL.md` (the operational reference); a matching
 `READ-<skill>.md` primer in [`./.documentation/`](./.documentation/) gives the
-plain-English overview.
+plain-English overview where available.
 
 ### The orchestrator — *which skills to run, in which order?*
 
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
-| [design-and-refactor](./design-and-refactor/SKILL.md) | [READ](./.documentation/READ-design-and-refactor.md) | Sequence the other skills into a deterministic seven-gate flow — necessity → first principles → placement → complexity → enforcement → shift-left → optimization — so enforcement never precedes design and speculative generality is caught at Gate 1, not after a rewrite. |
+| [design-and-refactor](./.claude/skills/design-and-refactor/SKILL.md) | [READ](./.documentation/READ-design-and-refactor.md) | Sequence the other skills into a deterministic seven-gate flow — necessity → first principles → placement → complexity → enforcement → shift-left → optimization — so enforcement never precedes design and speculative generality is caught at Gate 1, not after a rewrite. |
 
 ### Architectural foundations — *what should the system look like?*
 
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
-| [architecture-guidelines](./architecture-guidelines/SKILL.md) | [READ](./.documentation/READ-architecture-guidelines.md) | Test every module decision — minimalism, modularity, functional core, resilience, naming, concurrency — against a first-principles checklist before code is written. |
-| [geometric-architecture](./geometric-architecture/SKILL.md) | [READ](./.documentation/READ-geometric-architecture.md) | Place a component on the `(X, Y, Z)` grid, and audit existing graphs for layer skips, cycles, god cells, and cross-domain coupling. |
+| [architecture-guidelines](./.claude/skills/architecture-guidelines/SKILL.md) | [READ](./.documentation/READ-architecture-guidelines.md) | Test every module decision — minimalism, modularity, functional core, resilience, naming, concurrency — against a first-principles checklist before code is written. |
+| [geometric-architecture](./.claude/skills/geometric-architecture/SKILL.md) | [READ](./.documentation/READ-geometric-architecture.md) | Place a component on the `(X, Y, Z)` grid, and audit existing graphs for layer skips, cycles, god cells, and cross-domain coupling. |
 
 ### Architectural enforcement — *how do we make the rules stick?*
 
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
-| [architecture-as-code-javascript](./architecture-as-code-javascript/SKILL.md) | [READ](./.documentation/READ-architecture-as-code-javascript.md) | Encode allowed imports between modules so architectural violations fail `eslint` instead of slipping through review. |
-| [architecture-as-code-python](./architecture-as-code-python/SKILL.md) | [READ](./.documentation/READ-architecture-as-code-python.md) | Encode allowed imports between Python packages — via per-package `architecture.toml` — so violations fail `import-linter` instead of slipping through review. |
+| [architecture-as-code](./.claude/skills/architecture-as-code/SKILL.md) | [READ](./.documentation/READ-architecture-as-code.md) | Stack-agnostic pattern: per-module config files merged into a single ruleset, lint-enforced. Schema, rule-placement discipline, assembler pipeline, and anti-patterns — all language-independent. |
+| [architecture-as-code-javascript](./.claude/skills/architecture-as-code-javascript/SKILL.md) | [READ](./.documentation/READ-architecture-as-code-javascript.md) | JavaScript / TypeScript implementation of the pattern — `eslint.architecture.mjs` files merged into one ESLint flat-config via `eslint-plugin-boundaries`. |
+| [architecture-as-code-python](./.claude/skills/architecture-as-code-python/SKILL.md) | [READ](./.documentation/READ-architecture-as-code-python.md) | Python implementation of the pattern — per-package `architecture.toml` files merged into an `import-linter` config and enforced via `lint-imports`. |
 
 ### Pipeline reliability — *how do we catch defects early and ship safely?*
 
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
-| [defect-shift-left](./defect-shift-left/SKILL.md) | [READ](./.documentation/READ-defect-shift-left.md) | Audit a pipeline for shift-left opportunities, and decide where any new check belongs — type system, lint, pre-commit, CI gate, or beyond. |
-| [ci-cd-reliability-architecture](./ci-cd-reliability-architecture/SKILL.md) | [READ](./.documentation/READ-ci-cd-reliability-architecture.md) | Design or audit a CI/CD pipeline against six rules: idempotent, self-contained, immutable artifacts, self-healing, zero-downtime, zero-knowledge. |
+| [defect-shift-left](./.claude/skills/defect-shift-left/SKILL.md) | [READ](./.documentation/READ-defect-shift-left.md) | Audit a pipeline for shift-left opportunities, and decide where any new check belongs — type system, lint, pre-commit, CI gate, or beyond. |
+| [ci-cd-reliability-architecture](./.claude/skills/ci-cd-reliability-architecture/SKILL.md) | [READ](./.documentation/READ-ci-cd-reliability-architecture.md) | Design or audit a CI/CD pipeline against six rules: idempotent, self-contained, immutable artifacts, self-healing, zero-downtime, zero-knowledge. |
 
 ### Complexity & worth — *is this complexity earning its keep?*
 
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
-| [structural-simplification](./structural-simplification/SKILL.md) | [READ](./.documentation/READ-structural-simplification.md) | Compare two designs along four independent axes — diversity, coupling, depth, parts — so "this is simpler" becomes a measurable claim instead of a feeling. |
-| [functionality-complexity-tradeoff](./functionality-complexity-tradeoff/SKILL.md) | [READ](./.documentation/READ-functionality-complexity-tradeoff.md) | Decide whether to BUILD / DEFER / DROP a proposed feature, or KEEP / SIMPLIFY / DELETE / OBSOLETE existing code — via a necessity gate followed by a worth ledger. |
+| [structural-simplification](./.claude/skills/structural-simplification/SKILL.md) | [READ](./.documentation/READ-structural-simplification.md) | Compare two designs along four independent axes — diversity, coupling, depth, parts — so "this is simpler" becomes a measurable claim instead of a feeling. |
+| [functionality-complexity-tradeoff](./.claude/skills/functionality-complexity-tradeoff/SKILL.md) | [READ](./.documentation/READ-functionality-complexity-tradeoff.md) | Decide whether to BUILD / DEFER / DROP a proposed feature, or KEEP / SIMPLIFY / DELETE / OBSOLETE existing code — via a necessity gate followed by a worth ledger. |
 
 ### System flow — *is the work itself the right work?*
 
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
-| [system-optimization](./system-optimization/SKILL.md) | [READ](./.documentation/READ-system-optimization.md) | Run optimization in the right order — question, delete, simplify, speed up, automate — instead of caching or parallelizing work that should have been deleted. |
+| [system-optimization](./.claude/skills/system-optimization/SKILL.md) | [READ](./.documentation/READ-system-optimization.md) | Run optimization in the right order — question, delete, simplify, speed up, automate — instead of caching or parallelizing work that should have been deleted. |
 
 ### Meta-layer — *how do the skills themselves improve?*
 
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
-| [continuous-improvement](./continuous-improvement/SKILL.md) | [READ](./.documentation/READ-continuous-improvement.md) | Decide whether a correction becomes a test, a linter rule, or a SKILL edit — and which SKILL owns it — without letting the SKILL library bloat. |
+| [continuous-improvement](./.claude/skills/continuous-improvement/SKILL.md) | [READ](./.documentation/READ-continuous-improvement.md) | Decide whether a correction becomes a test, a linter rule, or a SKILL edit — and which SKILL owns it — without letting the SKILL library bloat. |
 
 ## How the skills compose
 
@@ -197,8 +245,11 @@ answers **how** to build it. `structural-simplification` answers **whether**
 the result is too complex. `system-optimization` answers **how to make its
 operations flow**.
 
-The two `architecture-as-code-*` skills are the enforcement mechanism for the
-first two — they convert prose architectural rules into build-time failures.
+`architecture-as-code` defines the stack-agnostic enforcement pattern —
+per-module config files merged into a single ruleset, lint-enforced — and
+`architecture-as-code-javascript` / `-python` are its concrete
+implementations. Together they convert prose architectural rules from the
+first two into build-time failures.
 
 `functionality-complexity-tradeoff` complements the pipeline by deciding
 **whether** a piece of functionality is worth its cost — both prospectively

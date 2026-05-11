@@ -9,9 +9,8 @@ description: >-
     evaluating a refactoring, designing a restructuring, or deciding whether a
     proposed change makes a system simpler or more complex. SKIP for: trivial
     renames, content edits, dependency bumps, isolated bug fixes that touch no
-    structure. For coding style see `coding-standard`; for module-level design
-    discipline see `architecture-guidelines`; for spatial dependency-graph
-    constraints see `geometric-architecture`.
+    structure. For module-level design discipline see `architecture-guidelines`;
+    for spatial dependency-graph constraints see `geometric-architecture`.
 ---
 
 # Structural Simplification

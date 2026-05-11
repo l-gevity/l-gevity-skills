@@ -31,8 +31,8 @@ systemic, root-cause adjustments, without growing bloated.
 - When reacting to user corrections, systemic failures, or regression triggers.
 - **Out of scope:** This skill dictates the _triggers, analysis, and mindset_
   for updating SKILLs. It does NOT dictate the _formatting/layout_ of the SKILLs
-  (see `skill-creation`) nor does it define actual architectural code rules (see
-  `architecture-guidelines`).
+  (follow your project's skill-authoring conventions) nor does it define the
+  architectural code rules themselves (see `architecture-guidelines`).
 
 ---
 

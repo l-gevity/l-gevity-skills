@@ -1,99 +1,38 @@
 ---
 name: architecture-as-code-python
-description: 
-    Pluggable mechanism for declaring and enforcing component boundaries
-    via TOML files in the source tree of a Python project. Every package
-    lives in a directory with `__init__.py` (or a single `.py` module)
-    and MAY ship an `architecture.toml` declaring its components and
-    rules. Files merge recursively: rules from higher levels accumulate.
-    A small assembler discovers them, generates an `import-linter`
-    config, and invokes `lint-imports`. Use when: adding a package,
-    splitting one, expressing a new dependency rule, debugging a
-    forbidden edge, or extending the assembler. SKIP for routine edits
-    inside a governed package. See `architecture-guidelines` for first
-    principles, `geometric-architecture` for spatial rationale,
-    `import-linter-fix-protocol` for daily workflow.
+description: >-
+    Python implementation of the `architecture-as-code` pattern. Per-package
+    `architecture.toml` files merged into a single `import-linter` config and
+    enforced via `lint-imports` (over a Grimp-built import graph). TRIGGER
+    when: implementing or extending architecture-as-code in a Python repo,
+    debugging an `import-linter` contract, or adapting the assembler. SKIP
+    for routine edits inside a governed package. Reads in conjunction with
+    `architecture-as-code` (the pattern, source of truth for schema, rule
+    placement, anti-patterns, and audit checklist) — this skill defines only
+    the Python-specific encoding, assembler code, and gotchas.
 ---
 
-# Architecture-as-Code-Python
+# Architecture-as-Code — Python Implementation
 
-> **Scope.** Describes the file format, discovery, and assembly that
-> turn the package tree into an enforced dependency graph. Runs as
-> `import-linter` (over a Grimp-built import graph) — no
-> `import-linter`, no enforcement. Operates on Python source (`.py`,
-> `.pyi`, package `__init__.py`). Does NOT prescribe what the graph
-> should look like — that's `architecture-guidelines` and
-> `geometric-architecture`. Does NOT govern code style — that's
-> `coding-standard`.
+> **Prerequisite.** Read [`architecture-as-code`](../architecture-as-code/)
+> first. The schema (§1), components (§2), forbidden edges (§3), rule
+> placement (§4), assembler concept (§5), and anti-patterns / audit (§6) are
+> defined there and apply identically here. This file documents only what is
+> Python-specific.
 
-> **TL;DR / Core Directives**
->
-> 1. **Package = directory** (with `__init__.py`), or a single `.py`
->    module. A module belongs to a component because its dotted path
->    matches a `pattern`. Patterns are dotted module paths;
->    **descendants are included automatically** (import-linter default).
-> 2. **One optional file per package** — `architecture.toml`. Plain
->    TOML; no Python code, no imports. The repo root has one too — same
->    structure.
-> 3. **A package knows itself, not its context.** Its own file governs
->    internals (sub-tiers, layering) and outbound dependencies ("what I
->    import") — never inbound ones ("who imports me") or its place in
->    the wider system, which it does not and should not know.
->    Mechanically: only `<own-prefix>-*`, specific `<own-prefix>-x`
->    names, and the anonymous `*` may appear; any other component name
->    is a violation.
-> 4. **Composition lives on the level that does the composing.**
->    Constraints between a package and the system (afferent — "who may
->    import me" — and cross-package sibling-isolation) live higher up.
->    Constraints among a package's own sub-tiers (internal layering,
->    sub-tier sibling-isolation) live in its own file. Efferent rules
->    ("what may I import") are self-knowledge — own file. Higher-level
->    rules accumulate.
-> 5. **Every package with rules ends with a catch-all bucket.** The
->    anonymous `*` wildcard expands to **registered** components only;
->    code under unregistered paths isn't covered. Add a `<pkg>` entry
->    that captures the whole package as the last `[[components]]` row.
-> 6. **Recursion via discovery.** The assembler walks the tree; deeper
->    files are discovered first.
+## File format
 
----
-
-## 1. File schema
-
-Each `architecture.toml` declares two optional top-level arrays:
+- Filename: `architecture.toml`. Plain TOML — no Python code, no imports.
+- TOML arrays-of-tables: `[[components]]`, `[[forbidden]]`.
+- Pattern syntax: dotted module paths (`mypkg.core.tier1`). The package and
+  all submodules match by default; set `single = true` to match only the
+  exact module.
+- Component patterns may overlap (e.g. `mypkg.core` and `mypkg.core.tier1`
+  both match files under `mypkg/core/tier1/`). That's fine — import-linter
+  checks each contract independently; there's no first-match-wins.
 
 ```toml
-[[components]]
-# one entry per component
-
-[[forbidden]]
-# one entry per dependency edge
-```
-
-Most packages don't need their own file — they're declared once in the
-`[[components]]` list higher up in the tree.
-
-> [!NOTE]
-> `<own-prefix>` is the shared prefix of a package's component names —
-> e.g. `core-` for `core-facade`, `core-tier1`, `core-other`.
-> Single-component packages (e.g. `service`) just use the bare name.
-
-## 2. Components — packages declared as module patterns
-
-| Field        | Required | Purpose                                                              |
-| ------------ | -------- | -------------------------------------------------------------------- |
-| `name`       | yes      | Component id referenced from `[[forbidden]]` edges.                  |
-| `pattern`    | yes      | Module path, e.g. `mypkg.core.tier1`. The package and all submodules are matched. |
-| `single`     | no       | `true` to match **only** the listed module, not its descendants. Emits contracts with `as_packages = false`. |
-| `capture`    | no       | Path-segment captures, e.g. `["domain"]`, for parametric rules. Used by the assembler, not import-linter. |
-
-Component patterns may overlap (e.g. `mypkg.core` and `mypkg.core.tier1`
-both match files under `mypkg/core/tier1/`). That's fine —
-import-linter checks each contract independently against the import
-graph; there's no first-match-wins resolution.
-
-```toml
-# A package's own architecture.toml. Each entry maps to a Python module path.
+# architecture.toml — example for a package with internal layering
 [[components]]
 name = "core-facade"
 pattern = "mypkg.core.api"           # public sub-package = the facade
@@ -102,121 +41,60 @@ pattern = "mypkg.core.api"           # public sub-package = the facade
 name = "core-tier1"
 pattern = "mypkg.core.tier1"
 
-# ...narrower buckets
+[[components]]
+name = "core-tier3"
+pattern = "mypkg.core.tier3"
 
 [[components]]
 name = "core-other"
-pattern = "mypkg.core"               # catch-all (whole package), last
-```
+pattern = "mypkg.core"               # whole-package catch-all, last
 
-> [!NOTE]
-> **Facade pattern in Python.** Python's idiomatic facade is a
-> sub-package (e.g. `mypkg.core.api`) exposing public API via
-> `__init__.py` and `__all__`. The "single file as facade" pattern from
-> the JS skill maps awkwardly here; prefer a public sub-package plus
-> forbidden edges that ban imports to the internal sub-packages.
-
-## 3. Forbidden — dependency edges
-
-```toml
 [[forbidden]]
-from = "..."         # spec
-to   = "..."         # spec
-except    = ["..."]  # optional
-except_to = ["..."]  # optional
-why  = "..."         # message
-```
-
-| `from` / `to` accepts | Meaning                                                  |
-| --------------------- | -------------------------------------------------------- |
-| `"service"`           | Single component name.                                   |
-| `["app", "service"]`  | Multiple component names.                                |
-| `"*"`                 | Every registered component.                              |
-| `"core-*"`            | Prefix wildcard — every component starting with `core-`. |
-| `{ captured = ... }`  | Parametric (uses captures from a `capture`-enabled component). |
-
-`except` subtracts from a wildcard `from`; `except_to` from a wildcard
-`to`. Strings in either may be prefix wildcards. `why` is the violation
-message.
-
-The assembler emits `forbidden` contracts for these edges. For two
-common shapes, it can use more specific contract types (cleaner
-output):
-
-- **Sibling-isolation across N components** → emits one `independence`
-  contract listing the N module patterns.
-- **Strict tier ordering** (e.g. tier1 < tier2 < tier3, where higher
-  tiers may import lower) → can be expressed as a `layers` contract.
-  This is optional; explicit `[[forbidden]]` edges between specific
-  tiers also work.
-
-### Examples
-
-```toml
-# Afferent — higher level. Only the orchestrator may import the facade.
-[[forbidden]]
-from = "*"
-except = ["orchestrator", "core-*"]
-to = "core-facade"
-why = "Only the orchestrator may import the core facade."
-
-# Efferent — own file. Self-contained.
-[[forbidden]]
+# Efferent — self-knowledge, lives in own file.
 from = "core-*"
 to = "*"
 except_to = ["core-*"]
 why = "Core purity: no imports outside the core package."
 
-# Internal layering — own file. Sub-tier names share the prefix.
 [[forbidden]]
+# Internal layering.
 from = "core-tier3"
 to = "core-tier1"
-why = "Tier 3 must go through tier 2; direct tier-1 access is forbidden."
-
-# Parametric — higher level. Sibling sub-domains may not import each other.
-# (Assembler emits an `independence` contract over all matched domains.)
-[[forbidden]]
-from = { type = "domain-handler", captured = { domain = "*" } }
-to   = { type = "domain-handler", captured = { domain = "!{from.captured.domain}" } }
-why  = "Cross-domain import: extract shared helpers to a sibling shared/ package."
+why = "Tier 3 must go through tier 2."
 ```
 
-`!{from.captured.domain}` is the assembler's "not equal to the captured
-value" syntax — fires when the two `domain` captures differ.
+Parametric "not equal" syntax for cross-domain isolation:
+`!{from.captured.domain}` (single braces).
 
-## 4. Where each rule lives
+> [!NOTE] **Facade pattern in Python.** Python's idiomatic facade is a
+> sub-package (e.g. `mypkg.core.api`) exposing public API via `__init__.py`
+> and `__all__`. The "single file as facade" pattern from the JS skill maps
+> awkwardly here; prefer a public sub-package plus forbidden edges that ban
+> imports to the internal sub-packages.
 
-| Rule type                              | Lives in                  |
-| -------------------------------------- | ------------------------- |
-| Afferent ("who may import me?")        | Higher level (composer).  |
-| Efferent ("what may I import?")        | Own file.                 |
-| Cross-package sibling-isolation        | Higher level (composer).  |
-| Internal layering                      | Own file.                 |
-| Sub-tier sibling-isolation             | Own file.                 |
+## Specialized contract types
 
-Higher-level rules accumulate. Place each rule where the composition
-it expresses lives — sub-tier sibling-isolation in the package's own
-file (it composes its sub-tiers); encapsulation between the package
-and the system higher up (where the package is composed with peers).
+The assembler emits `forbidden` contracts by default. For two common shapes
+import-linter offers more specific contract types that produce cleaner
+violations:
 
-> [!IMPORTANT]
-> A package's own file MUST reference only its own-prefix names
-> (`<own-prefix>-*` or `<own-prefix>-x`) and `*`. Naming any other
-> component is a violation — that knowledge belongs higher up.
+- **Sibling-isolation across N components** → one `independence` contract
+  listing the N module patterns.
+- **Strict tier ordering** (e.g. `tier1 < tier2 < tier3`, where higher tiers
+  may import lower) → a `layers` contract. Optional — explicit `[[forbidden]]`
+  edges between specific tiers also work.
 
----
-
-## 5. The assembler
+## Assembler
 
 A small Python script invoked by pre-commit and CI. Discovers all
-`architecture.toml` files, merges them, generates a `.importlinter`
-config in INI form, and invokes `lint-imports`.
+`architecture.toml` files, merges them, generates a `.importlinter` config in
+INI form, and invokes `lint-imports`.
 
 **Why generate `.importlinter` rather than mutate `pyproject.toml`?**
 The generated file is a build artifact (gitignored alongside
 `.import_linter_cache/`); the source of truth is the per-package
-`architecture.toml`s. import-linter natively reads `.importlinter`
-ahead of `pyproject.toml`.
+`architecture.toml`s. import-linter natively reads `.importlinter` ahead of
+`pyproject.toml`.
 
 ```python
 # tools/arch_lint.py
@@ -243,8 +121,6 @@ for f in arch_files:
     forbidden.extend(data.get("forbidden", []))
 
 # 3. Expand wildcards against the live registry.
-#    Turn a spec ('foo' | 'foo-*' | '*' | list[str] | parametric dict)
-#    into a list of component names, with `except` subtracted.
 names = [c["name"] for c in components]
 
 def expand(spec, except_=None):
@@ -335,68 +211,33 @@ project's virtualenv to import the analyzed packages.
 .import_linter_cache/    # import-linter's own cache
 ```
 
-### Known gotchas
+## Python-specific gotchas
 
-> [!NOTE]
-> **Dynamic imports bypass enforcement.** import-linter reads static
+> [!NOTE] **Dynamic imports bypass enforcement.** import-linter reads static
 > `import` and `from ... import` statements via Grimp. Imports through
-> `importlib.import_module(...)`, `__import__`, or string-based
-> dispatch don't appear in the graph. If a package uses dynamic imports
-> for plugin loading, mark the entry-point as a single-module component
+> `importlib.import_module(...)`, `__import__`, or string-based dispatch
+> don't appear in the graph. If a package uses dynamic imports for plugin
+> loading, mark the entry-point as a single-module component
 > (`single = true`) so its rules are explicit, and consider banning the
 > dynamic style elsewhere.
 
-> [!NOTE]
-> **import-linter `*` is single-segment.** In `forbidden_modules` and
-> similar fields, `mypkg.*` matches `mypkg.foo` but **not**
-> `mypkg.foo.bar`. The skill's prefix wildcards (`core-*`) operate on
-> *component names* and are expanded by the assembler before contracts
-> are emitted, so they don't hit this limit. But if you write raw
-> module patterns yourself, mind the difference.
+> [!NOTE] **import-linter `*` is single-segment.** In `forbidden_modules` and
+> similar fields, `mypkg.*` matches `mypkg.foo` but **not** `mypkg.foo.bar`.
+> The pattern's prefix wildcards (`core-*`) operate on *component names* and
+> are expanded by the assembler before contracts are emitted, so they don't
+> hit this limit. But if you write raw module patterns yourself, mind the
+> difference.
 
-> [!NOTE]
-> **Cache staleness during refactors.** `.import_linter_cache/` speeds
-> up subsequent runs but can mislead during heavy refactors. Delete it
-> if results don't match what your import statements actually say.
+> [!NOTE] **Cache staleness during refactors.** `.import_linter_cache/`
+> speeds up subsequent runs but can mislead during heavy refactors. Delete
+> it if results don't match what your import statements actually say.
 
-> [!NOTE]
-> **Root package must be importable.** import-linter imports the root
-> package to walk it. Make sure `pip install -e .` (or equivalent)
-> has been run in the active venv before invoking the assembler.
+> [!NOTE] **Root package must be importable.** import-linter imports the
+> root package to walk it. Make sure `pip install -e .` (or equivalent) has
+> been run in the active venv before invoking the assembler.
 
----
-
-## 6. Recipes
-
-| To do                              | Where                                                                                   |
-| ---------------------------------- | --------------------------------------------------------------------------------------- |
-| Add a new package                  | One `[[components]]` entry where the package is composed (usually root).                |
-| Add a dependency rule              | One `[[forbidden]]` entry higher than the components it constrains.                     |
-| Package with internal layering     | Create the package's own `architecture.toml`; declare sub-modules; layer with `<own-prefix>-*` or specific `<own-prefix>-x` names. |
-| Sibling-isolation                  | At the composer's level: `capture` on the parent component, parametric `from`/`to`. Assembler emits an `independence` contract.    |
-| Strict tier ordering               | Same level: layers can be expressed as one `[[forbidden]]` per blocked direction, or by switching the emitted contract type to `layers` (advanced). |
-
-## 7. Anti-patterns + pre-merge audit
-
-| Anti-pattern                                              | Fix                                                              |
-| --------------------------------------------------------- | ---------------------------------------------------------------- |
-| A package's own file names another component.             | Move higher, or rewrite with `<own-prefix>-*` + `*`.             |
-| Hardcoded list of "all other components".                 | Use `"*"` + `except` / `except_to`.                              |
-| Renaming a component without updating consumers.          | Use prefix wildcards (`<prefix>-*`) so renames stay local.       |
-| Package has rules but no catch-all bucket.                | Add a `<pkg>` (whole-package) entry as the last `[[components]]`. |
-| Dynamic imports used to evade forbidden edges.            | Refactor to static imports, or accept the loophole and document it. |
-| Mixing module-segment `*` with component-name `core-*`.   | Component-name wildcards are the assembler's; raw `*` in import-linter patterns is single-segment only. Don't mix in one rule. |
-
-Before merge:
-
-- [ ] No other-component name appears in any package's own
-      `architecture.toml`.
-- [ ] `[[components]]` lists the whole-package catch-all entry for any
-      package being constrained.
-- [ ] `python tools/arch_lint.py` violation count matches baseline (or
-      new violations reflect intentional changes).
-
-> [!NOTE]
-> The "no other-component name" check is mechanical — a small TOML
-> walk over each `architecture.toml` could enforce it as a meta-lint.
-> Until then, the manual checklist is the gate.
+> [!NOTE] **Mixing pattern-level and component-level wildcards.** A single
+> rule that uses both `mypkg.*` (single-segment, import-linter native) and
+> `core-*` (multi-match, assembler-expanded) will surprise you. Component-
+> name wildcards are the assembler's domain; raw `*` in import-linter
+> patterns is single-segment only. Don't mix in one rule.

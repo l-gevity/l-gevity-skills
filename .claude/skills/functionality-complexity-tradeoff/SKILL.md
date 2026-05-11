@@ -1,5 +1,5 @@
 ---
-name: functionality-pruner
+name: functionality-complexity-tradeoff
 description: >-
     A first-principles framework for deciding whether a piece of functionality
     is (a) addressing a problem that exists in this context and (b) worth its
@@ -27,9 +27,7 @@ description: >-
 > unimplemented features (accept / reject / minimize) and to existing code
 > (keep / simplify / delete / remove-as-obsolete). For measuring complexity
 > itself, see `structural-simplification`. For the upstream principles
-> (YAGNI, scope control, proportional solutions), see `architectural-guideline`.
-> For changes to code produced by a SIMPLIFY, DELETE, or OBSOLETE verdict,
-> see `coding-standard`.
+> (YAGNI, scope control, proportional solutions), see `architecture-guidelines`.
 
 > **Core Directives**
 >
@@ -548,19 +546,17 @@ Revisit when:   <measurable trigger or calendar date>
 - **`structural-simplification`** — source of the complexity measurement
   (`D, K, P, n`). This skill **consumes** those deltas; it does not redefine
   them.
-- **`architectural-guideline`** — upstream principles (YAGNI, scope control,
+- **`architecture-guidelines`** — upstream principles (YAGNI, scope control,
   proportionality, deletion over patching). This skill is the applied
   protocol through which those principles bind to individual decisions. The
   necessity gate (§1) is the most direct expression of YAGNI applied to
   existing code: "you ain't gonna need it" generalizes to "you never needed
   it; the problem was never in this context."
-- **`coding-standard`** — consulted when a SIMPLIFY, DELETE, or OBSOLETE
-  verdict produces code changes.
-- **`continuous-improvement-protocol`** — when this skill's verdicts
-  repeatedly contradict current practice or sibling skills, that is a signal
-  to update the skills themselves, not to override the verdicts case-by-case.
+- **`continuous-improvement`** — when this skill's verdicts repeatedly
+  contradict current practice or sibling skills, that is a signal to update
+  the skills themselves, not to override the verdicts case-by-case.
   Repeated OBSOLETE findings in a single area, in particular, are a signal
-  to update `architectural-guideline` with the relevant invariant so future
+  to update `architecture-guidelines` with the relevant invariant so future
   contributors do not re-introduce the same non-problem-solving code.
 
 > [!NOTE] This skill deliberately does **not** define its own complexity
@@ -570,5 +566,5 @@ Revisit when:   <measurable trigger or calendar date>
 > heuristic. Keeping the measurement in one place preserves the
 > single-source-of-truth discipline across the skill library. Likewise,
 > the necessity gate (§1) does not redefine architectural invariants — it
-> consumes the invariants documented in `architectural-guideline` and the
+> consumes the invariants documented in `architecture-guidelines` and the
 > stack's own ADRs, and uses them as the basis for impossibility findings.

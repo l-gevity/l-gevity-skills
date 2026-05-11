@@ -29,9 +29,9 @@ The skill has two modes: **prospective** (should we build this?) or **retrospect
 1. **Identify the subject.** A proposed feature, a defensive check that looks redundant, a feature flag that may have outlived its launch, an abstraction with one user.
 2. **Prompt the AI.**
 
-   > *Prospective:* "Apply functionality-pruner to this PRD: 'Add a client-version-check that warns users their tab is stale.' We deploy as a single SPA artifact."
+   > *Prospective:* "Apply functionality-complexity-tradeoff to this PRD: 'Add a client-version-check that warns users their tab is stale.' We deploy as a single SPA artifact."
    >
-   > *Retrospective:* "Audit `src/auth/legacyTokenShim.ts` against functionality-pruner. We migrated to OAuth six months ago."
+   > *Retrospective:* "Audit `src/auth/legacyTokenShim.ts` against functionality-complexity-tradeoff. We migrated to OAuth six months ago."
 
 3. **Read the verdict.** The skill names the verdict (BUILD / BUILD-minimal / NEGOTIATE / DEFER / DROP for prospective; KEEP / SIMPLIFY / QUARANTINE / DEPRECATE / DELETE / OBSOLETE for retrospective) and the rationale.
 4. **Apply the verdict.** Delete the OBSOLETE check; ship the BUILD-minimal slice; instrument the QUARANTINE candidate; document the structural reason so a later audit doesn't reintroduce the same code.
@@ -67,7 +67,7 @@ Routine bug fixes inside a working module, content/copy edits, dependency bumps.
 
 ## Next steps
 
-- See [SKILL.md](./SKILL.md) for the full reference (necessity-gate detection heuristics, worth axes, decision protocol, asymmetric trade-offs, output contract).
-- For the structural complexity measurement (`D, K, P, n`) consumed on the cost side, see [`structural-simplification`](../structural-simplification/).
-- For the upstream principles (YAGNI, scope control, proportionality), see [`architecture-guidelines`](../architecture-guidelines/).
+- See [SKILL.md](../.claude/skills/functionality-complexity-tradeoff/SKILL.md) for the full reference (necessity-gate detection heuristics, worth axes, decision protocol, asymmetric trade-offs, output contract).
+- For the structural complexity measurement (`D, K, P, n`) consumed on the cost side, see [`structural-simplification`](../.claude/skills/structural-simplification/).
+- For the upstream principles (YAGNI, scope control, proportionality), see [`architecture-guidelines`](../.claude/skills/architecture-guidelines/).
 - Run a retrospective audit on the next "just in case" check that lands in code review — the necessity gate often closes the question on the first pass.

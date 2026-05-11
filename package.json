@@ -11,14 +11,9 @@
   "license": "MIT",
   "author": "L-GEVITY",
   "files": [
-    "architecture-as-code-javascript/",
-    "architecture-guidelines/",
-    "ci-cd-reliability-architecture/",
-    "continuous-improvement/",
-    "defect-shift-left/",
-    "functionality-complexity-tradeoff/",
-    "structural-simplification/",
-    "system-optimization/",
+    ".claude/skills/",
+    ".documentation/",
+    "CLAUDE.md",
     "README.md",
     "LICENSE"
   ],

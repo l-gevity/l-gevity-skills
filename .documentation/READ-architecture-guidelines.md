@@ -62,7 +62,7 @@ Bug fixes inside an existing module, content/copy edits, CSS-only changes, depen
 
 ## Next steps
 
-- See [SKILL.md](./SKILL.md) for the full ruleset (numbered sections, examples, complexity-warning protocol).
-- For refactor cost/benefit analysis once a violation is found, see [`structural-simplification`](../structural-simplification/).
-- For spatial dependency-graph constraints and lint enforcement, see [`geometric-architecture`](../geometric-architecture/).
-- For deciding whether a piece of functionality justifies its cost, see [`functionality-complexity-tradeoff`](../functionality-complexity-tradeoff/).
+- See [SKILL.md](../.claude/skills/architecture-guidelines/SKILL.md) for the full ruleset (numbered sections, examples, complexity-warning protocol).
+- For refactor cost/benefit analysis once a violation is found, see [`structural-simplification`](../.claude/skills/structural-simplification/).
+- For spatial dependency-graph constraints and lint enforcement, see [`geometric-architecture`](../.claude/skills/geometric-architecture/).
+- For deciding whether a piece of functionality justifies its cost, see [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/).

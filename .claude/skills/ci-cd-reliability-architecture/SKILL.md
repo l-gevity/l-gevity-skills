@@ -9,9 +9,9 @@ description:
 
 # CI/CD Reliability Architecture
 
-> **Out of scope**: Business logic (`architecture-guidelines`), code standards
-> (`coding-standard`), optimization (`system-optimization`), release procedures
-> (`release-management`).
+> **Out of scope**: Business logic (`architecture-guidelines`), value-stream
+> optimization (`system-optimization`). Code style and release procedures
+> follow your project's own conventions.
 
 > **TL;DR**
 >

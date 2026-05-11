@@ -67,6 +67,6 @@ Greenfield exploration, throwaway scripts, scratch repos. The framework earns it
 
 ## Next steps
 
-- See [SKILL.md](./SKILL.md) for the operational reference (full 12-stage ladder, defect taxonomy → earliest stage table, decision protocol, anti-patterns, stack-aware tooling survey).
-- For executable architectural rules (the "ADR → rule" shift in practice), see [`architecture-as-code-javascript`](../architecture-as-code-javascript/).
+- See [SKILL.md](../.claude/skills/defect-shift-left/SKILL.md) for the operational reference (full 12-stage ladder, defect taxonomy → earliest stage table, decision protocol, anti-patterns, stack-aware tooling survey).
+- For executable architectural rules (the "ADR → rule" shift in practice), see [`architecture-as-code`](../.claude/skills/architecture-as-code/) (the pattern), with [`-javascript`](../.claude/skills/architecture-as-code-javascript/) and [`-python`](../.claude/skills/architecture-as-code-python/) as concrete implementations.
 - Run an audit on your last three production incidents — each escaped defect names the stage it should have been caught at.

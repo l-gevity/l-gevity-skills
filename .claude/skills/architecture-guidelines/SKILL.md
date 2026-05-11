@@ -10,8 +10,7 @@ description: >-
     boundaries, applying SOLID, or reviewing a PR for architectural concerns
     (purity, idempotency, naming, fail-fast). SKIP for: bug fixes within an
     existing module, content/copy edits, CSS-only changes, dependency bumps,
-    trivial renames. For implementation patterns specific to this app see
-    `technical-design`; for refactor cost/benefit analysis see
+    trivial renames. For refactor cost/benefit analysis see
     `structural-simplification`; for spatial dependency-graph constraints and
     lint enforcement see `geometric-architecture`.
 ---

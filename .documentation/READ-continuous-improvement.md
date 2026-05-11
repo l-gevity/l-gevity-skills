@@ -58,6 +58,6 @@ Single, idiosyncratic corrections that don't generalize. One-off task tweaks. An
 
 ## Next steps
 
-- See [SKILL.md](./SKILL.md) for the full protocol (triggers, root-cause analysis, update execution, verification, notification).
-- For SKILL formatting and layout, see [`skill-creation`](../skill-creation/) (separate from this skill).
-- For first-principles architectural rules referenced when triaging trigger root causes, see [`architecture-guidelines`](../architecture-guidelines/).
+- See [SKILL.md](../.claude/skills/continuous-improvement/SKILL.md) for the full protocol (triggers, root-cause analysis, update execution, verification, notification).
+- For SKILL formatting and layout, follow your project's skill-authoring conventions (separate from this skill).
+- For first-principles architectural rules referenced when triaging trigger root causes, see [`architecture-guidelines`](../.claude/skills/architecture-guidelines/).

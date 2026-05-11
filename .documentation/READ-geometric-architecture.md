@@ -82,7 +82,7 @@ Routine logic inside existing modules, bug fixes, content edits, CSS-only change
 
 ## Next steps
 
-- See [SKILL.md](./SKILL.md) for the operational reference (full failure-mode table, ESLint mechanism mapping, lint can/cannot-enforce list, rollout strategy).
-- For first-principles rules on what goes inside a module, see [`architecture-guidelines`](../architecture-guidelines/).
-- For evaluating whether a structural change actually reduces complexity, see [`structural-simplification`](../structural-simplification/).
+- See [SKILL.md](../.claude/skills/geometric-architecture/SKILL.md) for the operational reference (full failure-mode table, ESLint mechanism mapping, lint can/cannot-enforce list, rollout strategy).
+- For first-principles rules on what goes inside a module, see [`architecture-guidelines`](../.claude/skills/architecture-guidelines/).
+- For evaluating whether a structural change actually reduces complexity, see [`structural-simplification`](../.claude/skills/structural-simplification/).
 - Run an audit on the subsystem you suspect is most tangled — the verdict often names the geometric defect on the first pass.

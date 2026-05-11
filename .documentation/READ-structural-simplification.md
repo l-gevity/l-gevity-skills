@@ -2,7 +2,7 @@
 
 ![Structural Simplification](structural_simplification.svg)
 
-> **Companion to [`SKILL.md`](./SKILL.md).** Read SKILL.md first — that is the
+> **Companion to [`SKILL.md`](../.claude/skills/structural-simplification/SKILL.md).** Read SKILL.md first — that is the
 > canonical operational reference (the four-axis model, reduction operations,
 > trade-off matrix, asymmetric trades, decision protocol). This file argues
 > _why_ the model has four axes and not one, walks through worked examples, and

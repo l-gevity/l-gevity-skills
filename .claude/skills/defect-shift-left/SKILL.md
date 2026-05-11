@@ -208,9 +208,11 @@ The recipe: encode each architectural decision as a rule that fails the build
 when violated. The ADR document remains as rationale; the lint config is the
 enforcement.
 
-For the in-repo implementation see `architecture-as-code-javascript`,
-`architecture-guidelines` (first principles), and `geometric-architecture`
-(spatial rationale).
+For the encoding pattern see `architecture-as-code`, with concrete
+implementations in `architecture-as-code-javascript` or
+`architecture-as-code-python`. For first principles see
+`architecture-guidelines`; for the spatial rationale this enforces, see
+`geometric-architecture`.
 
 ### 7.3 Hand-validated boundary → schema-as-code
 
