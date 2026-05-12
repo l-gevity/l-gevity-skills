@@ -174,7 +174,7 @@ plain-English overview where available.
 
 | Skill | Readme | Use it to |
 | :---- | :----- | :-------- |
-| [CLAUD.md](./CLAUD.md) | [READ](./.documentation/READ-CLAUD.md) | How an agent thinks about tasks in any codebase using this skill library. 
+| [CLAUD.md](./CLAUDE.md) | [READ](./.documentation/READ-CLAUD.md) | How an agent thinks about tasks in any codebase using this skill library. 
 
 ### The orchestrator — *which skills to run, in which order?*
 
