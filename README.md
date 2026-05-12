@@ -99,12 +99,11 @@ cp .claude/skills-src/CLAUDE.md ./CLAUDE.md   # only if you haven't customized i
 Use when you want a frozen snapshot you can edit freely.
 
 ```bash
-git clone --depth 1 https://github.com/l-gevity/l-gevity-skills /tmp/lgs
-mkdir -p .claude
-cp -r /tmp/lgs/.claude/skills .claude/skills
-cp /tmp/lgs/CLAUDE.md ./CLAUDE.md
-rm -rf /tmp/lgs
+git clone --depth 1 https://github.com/l-gevity/l-gevity-skills .tmp-skills
+rm -rf .claude/skills && mkdir -p .claude && mv .tmp-skills/.claude/skills .claude/skills && mv -f .tmp-skills/CLAUDE.md . && rm -rf .tmp-skills
 ```
+
+(`.tmp-skills` is a throwaway clone inside your project, deleted at the end of the same line.)
 
 Update later: re-run the same block (overwrites `.claude/skills/` and `CLAUDE.md`;
 back up first if you've customized them).
