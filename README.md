@@ -81,44 +81,44 @@ Two ways to bring the skills into your project. Both put skills in
 
 Use when you want to pull future updates with one command.
 
-​```bash
+```bash
 git submodule add https://github.com/l-gevity/l-gevity-skills .claude/skills-src
 ln -s skills-src/.claude/skills .claude/skills
 cp .claude/skills-src/CLAUDE.md ./CLAUDE.md
-​```
+```
 
 Update later:
 
-​```bash
+```bash
 git submodule update --remote .claude/skills-src
 cp .claude/skills-src/CLAUDE.md ./CLAUDE.md   # only if you haven't customized it
-​```
+```
 
 ### Method 2 — Copy (vendor in, no upstream link)
 
 Use when you want a frozen snapshot you can edit freely.
 
-​```bash
+```bash
 git clone --depth 1 https://github.com/l-gevity/l-gevity-skills /tmp/lgs
 mkdir -p .claude
 cp -r /tmp/lgs/.claude/skills .claude/skills
 cp /tmp/lgs/CLAUDE.md ./CLAUDE.md
 rm -rf /tmp/lgs
-​```
+```
 
 Update later: re-run the same block (overwrites `.claude/skills/` and `CLAUDE.md`;
 back up first if you've customized them).
 
 ### Result
 
-​```
+```
 your-project/
 ├── CLAUDE.md                    ← strategic directives
 └── .claude/skills/
     ├── architecture-guidelines/
     ├── structural-simplification/
     └── ...
-​```
+```
 
 `CLAUDE.md` already references skills by `./.claude/skills/<name>/` — no
 edits needed unless you move things. 
