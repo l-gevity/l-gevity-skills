@@ -20,7 +20,7 @@ description: >-
 > defined there and apply identically here. This file documents only what is
 > JavaScript-specific.
 
-## File format
+## 1. File format
 
 - Filename: `eslint.architecture.mjs`. Use `.mjs` only; `.js` trips
   source-discovery walkers and ESLint's own config-loader.
@@ -51,7 +51,7 @@ export default {
 Boundaries-plugin's parametric "not equal" syntax for cross-domain isolation
 is `!{{from.captured.domain}}` (double braces).
 
-## Assembler
+## 2. Assembler
 
 Runs once at lint startup in `eslint.config.js` (flat-config supports
 top-level `await`).
@@ -113,7 +113,7 @@ export default [
 **Dependencies:** `eslint-plugin-boundaries`, plus `"type": "module"` in the
 repo-root `package.json`.
 
-## JavaScript-specific gotchas
+## 3. JavaScript-specific gotchas
 
 > [!NOTE] **Unresolved imports bypass enforcement.** `eslint-plugin-boundaries`
 > only enforces rules on imports it can resolve to a file path. Host-served

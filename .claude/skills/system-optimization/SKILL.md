@@ -1,6 +1,6 @@
 ---
 name: system-optimization
-description:
+description: >-
     Applies Lean, Kaizen, Six Sigma, Theory of Constraints, and DevOps
     principles to eliminate waste and improve flow across all aspects of a
     software project. Use when scanning for optimizations in CI/CD pipelines,
@@ -128,11 +128,7 @@ For identifying constraints, waste, and root causes in operational analysis:
 - **One-piece flow**: Work moves design → build → review → deploy without
   sitting idle.
 
-## 7. Structural Simplicity
-
-> For structural analysis use `structural-simplification`.
-
-## 8. Testing
+## 7. Testing
 
 - **Detection distance**: Bugs caught closest to their source are cheapest.
   Unit > integration > e2e.
@@ -142,7 +138,7 @@ For identifying constraints, waste, and root causes in operational analysis:
 - **Shift-left security**: Static analysis, dependency audits, and secret
   scanning run in CI.
 
-## 9. Documentation
+## 8. Documentation
 
 - **Executable specs over text**: Tests and self-documenting code are living
   documentation.
@@ -151,7 +147,7 @@ For identifying constraints, waste, and root causes in operational analysis:
 - **ADRs**: Document _why_, not _what_. Prevents future rework from revisiting
   settled decisions.
 
-## 10. Continuous Improvement (Kaizen / PDCA)
+## 9. Continuous Improvement (Kaizen / PDCA)
 
 - Every optimization is a hypothesis — validate before declaring permanent.
 - After resolving a bottleneck, explicitly identify the new constraint before
@@ -162,3 +158,9 @@ For identifying constraints, waste, and root causes in operational analysis:
 > **Litmus Test**: If a change worsens any complexity axis (D, K, P, n) from
 > `structural-simplification` without improving another, it is not an
 > optimization.
+
+## 10. See also
+
+- **`structural-simplification`** — per-axis complexity comparison used for Kaizen Δ scoring.
+- **`defect-shift-left`** — placement of each error detection at the earliest possible stage (operationalizes "Build Quality In").
+- **`ci-cd-reliability-architecture`** — pipeline-reliability prerequisites that stabilize a process before optimization.

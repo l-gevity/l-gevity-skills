@@ -1,6 +1,6 @@
 ---
 name: defect-shift-left
-description: >
+description: >-
     Places every error detection at the earliest stage of the pipeline that is
     technically capable of catching it. Use when designing or auditing a CI/CD
     pipeline, choosing tooling, deciding where a check belongs, or asking "could
@@ -12,7 +12,7 @@ description: >
 > Pipeline stages have a strict order. Every defect has an earliest stage at
 > which it can be caught. Catching it later is always a regression.
 
-> **Directives**
+> **Core Directives**
 >
 > 1. **Prevent over detect.** Make invalid states unrepresentable before adding
 >    a check.
@@ -351,3 +351,10 @@ Produce a survey table — one row per stage that has a gap:
 
 Do not propose a tool without naming the stage it staffs and the defect class it
 catches. A tool that does not map to a rung on §1 has no place in the output.
+
+## 9. See also
+
+- **`architecture-as-code`** — the codified-architecture pattern this skill names in §7.2.
+- **`architecture-guidelines`** — first-principles rules whose violations this skill places on the ladder.
+- **`ci-cd-reliability-architecture`** — pipeline rules that staff Stages 5–10.
+- **`continuous-improvement`** — how to promote a recurring escaped-defect into a permanent gate (Directive 1).

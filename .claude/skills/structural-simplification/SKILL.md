@@ -213,3 +213,9 @@ first.
 
 > [!IMPORTANT] If no axis improves, state: _"Complexity Warning: ΔD [X], ΔK [Y],
 > ΔP [Z], Δn [W]. A simpler alternative is [...]."_
+
+## 9. See also
+
+- **`architecture-guidelines`** — first-principles design discipline that informs Δ scoring.
+- **`geometric-architecture`** — spatial constraint that bounds all four axes.
+- **`functionality-complexity-tradeoff`** — consumes `D, K, P, n` deltas in its cost ledger.

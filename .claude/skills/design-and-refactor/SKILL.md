@@ -26,7 +26,7 @@ description: >-
 > failure-mode diagnostics. Defines NO principles, metrics, or rules of its
 > own. Every gate is a one-line pointer to a sibling skill.
 
-> **TL;DR / Core Directives**
+> **Core Directives**
 >
 > 1. **Order matters.** Gates 1–4 are upstream (shape the design); Gates 5–6
 >    are downstream (enforce it). NEVER run 5 before 1.

@@ -20,7 +20,7 @@ description: >-
 > defined there and apply identically here. This file documents only what is
 > Python-specific.
 
-## File format
+## 1. File format
 
 - Filename: `architecture.toml`. Plain TOML — no Python code, no imports.
 - TOML arrays-of-tables: `[[components]]`, `[[forbidden]]`.
@@ -72,7 +72,7 @@ Parametric "not equal" syntax for cross-domain isolation:
 > awkwardly here; prefer a public sub-package plus forbidden edges that ban
 > imports to the internal sub-packages.
 
-## Specialized contract types
+## 2. Specialized contract types
 
 The assembler emits `forbidden` contracts by default. For two common shapes
 import-linter offers more specific contract types that produce cleaner
@@ -84,7 +84,7 @@ violations:
   may import lower) → a `layers` contract. Optional — explicit `[[forbidden]]`
   edges between specific tiers also work.
 
-## Assembler
+## 3. Assembler
 
 A small Python script invoked by pre-commit and CI. Discovers all
 `architecture.toml` files, merges them, generates a `.importlinter` config in
@@ -211,7 +211,7 @@ project's virtualenv to import the analyzed packages.
 .import_linter_cache/    # import-linter's own cache
 ```
 
-## Python-specific gotchas
+## 4. Python-specific gotchas
 
 > [!NOTE] **Dynamic imports bypass enforcement.** import-linter reads static
 > `import` and `from ... import` statements via Grimp. Imports through

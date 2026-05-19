@@ -1,6 +1,6 @@
 ---
 name: continuous-improvement
-description:
+description: >-
     Protocol for updating skills based on user feedback and root-cause analysis
     to prevent recurring mistakes. Use this skill when deciding HOW and WHEN to
     evaluate or update other agent skills.
@@ -12,7 +12,7 @@ This protocol governs the agent's **meta-learning process** (Kaizen). It ensures
 that SKILL files evolve organically, preventing recurring errors through
 systemic, root-cause adjustments, without growing bloated.
 
-> **TL;DR / Core Directives**
+> **Core Directives**
 >
 > 1. **Automation Over Rules**: Before adding a manual instruction to a SKILL
 >    document, you MUST explicitly attempt to turn it into an automated test or
@@ -27,8 +27,8 @@ systemic, root-cause adjustments, without growing bloated.
 
 ## When to use this skill
 
-- When deciding HOW and WHEN to evaluate or update other agent skills.
-- When reacting to user corrections, systemic failures, or regression triggers.
+- Triggered by user corrections, systemic failures, or regression triggers
+  (full catalogue in §1).
 - **Out of scope:** This skill dictates the _triggers, analysis, and mindset_
   for updating SKILLs. It does NOT dictate the _formatting/layout_ of the SKILLs
   (follow your project's skill-authoring conventions) nor does it define the
@@ -81,3 +81,8 @@ Ensure the learning "sticks":
 - **Notify**: Conclude the improvement sequence with a concise summary back to
   the user:
     > _"Updated [Skill/Test] to prevent [issue] by mandating [new practice]."_
+
+## 5. See also
+
+- **`architecture-guidelines`** — first-principles rules that updates from this skill propagate back into.
+- **`defect-shift-left`** — when a recurring correction can be encoded as a Stage 0–5 gate instead of a SKILL rule (Directive 1).

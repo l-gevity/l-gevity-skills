@@ -106,3 +106,9 @@ lives in `eslint.config.js` at repo root.
 **Rollout:** add every rule at `warn`. Promote per-rule to `error` only after
 that rule's violations clear. A rule that starts as `error` on a non-green
 codebase gets disabled the first time someone needs to merge.
+
+## 6. See also
+
+- **`architecture-guidelines`** — what rules belong inside a cell.
+- **`structural-simplification`** — measuring whether a placement change is a real simplification.
+- **`architecture-as-code`** — lint-enforceable encoding of the geometry's edge rules.

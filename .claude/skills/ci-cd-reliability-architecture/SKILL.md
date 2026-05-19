@@ -1,6 +1,6 @@
 ---
 name: ci-cd-reliability-architecture
-description:
+description: >-
     Establishes idempotency, self-containment, immutable artifacts,
     self-healing, zero-downtime, and zero-knowledge security for CI/CD
     pipelines. Use this skill when designing, auditing, or debugging any
@@ -13,18 +13,14 @@ description:
 > optimization (`system-optimization`). Code style and release procedures
 > follow your project's own conventions.
 
-> **TL;DR**
+> **Core Directives**
 >
-> 1. **Idempotent**: Safe to run 0, 1, or N times. Same result every time.
-> 2. **Self-Contained**: Each job declares inputs/outputs. No implicit state.
-> 3. **Immutable Artifacts**: Build once, promote everywhere. Config at deploy
->    time.
-> 4. **Self-Healing**: Transient failures auto-retry. Permanent failures fail
->    fast.
-> 5. **Zero-Downtime**: Preview environments, atomic promotion. Never touch
->    production directly.
-> 6. **Zero-Knowledge**: Minimal seed secrets. Dynamic tokens via OIDC/STS. No
->    credential exchange.
+> 1. **Idempotent** — same result every run (§1).
+> 2. **Self-Contained** — explicit inputs, outputs, failure mode (§2).
+> 3. **Immutable Artifacts** — build once, promote; config at deploy time (§3).
+> 4. **Self-Healing** — retry transient, fail-fast permanent (§4).
+> 5. **Zero-Downtime** — preview environment, atomic promotion (§5).
+> 6. **Zero-Knowledge** — OIDC / federated identity, no stored secrets (§6).
 
 ---
 
@@ -279,7 +275,7 @@ curl -X POST https://api/resource -d "${DEFINITION}"
 
 ---
 
-## Pre-Merge Checklist
+## 8. Pre-Merge Checklist
 
 ### CRITICAL (Must-Have)
 
@@ -306,3 +302,9 @@ curl -X POST https://api/resource -d "${DEFINITION}"
 - [ ] IaC migration: declarative infrastructure for resources managed at scale
 - [ ] DB migrations: Expand/Contract pattern for schema changes (multi-tenant)
 - [ ] Secret rotation audit: quarterly seed secret rotation logged
+
+## 9. See also
+
+- **`defect-shift-left`** — where each pipeline check belongs on the stage ladder.
+- **`system-optimization`** — value-stream optimization built on top of a reliable pipeline.
+- **`architecture-guidelines`** — first-principles rules out of scope here (idempotency etc. as system-level concerns).

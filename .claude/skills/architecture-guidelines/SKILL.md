@@ -39,7 +39,7 @@ description: >-
 - **Frame-check before execute**: When an issue, spec, or PRD prescribes
   implementation steps (a numbered "Implementation Approach" section, a
   multi-step task list, a build/CI plumbing plan), DO NOT start by executing
-  step 1. First run the necessity gate from `functionality–complexity-tradeoff`
+  step 1. First run the necessity gate from `functionality-complexity-tradeoff`
   §1 against the _framing_ the steps assume — what problem is this code actually
   addressing, does that problem still occur in this stack, is it already owned
   by another layer? Issue authors prescribe solutions; the gate asks whether the
@@ -113,3 +113,9 @@ against concurrent mutation?"_
 > above, state: _"Complexity Warning: introduces [X]. A simpler alternative is
 > [Y]."_ If the violation is non-trivial, see `structural-simplification` §8
 > Decision Protocol for a per-axis comparison before accepting it.
+
+## See also
+
+- **`functionality-complexity-tradeoff`** — necessity gate and worth ledger applied to individual decisions.
+- **`structural-simplification`** — per-axis complexity comparison (`D, K, P, n`).
+- **`geometric-architecture`** — spatial placement and dependency-graph constraints.

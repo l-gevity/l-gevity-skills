@@ -27,7 +27,7 @@ description: >-
 > and `geometric-architecture`. Does NOT govern code style — that's your
 > project's coding-style convention.
 
-> **TL;DR / Core Directives**
+> **Core Directives**
 >
 > 1. **Module = directory** (or a single-file unit for a facade). Files belong
 >    to a module by living under its path / dotted path.
@@ -225,3 +225,9 @@ Adapting to a new stack: pick an import-graph linter that supports forbidden
 edges between named module sets, then write a small assembler that emits its
 native config. Everything in §§ 1–6 transfers; only step 4 of §5 (emit) and
 step 5 (invoke) are stack-specific.
+
+## 8. See also
+
+- **`architecture-guidelines`** — first-principles rules this pattern enforces.
+- **`geometric-architecture`** — the spatial rationale (cells, faces, locality) this enforces.
+- **`defect-shift-left`** — §7.2 (ADR → executable architectural rule) names this pattern.
