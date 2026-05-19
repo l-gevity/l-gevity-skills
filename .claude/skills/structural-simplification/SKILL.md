@@ -4,13 +4,14 @@ description: >-
     A domain-agnostic complexity model and decision protocol. Complexity is
     treated as a 4-axis vector — D (diversity), K (coupling), P (depth), n
     (quantity) — and any proposed restructuring is judged by its per-axis effect
-    rather than by intuition. Applies to code, data models, workflows, UI
-    layouts, organizational structures, and temporal processes. TRIGGER when:
-    evaluating a refactoring, designing a restructuring, or deciding whether a
-    proposed change makes a system simpler or more complex. SKIP for: trivial
-    renames, content edits, dependency bumps, isolated bug fixes that touch no
-    structure. For module-level design discipline see `architecture-guidelines`;
-    for spatial dependency-graph constraints see `geometric-architecture`.
+    rather than by intuition. Applies to code, project organization, runtime
+    topology, data models, workflows, UI layouts, organizational structures,
+    and temporal processes. TRIGGER when: evaluating a refactoring, designing
+    a restructuring, or deciding whether a proposed change makes a system
+    simpler or more complex. SKIP for: trivial renames, content edits,
+    dependency bumps, isolated bug fixes that touch no structure. For
+    module-level design discipline see `architecture-guidelines`; for spatial
+    dependency-graph constraints see `geometric-architecture`.
 ---
 
 # Structural Simplification
@@ -18,65 +19,63 @@ description: >-
 > **Core Directives**
 >
 > 1. **Complexity has four axes**: D (diversity), K (coupling), P (depth), n
->    (quantity). A change that worsens any axis without improving another is not
->    a simplification.
-> 2. **Compare before and after**: record ΔD, ΔK, ΔP, Δn before committing to
->    any restructuring. Intuition is not a metric.
-> 3. **Conform over customize**: reusing an existing pattern — even at local
->    cost — eliminates a unique shape from the vocabulary and shrinks D
->    globally.
-> 4. **Delete over mitigate**: removing a part or special case beats handling
+>    (quantity). Score each independently; never collapse into a single number.
+> 2. **Compare before and after.** Intuition is not a metric.
+> 3. **Conform over customize.** Reusing an existing pattern — even at local
+>    cost — shrinks D globally.
+> 4. **Delete over mitigate.** Removing a part or special case beats handling
 >    it.
-> 5. **If no axis improves while any worsens, it is not a simplification.**
 
 ---
 
 ## 1. The Complexity Model
 
-Structural complexity is analyzed across four axes:
+| Axis          | Symbol | What it counts                      | Measurement recipe                                                    |
+| ------------- | ------ | ----------------------------------- | --------------------------------------------------------------------- |
+| **Diversity** | `D`    | Distinct patterns, shapes, concepts | Count distinct patterns / vocabulary items in the structure           |
+| **Coupling**  | `K`    | Relationship density                | `edges / (n × (n−1))` over the relationship graph                     |
+| **Depth**     | `P`    | Longest chain from source to sink   | Longest path from any origin to any terminus in the DAG               |
+| **Quantity**  | `n`    | Total number of parts               | Direct count of parts (use §2 to identify parts in your domain)       |
 
-| Axis          | Symbol | What it counts                                           | Measurability        |
-| ------------- | ------ | -------------------------------------------------------- | -------------------- |
-| **Diversity** | `D`    | Distinct patterns, shapes, or concepts in the vocabulary | Requires judgment    |
-| **Coupling**  | `K`    | Relationship density: `edges / (n × (n−1))`              | Countable from graph |
-| **Depth**     | `P`    | Longest chain from source to sink                        | Countable from graph |
-| **Quantity**  | `n`    | Total number of parts                                    | Countable from graph |
+Domain-agnostic. *Parts* = any discrete unit; *relationships* = any
+connection (dependency, flow, sequence, authority). Multi-axis interactions
+are worse than any single axis alone.
 
-The model is domain-agnostic. _Parts_ are any discrete unit (components, steps,
-screens, roles, fields). _Relationships_ are any connection (dependencies,
-flows, sequences, adjacencies, authority lines).
-
-Complexity grows when multiple axes increase simultaneously — the interaction is
-worse than any single axis alone. Evaluate each axis independently; do not
-collapse them into a single number.
+> [!IMPORTANT] **Cycles are property violations, not just high K.** A cycle
+> breaks the DAG assumption the model rests on. See §5 for the geometric
+> framing that rules them out; `geometric-architecture` §2 enforces them as
+> lint. Any detected cycle is a hard fault — fix before scoring the rest.
 
 ---
 
 ## 2. Domain Mapping
 
-| Domain       | Parts (nodes)                  | Relationships (edges)                   |
-| ------------ | ------------------------------ | --------------------------------------- |
-| Code         | Components, modules, functions | Dependencies, calls, imports            |
-| Data model   | Entities, fields, types        | References, joins, constraints          |
-| Workflow     | Steps, stages, decisions       | Transitions, triggers, sequencing       |
-| UI / spatial | Screens, regions, elements     | Navigation, data flow, visual links     |
-| Organization | Roles, teams, systems          | Authority, communication, data exchange |
-| Temporal     | Events, states, phases         | Causal or sequential ordering           |
+| Domain                | Parts (nodes)                                       | Relationships (edges)                                                       |
+| --------------------- | --------------------------------------------------- | --------------------------------------------------------------------------- |
+| Code                  | Components, modules, functions                      | Dependencies, calls, imports                                                |
+| Project organization  | Repos, packages, workspaces, build targets          | Package dependencies, version constraints, build-time references, ownership |
+| Runtime / deployment  | Services, processes, containers, instances, threads | RPC/HTTP calls, message flows, network paths, replication, lifecycle order  |
+| Data model            | Entities, fields, types                             | References, joins, constraints                                              |
+| Workflow              | Steps, stages, decisions                            | Transitions, triggers, sequencing                                           |
+| UI / spatial          | Screens, regions, elements                          | Navigation, data flow, visual links                                         |
+| Organization (people) | Roles, teams, systems                               | Authority, communication, data exchange                                     |
+| Temporal              | Events, states, phases                              | Causal or sequential ordering                                               |
 
 ---
 
 ## 3. Heuristic Checks
 
-Fast proxies — not substitutes for measurement:
+Fast proxies — not substitutes for measurement.
 
-| Check          | Signal                                                     |
-| -------------- | ---------------------------------------------------------- |
-| **Symmetry**   | Structure more uniform after → D↓                          |
-| **Boundary**   | Fewer relationships crossing boundaries → K↓               |
-| **Cycle**      | Dependency cycle broken → K↓ (cycles are maximum coupling) |
-| **Chain**      | Fewer hops source-to-sink → P↓                             |
-| **Count**      | Fewer parts → n↓                                           |
-| **Vocabulary** | Describable with fewer concepts → D↓                       |
+| Check            | Signal                                                  | Axis          |
+| ---------------- | ------------------------------------------------------- | ------------- |
+| **Symmetry**     | Structure more uniform after                            | D↓            |
+| **Vocabulary**   | Describable with fewer concepts                         | D↓            |
+| **Boundary**     | Fewer relationships crossing boundaries                 | K↓            |
+| **Cycle broken** | Dependency cycle eliminated                             | K↓ + §1 fault |
+| **Chain**        | Fewer hops source-to-sink                               | P↓            |
+| **Count**        | Fewer parts                                             | n↓            |
+| **Ripple**       | Typical change in this area touches many parts          | K             |
 
 ---
 
@@ -86,13 +85,14 @@ Fast proxies — not substitutes for measurement:
 
 | Operation          | Mechanism                                                                  |
 | ------------------ | -------------------------------------------------------------------------- |
-| **Unification**    | Merge distinct things that serve the same role into one                    |
+| **Unification**    | Merge distinct things that serve the same role                             |
 | **Normalization**  | Reduce variants to a single canonical form                                 |
 | **Generalization** | Replace N specific cases with one general case                             |
 | **Abstraction**    | Hide variation behind a common interface                                   |
 | **Symmetrization** | Impose mirror structure so parts become interchangeable                    |
 | **Deduplication**  | Eliminate redundant copies                                                 |
 | **Patternization** | Apply a recurring structure — differences become instances, not exceptions |
+| **Cohesion**       | Group what changes together; the unit expresses one concept                |
 
 ### K↓ — Reduce Coupling
 
@@ -102,16 +102,14 @@ Fast proxies — not substitutes for measurement:
 | **Indirection**         | Insert a mediator — two parts no longer reference each other directly |
 | **Inversion**           | Flip a dependency (depend on abstraction, not concretion)             |
 | **Stratification**      | Impose directed acyclic ordering (layering)                           |
-| **Cohesion**            | Group what changes together — severs external links as side effect    |
-| **Temporal decoupling** | Replace direct calls with events or queues                            |
-| **Edge elimination**    | Remove a relationship entirely                                        |
+| **Temporal decoupling** | Replace synchronous direct binding with asynchronous mediation        |
 
 ### P↓ — Reduce Depth
 
 | Operation          | Mechanism                                                                |
 | ------------------ | ------------------------------------------------------------------------ |
-| **Flattening**     | Merge adjacent layers that have no independent reason to exist           |
-| **Inlining**       | Pull deep logic up to the level that needs it                            |
+| **Flattening**     | Merge adjacent layers with no independent reason to exist                |
+| **Inlining**       | Pull deep content up to the level that uses it                           |
 | **Direct binding** | Replace A→B→C with A→C where B adds no value (raises K — verify product) |
 
 > [!WARNING] A **facade** hides depth; it does not reduce it. Verify actual P,
@@ -137,85 +135,115 @@ Fast proxies — not substitutes for measurement:
 ## 5. Geometric Constraint
 
 Treating a structure as a physical object — with surfaces, orientation, finite
-volume, and locality — bounds all four axes simultaneously: surface and locality
-cap K, orientation caps P, volume caps n, and conforming form factors cap D.
-Subsystem decomposition (vertical) reduces K and n; aspect- system decomposition
-(horizontal) reduces D.
+volume, and locality — bounds all four axes simultaneously: surface and
+locality cap K, orientation caps P, volume caps n, and conforming form factors
+cap D. Subsystem decomposition (vertical) reduces K and n; aspect-system
+decomposition (horizontal) reduces D. Cycles require a back-to-back face —
+the geometry rules them out without a separate axiom.
 
-For a full treatment of spatial dependency-graph constraints — placement
-addresses, face directionality, locality rules, and lint enforcement — see
-`geometric-architecture`.
+For the full spatial treatment — placement addresses, face directionality,
+locality rules, lint enforcement — see `geometric-architecture`.
 
 ---
 
 ## 6. Trade-off Matrix
 
-Reducing one axis often raises another. Classify before committing:
+Reducing one axis usually raises another. Examples lean software but the
+moves apply to any structure.
 
-| Restructuring         | D   | K   | P       | n   | Typical net      |
-| --------------------- | --- | --- | ------- | --- | ---------------- |
-| Add abstraction layer | ↑   | ↓   | ↑       | ↑   | Measure          |
-| Flatten two layers    | —   | ↑   | ↓       | ↓   | Measure          |
-| Extract common part   | ↓   | ↓   | —       | ↑   | Usually ↓C       |
-| Bypass a layer        | —   | ↑   | ↓       | ↓   | Measure          |
-| Add facade            | ↑   | —   | hides P | ↑   | Verify actual P  |
-| Introduce mediator    | ↑   | ↑   | ↑       | ↑   | Rarely justified |
-| Merge two modules     | ↓   | ↑   | ↓       | ↓   | Measure          |
-| Split one module      | ↓   | ↓   | ↑       | ↑   | Measure          |
+| Restructuring                                       | D   | K        | P       | n   | Verdict                                                       |
+| --------------------------------------------------- | --- | -------- | ------- | --- | ------------------------------------------------------------- |
+| Add abstraction layer — ≥3 concrete instances       | ↑   | ↓        | ↑       | ↑   | Proceed (§7a Conformance)                                     |
+| Add abstraction layer — <3 instances or speculative | ↑   | ↑        | ↑       | ↑   | Reject — Rule of 3; generality without instantiation          |
+| Add facade — over a 4-step chain                    | ↑   | —        | hides P | ↑   | Keep only if K↓ measurable; never claim P↓ (§4 warning)       |
+| Flatten — intermediate part has no independent role | —   | ↑        | ↓       | ↓   | Proceed; verify internal K bounded                            |
+| Extract common part — ≥3 dependents                 | ↓   | ↓        | —       | ↑   | Proceed                                                       |
+| Bypass a part — bypassed has no independent role    | —   | ↑        | ↓       | ↓   | Proceed                                                       |
+| Introduce mediator between 2 parts                  | ↑   | ↑        | ↑       | ↑   | Reject — direct binding is simpler                            |
+| Merge two cohesive parts                            | ↓   | within ↑ | ↓       | ↓   | Proceed; verify internal K stays bounded                      |
+| Split overloaded part along an SoC seam             | ↓   | ↓        | ↑       | ↑   | Proceed                                                       |
 
 ---
 
 ## 7. Asymmetric Trade-offs
 
-Valid when the net effect across axes is positive despite a local cost.
+Cases where net axis effect is positive despite local cost.
 
 ### 7a. Conformance (Pattern Alignment)
 
-Accept local overengineering to eliminate a unique structural shape from D. One
-snowflake among ten uniform parts inflates D disproportionately — its removal
-has outsized global effect.
+Accept local overengineering to eliminate a unique structural shape from D.
+One snowflake among ten uniform parts inflates D disproportionately — its
+removal has outsized global effect.
 
 ### 7b. Scope Reduction (Deletion)
 
 Remove special functionality if its structural footprint exceeds its utility.
-Special cases are complexity multipliers: D↑ (unique patterns), K↑ (conditional
-paths), P↑ (extended chains), n↑ (supporting parts). The cost of a feature is
-not its own code — it is every special case it forces elsewhere.
+Special cases are complexity multipliers: D↑ (unique patterns), K↑
+(conditional paths), P↑ (extended chains), n↑ (supporting parts). The cost of
+a feature is not its own code — it is every special case it forces elsewhere.
 
-### 7c. Atomicity Requirements (Multi-System Orchestration)
+### 7c. Atomicity Requirements
 
-When an operation coordinates multiple external systems, the atomicity decision
-has direct structural cost. Decide **before implementation** — see
-`architecture-guidelines` §5 _Atomicity_ for when atomicity is required.
+When an action coordinates multiple independent participants (services,
+actors, steps, partners), the atomicity decision has direct structural cost.
+Decide **before implementation** — see `architecture-guidelines` §5
+*Atomicity*.
 
 | Decision             | Structural effect | Action                                        |
 | -------------------- | ----------------- | --------------------------------------------- |
 | Atomicity required   | K↑ P↑             | Accept coupling; use fail-fast / compensation |
 | Eventual consistency | K↓ P↓             | Document acceptable partial-failure states    |
 
-**Anti-Pattern:** Designing multi-step operations without deciding atomicity
+**Anti-Pattern:** designing multi-step operations without deciding atomicity
 first.
 
 ---
 
 ## 8. Decision Protocol
 
-1. **Model** before-state. Record D₁, K₁, P₁, n₁.
-2. **Model** after-state. Record D₂, K₂, P₂, n₂.
-3. **Compare** per-axis deltas: ΔD, ΔK, ΔP, Δn.
+1. **Model** before-state and after-state. Record D, K, P, n for each.
+2. **Cycle check.** A cycle in the after-state is a hard fault — fix before
+   continuing.
+3. **Answer the forcing questions in writing** (one line each):
+    - **D:** What unique pattern does this introduce that no sibling uses?
+      *(Name the 2nd concrete instance; absence = Rule-of-3 violation.)*
+    - **K:** Which previously-independent parts does this link?
+    - **P:** How many layers does a typical change traverse? *(>3 → depth
+      is itself the cost.)*
+    - **n:** If deleted, what would dependents do? *(If "use the thing it
+      wraps," it's a no-op facade.)*
+    - **Counterfactual:** Does §7a or §7b apply? What is the 12-month
+      removal cost?
 4. **Classify**:
 
-| Pattern                           | Action                          |
-| --------------------------------- | ------------------------------- |
-| All axes improve or hold          | Proceed                         |
-| Mixed (some improve, some worsen) | Consult §6 trade-offs, apply §7 |
-| No axis improves                  | REJECT or redesign              |
+    | Pattern                           | Action                          |
+    | --------------------------------- | ------------------------------- |
+    | All axes improve or hold          | Proceed                         |
+    | Mixed (some improve, some worsen) | Consult §6 trade-offs, apply §7 |
+    | No axis improves                  | Reject or redesign              |
 
-> [!IMPORTANT] If no axis improves, state: _"Complexity Warning: ΔD [X], ΔK [Y],
-> ΔP [Z], Δn [W]. A simpler alternative is [...]."_
+5. **Emit**:
+
+    ```
+    Subject:     <structure / module / refactor under review>
+    Δ vector:    ΔD=<±n> ΔK=<±n> ΔP=<±n> Δn=<±n>   (evidence per axis)
+    Cycle:       Pass | Fail
+    Trade-off:   <§6 row matched; §7 sub-section if asymmetric>
+    Verdict:     Proceed | Redesign | Reject
+                 (retrospective: KEEP | SIMPLIFY | DELETE)
+    Rationale:   <1–3 sentences tying Δ vector and forcing-Q answers → verdict>
+    Alternative: <if not Proceed: smaller restructuring that improves ≥1 axis>
+    ```
+
+> [!IMPORTANT] If no axis improves, state: *"Complexity Warning: ΔD [X],
+> ΔK [Y], ΔP [Z], Δn [W]. A simpler alternative is [...]."*
+
+---
 
 ## 9. See also
 
-- **`architecture-guidelines`** — first-principles design discipline that informs Δ scoring.
-- **`geometric-architecture`** — spatial constraint that bounds all four axes.
+- **`architecture-guidelines`** — first-principles discipline that informs Δ scoring (YAGNI, Rule of 3, DRY, SoC).
+- **`geometric-architecture`** — spatial rationale; cycles forbidden by face directionality.
 - **`functionality-complexity-tradeoff`** — consumes `D, K, P, n` deltas in its cost ledger.
+- **`defect-shift-left`** — earliest stage to catch each axis violation.
+- **`continuous-improvement`** — when a recurring axis violation signals a missing rule.
