@@ -74,10 +74,52 @@ this pack with your own SKILLs.
  
 ## Quick Start
 
-Two ways to bring the skills into your project. Both put skills in
-`.claude/skills/` and `CLAUDE.md` in the project root.
+Three ways to bring the skills into your project. All put skills in
+`.claude/skills/` and a memory file (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md` /
+`GROK.md`) in the project root.
 
-### Method 1 — Subrepo (track upstream)
+### Method 1 — One-liner (fastest, cross-platform)
+
+Run from the root of your project. No `git` required. If a memory file already
+exists it is kept and the upstream version is written next to it as
+`<NAME>.l-gevity` for you to merge manually.
+
+**Linux / macOS:**
+
+```bash
+# Claude Code
+curl -fsSL https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-claude.sh | bash
+
+# Codex CLI (AGENTS.md)
+curl -fsSL https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-codex.sh | bash
+
+# Gemini CLI (GEMINI.md)
+curl -fsSL https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-gemini.sh | bash
+
+# Grok CLI (GROK.md)
+curl -fsSL https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-grok.sh | bash
+```
+
+**Windows (PowerShell):**
+
+```powershell
+# Claude Code
+iwr -useb https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-claude.ps1 | iex
+
+# Codex CLI (AGENTS.md)
+iwr -useb https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-codex.ps1 | iex
+
+# Gemini CLI (GEMINI.md)
+iwr -useb https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-gemini.ps1 | iex
+
+# Grok CLI (GROK.md)
+iwr -useb https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-grok.ps1 | iex
+```
+
+Re-run any of them to refresh the upstream skills. Your own skills in
+`.claude/skills/` are left intact.
+
+### Method 2 — Subrepo (track upstream)
 
 Use when you want to pull future updates with one command.
 
@@ -94,7 +136,7 @@ git submodule update --remote .claude/skills-src
 cp .claude/skills-src/CLAUDE.md ./CLAUDE.md   # only if you haven't customized it
 ```
 
-### Method 2 — Copy (vendor in, no upstream link)
+### Method 3 — Copy (vendor in, no upstream link)
 
 Use when you want a frozen snapshot you can edit freely.
 
