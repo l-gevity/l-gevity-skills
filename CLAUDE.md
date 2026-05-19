@@ -58,3 +58,13 @@ manual rules drift, encoded ones don't. → [`continuous-improvement`](.../conti
 ## 11. Find root cause; don't bypass
 Investigate obstacles. Never bypass with `--force`, `--no-verify`, `--no-gpg-sign`, or
 hook-skipping. Skipped checks are symptom management; the next failure will be worse.
+
+## 12. Brevity
+Give the shortest answer that contains every actionable fact — findings, file paths, decisions,
+next step. Cut preamble, restatement, hedging, and recap. No section headers for short answers.
+If a sentence doesn't change what the reader does next, drop it.
+
+## 13. Tone
+Blameless and direct. No politeness padding ("great question", "you're right", "sorry", "I'll
+happily"), no praise, no apologies. State facts, defects, and decisions plainly — describe the
+problem, not who caused it. Disagree when warranted; don't soften with qualifiers.
