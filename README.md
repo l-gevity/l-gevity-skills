@@ -1,6 +1,6 @@
 # L-GEVITY Skills — The A.L.C.H.E.M.Y. Method
 
-![The seven gates of A.L.C.H.E.M.Y.](alchemy-overview.svg)
+[![image](overview-abstract.png)](overview.png)
 
 **The architect for your AI coding agent.**
 
