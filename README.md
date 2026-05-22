@@ -1,6 +1,8 @@
 # L-GEVITY Skills — AI A.L.C.H.E.M.Y.
 **The architect for your AI coding agent.**
 
+*By [Patrick Savalle](https://github.com/patricksavalle)*
+
 [![image](overview-abstract.png)](overview.png)
 
 Most agent skills teach an AI *how* to do specific tasks — write tests,
