@@ -28,6 +28,32 @@ description: >-
 
 ---
 
+## Reporting Vocabulary
+
+The skill thinks in axis symbols; the **report it emits speaks architect**.
+The model below uses `D / K / P / n` as shorthand; every emit block, gate-table
+output, and cross-skill citation uses the architect phrase instead.
+
+| Internal symbol  | Architect phrase used in reports                                       |
+| ---------------- | ---------------------------------------------------------------------- |
+| `ΔD` (diversity) | **Component-kinds Δ** — distinct component types added / removed       |
+| `ΔK` (coupling)  | **Dependency-edges Δ** — edges in the dependency graph added / removed |
+| `ΔP` (depth)     | **Max-chain-depth Δ** — change in longest dependency chain             |
+| `Δn` (quantity)  | **Module-count Δ** — modules / instances added / removed               |
+| Wormhole         | **Layer-skip violation** (term carried over from `geometric-architecture`) |
+
+**Naming guardrails.** `P` is **max-chain-depth**, never "depth" alone — bare "depth" collides with the layer axis in `geometric-architecture`. Symbols appear in exactly three places: inside a formula, inside this table, and inside §§1–7 (the internal model). Anywhere else in narrative, use the architect phrase.
+
+> **2026-05-22 — emit field-name change.** Field labels in emit blocks
+> changed from internal symbols to architect phrases:
+> `ΔD → Component-kinds Δ`, `ΔK → Dependency-edges Δ`,
+> `ΔP → Max-chain-depth Δ`, `Δn → Module-count Δ`.
+> Any downstream consumer (script, hook, agent prompt) that pattern-matched
+> on the old labels must update. Internal symbols remain in §§1–7 and in
+> formulas; they are no longer emitted in reports.
+
+---
+
 ## 1. The Complexity Model
 
 | Axis          | Symbol | What it counts                      | Measurement recipe                                                    |
@@ -112,8 +138,8 @@ Fast proxies — not substitutes for measurement.
 | **Inlining**       | Pull deep content up to the level that uses it                           |
 | **Direct binding** | Replace A→B→C with A→C where B adds no value (raises K — verify product) |
 
-> [!WARNING] A **facade** hides depth; it does not reduce it. Verify actual P,
-> not visible P.
+> [!WARNING] A **facade** hides chain depth; it does not reduce it. Verify
+> actual P, not visible P.
 
 ### n↓ — Reduce Quantity
 
@@ -153,8 +179,8 @@ moves apply to any structure.
 
 | Restructuring                                       | D   | K        | P       | n   | Verdict                                                       |
 | --------------------------------------------------- | --- | -------- | ------- | --- | ------------------------------------------------------------- |
-| Add abstraction layer — ≥3 concrete instances       | ↑   | ↓        | ↑       | ↑   | Proceed (§7a Conformance)                                     |
-| Add abstraction layer — <3 instances or speculative | ↑   | ↑        | ↑       | ↑   | Reject — Rule of 3; generality without instantiation          |
+| Add abstraction tier — ≥3 concrete instances        | ↑   | ↓        | ↑       | ↑   | Proceed (§7a Conformance)                                     |
+| Add abstraction tier — <3 instances or speculative  | ↑   | ↑        | ↑       | ↑   | Reject — Rule of 3; generality without instantiation          |
 | Add facade — over a 4-step chain                    | ↑   | —        | hides P | ↑   | Keep only if K↓ measurable; never claim P↓ (§4 warning)       |
 | Flatten — intermediate part has no independent role | —   | ↑        | ↓       | ↓   | Proceed; verify internal K bounded                            |
 | Extract common part — ≥3 dependents                 | ↓   | ↓        | —       | ↑   | Proceed                                                       |
@@ -201,15 +227,16 @@ first.
 
 ## 8. Decision Protocol
 
-1. **Model** before-state and after-state. Record D, K, P, n for each.
+1. **Model** before-state and after-state. Record D, K, P, n for each
+   (internal axes; see Reporting Vocabulary for the architect-facing names).
 2. **Cycle check.** A cycle in the after-state is a hard fault — fix before
    continuing.
 3. **Answer the forcing questions in writing** (one line each):
     - **D:** What unique pattern does this introduce that no sibling uses?
       *(Name the 2nd concrete instance; absence = Rule-of-3 violation.)*
     - **K:** Which previously-independent parts does this link?
-    - **P:** How many layers does a typical change traverse? *(>3 → depth
-      is itself the cost.)*
+    - **P:** How long is the longest dependency chain a typical change
+      traverses? *(>3 hops → max-chain-depth is itself the cost.)*
     - **n:** If deleted, what would dependents do? *(If "use the thing it
       wraps," it's a no-op facade.)*
     - **Counterfactual:** Does §7a or §7b apply? What is the 12-month
@@ -222,21 +249,25 @@ first.
     | Mixed (some improve, some worsen) | Consult §6 trade-offs, apply §7 |
     | No axis improves                  | Reject or redesign              |
 
-5. **Emit**:
+5. **Emit** (architect-facing; see Reporting Vocabulary for the symbol mapping):
 
     ```
-    Subject:     <structure / module / refactor under review>
-    Δ vector:    ΔD=<±n> ΔK=<±n> ΔP=<±n> Δn=<±n>   (evidence per axis)
-    Cycle:       Pass | Fail
-    Trade-off:   <§6 row matched; §7 sub-section if asymmetric>
-    Verdict:     Proceed | Redesign | Reject
-                 (retrospective: KEEP | SIMPLIFY | DELETE)
-    Rationale:   <1–3 sentences tying Δ vector and forcing-Q answers → verdict>
-    Alternative: <if not Proceed: smaller restructuring that improves ≥1 axis>
+    Subject:              <structure / module / refactor under review>
+    Component-kinds Δ:    <±n>   (evidence: novel pattern, 2nd concrete instance)
+    Dependency-edges Δ:   <±n>   (evidence: what newly couples to what)
+    Max-chain-depth Δ:    <±n>   (evidence: longest path before → after)
+    Module-count Δ:       <±n>   (evidence: parts added / removed)
+    Cycle:                Pass | Fail
+    Trade-off:            <§6 row matched; §7 sub-section if asymmetric>
+    Verdict:              Proceed | Redesign | Reject
+                          (retrospective: KEEP | SIMPLIFY | DELETE)
+    Rationale:            <1–3 sentences tying the four deltas and forcing-Q answers → verdict>
+    Alternative:          <if not Proceed: smaller restructuring that improves ≥1 axis>
     ```
 
-> [!IMPORTANT] If no axis improves, state: *"Complexity Warning: ΔD [X],
-> ΔK [Y], ΔP [Z], Δn [W]. A simpler alternative is [...]."*
+> [!IMPORTANT] If no axis improves, state: *"Complexity Warning:
+> Component-kinds Δ [X], Dependency-edges Δ [Y], Max-chain-depth Δ [Z],
+> Module-count Δ [W]. A simpler alternative is [...]."*
 
 ---
 

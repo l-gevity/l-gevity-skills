@@ -26,14 +26,16 @@ no helpers for one-shot work.
 ## 6. Walk the gates in order
 Non-trivial design/refactor: sequence these. **1–4 design, 5–6 enforce, 7 optimizes (iter 2).
 Gate 5 before 1 freezes over-engineering in; Gate 7 before 4 optimizes the wrong thing.**
-Audits reverse (4 → 1). Enforcement files ship in the same PR as the code they govern.
+Audits reverse (4 → 1). Enforcement files for new modules are **written before** their
+implementation code, not retrofitted — both ship in the same PR. Spike/throwaway code is
+the only exception, and must not cross the merge boundary without rules.
 
 | # | Gate | Skill | Output |
 |---|---|---|---|
 | 1 | Necessity | [`functionality-complexity-tradeoff`](.../functionality-complexity-tradeoff) | PASS / DROP |
 | 2 | First principles | [`architecture-guidelines`](.../architecture-guidelines) | Smallest correct design |
-| 3 | Placement | [`geometric-architecture`](.../geometric-architecture) | (X, Y, Z) per cell |
-| 4 | Complexity | [`structural-simplification`](.../structural-simplification) | ΔD, ΔK, ΔP, Δn |
+| 3 | Placement | [`geometric-architecture`](.../geometric-architecture) | Domain / tier / layer per component |
+| 4 | Complexity | [`structural-simplification`](.../structural-simplification) | Component-kinds / dependency-edges / max-chain-depth / module-count Δ |
 | 5 | Enforcement | [`architecture-as-code`](.../architecture-as-code) + [`-javascript`](.../architecture-as-code-javascript) / [`-python`](.../architecture-as-code-python) | Per-module config |
 | 6 | Shift-left | [`defect-shift-left`](.../defect-shift-left) | Each error path → earliest stage |
 | 7 | Optimize (iter 2) | [`system-optimization`](.../system-optimization) | Constraint analysis |

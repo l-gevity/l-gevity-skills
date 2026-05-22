@@ -4,6 +4,8 @@
 
 A pure routing skill that sequences the architecture skills into a deterministic gate flow. Names the order, the trigger discipline, and the diagnostic signature for each common over-engineering pattern.
 
+> **Reporting vocabulary.** Gate-output phrases below (e.g. "Domain / tier / layer per component", "Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ") match the architect-facing names defined in the **Reporting Vocabulary** sections of [`geometric-architecture`](../.claude/skills/geometric-architecture/SKILL.md) and [`structural-simplification`](../.claude/skills/structural-simplification/SKILL.md). Those sections also list the internal axis symbols (`X, Y, Z`, `D, K, P, n`) that the model uses underneath.
+
 ## Why use this
 
 - **Order becomes deterministic.** The same gates fire in the same sequence every time, instead of "let me think about what to consider next."
@@ -26,7 +28,7 @@ Most over-engineering is timing, not capability. Run enforcement before necessit
 
 The skill applies in two situations: **designing** a new module, or **auditing** existing code for over-engineering.
 
-1. **Identify the trigger.** Introducing a new module / service / library, refactoring across module boundaries, designing a new abstraction, extracting a sub-cell into a package, or auditing existing code for over-engineering.
+1. **Identify the trigger.** Introducing a new module / service / library, refactoring across module boundaries, designing a new abstraction, extracting a sub-component into a package, or auditing existing code for over-engineering.
 2. **Prompt the AI.**
 
    > *Design:* "I'm extracting the import logic into its own module so it can ship to npm. Walk me through the design-and-refactor gates."
@@ -34,7 +36,7 @@ The skill applies in two situations: **designing** a new module, or **auditing**
    > *Audit:* "Run design-and-refactor in retrospective mode on `packages/shared-ui/js/biomarker-import/`. Flag any speculative generality."
 
 3. **Read the verdict.** The skill names which gates passed, which gates were skipped (with rationale), the necessity-gate output (PASS / DROP), the complexity vector, and which `eslint.architecture.mjs` files need to land in the same PR.
-4. **Apply the fix.** Drop everything Gate 1 flagged. Place each surviving cell at (X, Y, Z). Compute ΔD, ΔK, ΔP, Δn for the proposed structure. Write the architecture file. Move every error path to its earliest catchable stage.
+4. **Apply the fix.** Drop everything Gate 1 flagged. Place each surviving component at its Domain / Tier / Layer position. Compute Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ for the proposed structure. Write the architecture file. Move every error path to its earliest catchable stage.
 
 ## The seven gates at a glance
 
@@ -42,8 +44,8 @@ The skill applies in two situations: **designing** a new module, or **auditing**
 |-----|-------------------------------|--------------------------------------------------------------------------------------|----------------------------------------------|
 | **1** | Necessity check               | [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/)                      | PASS / DROP per type, method, parameter      |
 | **2** | First principles              | [`architecture-guidelines`](../.claude/skills/architecture-guidelines/)                             | Smallest correct design                      |
-| **3** | Geometric placement           | [`geometric-architecture`](../.claude/skills/geometric-architecture/)                               | (X, Y, Z) per cell + allowed edges           |
-| **4** | Complexity measurement        | [`structural-simplification`](../.claude/skills/structural-simplification/)                         | ΔD, ΔK, ΔP, Δn vector                        |
+| **3** | Geometric placement           | [`geometric-architecture`](../.claude/skills/geometric-architecture/)                               | Domain / tier / layer per component + allowed dependency edges |
+| **4** | Complexity measurement        | [`structural-simplification`](../.claude/skills/structural-simplification/)                         | Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ |
 | **5** | Architecture as code          | [`architecture-as-code`](../.claude/skills/architecture-as-code/) (pattern); [`-javascript`](../.claude/skills/architecture-as-code-javascript/) / [`-python`](../.claude/skills/architecture-as-code-python/) (impl) | Per-module architecture config        |
 | **6** | Shift defect detection left   | [`defect-shift-left`](../.claude/skills/defect-shift-left/)                                         | Each error path → earliest catchable stage   |
 | **7** | Optimize the value stream     | [`system-optimization`](../.claude/skills/system-optimization/)                                     | Constraint analysis (deferred to iter 2)     |
@@ -56,7 +58,7 @@ When auditing existing code, the order reverses:
 
 | Step | Skill                                                          | Action                                                                              |
 |------|----------------------------------------------------------------|-------------------------------------------------------------------------------------|
-| **1** | [`structural-simplification`](../.claude/skills/structural-simplification/)   | Score current ΔD, ΔK, ΔP, Δn — surface hot-spots                                    |
+| **1** | [`structural-simplification`](../.claude/skills/structural-simplification/)   | Score current Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ — surface hot-spots |
 | **2** | [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/) | Run necessity gate on every type / method / branch the audit covers                 |
 | **3** | [`architecture-as-code`](../.claude/skills/architecture-as-code/) (pattern); [`-javascript`](../.claude/skills/architecture-as-code-javascript/) / [`-python`](../.claude/skills/architecture-as-code-python/) (impl) | Add lint rules so the pruned shape can't re-grow                          |
 | **4** | [`defect-shift-left`](../.claude/skills/defect-shift-left/)                   | For each defect found, ask whether it could have been caught at an earlier stage    |
@@ -81,14 +83,14 @@ Each row points back to the gate that would have caught it prospectively.
 
 ## When to skip
 
-Bug fixes within an existing module, content/copy edits, CSS-only changes, dependency bumps, trivial renames. The skill earns its keep when module boundaries are being drawn, crossed, or audited — not for routine work inside a governed cell.
+Bug fixes within an existing module, content/copy edits, CSS-only changes, dependency bumps, trivial renames. The skill earns its keep when module boundaries are being drawn, crossed, or audited — not for routine work inside a governed component.
 
 ## Next steps
 
 - See [SKILL.md](../.claude/skills/design-and-refactor/SKILL.md) for the full pre-flight checklist, gate sequence, and failure-mode diagnostic table.
 - For the necessity gate (Gate 1) and what it catches in detail, see [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/).
 - For first-principles rules driving Gate 2, see [`architecture-guidelines`](../.claude/skills/architecture-guidelines/).
-- For the (X, Y, Z) placement model used at Gate 3, see [`geometric-architecture`](../.claude/skills/geometric-architecture/).
+- For the Domain / Tier / Layer placement model used at Gate 3, see [`geometric-architecture`](../.claude/skills/geometric-architecture/).
 - For the per-axis complexity scoring used at Gate 4, see [`structural-simplification`](../.claude/skills/structural-simplification/).
 - For the enforcement files produced at Gate 5, see [`architecture-as-code`](../.claude/skills/architecture-as-code/) (the pattern), with [`-javascript`](../.claude/skills/architecture-as-code-javascript/) and [`-python`](../.claude/skills/architecture-as-code-python/) as concrete implementations.
 - For the shift-left hierarchy applied at Gate 6, see [`defect-shift-left`](../.claude/skills/defect-shift-left/).

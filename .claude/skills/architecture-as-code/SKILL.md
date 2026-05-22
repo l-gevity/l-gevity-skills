@@ -187,7 +187,24 @@ Steps 4 and 5 are the only stack-specific parts.
 
 ---
 
-## 6. Anti-patterns + pre-merge audit
+## 6. Timing — rules first for new modules
+
+When introducing a new module on a stack that supports this pattern, write
+its architecture file (plus any afferent rules in the parent) **before**
+its implementation code. Catching the first wrong import on day 1 is the
+point; retrofitted rules either rubber-stamp accidents or trigger
+unbounded refactors. The PR that adds the module contains the rules first,
+the implementation second.
+
+**Spike escape-hatch.** Code explicitly marked as a spike or throwaway
+prototype may skip rules. The spike must be deleted or rewritten
+rules-first before merging to main — a spike that crosses the merge
+boundary ungoverned becomes the next round of "we'll add the rules later"
+code that never gets the gate.
+
+---
+
+## 7. Anti-patterns + pre-merge audit
 
 | Anti-pattern                                  | Fix                                                        |
 | --------------------------------------------- | ---------------------------------------------------------- |
@@ -211,7 +228,7 @@ Before merge:
 
 ---
 
-## 7. Implementations
+## 8. Implementations
 
 This skill defines the pattern. Concrete implementations live in
 sibling skills:
@@ -226,7 +243,7 @@ edges between named module sets, then write a small assembler that emits its
 native config. Everything in §§ 1–6 transfers; only step 4 of §5 (emit) and
 step 5 (invoke) are stack-specific.
 
-## 8. See also
+## 9. See also
 
 - **`architecture-guidelines`** — first-principles rules this pattern enforces.
 - **`geometric-architecture`** — the spatial rationale (cells, faces, locality) this enforces.

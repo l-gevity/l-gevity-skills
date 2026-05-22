@@ -16,6 +16,16 @@
 > the loudest voice wins. This skill makes complexity measurable, comparable,
 > and honest.
 
+> **Reporting vocabulary & notation.** This companion argues *why* the model
+> has the shape it does, so it uses the model's internal axis symbols
+> (`D, K, P, n` and the compact movement notation `D↓ K↑ P— n↑`) in worked
+> examples and trade-off explanations. In reports the model produces, the
+> same four axes are called **Component-kinds Δ, Dependency-edges Δ,
+> Max-chain-depth Δ, Module-count Δ** — see the **Reporting Vocabulary**
+> section of [`SKILL.md`](../.claude/skills/structural-simplification/SKILL.md)
+> for the mapping. Treat any bare-symbol narrative below as describing the
+> model itself, not the architect-facing output.
+
 ---
 
 ## 1. Why "simpler" fails as an argument
@@ -52,8 +62,8 @@ high diversity (a small but heterogeneous mess). A composite score double-counts
 the shared variance and obscures the independent variation that matters.
 
 **Second, the trade-offs are real.** Most architectural moves _raise_ one axis
-to _lower_ another. Adding an abstraction layer reduces coupling but increases
-depth and quantity. Flattening two layers reduces depth but raises coupling.
+to _lower_ another. Adding an abstraction tier reduces coupling but increases
+chain depth and module count. Flattening two tiers reduces depth but raises coupling.
 Extracting a common part reduces diversity and coupling but adds quantity. A
 composite score erases these trade-offs by averaging — which is exactly the
 information you need to preserve.
@@ -73,7 +83,7 @@ is what makes per-axis comparison rigorous. Consider three refactorings of the
 same starting point:
 
 - **Extract a helper used three times.** D↓ (one fewer pattern shape), K↓ (three
-  direct dependencies become one shared dependency), P— (no new layer), n↑ (one
+  direct dependencies become one shared dependency), P— (no new tier or chain hop), n↑ (one
   new function). Net: probably better.
 - **Wrap a service in a facade.** D↑ (a new interface kind), K— (same actual
   coupling), P↑ (one more hop on every call), n↑ (one more part). Net: probably
@@ -97,8 +107,8 @@ axis-vector. Three patterns recur:
 - **Reducing K usually raises P or n.** Decoupling means inserting indirection,
   extracting interfaces, or splitting things. Each of those adds depth or
   quantity.
-- **Reducing P usually raises K or D.** Flattening layers means the parts that
-  were buffered by the layer now talk to each other directly — coupling rises.
+- **Reducing P usually raises K or D.** Flattening tiers means the parts that
+  were buffered by the tier now talk to each other directly — coupling rises.
   Or the merged parts grow in shape diversity.
 - **Reducing n usually raises K or P internally.** Merging two parts into one
   means whatever they used to do across a boundary now happens inside a larger
@@ -150,10 +160,11 @@ lands somewhere accidental and uncontrolled.
 The decision protocol in the SKILL is deliberately mechanical. The mechanical
 nature is the point. Without the protocol, "this is simpler" is a feeling — and
 feelings are reliably partisan. With the protocol, "this is simpler" becomes a
-claim with a structure: it asserts specific values for ΔD, ΔK, ΔP, and Δn, and
-it can be challenged on any of them. The conversation moves from "I think this
-is cleaner" to "you reduced K by 0.3 but raised P from 4 to 6 and added two
-parts — what was the net intent?"
+claim with a structure: it asserts specific values for **Component-kinds Δ,
+Dependency-edges Δ, Max-chain-depth Δ, and Module-count Δ**, and it can be
+challenged on any of them. The conversation moves from "I think this is cleaner"
+to "you reduced dependency-edges by 0.3 but raised max-chain-depth from 4 to 6
+and added two parts — what was the net intent?"
 
 This is the same shift that made other engineering disciplines mature: from
 intuition to instrumentation. You cannot improve what you do not measure. And in

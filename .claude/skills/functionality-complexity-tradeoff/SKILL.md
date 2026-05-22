@@ -157,7 +157,9 @@ Aggregate value ≈ `U × F × R × I`. If any axis is zero, total value is zero
 ### Cost axes
 
 Structural cost is **delegated** to `structural-simplification`: the
-`ΔD, ΔK, ΔP, Δn` introduced (prospective) or already present (retrospective).
+**Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ**
+introduced (prospective) or already present (retrospective). See the
+Reporting Vocabulary in `structural-simplification` for the symbol mapping.
 This skill adds three ongoing-cost axes that structure alone does not capture:
 
 | Axis              | Symbol | What it measures                                                    | Measurability                          |
@@ -166,8 +168,14 @@ This skill adds three ongoing-cost axes that structure alone does not capture:
 | **Risk**          | `X`    | Bug surface × blast radius; security, privacy, performance exposure | Measurable (defect history, incidents) |
 | **Evolution tax** | `E`    | Degree to which the feature constrains future change                | Judgment, changelog trace              |
 
-Aggregate cost over lifetime ≈ `(ΔD + ΔK + ΔP + Δn)` (one-time)
-`+ (M + X + E) × L` (ongoing).
+Aggregate cost over lifetime, in axis-symbol form (one-time structural delta
+plus ongoing maintenance × lifetime):
+
+`Aggregate cost ≈ (ΔD + ΔK + ΔP + Δn) + (M + X + E) × L`
+
+— where `ΔD, ΔK, ΔP, Δn` are the structural deltas from `structural-simplification`
+(see its Reporting Vocabulary: Component-kinds Δ, Dependency-edges Δ,
+Max-chain-depth Δ, Module-count Δ).
 
 ### The worth inequality
 
@@ -320,10 +328,10 @@ construct one," the code is a candidate for OBSOLETE / DROP-as-non-problem.
 ### Cost interrogation
 
 - What **new vocabulary** — concepts, abstractions, types — does this add?
-  (`ΔD`)
-- What currently-independent parts does this **link**? (`ΔK`)
-- How many layers or files will a **typical change** touch once this exists?
-  (`ΔP`)
+  (Component-kinds Δ)
+- What currently-independent parts does this **link**? (Dependency-edges Δ)
+- How long is the **dependency chain** a typical change traverses once this
+  exists? (Max-chain-depth Δ)
 - How many tests — including error paths, edge cases, and integration —
   will this require? (`M`)
 - **If this breaks, what else breaks** with it? What is the blast radius?
@@ -458,7 +466,8 @@ real even if the code path rarely or never fires.
 
 Some features have high local `C` because they are the seam holding a
 correct abstraction in place. Removing them would **raise global complexity**
-elsewhere. Measure net `ΔD, ΔK, ΔP, Δn` across the whole system before
+elsewhere. Measure net **Component-kinds Δ, Dependency-edges Δ,
+Max-chain-depth Δ, Module-count Δ** across the whole system before
 committing to DELETE or SIMPLIFY. A local reduction that increases global
 complexity is not a simplification (see `structural-simplification` Core
 Directive 5).
@@ -492,7 +501,8 @@ Necessity note: <if Fail: which §1a category, which invariant violated /
                  prerequisite missing / premise lapsed; one line.
                  If Pass and non-trivial: brief note on what made it pass.>
 V scores:       U=<0-3>  F=<0-3>  R=<0-3>  I=<0-3>       (1-line evidence each; OMIT if Necessity=Fail)
-C scores:       ΔD=<±n>  ΔK=<±n>  ΔP=<±n>  Δn=<±n>        (prospective: deltas; retrospective: measured absolutes; OMIT if Necessity=Fail)
+C scores:       Component-kinds Δ=<±n>  Dependency-edges Δ=<±n>
+                Max-chain-depth Δ=<±n>  Module-count Δ=<±n>      (prospective: deltas; retrospective: measured absolutes; OMIT if Necessity=Fail)
                 M=<0-3>  X=<0-3>  E=<0-3>                 (1-line evidence each; OMIT if Necessity=Fail)
 Confidence V:   Low | Medium | High                       (OMIT if Necessity=Fail)
 Confidence C:   Low | Medium | High                       (OMIT if Necessity=Fail)

@@ -4,6 +4,8 @@
 
 A first-principles SKILL for deciding whether a piece of functionality is worth keeping or building. Two stages: a **necessity gate** ("does the problem this code addresses actually occur in this stack?") followed by a **worth ledger** ("does the value justify the cost?").
 
+> **Reporting vocabulary.** Cost-side phrases below (e.g. "Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ") match the architect-facing names defined in the **Reporting Vocabulary** section of [`structural-simplification`](../.claude/skills/structural-simplification/SKILL.md). The aggregate-cost formula below uses the internal symbols (`ΔD, ΔK, ΔP, Δn`) because it is math, not narrative.
+
 ## Why use this
 
 - **"Just in case" code stops being inarguable.** Defensive checks against impossible states get a name (OBSOLETE) and a structural reason for removal — not a budget debate.
@@ -56,7 +58,7 @@ Before scoring value or cost, walk the categories. A single positive finding rou
 Once necessity passes, score both sides independently. **Don't collapse to one number.**
 
 - **Value (V):** `U × F × R × I` — utility, frequency, reach, irreplaceability. Any axis at zero ⇒ total value is zero.
-- **Cost (C):** structural deltas (`ΔD, ΔK, ΔP, Δn` — delegated to `structural-simplification`) plus ongoing axes — maintenance (`M`), risk (`X`), evolution tax (`E`).
+- **Cost (C):** structural deltas (Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ — delegated to `structural-simplification`) plus ongoing axes — maintenance (`M`), risk (`X`), evolution tax (`E`).
 - **Worth > 0 ⇔ V × L > C_structural + (M + X + E) × L.** Most production features are long-lived; plan for the ongoing term.
 
 Score 0–3 on each axis with one-line evidence. Record confidence (Low / Medium / High) per side. Low confidence → DEFER (prospective) or QUARANTINE (retrospective). OBSOLETE is exempt — a structural impossibility doesn't become more or less impossible with more data.
@@ -68,6 +70,6 @@ Routine bug fixes inside a working module, content/copy edits, dependency bumps.
 ## Next steps
 
 - See [SKILL.md](../.claude/skills/functionality-complexity-tradeoff/SKILL.md) for the full reference (necessity-gate detection heuristics, worth axes, decision protocol, asymmetric trade-offs, output contract).
-- For the structural complexity measurement (`D, K, P, n`) consumed on the cost side, see [`structural-simplification`](../.claude/skills/structural-simplification/).
+- For the structural complexity measurement consumed on the cost side — Component-kinds, Dependency-edges, Max-chain-depth, Module-count (internal symbols `D, K, P, n`) — see [`structural-simplification`](../.claude/skills/structural-simplification/).
 - For the upstream principles (YAGNI, scope control, proportionality), see [`architecture-guidelines`](../.claude/skills/architecture-guidelines/).
 - Run a retrospective audit on the next "just in case" check that lands in code review — the necessity gate often closes the question on the first pass.

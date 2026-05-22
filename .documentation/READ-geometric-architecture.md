@@ -2,23 +2,25 @@
 
 ![Geometric Architecture](geometric_architecture.svg)
 
-A 3-D spatial coordinate system for your dependency graph. Every component gets an address `(X, Y, Z)` and may only couple to face-adjacent neighbors; long-range and cyclic dependencies become structurally hard to express — the way a building's geometry resists impossible plumbing.
+A 3-D spatial coordinate system for your dependency graph. Every component is placed at a **Domain / Tier / Layer** position and may only couple to face-adjacent neighbors; long-range and cyclic dependencies become structurally hard to express — the way a building's geometry resists impossible plumbing.
+
+> **Reporting vocabulary.** Terms like "Domain / Tier / Layer", "inbound interface", "outbound interface", "caller / callee / peer", and "layer-skip violation" match the architect-facing names defined in the **Reporting Vocabulary** section of [`geometric-architecture` SKILL.md](../.claude/skills/geometric-architecture/SKILL.md). The internal model uses `(X, Y, Z)` coordinates and the six face names (Front / Back / Top / Bottom / Left / Right) underneath — see the Vocabulary section for the mapping.
 
 ## Why use this
 
-- **Long-range coupling becomes structurally hard to express.** The grid resists wormholes the way a building resists pipes that jump three floors.
-- **Circular dependencies become structurally impossible.** Cycles require a connection that crosses a face the wrong way — the geometry refuses.
-- **Existing tangles can be diagnosed.** God objects, layer violations, and cross-domain coupling each surface as named defects with standard fixes.
+- **Long-range coupling becomes structurally hard to express.** The grid resists layer-skip violations the way a building resists pipes that jump three floors.
+- **Circular dependencies become structurally impossible.** Cycles require a connection that crosses an interface the wrong way — the geometry refuses.
+- **Existing tangles can be diagnosed.** God components, layer-skip violations, and cross-domain coupling each surface as named defects with standard fixes.
 - **Reasoning surface stays bounded.** Each component has at most six neighbors regardless of codebase size.
-- **Established patterns emerge for free.** Clean architecture, DDD bounded contexts, and layered abstractions are consequences of the rule, not extra rules to remember.
+- **Established patterns emerge for free.** Clean architecture, DDD bounded contexts, and tiered abstractions are consequences of the rule, not extra rules to remember.
 
 ## Fundamental principles
 
 Software is, by default, an unconstrained graph: any module may import any other module with a single line. The language offers no resistance to bad connections. Geometry imposes structure on the *vocabulary of connections* — the way physical space imposes structure on a building's plumbing.
 
-- **Position is meaningful.** Each component lives at *(X, Y, Z)* — domain, abstraction level, depth. The address says where it belongs and what it may touch.
-- **Locality is a constraint, not a guideline.** Coupling is allowed only between face-adjacent cells. Long-range edges become structurally expensive to express, not merely discouraged.
-- **Faces have direction.** Every connection runs from one cell's Back face to its neighbor's Front face. Cycles require a face crossed the wrong way — the geometry forbids them.
+- **Position is meaningful.** Each component lives at a **Domain / Tier / Layer** position — domain (bounded context), abstraction tier (orchestrator → primitive), layer (consumer → infrastructure). The position says where it belongs and what it may touch.
+- **Locality is a constraint, not a guideline.** Coupling is allowed only between face-adjacent components. Long-range edges become structurally expensive to express, not merely discouraged.
+- **Interfaces have direction.** Every connection runs from one component's outbound interface to its neighbor's inbound interface. Cycles require an interface crossed the wrong way — the geometry forbids them.
 - **Global complexity emerges from local rules.** Conway's Game of Life is Turing-complete with a six-word ruleset and only nearest-neighbor interactions. Software does not need unrestricted coupling to be powerful — it needs well-structured local coupling that composes.
 
 The geometry doesn't *describe* the architecture — it *enforces* it, the way a wall enforces separation between rooms.
@@ -27,52 +29,52 @@ The geometry doesn't *describe* the architecture — it *enforces* it, the way a
 
 The skill has two modes: **audit** an existing dependency graph, or **design** the address of a new component.
 
-1. **Identify the structure or proposal.** An existing tangle to diagnose, or a new component whose address you need to assign.
+1. **Identify the structure or proposal.** An existing tangle to diagnose, or a new component whose position you need to assign.
 2. **Prompt the AI.**
 
-   > *Audit:* "Diagnose the dependency graph in `src/`. Flag layer skips, cycles, god cells, and cross-domain coupling."
+   > *Audit:* "Diagnose the dependency graph in `src/`. Flag layer-skip violations, cycles, god components, and cross-domain coupling."
    >
-   > *Design:* "Where does `OrderShipmentNotifier` belong in (X, Y, Z)? It's currently imported by both the order and notification domains."
+   > *Design:* "Where does `OrderShipmentNotifier` belong — what Domain / Tier / Layer? It's currently imported by both the order and notification domains."
 
-3. **Read the verdict.** The skill names the geometric defect (Z-skip, X-edge, god cell, phantom neighbor) and gives the standard fix.
-4. **Apply the fix.** Add the missing intermediate cell, extract a shared neighbor, decompose the god cell along its busiest axis.
+3. **Read the verdict.** The skill names the defect (layer-skip violation, cross-domain coupling, god component, hidden coupling) and gives the standard fix.
+4. **Apply the fix.** Add the missing intermediate component, extract a shared neighbor, decompose the god component along its busiest axis.
 
-## The three axes and six faces
+## The three axes and six interfaces
 
-Every component gets an address `(X, Y, Z)` and exposes six faces with fixed semantic roles.
+The internal model places every component at a `(X, Y, Z)` coordinate; reports speak of the same three concerns as **Domain / Tier / Layer**.
 
-### Axes — where a cell lives
+### Axes — where a component lives
 
-| Axis  | Encodes           | Direction                                                              |
-|-------|-------------------|------------------------------------------------------------------------|
-| **X** | Domain / context  | One column per business domain; siblings stay isolated.                |
-| **Y** | Abstraction level | Orchestrators (top) → primitives (bottom).                             |
-| **Z** | Depth / layer     | Consumer (Z=0) → infrastructure (Z=N). Dependencies flow Z-increasing. |
+| Axis  | Architect term          | Encodes                                              | Direction                                                              |
+|-------|-------------------------|------------------------------------------------------|------------------------------------------------------------------------|
+| **X** | **Domain**              | Bounded context                                      | One column per business domain; siblings stay isolated.                |
+| **Y** | **Abstraction tier**    | Orchestrator → primitive                             | Orchestrators (top) → primitives (bottom).                             |
+| **Z** | **Layer**               | Consumer → infrastructure (environment depth)        | Consumer (Z=0) → infrastructure (Z=N). Dependencies flow Z-increasing. |
 
-### Faces — how a cell connects
+### Interfaces — how a component connects
 
-| Face           | Role                                                       |
-|----------------|------------------------------------------------------------|
-| **Front**      | Public interface — the only valid face for incoming calls. |
-| **Back**       | Outward calls, I/O, infrastructure access.                 |
-| **Top**        | Receives orchestration from above.                         |
-| **Bottom**     | Delegates to primitives below.                             |
-| **Left/Right** | Same-tier neighbors (cross-domain siblings).               |
+| Internal face  | Architect term            | Role                                                       |
+|----------------|---------------------------|------------------------------------------------------------|
+| **Front**      | **Inbound interface**     | Public interface — the only valid face for incoming calls. |
+| **Back**       | **Outbound interface**    | Outward calls, I/O, infrastructure access.                 |
+| **Top**        | **Caller face**           | Receives orchestration from above.                         |
+| **Bottom**     | **Callee face**           | Delegates to primitives below.                             |
+| **Left/Right** | **Peer / sibling face**   | Same-tier neighbors (cross-domain siblings).               |
 
-A connection is valid only when **A's Back connects to B's Front**. Anything else is a direction violation; cycles are impossible without one.
+A connection is valid only when **one component's outbound interface connects to its neighbor's inbound interface** (Back → Front in the internal model). Anything else is a direction violation; cycles are impossible without one.
 
 ## Common defects
 
 The geometry refuses certain connections. When it does, the violation has a name and a standard fix.
 
-| Defect                  | Geometric reading                                    | Standard fix                                                    |
-|-------------------------|------------------------------------------------------|-----------------------------------------------------------------|
-| **Z-skip**              | Wormhole through Z (e.g. controller → repository).   | Insert or use the intermediate cell.                            |
-| **Y-skip**              | Layer violation (lower tier → higher tier).          | Split the cell or fix the tier boundary.                        |
-| **Cross-domain X-edge** | Sibling domains coupling directly.                   | Extract a shared neighbor on the X-boundary.                    |
-| **God cell**            | All six faces occupied; the cell does too much.      | Decompose along the axis with the most edges.                   |
-| **Phantom neighbor**    | Hidden coupling via globals or runtime registries.   | Promote the implicit dependency to a real cell with an address. |
-| **SDK wormhole**        | Many cells importing the same external SDK directly. | Route through a single wrapper cell.                            |
+| Defect                       | Reading                                                         | Standard fix                                                    |
+|------------------------------|-----------------------------------------------------------------|-----------------------------------------------------------------|
+| **Layer-skip violation**     | Skipping a layer through Z (e.g. controller → repository).      | Insert or use the intermediate component.                       |
+| **Tier-skip violation**      | Lower abstraction tier reaching a higher one.                   | Split the component or fix the tier boundary.                   |
+| **Cross-domain coupling**    | Sibling domains coupling directly.                              | Extract a shared neighbor on the domain boundary.               |
+| **God component**            | All six faces occupied; the component does too much.            | Decompose along the axis with the most edges.                   |
+| **Hidden coupling**          | Implicit linkage via globals or runtime registries.             | Promote the implicit dependency to a real component with a position. |
+| **External-SDK proliferation** | Many components importing the same external SDK directly.     | Route through a single wrapper component.                       |
 
 When a rule fires, it is not the lint catching a typo — it is the geometry refusing a connection.
 

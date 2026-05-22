@@ -9,7 +9,7 @@ description: >-
     before necessity freezes over-engineering into the architecture.
     TRIGGER when introducing a new module/service/library, refactoring
     across module boundaries, designing a new abstraction, extracting a
-    sub-cell into a package, or auditing existing code for over-engineering.
+    sub-component into a package, or auditing existing code for over-engineering.
     SKIP for: bug fixes within an existing module, content/copy edits,
     CSS-only changes, dependency bumps, trivial renames. Defines NO new
     rules; every gate's content lives in a sibling. For first-principles
@@ -48,8 +48,8 @@ description: >-
 |:--|:--|:--|:--|
 | 1 | Necessity check | `functionality-complexity-tradeoff` | PASS / DROP per type, method, parameter |
 | 2 | First principles | `architecture-guidelines` | Smallest correct design |
-| 3 | Geometric placement | `geometric-architecture` | (X, Y, Z) per cell + allowed edges |
-| 4 | Complexity measurement | `structural-simplification` | ΔD, ΔK, ΔP, Δn vector |
+| 3 | Geometric placement | `geometric-architecture` | Domain / tier / layer per component + allowed dependency edges |
+| 4 | Complexity measurement | `structural-simplification` | Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ |
 | 5 | Architecture as code | `architecture-as-code` (pattern); `-javascript` / `-python` (impl) | Per-module architecture config |
 | 6 | Shift defect detection left | `defect-shift-left` | Each error path → earliest catchable stage |
 | 7 | Optimize value stream | `system-optimization` | Constraint analysis (deferred to iter 2) |
@@ -65,8 +65,8 @@ file does not duplicate that content.
 ☐ Gate 1 — Necessity check on every proposed type/method/parameter
             For each abstraction: name the second concrete instance.
 ☐ Gate 2 — Smallest correct design (SoC + SRP + DI; pure core, I/O at edges)
-☐ Gate 3 — Each cell placed at (X, Y, Z); allowed edges drawn
-☐ Gate 4 — ΔD, ΔK, ΔP, Δn computed for design vs status quo
+☐ Gate 3 — Each component placed at Domain / Tier / Layer; allowed dependency edges drawn
+☐ Gate 4 — Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ computed for design vs status quo
 ☐ Gate 5 — eslint.architecture.mjs in the SAME PR as the code
 ☐ Gate 6 — Every error path mapped to earliest catchable stage
 ☐ Gate 7 — Deferred to iteration 2
@@ -81,7 +81,7 @@ the order:
 
 | Step | Skill | Action |
 |:--|:--|:--|
-| 1 | `structural-simplification` | Score current ΔD, ΔK, ΔP, Δn — surface hot-spots |
+| 1 | `structural-simplification` | Score current Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ — surface hot-spots |
 | 2 | `functionality-complexity-tradeoff` | Run necessity gate on every type / method / branch |
 | 3 | `architecture-as-code` (pattern); `-javascript` / `-python` (impl) | Add lint rules so the pruned shape can't re-grow |
 | 4 | `defect-shift-left` | For each defect found, ask whether it could have been caught earlier |
@@ -96,8 +96,8 @@ the order:
 | Generic registry / plugin system with one entry | 1 — generality without instantiation | Inline the entry; remove the registry |
 | Empty config / config with one value across all envs | 1 — one-value config | Inline the value |
 | `if (impossible_state)` runtime guards | 1 — impossible-state guard | OBSOLETE; document the invariant elsewhere |
-| Cross-domain imports across non-adjacent faces | 3 — placement violated | Move the cell or extract a face-adjacent shim |
-| Refactor "felt simpler" but no measurement | 4 — complexity not scored | Compute ΔD, ΔK, ΔP, Δn before merging |
+| Cross-domain imports across non-adjacent faces | 3 — placement violated | Move the component or extract a face-adjacent shim |
+| Refactor "felt simpler" but no measurement | 4 — complexity not scored | Compute Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ before merging |
 | Eslint rules added in follow-up PR | 5 — same-PR discipline broken | Block the follow-up; add rules to original PR |
 | Defects caught at runtime that types could express | 6 — left-shift not applied | Move the check upward; remove the runtime guard |
 | Architecture file disagrees with code | 5 — drift | Re-run lint; treat as a defect |
