@@ -2,11 +2,11 @@
 
 ![CI/CD Reliability](cicd_reliability.svg)
 
-A pipeline-design SKILL for builds and deployments that are safe to run any number of times, build artifacts once, deploy without downtime, and authenticate without storing secrets.
+A pipeline-design SKILL for builds and deployments that converge safely when retried, build artifacts once, deploy without downtime, and authenticate without standing cloud credentials.
 
 ## Why use this
 
-- **Pipelines become safe to retry.** Idempotent jobs produce the same result whether run zero, one, or three times — no partial state, no clean-up rituals.
+- **Pipelines become safe to retry.** Idempotent jobs converge to the same desired state whether skipped, run once, or retried — no partial state, no clean-up rituals.
 - **"Works in staging, broken in prod" stops happening.** One immutable artifact moves through environments; config is injected at deploy time, not baked at build time.
 - **Deploys don't drop traffic.** Preview environments per PR, atomic promotion, post-deploy health checks, automatic rollback.
 - **Stored cloud credentials disappear.** OIDC federation issues short-lived tokens; the pipeline proves identity instead of presenting a secret.
@@ -21,7 +21,7 @@ CI/CD reliability is mostly the application of six rules. When pipelines fail in
 - **Immutable artifacts.** Build once, promote everywhere. Tag with the commit SHA; inject config at deploy time.
 - **Self-healing.** Transient failures auto-retry with backoff; permanent failures fail fast.
 - **Zero-downtime.** Preview environments, atomic promotion, never touch production directly.
-- **Zero-knowledge.** Minimal seed secrets; dynamic tokens via OIDC/STS; no credential exchange.
+- **Zero-knowledge.** No standing cloud secrets; dynamic tokens via OIDC/STS; unavoidable application secrets stay in a managed secrets store.
 
 ## How to use
 
@@ -32,10 +32,10 @@ The skill has two modes: **design** a new pipeline, or **audit** an existing one
 
    > *Design:* "Design the CI/CD pipeline for a Node service deploying to Azure App Service with preview environments per PR."
    >
-   > *Audit:* "Audit `.github/workflows/deploy.yml` against ci-cd-reliability-architecture. Flag idempotency gaps, missing health checks, and any stored cloud credentials."
+   > *Audit:* "Audit `.github/workflows/deploy.yml` against ci-cd-reliability-architecture. Flag idempotency gaps, missing health checks, and any standing cloud credentials."
 
 3. **Read the verdict.** The skill names the violated rule (idempotency / self-containment / immutability / self-healing / zero-downtime / zero-knowledge) and gives the standard fix.
-4. **Apply the fix.** Replace `npm install` with `npm ci`; tag artifacts by SHA; switch from stored secrets to OIDC; add the post-deploy health check and rollback step.
+4. **Apply the fix.** Replace `npm install` with `npm ci`; tag artifacts by SHA; switch from standing cloud credentials to OIDC; add the post-deploy health check and rollback step.
 
 ## Common anti-patterns and their fixes
 
@@ -45,18 +45,18 @@ The skill has two modes: **design** a new pipeline, or **audit** an existing one
 | Rebuild per environment                           | Build once; promote the same artifact                        | Immutable artifacts|
 | URLs/secrets baked into build output              | Inject config at deploy time                                 | Immutable artifacts|
 | Delegate build to platform (Oryx, Buildpacks, …)  | Build in dedicated CI step; deploy receives pre-built output | Immutable artifacts|
-| Stored cloud password / long-lived API key        | OIDC federated identity → short-lived token                  | Zero-knowledge     |
+| Stored cloud password / long-lived deploy key     | OIDC federated identity -> short-lived token                  | Zero-knowledge     |
 | Deploy without post-deploy validation             | Health check + automatic rollback on failure                 | Self-healing       |
 | No timeout on long-running steps                  | Explicit `timeout:` on every step                            | Self-healing       |
-| Stomping on shared paths between jobs             | Namespace artifacts by branch/PR; explicit `download:`       | Self-contained     |
+| Stomping on shared paths between jobs             | Namespace artifacts by SHA/run ID; explicit artifact fetch   | Self-contained     |
 | Leaving in-progress runs to fight each other      | `cancel-in-progress: true` on the same branch                | Zero-downtime      |
 
 ## Pre-merge checklist (critical items)
 
-- [ ] Idempotent: safe to run 0×, 1×, or N×; same result every time.
+- [ ] Idempotent: converges to the same desired state if skipped, run once, or retried.
 - [ ] Timeouts on every long-running step.
 - [ ] Build once in a dedicated fail-fast CI step; deploy receives the pre-built artifact.
-- [ ] OIDC / federated identity for cloud auth; no stored cloud credentials.
+- [ ] OIDC / federated identity for cloud auth; no standing cloud credentials.
 - [ ] Post-deploy health check present; rollback on failure.
 - [ ] Preview environment per PR; atomic promotion to production on merge.
 - [ ] `cancel-in-progress` enabled; only the latest commit deploys.

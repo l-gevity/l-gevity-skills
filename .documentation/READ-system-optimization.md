@@ -22,20 +22,20 @@ build a tool, install a bot. Both reflexes feel productive — they produce
 visible artifacts, they show up in commit logs, they can be demonstrated in a
 standup.
 
-But both reflexes share a fatal property: they **lock in whatever they touch**.
+But both reflexes share a risky property: they can **lock in whatever they touch**.
 A cached step is harder to remove than an uncached one. An automated workflow
 becomes infrastructure that people depend on. Once a thing is fast or automated,
 the question "did this need to exist at all?" becomes politically expensive to
 ask. The investment creates its own justification.
 
-The correct order — **question, delete, simplify, speed up, automate** — exists
-because each step changes what the next step is even working on. Question the
-requirement and you may discover the entire workflow is unnecessary; you've just
-saved every downstream step. Delete what you can and the remaining optimization
-target shrinks. Simplify what survives and the speed-up becomes trivial. Only at
-the end, when you know the work is necessary, simplified, and fast, does
-automation become safe — because at that point you are automating something
-worth automating.
+The correct order — **question, probe deletion, simplify, speed up, automate** —
+exists because each step changes what the next step is even working on. Question
+the requirement and you may discover the entire workflow is unnecessary; you've
+just saved every downstream step. Probe deletion and the remaining optimization
+target shrinks without silently removing load-bearing behavior. Simplify what
+survives and the speed-up becomes clearer. Only at the end, when you know the
+work is necessary, simplified, and stable, does automation become safe — because
+at that point you are automating something worth automating.
 
 Work done out of order is work to undo. Every speed-up of a step that should
 have been deleted is wasted twice: once doing it, once removing it.
@@ -89,31 +89,28 @@ something that was once needed feels riskier than leaving it in place. The
 second is invisibility: deleted code produces no commit message worth bragging
 about. Engineers are rewarded for things they built, not things they removed.
 
-The skill counters both with a calibration heuristic: **if you don't end up
-restoring roughly 10% of what you deleted, you weren't aggressive enough**. Some
-deletions will turn out to be wrong. That is the _evidence the protocol is
-working_. A deletion attempt that loses nothing was too timid — it picked only
-the obviously dead pieces, when the real value is in the things that _looked_
-alive but turned out not to be.
-
-The 10% restore rate transforms deletion from a high-stakes irreversible move
-into a probing operation. You delete, you observe what breaks, you restore what
-mattered. The remaining 90% is pure waste reduction.
+The skill counters both by making deletion a reversible probe rather than a
+heroic act. Remove candidates behind a branch, feature flag, dry run, narrow
+rollout, or explicit rollback plan. Observe what breaks, restore anything
+proven load-bearing, and keep only removals backed by evidence. A deletion pass
+that removes only obviously dead pieces may still be useful, but it has not
+tested the expensive middle ground: things that look alive but no longer carry
+current requirements.
 
 ---
 
 ## 4. The Constraint Sets the Ceiling
 
 The Theory of Constraints contributes the single most under-applied principle in
-software optimization: **the system's throughput is set by its slowest step, and
-improving any other step has zero effect on the system**.
+software optimization: **the system's throughput is set by its current
+constraint, and improving non-constraints often has little or no system effect**.
 
 This is counterintuitive because local optimization always _measurably_ helps
 the local stage. The build step is 30% faster, the test phase parallelizes, the
 deployment script trims two minutes. Each change is real. The system throughput
-is unchanged — because the actual constraint is somewhere else (usually code
-review, manual approval, or a flaky integration test that re-runs three times).
-The local wins do not propagate.
+may stay unchanged because the actual constraint is somewhere else (usually
+code review, manual approval, or a flaky integration test that re-runs three
+times). The local wins do not always propagate.
 
 Worse, local optimization away from the constraint can _hurt_ the system.
 Speeding up a stage that feeds the bottleneck just builds inventory in front of
@@ -125,15 +122,16 @@ The five-step ToC protocol — identify, exploit, subordinate, elevate, repeat �
 exists to break this pattern. _Identify_ forces you to find the actual
 constraint, not the convenient one. _Exploit_ squeezes maximum output from it
 before adding resources, because adding resources to a poorly-utilised
-constraint just multiplies waste. _Subordinate_ enforces the counterintuitive
-rule that upstream stages should _slow down_ to match the constraint, not speed
-up.
+constraint just multiplies waste. _Subordinate_ means aligning upstream work to
+the constraint's capacity: reducing work-in-progress, batching less, limiting
+intake, or changing priorities. It does not mean blindly slowing every upstream
+stage.
 
-The hardest step is _repeat_. After fixing one constraint, a new one always
-emerges — and teams routinely miss the handoff. They keep optimizing the old
-constraint (now no longer the bottleneck) out of habit, while the new constraint
-accumulates queue. Every Kaizen cycle must explicitly re-identify where the
-constraint has moved.
+The hardest step is _repeat_. After fixing one constraint, the limiting factor
+may move — and teams routinely miss the handoff. They keep optimizing the old
+constraint (now no longer the bottleneck) out of habit, while another queue
+accumulates. Every Kaizen cycle must explicitly re-identify where the constraint
+is now.
 
 ---
 
@@ -154,7 +152,7 @@ Builds that succeed on retry. Deploys that work on Tuesdays. These are not
 annoyances — they are _measurement-blockers_. Every flaky stage in the pipeline
 is a layer of noise between you and any data you might use to optimize.
 
-The directive is uncompromising: **stabilise before optimising**. Find the
+The directive is deliberate: **stabilise before optimising**. Find the
 sources of variance. Eliminate them. Make the process boring and repeatable.
 Only then does optimization become tractable, because only then can you
 distinguish "this change made it faster" from "this change happened to occur on
@@ -212,17 +210,18 @@ minutes. Caught by integration test, hours. Caught in production, days or weeks
 This produces a clear directive: **embed quality at the source**, via types,
 linters, formatters, static analysis, and automated tests that run before the
 code leaves the developer's machine. Every quality gate that can run _earlier_
-should run earlier. Every check that runs in CI when it could have run in
-pre-commit is a cost multiplier — every developer who pushes a broken build pays
-the CI roundtrip cost that a local check would have prevented.
+without losing required context should run earlier. Every check that runs only
+in CI when it could also run locally is a cost multiplier — every developer who
+pushes a broken build pays the CI roundtrip cost that a local check would have
+prevented.
 
 The shift-left principle has a corollary that is widely misunderstood:
-_detection distance matters more than detection coverage_. A test pyramid
-optimised for line coverage but weighted toward end-to-end tests catches defects
-far from their source. A pyramid weighted toward unit tests catches fewer
-defects in absolute terms — but catches them where they are cheapest to fix. The
-total cost of defects is lower with the second pyramid, even though the first
-looks more thorough.
+_detection distance matters alongside detection coverage_. A test pyramid
+optimised for line coverage but weighted toward end-to-end tests catches many
+defects far from their source. A pyramid weighted toward unit and contract tests
+often catches defects where they are cheaper to fix, while reserving
+integration and end-to-end tests for failures that require real boundaries or
+full workflows.
 
 The skill's framing — "confidence over coverage" — captures this exactly. The
 goal is not to test every line; it is to be confident in the critical paths.
@@ -245,13 +244,15 @@ underperforms the steady stream of small bets.
 The PDCA cycle — Plan, Do, Check, Act — exists to make small improvements
 _validated_. Every change is a hypothesis: "I believe this change will improve
 X." The Check step is the experiment: did X actually improve? If yes, keep the
-change and look for the next constraint. If no, revert and try something else.
+change and look for the current constraint. If no, revert or revise and try
+something else.
 Without the check, you accumulate untested changes that each individually claim
 to be improvements but whose net effect is unknown.
 
 The skill closes the loop by tying every optimization back to the four-axis
 complexity model: **if a change worsens any axis (D, K, P, n) without improving
-another, it is not an optimization**. This is the litmus test. It catches the
+flow, reliability, cost, or another complexity axis, it is not an
+optimization**. This is the litmus test. It catches the
 most common failure of well-meaning improvement work — the "optimization" that
 adds a clever caching layer (n↑, K↑, P↑) without actually reducing any cost the
 system was paying. The four-axis test makes the trade-off visible before it
@@ -263,13 +264,13 @@ ships.
 
 | Property                 | Without protocol                       | With protocol                                    |
 | ------------------------ | -------------------------------------- | ------------------------------------------------ |
-| **Order of work**        | Speed up first, regret later           | Question → Delete → Simplify → Speed → Automate  |
+| **Order of work**        | Speed up first, regret later           | Question -> Probe deletion -> Simplify -> Speed -> Automate |
 | **Unnecessary work**     | Optimised and locked in                | Removed before any optimisation cost is incurred |
-| **Deletion attempts**    | Rare, conservative, low-yield          | Aggressive, calibrated by 10% restore rate       |
+| **Deletion attempts**    | Rare, conservative, low-yield          | Reversible, evidence-backed probes               |
 | **Local optimization**   | Celebrated regardless of system effect | Subordinated to the system constraint            |
 | **Constraint awareness** | Lost after first fix                   | Re-identified every cycle                        |
 | **Process variance**     | Treated as an operational nuisance     | Treated as a measurement-blocker                 |
-| **Flaky tests**          | Tolerated, retried                     | Defects — fixed or removed                       |
+| **Flaky tests**          | Tolerated, retried                     | Defects: fixed, quarantined with owner/deadline, or replaced |
 | **Work-in-progress**     | Invisible, accumulating                | Measured: wait time vs cycle time                |
 | **Defect detection**     | Late, expensive, in production         | Early, cheap, at the source                      |
 | **Quality gates**        | In CI by default                       | Shifted as far left as possible                  |

@@ -15,12 +15,12 @@ description: >-
 
 > **Core Directives**
 >
-> 1. **Idempotent** — same result every run (§1).
+> 1. **Idempotent** — converges to the same desired state when run or retried (§1).
 > 2. **Self-Contained** — explicit inputs, outputs, failure mode (§2).
 > 3. **Immutable Artifacts** — build once, promote; config at deploy time (§3).
 > 4. **Self-Healing** — retry transient, fail-fast permanent (§4).
 > 5. **Zero-Downtime** — preview environment, atomic promotion (§5).
-> 6. **Zero-Knowledge** — OIDC / federated identity, no stored secrets (§6).
+> 6. **Zero-Knowledge** — OIDC / federated identity, no standing cloud secrets (§6).
 
 ---
 
@@ -30,14 +30,14 @@ description: >-
 | ------------------------------ | -------------------------------------- | ------------------------ |
 | `npm install`                  | `npm ci`                               | Lock-file exact match    |
 | `mkdir build`                  | `mkdir -p`                             | No-op if exists          |
-| Delete then create             | Create then delete                     | Gap causes downtime      |
+| Delete live resource first     | Create replacement; switch; delete old | Gap causes downtime      |
 | `git commit --amend` published | Create new commit                      | Never amend pushed work  |
 | Assume upstream state          | Explicit `needs:` + download artifacts | Prevents race conditions |
 
 **Checklist:**
 
-- [ ] Produces same output if run 1x, 3x, or 0x
-- [ ] File operations use safe defaults (`-p`, `-f`, `--force`)
+- [ ] Converges to the same desired state if skipped, run once, or retried
+- [ ] File operations use scoped idempotent flags and precondition checks
 - [ ] Secrets: create new first, apply everywhere, then delete old
 - [ ] DB updates use conditional writes (`WHERE version = X`)
 
@@ -45,7 +45,9 @@ description: >-
 
 ## 2. Self-Contained Jobs
 
-Each job declares **inputs**, **steps**, **outputs**, **failure mode**:
+Each job declares **inputs**, **steps**, **outputs**, **failure mode**.
+The YAML below is platform-neutral pseudocode; translate the keys to the target
+CI system instead of copying it verbatim:
 
 ```yaml
 jobs:
@@ -71,7 +73,8 @@ jobs:
 - Never assume upstream state; always download artifacts explicitly
 - Caching (dependencies, browsers, etc.) does not violate self-containment — it
   is scoped performance optimization within job isolation
-- Namespace all artifacts uniquely (e.g., include branch name or PR number)
+- Namespace all artifacts uniquely with commit SHA or run ID; branch or PR
+  number is metadata, not the uniqueness key
 - Never write to shared paths without explicit scoping
 - Declare failure mode explicitly (`continue-on-error` or default fail-fast)
 
@@ -128,7 +131,7 @@ done
 exit 1
 ```
 
-**Post-deploy health check (mandatory):**
+**Post-deploy health check (mandatory, platform-neutral pseudocode):**
 
 ```yaml
 - name: Deploy
@@ -161,15 +164,15 @@ exit 1
 | ------------------ | ---------------------------------------------------------------------------------------- | ----------------------------------------------------- |
 | **Frontend**       | Deploy to isolated preview environment per PR; atomically promote to production on merge | Production untouched during validation; safe to retry |
 | **Backend**        | Deploy to staging slot; health-check; swap (platform handles connection draining)        | Graceful shutdown; in-flight requests complete        |
-| **API versioning** | New endpoints `/v2/...` alongside `/v1/...`; deprecate, never delete                     | Clients remain backwards-compatible                   |
+| **API versioning** | Additive changes for tolerant readers; version and deprecate breaking changes            | Clients remain backwards-compatible                   |
 | **PR concurrency** | Cancel in-progress runs for the same branch; only latest commit deploys                  | Prevent old commits overwriting newer deployments     |
 
 **Rules:**
 
 - Never force-stop running instances (drops in-flight connections)
 - Always test in a staging/preview environment before promoting to production
-- Adding fields to API payloads is safe; removing or renaming fields breaks
-  clients
+- Adding fields is compatible only when clients are tolerant readers; removing
+  or renaming fields breaks clients
 - If E2E tests fail on a preview environment: block the merge; preview
   auto-cleaned on PR close
 - For multi-tenant data layers, apply the Expand/Contract pattern for schema
@@ -179,16 +182,18 @@ exit 1
 
 ## 6. Zero-Knowledge Secrets
 
-**Principle**: Minimize permanent credentials. Prove identity via
-challenge/signature (OIDC), not secret exchange.
+**Principle**: Minimize permanent credentials. For cloud auth, prove identity
+via challenge/signature (OIDC) instead of exchanging a stored password or token.
+Store unavoidable application secrets only in a managed secrets store with
+audit logging and rotation.
 
-| Credential Type        | Store as long-lived secret? | How to obtain at runtime              | Notes                          |
-| ---------------------- | --------------------------- | ------------------------------------- | ------------------------------ |
-| Cloud provider auth    | 1 federated identity only   | OIDC federated credential             | Rotate quarterly; no password  |
-| API keys               | Only if no OAuth available  | STS / service principal exchange      | Auto-expire; never store value |
-| Encryption / HMAC keys | 1 per environment           | Generate once; rotate via dual-deploy | Create new, apply, delete old  |
-| DB connection strings  | Never                       | Managed Identity / service binding    | No secret needed               |
-| OAuth client secrets   | Never                       | Client credentials + certificate      | Certificate-based auth         |
+| Credential Type        | Store as long-lived CI secret? | How to obtain at runtime                     | Notes                                      |
+| ---------------------- | ------------------------------ | -------------------------------------------- | ------------------------------------------ |
+| Cloud provider auth    | No                             | OIDC federated credential                    | Short-lived token; no password             |
+| API keys               | Only if no OAuth/OIDC exists   | OAuth, STS, or managed secrets store         | Prefer auto-expiring credentials           |
+| Encryption / HMAC keys | No CI copy; store in KMS/vault | KMS/vault lookup or managed key reference    | Rotate with create, apply, verify, delete  |
+| DB connection strings  | Avoid                          | Managed Identity / service binding           | Prefer no secret in CI                     |
+| OAuth client secrets   | Avoid                          | Certificate/private-key auth where supported | If required, store only in secrets manager |
 
 **OIDC pattern (pseudocode):**
 
@@ -205,7 +210,7 @@ jobs:
               # Cloud issues short-lived access token — no stored credential exchanged.
               cloud-login:
                   method: oidc
-                  client-id: $SECRET_CLIENT_ID
+                  client-id: $CLOUD_CLIENT_ID
 ```
 
 **Secret rotation (zero-downtime):**
@@ -217,7 +222,8 @@ jobs:
 
 **Audit logging (mandatory):**
 
-- Log all secret reads: timestamp, actor, resource, purpose
+- Log secret access where the secrets manager supports it: timestamp, actor,
+  resource, purpose
 - Never log secret values
 - Enable audit logging on your secrets manager
 
@@ -241,11 +247,14 @@ When managing infrastructure at scale (multi-tenant, scaling policies, resource
 groups), use **declarative IaC** (Bicep, Terraform, Pulumi). Declarative tools
 enforce idempotency by design; imperative scripts require manual guards.
 
-### Delete-and-Recreate Pattern (Immutable Resources)
+### Replacement Pattern (Immutable Resources)
 
 Some resources cannot be updated in-place (e.g., AWS security groups, Azure
 Entra policies, some Kubernetes resources). For these, use definition-based
-comparison to detect changes and safely replace:
+comparison to detect changes and replace safely. Prefer create-before-delete
+or provider-native atomic replacement. If the provider requires deleting before
+creating because a unique name cannot coexist, preflight the replacement, keep
+rollback input ready, and fail loud if the create step does not succeed:
 
 ```bash
 # 1. Compute hash of desired state
@@ -261,16 +270,22 @@ if [ "${DESIRED_HASH}" = "${EXISTING_HASH}" ]; then
   exit 0
 fi
 
-# 4. If changed, delete old and create new (atomic from API perspective)
-curl -X DELETE https://api/resource/current
-curl -X POST https://api/resource -d "${DEFINITION}"
+# 4. Preflight replacement before touching the live resource
+curl -f -X POST https://api/resource/validate -d "${DEFINITION}"
+
+# 5. Replace with the provider's atomic operation when available.
+# If delete-before-create is the only supported path, this is an explicit
+# exception that must have rollback input and failure handling.
+curl -f -X DELETE https://api/resource/current
+curl -f -X POST https://api/resource -d "${DEFINITION}"
 ```
 
 **Rules:**
 
 - Always hash/checksum the definition, not just presence checks
-- Delete before create (not after) to avoid transient conflicts
-- Wrap creation in idempotent guard (e.g., check if already exists)
+- Use provider-native atomic replacement or create-before-delete when available
+- Delete-before-create is an exception for provider constraints, not the default
+- Wrap creation in idempotent guard and failure handling
 - Log state transitions: "definition changed, updating"
 
 ---
@@ -279,14 +294,15 @@ curl -X POST https://api/resource -d "${DEFINITION}"
 
 ### CRITICAL (Must-Have)
 
-- [ ] **Idempotency**: Safe to run 0x, 1x, or Nx; same result every time
+- [ ] **Idempotency**: converges to the same desired state if skipped, run once,
+      or retried
 - [ ] **Timeouts**: All long-running steps have explicit timeout values
 - [ ] **Immutable artifacts**: Build once, promote same artifact; config
       injected at deploy time
 - [ ] **Build in CI, not in the deploy platform**: every build runs as a
       dedicated fail-fast CI step; deploy action receives a pre-built artifact
       (no reliance on Oryx/Buildpacks/Vercel auto-build)
-- [ ] **Secrets**: OIDC/federated identity for cloud auth; no stored cloud
+- [ ] **Secrets**: OIDC/federated identity for cloud auth; no standing cloud
       credentials
 - [ ] **Health check**: Post-deploy validation present; rollback on failure
 - [ ] **E2E tests**: Failure blocks merge via branch protection rule
@@ -297,7 +313,8 @@ curl -X POST https://api/resource -d "${DEFINITION}"
 
 ### ADVANCED (Nice-to-Have)
 
-- [ ] API backward-compatibility: add fields, never remove; deprecation
+- [ ] API backward-compatibility: additive changes only for tolerant readers;
+      version breaking changes; deprecation
       documented
 - [ ] IaC migration: declarative infrastructure for resources managed at scale
 - [ ] DB migrations: Expand/Contract pattern for schema changes (multi-tenant)

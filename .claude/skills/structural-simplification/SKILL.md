@@ -21,10 +21,11 @@ description: >-
 > 1. **Complexity has four axes**: D (diversity), K (coupling), P (depth), n
 >    (quantity). Score each independently; never collapse into a single number.
 > 2. **Compare before and after.** Intuition is not a metric.
-> 3. **Conform over customize.** Reusing an existing pattern — even at local
->    cost — shrinks D globally.
-> 4. **Delete over mitigate.** Removing a part or special case beats handling
->    it.
+> 3. **Conform when semantics match.** Reusing an existing pattern shrinks D
+>    globally only when the semantics, lifecycle, and constraints actually fit.
+> 4. **Remove over mitigate, safely.** Removing a part or special case beats
+>    handling it when functionality, migration, rollback, and external
+>    constraints permit removal.
 
 ---
 
@@ -59,18 +60,22 @@ output, and cross-skill citation uses the architect phrase instead.
 | Axis          | Symbol | What it counts                      | Measurement recipe                                                    |
 | ------------- | ------ | ----------------------------------- | --------------------------------------------------------------------- |
 | **Diversity** | `D`    | Distinct patterns, shapes, concepts | Count distinct patterns / vocabulary items in the structure           |
-| **Coupling**  | `K`    | Relationship density                | `edges / (n × (n−1))` over the relationship graph                     |
+| **Coupling**  | `K`    | Relationship count and density      | Count edges, then compute density (`edges / (n × (n−1))` for directed graphs where `n > 1`) after defining edge kind and direction |
 | **Depth**     | `P`    | Longest chain from source to sink   | Longest path from any origin to any terminus in the DAG               |
 | **Quantity**  | `n`    | Total number of parts               | Direct count of parts (use §2 to identify parts in your domain)       |
 
 Domain-agnostic. *Parts* = any discrete unit; *relationships* = any
 connection (dependency, flow, sequence, authority). Multi-axis interactions
-are worse than any single axis alone.
+usually cost more than any single-axis change alone; verify against the
+domain's actual constraints.
 
 > [!IMPORTANT] **Cycles are property violations, not just high K.** A cycle
-> breaks the DAG assumption the model rests on. See §5 for the geometric
-> framing that rules them out; `geometric-architecture` §2 enforces them as
-> lint. Any detected cycle is a hard fault — fix before scoring the rest.
+> breaks the DAG assumption only when the chosen projection is required to be
+> acyclic, such as imports, ownership, authority, or layer dependencies. See §5
+> for the geometric framing that rules those cycles out; `geometric-architecture`
+> §2 enforces them as lint. If the domain intentionally contains cycles
+> (feedback loops, state machines, workflows), define the acyclic projection or
+> cycle semantics before scoring.
 
 ---
 
@@ -145,7 +150,7 @@ Fast proxies — not substitutes for measurement.
 
 | Operation       | Mechanism                                                           |
 | --------------- | ------------------------------------------------------------------- |
-| **Elimination** | Remove a part entirely — absolute coupling drops as `K × n²`        |
+| **Elimination** | Remove a part entirely — absolute edge count can drop with every deleted incident edge; recompute both edge count and density |
 | **Merging**     | Collapse two parts into one (may raise internal K — verify product) |
 
 ### Multi-axis — Reduce Simultaneously
@@ -160,12 +165,13 @@ Fast proxies — not substitutes for measurement.
 
 ## 5. Geometric Constraint
 
-Treating a structure as a physical object — with surfaces, orientation, finite
-volume, and locality — bounds all four axes simultaneously: surface and
-locality cap K, orientation caps P, volume caps n, and conforming form factors
-cap D. Subsystem decomposition (vertical) reduces K and n; aspect-system
-decomposition (horizontal) reduces D. Cycles require a back-to-back face —
-the geometry rules them out without a separate axiom.
+Treating a dependency structure as a physical object — with surfaces,
+orientation, finite volume, and locality — helps bound all four axes: surface
+and locality cap K, orientation caps P, volume caps n, and conforming form
+factors cap D. Subsystem decomposition (vertical) can reduce K and n;
+aspect-system decomposition (horizontal) can reduce D. In dependency graphs
+that require directionality, cycles require a back-to-back face; the geometry
+rules those cycles out without a separate axiom.
 
 For the full spatial treatment — placement addresses, face directionality,
 locality rules, lint enforcement — see `geometric-architecture`.
@@ -179,15 +185,15 @@ moves apply to any structure.
 
 | Restructuring                                       | D   | K        | P       | n   | Verdict                                                       |
 | --------------------------------------------------- | --- | -------- | ------- | --- | ------------------------------------------------------------- |
-| Add abstraction tier — ≥3 concrete instances        | ↑   | ↓        | ↑       | ↑   | Proceed (§7a Conformance)                                     |
-| Add abstraction tier — <3 instances or speculative  | ↑   | ↑        | ↑       | ↑   | Reject — Rule of 3; generality without instantiation          |
+| Add abstraction tier — ≥3 concrete instances        | ↑   | ↓        | ↑       | ↑   | Candidate proceed (§7a Conformance); verify semantics match   |
+| Add abstraction tier — <3 instances or speculative  | ↑   | ↑        | ↑       | ↑   | Candidate reject — Rule of 3; verify no external constraint   |
 | Add facade — over a 4-step chain                    | ↑   | —        | hides P | ↑   | Keep only if K↓ measurable; never claim P↓ (§4 warning)       |
-| Flatten — intermediate part has no independent role | —   | ↑        | ↓       | ↓   | Proceed; verify internal K bounded                            |
-| Extract common part — ≥3 dependents                 | ↓   | ↓        | —       | ↑   | Proceed                                                       |
-| Bypass a part — bypassed has no independent role    | —   | ↑        | ↓       | ↓   | Proceed                                                       |
-| Introduce mediator between 2 parts                  | ↑   | ↑        | ↑       | ↑   | Reject — direct binding is simpler                            |
-| Merge two cohesive parts                            | ↓   | within ↑ | ↓       | ↓   | Proceed; verify internal K stays bounded                      |
-| Split overloaded part along an SoC seam             | ↓   | ↓        | ↑       | ↑   | Proceed                                                       |
+| Flatten — intermediate part has no independent role | —   | ↑        | ↓       | ↓   | Candidate proceed; verify internal K and invariants bounded   |
+| Extract common part — ≥3 dependents                 | ↓   | ↓        | —       | ↑   | Candidate proceed; verify lifecycle and ownership match       |
+| Bypass a part — bypassed has no independent role    | —   | ↑        | ↓       | ↓   | Candidate proceed; verify no boundary or policy is bypassed   |
+| Introduce mediator between 2 parts                  | ↑   | ↑        | ↑       | ↑   | Candidate reject unless it enforces a boundary or decouples time |
+| Merge two cohesive parts                            | ↓   | within ↑ | ↓       | ↓   | Candidate proceed; verify internal K stays bounded            |
+| Split overloaded part along an SoC seam             | ↓   | ↓        | ↑       | ↑   | Candidate proceed; verify caller paths remain understandable  |
 
 ---
 
@@ -197,16 +203,19 @@ Cases where net axis effect is positive despite local cost.
 
 ### 7a. Conformance (Pattern Alignment)
 
-Accept local overengineering to eliminate a unique structural shape from D.
-One snowflake among ten uniform parts inflates D disproportionately — its
-removal has outsized global effect.
+Accept local structural cost to eliminate a unique shape from D only when the
+standard pattern fits the same semantics, lifecycle, ownership, and external
+constraints. One snowflake among ten uniform parts can inflate D
+disproportionately, but a real domain distinction should be named and preserved.
 
 ### 7b. Scope Reduction (Deletion)
 
-Remove special functionality if its structural footprint exceeds its utility.
-Special cases are complexity multipliers: D↑ (unique patterns), K↑
+Remove or deprecate special functionality if its structural footprint exceeds
+its utility and the `functionality-complexity-tradeoff` verdict allows safe
+removal. Special cases are complexity multipliers: D↑ (unique patterns), K↑
 (conditional paths), P↑ (extended chains), n↑ (supporting parts). The cost of
-a feature is not its own code — it is every special case it forces elsewhere.
+a feature includes every special case it forces elsewhere, plus the migration
+and compatibility work needed to remove it safely.
 
 ### 7c. Atomicity Requirements
 
@@ -229,8 +238,10 @@ first.
 
 1. **Model** before-state and after-state. Record D, K, P, n for each
    (internal axes; see Reporting Vocabulary for the architect-facing names).
-2. **Cycle check.** A cycle in the after-state is a hard fault — fix before
-   continuing.
+2. **Cycle check.** If the modeled projection is required to be acyclic, a
+   cycle in the after-state is a hard fault — fix before continuing. If the
+   domain permits cycles, record the cycle semantics and score the chosen
+   acyclic projection separately.
 3. **Answer the forcing questions in writing** (one line each):
     - **D:** What unique pattern does this introduce that no sibling uses?
       *(Name the 2nd concrete instance; absence = Rule-of-3 violation.)*
@@ -241,15 +252,19 @@ first.
       wraps," it's a no-op facade.)*
     - **Counterfactual:** Does §7a or §7b apply? What is the 12-month
       removal cost?
-4. **Classify**:
+4. **Check non-structural gates.** Confirm the candidate still satisfies
+   required behavior, security/privacy, compliance, observability,
+   performance, migration, and rollback constraints. Structural improvement is
+   not permission to break a required property.
+5. **Classify**:
 
     | Pattern                           | Action                          |
     | --------------------------------- | ------------------------------- |
-    | All axes improve or hold          | Proceed                         |
-    | Mixed (some improve, some worsen) | Consult §6 trade-offs, apply §7 |
-    | No axis improves                  | Reject or redesign              |
+    | All axes improve or hold          | Proceed if non-structural gates pass |
+    | Mixed (some improve, some worsen) | Consult §6 trade-offs, apply §7, then check gates |
+    | No axis improves                  | Reject or redesign unless required by an external gate |
 
-5. **Emit** (architect-facing; see Reporting Vocabulary for the symbol mapping):
+6. **Emit** (architect-facing; see Reporting Vocabulary for the symbol mapping):
 
     ```
     Subject:              <structure / module / refactor under review>
@@ -258,6 +273,7 @@ first.
     Max-chain-depth Δ:    <±n>   (evidence: longest path before → after)
     Module-count Δ:       <±n>   (evidence: parts added / removed)
     Cycle:                Pass | Fail
+    Non-structural gates: Pass | Fail | Not evaluated
     Trade-off:            <§6 row matched; §7 sub-section if asymmetric>
     Verdict:              Proceed | Redesign | Reject
                           (retrospective: KEEP | SIMPLIFY | DELETE)

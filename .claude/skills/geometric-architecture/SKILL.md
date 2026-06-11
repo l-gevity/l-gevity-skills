@@ -2,10 +2,11 @@
 name: geometric-architecture
 description: >-
     A 3-D spatial coordinate system for the dependency graph. Every component is
-    given an address (X = domain, Y = abstraction tier, Z = layer), coupling is
-    restricted to face-adjacent neighbors, and connection direction is encoded
-    by which face links to which. Long-range and cyclic connections become
-    structurally expensive instead of merely discouraged. Includes ESLint
+    given an address (X = domain, Y = abstraction tier, Z = layer), dependency
+    coupling is routed through declared adjacent positions, and connection
+    direction is encoded by which face links to which. Long-range and forbidden
+    cyclic connections become structurally expensive instead of merely
+    discouraged. Includes ESLint
     enforcement via `eslint-plugin-boundaries` and `no-restricted-imports`.
     TRIGGER when: deciding where a new module/service/layer lives, designing or
     refactoring the dependency graph, diagnosing
@@ -19,9 +20,10 @@ description: >-
 
 # Geometric Software Architecture
 
-Place every component at an address `(X, Y, Z)` in a 3-D grid; allow coupling
-only to face-adjacent neighbors. The medium itself resists long-range and cyclic
-connections — the way a building's geometry resists impossible plumbing.
+Place every component at an address `(X, Y, Z)` in a 3-D grid; route dependency
+coupling through declared adjacent positions. The medium itself resists
+long-range and forbidden cyclic connections — the way a building's geometry
+resists impossible plumbing.
 
 ## Reporting Vocabulary
 
@@ -68,7 +70,7 @@ cross-skill reference uses the architect phrase instead.
 
 | Axis | Encodes                     | Direction                                                              |
 | ---- | --------------------------- | ---------------------------------------------------------------------- |
-| Z    | layer (environment depth)   | consumer (Z=0) → infrastructure (Z=N). Dependencies flow Z-increasing. |
+| Z    | layer (environment depth)   | consumer (Z=0) → infrastructure (Z=N). Dependency arrows point toward declared dependency surfaces; imports may point the opposite way when dependency inversion is used. |
 | X    | domain / bounded context    | one column per business domain.                                        |
 | Y    | abstraction tier            | orchestrators (top) → primitives (bottom).                             |
 
@@ -78,62 +80,70 @@ others.
 
 ## 2. Six faces (directionality)
 
-Every cell exposes six faces with fixed semantic roles (architect phrases in *italics* — used in all reports):
+Every cell exposes six conceptual faces with fixed semantic roles (architect
+phrases in *italics* — used in all reports):
 
-- **Front** — *inbound interface*; the only valid face for incoming calls.
+- **Front** — *inbound interface*; the public surface through which callers enter.
 - **Back** — *outbound interface*; outward calls / I/O / infrastructure access.
 - **Top** — *caller* face; receives orchestration from above.
 - **Bottom** — *callee* face; delegates to primitives below.
 - **Left / Right** — *peer / sibling* faces; same-tier neighbors (cross-domain siblings).
 
-A connection is valid only when **A's Back connects to B's Front**. Any other
-pairing is a direction violation. Cycles are impossible without one connection
-crossing a face the wrong way.
+A dependency connection is valid when **A's outbound interface connects to B's
+inbound interface** through an allowed adjacent position or an explicitly named
+boundary component. Other pairings are direction violations. A forbidden import
+cycle in an acyclic projection is impossible without at least one connection
+crossing a face the wrong way; intentional runtime cycles such as event loops or
+state machines must be modeled as runtime behavior, not static import edges.
 
 ## 3. Failure modes the geometry rules out
 
 | Failure mode          | Geometric fix                                                                             |
 | --------------------- | ----------------------------------------------------------------------------------------- |
-| Long-range coupling   | Locality: distance costs. A→C skipping B forces building B and naming the chain.          |
-| Circular dependencies | Face directionality: cycles require a back-to-back face, which is invalid.                |
-| Layer-skip violations | Z-axis + face: ΔZ > 1 is a layer-skip violation. UI cannot reach DB without traversing each layer. |
-| God objects           | God-cell rule: all six faces occupied → decompose along the axis with the most edges.     |
-| Hidden shared state   | Phantom-neighbor rule: implicit coupling must be promoted to a real cell with an address. |
-| Semantic drift        | Single-address rule: a drifting cell accumulates multi-axis edges and surfaces diagonal.  |
+| Long-range coupling   | Locality: distance costs. A→C skipping B requires a named boundary or intermediate position. |
+| Circular dependencies | Face directionality: forbidden import cycles require a back-to-back face, which is invalid in acyclic projections. |
+| Layer-skip violations | Z-axis + face: ΔZ > 1 is a layer-skip violation unless a declared boundary adapter owns the jump. |
+| God objects           | God-cell rule: many occupied faces or unrelated edge clusters → decompose along the axis with the most edges. |
+| Hidden shared state   | Phantom-neighbor rule: implicit coupling must be promoted to a real component with an address or documented as runtime-only coupling. |
+| Semantic drift        | Single-address rule: a drifting component accumulates multi-axis edges and surfaces diagonal. |
 
 ## 4. What emerges for free
 
-When locality and face direction are enforced, several conventional patterns
-appear as consequences — not as additional rules to remember:
+When locality and face direction are enforced for static dependencies, several
+conventional patterns become easier to maintain:
 
-- Strict Z-flow → **Clean / Hexagonal architecture**: domain logic isolated from
+- Strict Z-flow plus dependency inversion → **Clean / Hexagonal architecture**:
+  domain logic isolated from
   infrastructure.
 - Independent X-columns → **DDD bounded contexts** and correct microservice
   cuts.
 - Y-stratification → **tiered abstractions**: each tier knows only the tier
   immediately below.
-- Locality → **bounded reasoning surface**: at most six neighbors per cell,
-  regardless of codebase size.
+- Locality → **bounded reasoning surface**: each component has a small declared
+  neighbor set, even when a physical package contains many files.
 
 The geometry decides _where a cell lives and what it may import_. It does not
 prescribe what goes inside the cell.
 
 ## 5. Mechanical enforcement (ESLint)
 
-Lint expresses most of the locality rule statically; the rest is review-time.
+Lint expresses import-edge rules statically; placement quality, runtime
+coupling, and face semantics remain review-time or runtime-tooling concerns.
 
 | Geometric rule                                       | Lint mechanism                                           | Tool                       |
 | ---------------------------------------------------- | -------------------------------------------------------- | -------------------------- |
-| Face-adjacent coupling only                          | `boundaries/dependencies` with `from` / `disallow`       | `eslint-plugin-boundaries` |
-| Engine facade is the only entry point                | Each tier as an element; disallow external imports       | `eslint-plugin-boundaries` |
-| Lower Y-tiers may not import higher                  | One `disallow` rule per tier                             | `eslint-plugin-boundaries` |
-| External SDKs reachable only via their wrapper cells | `no-restricted-imports` + per-file override              | ESLint built-in            |
+| Declared adjacency / allowed dependency routes       | `boundaries/dependencies` with `from` / `allow` / `disallow` | `eslint-plugin-boundaries` |
+| Boundary facade is the only external entry point     | Each boundary as an element; disallow bypass imports     | `eslint-plugin-boundaries` |
+| Lower Y-tiers may not import higher in the chosen projection | One `disallow` rule per tier                     | `eslint-plugin-boundaries` |
+| External SDKs reachable only via their wrapper components | `no-restricted-imports` + per-file override          | ESLint built-in            |
 | Dynamic import paths must be literals                | `no-restricted-syntax` on non-literal `ImportExpression` | ESLint built-in            |
 | Tests not imported by production                     | Dependencies rule: disallow `test` from prod elements    | `eslint-plugin-boundaries` |
 
-Pattern: each cell = one element glob; directional rules = `disallow` between
-element types. A layer-skip violation surfaces as a forbidden glob-to-glob
-import. Config lives in `eslint.config.js` at repo root.
+Pattern: each component or position = one element glob; directional rules are
+encoded as allowed or disallowed imports between element types. A layer-skip
+violation surfaces as a forbidden glob-to-glob import. Config usually lives in
+`eslint.config.js` at repo root, or in generated flat config when
+`architecture-as-code-javascript` assembles per-module rules.
 
 **Lint cannot enforce:**
 
@@ -141,14 +151,27 @@ import. Config lives in `eslint.config.js` at repo root.
    judgment.)
 2. **Behavioral coupling** — pub/sub buses, runtime registries, globals.
    (Convention or runtime tooling.)
-3. **Face roles** — lint sees "A imports B" but not "Back→Front." (Mental
-   model.)
+3. **Face roles** — lint sees "A imports B" but not whether the code respects
+   the intended inbound/outbound interface semantics. (Review/API design.)
 
 **Rollout:** add every rule at `warn`. Promote per-rule to `error` only after
 that rule's violations clear. A rule that starts as `error` on a non-green
 codebase gets disabled the first time someone needs to merge.
 
-## 6. See also
+## 6. Audit Output
+
+When applying this skill, emit one row per violation:
+
+| Component / import | Domain / tier / layer | Violation | Evidence | Action |
+| ------------------ | --------------------- | --------- | -------- | ------ |
+
+Use these violation names: **layer-skip violation**, **tier inversion**,
+**cross-domain coupling**, **forbidden import cycle**, **god component**,
+**hidden runtime coupling**, **external SDK bypass**, **placement ambiguity**.
+If lint can enforce the finding, name the rule to add or update. If lint cannot
+enforce it, name the review, runtime, or architecture-as-code guard that owns it.
+
+## 7. See also
 
 - **`architecture-guidelines`** — what rules belong inside a cell.
 - **`structural-simplification`** — measuring whether a placement change is a real simplification.

@@ -53,7 +53,8 @@ into a measurable, comparable proposition.
 
 The temptation when measuring complexity is to collapse everything into a single
 score — cyclomatic complexity, lines of code, file count, or some weighted
-composite. This always fails, for two reasons.
+composite. That is useful for dashboards, but it fails as a refactoring verdict
+when it hides which axis improved and which axis worsened.
 
 **First, the axes correlate but are not identical.** More parts (n) usually
 means more diversity (D) and more depth (P). But the correlation is imperfect.
@@ -116,10 +117,10 @@ axis-vector. Three patterns recur:
 
 The trade-off principle has a corollary: **moves that improve one axis without
 degrading any other are rare and precious**. When you find one, take it. They
-are typically deletions: removing a feature, eliminating a special case,
-dropping an unused abstraction. Pure deletions are the only changes that improve
-every axis simultaneously, which is why "delete over mitigate" is the most
-powerful directive in the SKILL.
+are often removals: deleting a feature, eliminating a special case, dropping an
+unused abstraction. Deletions can improve every structural axis simultaneously
+when the removed part is not load-bearing and the migration path is safe, which
+is why "remove over mitigate" is a powerful directive in the SKILL.
 
 ---
 
@@ -129,21 +130,20 @@ Three asymmetric moves are powerful enough to deserve their own treatment in the
 SKILL. Each violates naive "minimize-everywhere" intuition. Each accepts a local
 cost to win a larger global gain.
 
-**Conform over customize.** When a system has nine uniform components and one
-snowflake, the snowflake inflates D disproportionately — it is the reason
-readers have to learn an extra pattern. Forcing the snowflake into the existing
-shape may produce _locally suboptimal_ code: the snowflake now does things the
-standard way, even if a custom way would be marginally better. But globally, D
-drops, the vocabulary shrinks, and every future reader benefits. Local
-optimization is a trap; global uniformity is the win.
+**Conform when semantics match.** When a system has nine uniform components and
+one snowflake, the snowflake can inflate D disproportionately — it is the reason
+readers have to learn an extra pattern. Moving the snowflake into the existing
+shape can produce _locally suboptimal_ code, but globally D drops and the
+vocabulary shrinks. That trade only works when the standard shape fits the same
+semantics, lifecycle, ownership, and constraints; a real domain distinction
+should be named, not paved over.
 
-**Delete over mitigate.** Special cases are complexity multipliers. A single
-edge case forces unique patterns (D↑), conditional paths (K↑), extended chains
-(P↑), and supporting parts (n↑). The cost of a feature is rarely the feature
-itself — it is every special case the feature forces elsewhere in the system.
-When the feature is unloved or rarely used, the math almost always favours
-removal. The most powerful simplification move is the one that removes the
-source of complexity rather than handling it.
+**Remove over mitigate, safely.** Special cases are complexity multipliers. A
+single edge case can force unique patterns (D↑), conditional paths (K↑),
+extended chains (P↑), and supporting parts (n↑). The cost of a feature is rarely
+only the feature itself — it is every special case the feature forces elsewhere
+in the system. When the feature is low-utility, nonessential, and safe to
+migrate away from, removal is often the strongest simplification move.
 
 **Atomicity decision.** When an operation spans multiple systems, the atomicity
 choice has direct structural cost. Atomicity raises K and P (the parts must
@@ -171,8 +171,10 @@ intuition to instrumentation. You cannot improve what you do not measure. And in
 architecture, the thing to measure is not a scalar — it is the four-axis vector
 of structural complexity.
 
-The model does not make architecture easier. It makes architecture _measurable_.
+The model does not make architecture easier. It makes architecture _more
+measurable_.
 The hard part — knowing where to cut, which axis to spend, what to delete —
 remains. But the conversation about whether a change is genuinely a
-simplification stops being a matter of opinion. It becomes a matter of
-arithmetic on a four-dimensional vector.
+simplification stops being only a matter of opinion. It becomes an explicit
+comparison of a four-dimensional vector plus the non-structural constraints the
+system still has to satisfy.

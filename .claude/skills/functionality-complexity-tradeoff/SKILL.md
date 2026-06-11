@@ -33,8 +33,9 @@ description: >-
 >
 > 1. **Necessity precedes worth.** Before scoring value and cost, verify the
 >    problem the code addresses can actually occur in this context. Code
->    guarding against architecturally impossible states has zero value — not
->    low value. Skip the worth ledger and emit OBSOLETE.
+>    guarding against architecturally impossible states has no product value
+>    for that failure mode. Skip the worth ledger and emit OBSOLETE unless the
+>    code is serving as the canonical executable invariant (§1c).
 > 2. **Separate the ledger.** Value and cost are distinct axes. Score each
 >    independently; never collapse into a single number.
 > 3. **Cost compounds, value decays.** Value is realized per use; cost accrues
@@ -45,9 +46,10 @@ description: >-
 > 5. **Build and audit share a model.** The same axes apply whether deciding
 >    what to add or what to remove. A feature that would fail as a proposal
 >    today should fail as existing code today.
-> 6. **Delete over refactor, refactor over rewrite.** A retrospective audit
+> 6. **Remove over refactor, refactor over rewrite.** A retrospective audit
 >    that finds negative worth — or that fails the necessity gate — prefers
->    removal to elaborate justification.
+>    safe removal or deprecation to elaborate justification. Removal still
+>    follows migration, rollback, and compatibility constraints.
 
 ---
 
@@ -57,12 +59,14 @@ The Worth Model (§2) assumes the code under review is solving a real problem.
 Before scoring V and C, confirm that the problem itself exists in this stack.
 If it does not, the worth ledger does not apply: emit **OBSOLETE** in
 retrospective mode, or **DROP** with a necessity-failure rationale in
-prospective mode, and stop.
+prospective mode. For retrospective removals, apply the safety constraints in
+§7b before changing code.
 
 > [!IMPORTANT] A monorepo single-page application deployed as one artifact
 > cannot run client and server at different versions; a "client version check"
-> in that stack guards against an impossible state. It has zero V — not low
-> V — because the failure mode it prevents cannot occur. Worth scoring would
+> in that stack guards against an impossible state. It has no V for that
+> failure mode — not low V — because the failure mode it prevents cannot occur.
+> Worth scoring would
 > mis-classify this as low-V / low-C "DEFER" or "KEEP." The necessity gate
 > catches it.
 
@@ -79,17 +83,18 @@ prospective mode, and stop.
 
 ### 1b. Detection heuristics
 
-Run these BEFORE scoring V or C. A single positive result routes the verdict
-to OBSOLETE (retrospective) or DROP-as-non-problem (prospective).
+Run these BEFORE scoring V or C. A high-confidence positive result routes the
+verdict to OBSOLETE (retrospective) or DROP-as-non-problem (prospective),
+subject to the invariant-documentation and load-bearing exceptions in §§1c/8e.
 
 | Heuristic                        | Signal                                                                                                                                                                                                              | Catches                                            |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
 | **Invariant audit**              | List the invariants the architecture, type system, deployment topology, and trust boundary maintain. List the conditions the code branches on. Branches that contradict an invariant are dead.                     | Impossible-state guards, dead branches             |
-| **Trigger reachability**         | Construct a concrete real-world sequence that activates the code without violating an architectural invariant. Failure to construct one is a positive finding, not a gap in imagination.                            | Impossible-state guards, dead branches             |
+| **Trigger reachability**         | Construct a concrete real-world sequence that activates the code without violating an architectural invariant. Failure to construct one after checking callers, entry points, tests, and runtime paths is a positive finding. | Impossible-state guards, dead branches             |
 | **Origin archaeology**           | Pull the introducing commit / PR / ADR. Verify the rationale's premises still hold (dependency present, platform supported, client class extant, migration incomplete). Lapsed premises mean the code is obsolete. | Phantom requirements                               |
 | **Layer-responsibility map**     | For each cross-cutting concern (auth, escaping, retry, validation, caching), name the single layer that owns it. Other layers performing the same job are redundant or signal a missing trust boundary.            | Already-defended-elsewhere                         |
 | **Pattern-prerequisite check**   | For each recognizable pattern, list its prerequisites (long-lived process, mutable shared state, non-idempotent dependency, multiple implementations). Prerequisites that do not hold here mean the pattern is cargo-culted. | Cargo-culted patterns                          |
-| **One-value config**             | A flag, env var, or config key that has held one value across all environments for the feature's lifetime is a dead seam. Either inline the value or document the concrete second value that's coming.             | Generality without instantiation, phantom reqs.    |
+| **One-value config**             | A flag, env var, or config key that has held one value across all environments for the feature's lifetime is a dead-seam candidate. Either inline the value or document the concrete second value, compliance requirement, or pending rollout that keeps it alive. | Generality without instantiation, phantom reqs.    |
 | **Zero-everything signature**    | Production code with zero telemetry hits AND zero bug history AND zero recent edits is not necessarily "stable" — it may have never run. Combine with the invariant audit to distinguish load-bearing-but-quiet from guarding-the-impossible. | Impossible-state guards                |
 
 > [!IMPORTANT] **The invariant audit is the highest-yield necessity check.**
@@ -148,7 +153,9 @@ multi-dimensional.
 | **Reach**            | `R`    | Proportion of users / flows / environments that encounter the need           | Measurable (analytics)  |
 | **Irreplaceability** | `I`    | Cost of the next-best alternative (workaround, external tool, doing without) | Judgment, comparative   |
 
-Aggregate value ≈ `U × F × R × I`. If any axis is zero, total value is zero.
+Aggregate product value ≈ `U × F × R × I`. If any axis is zero, ordinary
+product value is zero; external floors, keystone cost, and safety exceptions
+are handled separately in §8.
 
 > [!IMPORTANT] A feature loved by 2% of users, used once a year, with a trivial
 > workaround, has near-zero total value no matter how elegant it is. Score
@@ -211,7 +218,8 @@ implementation**. All inputs are estimates; record confidence explicitly.
    build that would have produced dead code on day one.
 3. Score `V` axes with **evidence**: user interviews, request tickets,
    analytics of the workaround, competitor behavior. Opinions are not
-   evidence.
+   evidence. Unsupported opinions are not enough evidence for high-confidence
+   build decisions.
 4. Score `C` axes against a **concrete implementation sketch**: files
    touched, new abstractions or dependencies introduced, tests required,
    failure modes created.
@@ -232,8 +240,8 @@ exist**. Inputs are observable; bias toward measurement over judgment.
     - Reach: unique users or flows that enter this code path.
     - Irreplaceability: does an alternative path exist? Do users already use
       it?
-    - **If `V` cannot be measured, that itself is a finding** — unmeasured
-      features hide.
+    - **If `V` cannot be measured, that itself is a finding** — instrument,
+      identify an external floor (§8c), or keep confidence Low.
 4. Score `C` from current observable state:
     - Structural: measure `D, K, P, n` per `structural-simplification`.
     - `M`: dedicated tests, doc pages, recent commit churn, dependency drift.
@@ -261,11 +269,11 @@ that apply once necessity has passed.
 
 | Check                        | Signal                                                            | Axis affected |
 | ---------------------------- | ----------------------------------------------------------------- | ------------- |
-| **Usage silence**            | No telemetry hits in N weeks → `F × R` approaches 0               | `V`           |
+| **Usage silence**            | No telemetry hits over a context-appropriate window → `F × R` approaches 0, unless instrumentation is absent or the path is externally required | `V`           |
 | **Workaround in wild**       | Users or code already bypass this path → `I` is small             | `V`           |
 | **Single caller**            | Feature referenced from one call site only → `R` is small         | `V`           |
 | **Flag defaulted off**       | Feature flag has been `off` in production for months → `V ≈ 0`    | `V`           |
-| **Orphan test**              | Tests exist but no one edits the code they cover → `V` likely 0   | `V`           |
+| **Orphan test**              | Tests exist but no one edits the code they cover → inspect whether they guard a stable contract, invariant, or obsolete feature | `V` / `M`     |
 | **Churn hotspot**            | High commit frequency on these files → `M + X` are large          | `C`           |
 | **Churn × complexity**       | High churn AND high cyclomatic / cognitive score → hotspot        | `C`           |
 | **Defect clustering**        | Feature's code dominates recent bug tickets → `X` is large        | `C`           |
@@ -273,7 +281,7 @@ that apply once necessity has passed.
 | **Blocked PRs**              | Other work routinely waits on or works around this → `E` is large | `C`           |
 | **Documentation rot**        | Docs disagree with code → `M` is under-invested, `X` is hidden    | `C`           |
 
-> [!IMPORTANT] **Churn × complexity is the single strongest empirical signal**
+> [!IMPORTANT] **Churn × complexity is a strong empirical signal**
 > for "code that costs more than it returns" (Tornhill, _Your Code as a Crime
 > Scene_). Files that change often AND score high on cyclomatic or cognitive
 > complexity are disproportionately responsible for defects and maintenance
@@ -296,7 +304,8 @@ implicit.
 ### Necessity interrogation
 
 Apply BEFORE value interrogation. If any answer is "no" or "we cannot
-construct one," the code is a candidate for OBSOLETE / DROP-as-non-problem.
+construct one" after checking the relevant callers and runtime paths, the code
+is a candidate for OBSOLETE / DROP-as-non-problem.
 
 - **Can the failure mode this guards against actually occur** given the
   deployment topology, type system, and runtime guarantees of this stack?
@@ -420,13 +429,13 @@ does not become more or less impossible with more data.
 | **SIMPLIFY**   | Worth is positive but `C` is inflated. Apply operations from `structural-simplification` §4. Re-score after.                                                                                  |
 | **QUARANTINE** | `V` is unmeasured. Add telemetry; revisit after N weeks.                                                                                                                                       |
 | **DEPRECATE**  | Marginal or negative worth; removal is non-trivial. Announce, migrate callers, remove on schedule.                                                                                            |
-| **DELETE**     | Negative worth, removal is feasible. Delete. Do not patch.                                                                                                                                     |
-| **OBSOLETE**   | Necessity gate (§1) fails: the problem this code addresses cannot occur in this context. Delete; do not patch, do not score worth. Rationale is structural, not budgetary, so the verdict resists re-litigation. If the code documents an invariant nothing else captures, downgrade to **SIMPLIFY** instead (§1c). |
+| **DELETE**     | Negative worth, removal is feasible. Prefer removal over patching, but migrate callers, preserve compatibility promises, and keep rollback possible. |
+| **OBSOLETE**   | Necessity gate (§1) fails: the problem this code addresses cannot occur in this context. Remove or deprecate the code without scoring worth. Rationale is structural, not budgetary, so the verdict resists re-litigation. If the code documents an invariant nothing else captures, downgrade to **SIMPLIFY** instead (§1c). |
 
 > [!WARNING] "Interesting", "clever", and "elegant" are not verdicts.
 > Cleverness imposes cost but rarely contributes measurable value. If a
-> reviewer's rationale reduces to "it's nice that we have this," default to
-> SIMPLIFY or DELETE. If it reduces to "it's defensive — just in case,"
+> reviewer's rationale reduces to "it's nice that we have this," require
+> value evidence before KEEP. If it reduces to "it's defensive — just in case,"
 > apply the necessity gate before defaulting to KEEP.
 
 ---
@@ -458,9 +467,10 @@ schema, user-visible behavior, wire format — must clear a higher bar.
 Some features deliver `V` that cannot be observed from usage telemetry:
 audit logs, accessibility paths, legal holds, compliance records, safety
 interlocks. Assign a **fixed-high `U`** regardless of `F × R`; `C` is still
-measured normally. These features are kept even when "unused." They also
-**pass the necessity gate by definition** — the requirement is external and
-real even if the code path rarely or never fires.
+measured normally. These features are kept even when "unused" when the
+applicable external requirement, jurisdiction, contract, or safety case is
+identified. They pass the necessity gate only after that requirement is mapped
+to this code path.
 
 ### 8d. Keystone cost
 
@@ -485,7 +495,7 @@ ADR, benchmark) before voting SIMPLIFY.
 > whether the rationale's premises still hold today (necessity passes,
 > §8e applies) or have lapsed (necessity fails, OBSOLETE applies). Lost
 > history is not permission to remove load-bearing complexity; lapsed
-> history is permission to remove obsolete code.
+> history supports removing obsolete code after the normal safety checks.
 
 ---
 
@@ -529,8 +539,8 @@ Revisit when:   <measurable trigger or calendar date>
 
 | Pattern                                                                       | Typical verdict                                                                       |
 | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| **Code guarding against a state ruled out by the architecture**               | **OBSOLETE — §1 impossible-state guard**                                              |
-| **Defensive check duplicating a guarantee from an upstream layer**            | **OBSOLETE — §1 already-defended-elsewhere**                                          |
+| **Code guarding against a state ruled out by the architecture**               | **OBSOLETE — §1 impossible-state guard; SIMPLIFY if it is the only executable invariant record** |
+| **Defensive check duplicating a guarantee from an upstream layer**            | **OBSOLETE — §1 already-defended-elsewhere; keep only if it covers a different trust boundary** |
 | **Pattern transplanted from a stack whose prerequisites do not hold here**    | **OBSOLETE — §1 cargo-culted; or SIMPLIFY if partly load-bearing (§8e)**              |
 | **Feature flag for a launch that completed**                                  | **OBSOLETE — §1 phantom requirement (preferred over DELETE for closure)**             |
 | **Generic abstraction with one concrete user, no second user proposed**       | **OBSOLETE or SIMPLIFY — §1 generality without instantiation; collapse to concrete**  |
@@ -539,13 +549,13 @@ Revisit when:   <measurable trigger or calendar date>
 | Admin-only tool used quarterly                                                | BUILD-minimal — satisfy via script or CLI, not UI                                     |
 | "Power user" shortcut                                                         | NEGOTIATE — measure `R` honestly; almost always smaller than claimed                  |
 | Dead code behind `off` feature flag                                           | DELETE if the flag was a real toggle that lost; OBSOLETE if the launch completed (§1) |
-| Duplicate of library or framework feature                                     | OBSOLETE if the framework already runs it; DROP / DELETE if `I` is ~0 by choice       |
+| Duplicate of library or framework feature                                     | OBSOLETE if the framework already runs it for the same scope; DROP / DELETE if `I` is ~0 by choice |
 | Legacy integration, usage unknown                                             | QUARANTINE — instrument first, then decide (unless §1 already returns OBSOLETE)       |
 | Extension point with one implementation                                       | OBSOLETE if no second implementation is named and probable; SIMPLIFY otherwise        |
 | "We'll need this for feature X"                                               | DEFER — build when X is real, not before                                              |
 | Stable feature that still produces bugs                                       | SIMPLIFY (churn × complexity hotspot), then re-evaluate                               |
 | Feature with no docs, no tests, no telemetry                                  | QUARANTINE + add all three, or DEPRECATE — but check §1 first; it may be unreachable  |
-| Compliance / audit / accessibility path                                       | KEEP — §8c floor applies; passes necessity by definition                              |
+| Compliance / audit / accessibility path                                       | KEEP when the mapped external requirement applies — §8c floor                         |
 | Complex optimization with a benchmark in git                                  | KEEP unless benchmark is restaged (§8e)                                               |
 | Assertion that documents an invariant nothing else captures                   | SIMPLIFY — downgrade to comment / ADR / build-time check (§1c), do not OBSOLETE       |
 
