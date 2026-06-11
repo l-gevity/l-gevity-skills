@@ -495,9 +495,7 @@ ADR, benchmark) before voting SIMPLIFY.
 
 ## 9. Output Contract
 
-Every application of this skill MUST produce a coder-facing decision record.
-Keep fields concrete enough for Codex to choose the next edit, test, telemetry
-task, or rejection:
+Every application of this skill MUST produce a record with these fields:
 
 ```
 Subject:        <feature / module / ticket / path under review>
@@ -512,16 +510,14 @@ C scores:       Component-kinds Δ=<±n>  Dependency-edges Δ=<±n>
                 M=<0-3>  X=<0-3>  E=<0-3>                 (1-line evidence each; OMIT if Necessity=Fail)
 Confidence V:   Low | Medium | High                       (OMIT if Necessity=Fail)
 Confidence C:   Low | Medium | High                       (OMIT if Necessity=Fail)
-Decision:       <BUILD | BUILD-minimal | NEGOTIATE | DEFER | DROP | KEEP | SIMPLIFY | QUARANTINE | DEPRECATE | DELETE | OBSOLETE>
-Rationale:      <2–4 sentences tying scores → decision, or necessity finding → OBSOLETE>
-Next action:    <build minimal slice, delete path, add telemetry, write test, update lint rule, or stop>
-Verification:   <command / telemetry / caller check / Not run + reason>
+Verdict:        <from §7a or §7b>
+Rationale:      <2–4 sentences tying scores → verdict, or necessity finding → OBSOLETE>
 Minimal alt:    <smallest slice preserving most V, if applicable>
 Revisit when:   <measurable trigger or calendar date>
 ```
 
 > [!IMPORTANT] `Revisit when` is **non-optional** for DEFER, QUARANTINE,
-> BUILD-minimal, and DEPRECATE. Every such decision MUST have a measurable
+> BUILD-minimal, and DEPRECATE. Every such verdict MUST have a measurable
 > trigger (usage threshold, date, dependency version, adjacent feature
 > shipping) or it will rot into a permanent maybe.
 

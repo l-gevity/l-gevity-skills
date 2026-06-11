@@ -139,13 +139,11 @@ Emit results in this shape:
 ```
 Scope:          <product/repo/platform/team/environment/time window>
 Mode:           Assessment | Improvement | Roadmap
-Decision:       Keep manual | Document | Standardize | Automate | Platformize | Reject
 Summary:        <2-4 sentences: main toil source, best next push, key risk>
-Verification:   <metrics, logs, workflow search, runbook check, or Not run + reason>
 
 Work map:
-| Work item | Current rank | Target rank | Distance | Evidence | Decision | Confidence | Next action |
-| --------- | ------------ | ----------- | -------- | -------- | -------- | ---------- | ----------- |
+| Work item | Current rank | Target rank | Distance | Evidence | Confidence | Next action |
+| --------- | ------------ | ----------- | -------- | -------- | ---------- | ----------- |
 
 Priorities:
 | Rank | Work item | Why now | Push-out move | Validation | Duplicate to retire |
