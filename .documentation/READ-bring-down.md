@@ -11,6 +11,11 @@ into reusable components, patterns, platform primitives, or managed services.
 - It distinguishes componentizing, patternizing, platformizing, and replacing
   with a managed service.
 - It makes extraction accountable by requiring migration and duplicate removal.
+- It searches current external services only after Level 0 managed-service
+  replacement is plausible.
+- It separates reuse altitude from geometric placement: `bring-down` chooses
+  reuse level; `geometric-architecture` chooses coordinates and dependency
+  rules.
 
 ## The scale
 
@@ -37,6 +42,11 @@ can live at without hiding real variation?
 6. Move down one level, unless an intermediate level is already satisfied.
 7. Migrate at least one real consumer and retire the old duplicate path.
 
+When target Level 0 is plausible and the user asks for service alternatives,
+search current primary sources: official docs, pricing, SLA, security,
+compliance, and migration guides. Compare managed services against keeping the
+capability local, componentized, or as a platform primitive.
+
 Example prompt:
 
 > "Use `bring-down` to review repeated deployment scripts across these repos.
@@ -48,6 +58,8 @@ Example prompt:
 - Use `functionality-complexity-tradeoff` before extracting to confirm the
   duplicated functionality should exist.
 - Use `structural-simplification` to verify extraction lowers real complexity.
+- Use `geometric-architecture` after bring-down chooses a reuse level, so the
+  resulting component gets the correct domain/tier/layer placement.
 - Use `push-out` when the issue is recurring manual work rather than code
   shape.
 - Use `defect-shift-left` when the issue is late defect detection.

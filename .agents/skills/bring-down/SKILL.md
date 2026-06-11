@@ -87,7 +87,31 @@ functionality is unnecessary, delete it instead of bringing it down.
 
 ---
 
-## 4. Bring-Down Protocol
+## 4. Managed-Service Survey
+
+Browse only after Level 0 is plausible. Do not use internet search to justify
+extraction, deletion, or abstraction; use it only to compare current external
+service alternatives.
+
+1. **Confirm commodity shape.** The capability is non-differentiating, broadly
+   available as a service, or mostly operational burden.
+2. **Define constraints.** Record data sensitivity, compliance, latency,
+   region, cost model, lock-in tolerance, operational model, migration needs,
+   and rollback needs.
+3. **Search current alternatives.** Use primary sources where possible:
+   official docs, pricing pages, SLA pages, security/compliance pages, and
+   migration guides.
+4. **Compare adjacent levels.** Include "keep local", Level 3 componentized,
+   and Level 1 platform primitive options in the comparison.
+5. **Recommend only with proof.** Level 0 wins only when it reduces code,
+   operations, risk, or maintenance without violating constraints.
+
+When the user asks for specific service alternatives, browse. Provider
+capabilities, pricing, SLAs, regions, and compliance posture are time-sensitive.
+
+---
+
+## 5. Bring-Down Protocol
 
 1. **Define scope.** Name the repos, modules, services, teams, or workflows
    under review.
@@ -115,7 +139,7 @@ If the improvement is mainly about human execution rather than code shape, use
 
 ---
 
-## 5. Move Patterns
+## 6. Move Patterns
 
 | Move | Use when | Action |
 | ---- | -------- | ------ |
@@ -130,7 +154,22 @@ all old copies still alive is inventory, not simplification.
 
 ---
 
-## 6. Anti-Patterns
+## 7. Do Not Confuse With Placement
+
+`bring-down` changes reuse/specificity altitude. It does not assign domain,
+tier, layer, or dependency direction.
+
+After choosing to componentize, patternize, or platformize, use
+`geometric-architecture` to place the resulting module and `architecture-as-code`
+to enforce allowed imports. Use `structural-simplification` to verify the move
+actually reduces complexity.
+
+Here, "down" means less bespoke and more systemic, not lower in the dependency
+graph.
+
+---
+
+## 8. Anti-Patterns
 
 | Anti-pattern | Correction |
 | ------------ | ---------- |
@@ -139,12 +178,14 @@ all old copies still alive is inventory, not simplification.
 | Platform primitive without adoption | Measure consumers, escape hatches, and support load |
 | Template with no enforcement | Add lint, generator checks, or review gate where feasible |
 | Managed service for differentiating logic | Keep local or componentized where domain value lives |
+| Service selection from stale memory | Browse current primary sources before recommending alternatives |
 | Wrapper around commodity service with no added policy | Delete wrapper or state the invariant it enforces |
 | Extraction without deleting copies | Require migration and retirement criteria |
+| Treating bring-down as layer movement | Use `geometric-architecture` for placement and dependency direction |
 
 ---
 
-## 7. Output Contract
+## 9. Output Contract
 
 Emit results in this shape:
 
@@ -154,8 +195,8 @@ Mode:           Assessment | Improvement | Roadmap
 Summary:        <2-4 sentences: main duplication, best bring-down move, key risk>
 
 Candidates:
-| Candidate | Current level | Target level | Distance | Repetition evidence | Variation | Confidence | Next action |
-| --------- | ------------- | ------------ | -------- | ------------------- | --------- | ---------- | ----------- |
+| Candidate | Current level | Target level | Distance | Repetition evidence | Variation | Service candidates | Confidence | Next action |
+| --------- | ------------- | ------------ | -------- | ------------------- | --------- | ------------------ | ---------- | ----------- |
 
 Priorities:
 | Rank | Candidate | Why now | Bring-down move | Migration proof | Duplicate to retire |
@@ -163,14 +204,19 @@ Priorities:
 
 Gaps:
 <Missing evidence, unclear ownership, unproven repetition, variation risks, or excluded candidates>
+
+Managed-service comparison:
+| Service option | Fit | Gaps | Lock-in | Migration cost | Rollback path |
+| -------------- | --- | ---- | ------- | -------------- | ------------- |
 ```
 
 ---
 
-## 8. See Also
+## 10. See Also
 
 - **`functionality-complexity-tradeoff`** - decide whether the functionality should exist before extracting it.
 - **`structural-simplification`** - verify the extraction actually reduces component kinds, edges, depth, or count.
+- **`geometric-architecture`** - place the resulting component after bring-down chooses the reuse level.
 - **`push-out`** - move recurring operational work outward.
 - **`defect-shift-left`** - move defect detection earlier.
 - **`architecture-as-code`** - enforce accepted patterns as code.
