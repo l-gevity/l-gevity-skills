@@ -11,14 +11,16 @@
   "license": "MIT",
   "author": "L-GEVITY",
   "files": [
+    ".agents/skills/",
     ".claude/skills/",
     ".documentation/",
+    "scripts/",
     "CLAUDE.md",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "prepack": "npm run validate",
-    "validate": "echo 'Skills directory structure validated'"
+    "validate": "python scripts/validate-skills.py"
   }
 }
