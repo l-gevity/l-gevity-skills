@@ -30,6 +30,9 @@ description: >-
 >    local needs.
 > 5. **Measure adoption and deletion.** Extraction succeeds when copies retire,
 >    not when a shared abstraction exists.
+> 6. **Search the current stack first.** Prefer existing local components,
+>    templates, platform primitives, and already-approved services before
+>    surveying the external market.
 
 ---
 
@@ -87,11 +90,34 @@ functionality is unnecessary, delete it instead of bringing it down.
 
 ---
 
-## 4. Managed-Service Survey
+## 4. Current-Stack Survey
 
-Browse only after Level 0 is plausible. Do not use internet search to justify
-extraction, deletion, or abstraction; use it only to compare current external
-service alternatives.
+The first bring-down move is discovery inside the current technology stack.
+Look for a lower placement or alternative that already exists before creating
+or buying anything.
+
+Search for:
+
+| Target | Signals |
+| ------ | ------- |
+| **Existing component** | Shared package, module, library, helper, internal API |
+| **Existing pattern** | Template, generator, reference architecture, ADR, code owner convention |
+| **Existing platform primitive** | Internal service, reusable workflow, paved-road module, self-service control |
+| **Already-approved managed service** | Provider/service already used, security-approved, contracted, or supported |
+| **Framework-native capability** | Built-in feature that replaces local wrapper or custom code |
+
+Prefer stack-native and locally adopted options over new abstractions. A new
+component, template, platform primitive, or external service is justified only
+when the current stack has no suitable lower placement.
+
+---
+
+## 5. Managed-Service Survey
+
+Browse only after Level 0 is plausible and the current-stack survey has not
+found a suitable already-approved alternative. Do not use internet search to
+justify extraction, deletion, or abstraction; use it only to compare current
+external service alternatives.
 
 1. **Confirm commodity shape.** The capability is non-differentiating, broadly
    available as a service, or mostly operational burden.
@@ -102,7 +128,7 @@ service alternatives.
    official docs, pricing pages, SLA pages, security/compliance pages, and
    migration guides.
 4. **Compare adjacent levels.** Include "keep local", Level 3 componentized,
-   and Level 1 platform primitive options in the comparison.
+   Level 1 platform primitive, and current-stack alternatives in the comparison.
 5. **Recommend only with proof.** Level 0 wins only when it reduces code,
    operations, risk, or maintenance without violating constraints.
 
@@ -111,21 +137,24 @@ capabilities, pricing, SLAs, regions, and compliance posture are time-sensitive.
 
 ---
 
-## 5. Bring-Down Protocol
+## 6. Bring-Down Protocol
 
 1. **Define scope.** Name the repos, modules, services, teams, or workflows
    under review.
 2. **Inventory candidates.** Find copy/paste code, repeated scripts, repeated
    PR shapes, local wrappers, and one-off infra/app patterns.
 3. **Question necessity.** Delete obsolete or non-problem-solving code first.
-4. **Compare variation.** List what is common, what differs, and why.
-5. **Assign current level.** Use the scale with evidence.
-6. **Choose target level.** Pick the lowest responsible level by repetition,
+4. **Search the current stack.** Look for existing lower placements:
+   components, templates, platform primitives, approved services, or
+   framework-native capabilities.
+5. **Compare variation.** List what is common, what differs, and why.
+6. **Assign current level.** Use the scale with evidence.
+7. **Choose target level.** Pick the lowest responsible level by repetition,
    stability, risk, and variation.
-7. **Compute distance.** Current level - target level.
-8. **Choose one move.** Move down one level unless the intermediate level is
+8. **Compute distance.** Current level - target level.
+9. **Choose one move.** Move down one level unless the intermediate level is
    already satisfied.
-9. **Prove and retire.** Migrate at least one real consumer and remove the old
+10. **Prove and retire.** Migrate at least one real consumer and remove the old
    duplicate path.
 
 Prioritize by:
@@ -139,7 +168,7 @@ If the improvement is mainly about human execution rather than code shape, use
 
 ---
 
-## 6. Move Patterns
+## 7. Move Patterns
 
 | Move | Use when | Action |
 | ---- | -------- | ------ |
@@ -154,7 +183,7 @@ all old copies still alive is inventory, not simplification.
 
 ---
 
-## 7. Do Not Confuse With Placement
+## 8. Do Not Confuse With Placement
 
 `bring-down` changes reuse/specificity altitude. It does not assign domain,
 tier, layer, or dependency direction.
@@ -169,12 +198,13 @@ graph.
 
 ---
 
-## 8. Anti-Patterns
+## 9. Anti-Patterns
 
 | Anti-pattern | Correction |
 | ------------ | ---------- |
 | Extracting after one instance | Wait for repetition or document risk exception |
 | Shared abstraction hiding real variation | Split stable core from explicit extension points |
+| Building a new shared thing before looking locally | Search the current stack for existing lower placements first |
 | Platform primitive without adoption | Measure consumers, escape hatches, and support load |
 | Template with no enforcement | Add lint, generator checks, or review gate where feasible |
 | Managed service for differentiating logic | Keep local or componentized where domain value lives |
@@ -185,7 +215,7 @@ graph.
 
 ---
 
-## 9. Output Contract
+## 10. Output Contract
 
 Emit results in this shape:
 
@@ -195,8 +225,8 @@ Mode:           Assessment | Improvement | Roadmap
 Summary:        <2-4 sentences: main duplication, best bring-down move, key risk>
 
 Candidates:
-| Candidate | Current level | Target level | Distance | Repetition evidence | Variation | Service candidates | Confidence | Next action |
-| --------- | ------------- | ------------ | -------- | ------------------- | --------- | ------------------ | ---------- | ----------- |
+| Candidate | Current level | Target level | Distance | Existing lower placement | Repetition evidence | Variation | Service candidates | Confidence | Next action |
+| --------- | ------------- | ------------ | -------- | ------------------------ | ------------------- | --------- | ------------------ | ---------- | ----------- |
 
 Priorities:
 | Rank | Candidate | Why now | Bring-down move | Migration proof | Duplicate to retire |
@@ -212,7 +242,7 @@ Managed-service comparison:
 
 ---
 
-## 10. See Also
+## 11. See Also
 
 - **`functionality-complexity-tradeoff`** - decide whether the functionality should exist before extracting it.
 - **`structural-simplification`** - verify the extraction actually reduces component kinds, edges, depth, or count.

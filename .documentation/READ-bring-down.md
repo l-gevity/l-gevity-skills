@@ -11,6 +11,8 @@ into reusable components, patterns, platform primitives, or managed services.
 - It distinguishes componentizing, patternizing, platformizing, and replacing
   with a managed service.
 - It makes extraction accountable by requiring migration and duplicate removal.
+- It searches the current technology stack first for existing lower placements
+  before creating or buying anything new.
 - It searches current external services only after Level 0 managed-service
   replacement is plausible.
 - It separates reuse altitude from geometric placement: `bring-down` chooses
@@ -37,15 +39,19 @@ can live at without hiding real variation?
 2. Find copy/paste code, repeated scripts, repeated PR shapes, local wrappers,
    and one-off infra/app patterns.
 3. Delete obsolete or non-problem-solving code first.
-4. Compare commonality and variation.
-5. Assign current level and target level with evidence.
-6. Move down one level, unless an intermediate level is already satisfied.
-7. Migrate at least one real consumer and retire the old duplicate path.
+4. Search the current stack for existing lower placements: components,
+   templates, platform primitives, approved services, or framework-native
+   capabilities.
+5. Compare commonality and variation.
+6. Assign current level and target level with evidence.
+7. Move down one level, unless an intermediate level is already satisfied.
+8. Migrate at least one real consumer and retire the old duplicate path.
 
 When target Level 0 is plausible and the user asks for service alternatives,
+first check whether the current stack already has an approved service. If not,
 search current primary sources: official docs, pricing, SLA, security,
-compliance, and migration guides. Compare managed services against keeping the
-capability local, componentized, or as a platform primitive.
+compliance, and migration guides. Compare external managed services against
+keeping the capability local, componentized, or as a platform primitive.
 
 Example prompt:
 
