@@ -70,4 +70,5 @@ Greenfield exploration, throwaway scripts, scratch repos. The framework earns it
 
 - See [SKILL.md](../.claude/skills/defect-shift-left/SKILL.md) for the operational reference (full 12-stage ladder, defect taxonomy → earliest stage table, decision protocol, anti-patterns, stack-aware tooling survey).
 - For executable architectural rules (the "ADR → rule" shift in practice), see [`architecture-as-code`](../.claude/skills/architecture-as-code/) (the pattern), with [`-javascript`](../.claude/skills/architecture-as-code-javascript/) and [`-python`](../.claude/skills/architecture-as-code-python/) as concrete implementations.
+- For the sibling improvement axes, use [`push-out`](../.claude/skills/push-out/) to move recurring operational work outward and [`bring-down`](../.claude/skills/bring-down/) to move bespoke code down into reusable capability.
 - Run an audit on your last three production incidents — each escaped defect names the stage it should have been caught at.

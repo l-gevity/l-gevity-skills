@@ -19,9 +19,13 @@ agent.
 
 ## The seven gates of A.L.C.H.E.M.Y.
 
-A.L.C.H.E.M.Y. is the seven-gate discipline at the core of this skillset.
-Each letter names a gate; each gate is a separate SKILL the agent invokes
-when its question comes up.
+A.L.C.H.E.M.Y. names the seven core reasoning gates in this skillset. Around
+those gates, the library adds quality-space models and DevOps improvement axes:
+ways to place components, measure structural complexity, harden delivery, and
+move work toward more durable systems.
+
+Each letter names a gate; each gate is a separate SKILL the agent invokes when
+its question comes up.
 
 | | Letter | Gate | The question it forces | Skill |
 |---|---|---|---|---|
@@ -33,7 +37,7 @@ when its question comes up.
 | **M** | **Minimum** | Necessity & worth | *Does this functionality address a real problem worth its cost?* | [`functionality-complexity-tradeoff`](./.claude/skills/functionality-complexity-tradeoff/SKILL.md) |
 | **Y** | **Yield** | System optimization | *What is the constraint that actually limits flow?* | [`system-optimization`](./.claude/skills/system-optimization/SKILL.md) |
 
-> **Mnemonic vs. sequence.** A.L.C.H.E.M.Y. is the *name* of the discipline.
+> **Mnemonic vs. sequence.** A.L.C.H.E.M.Y. is the *name* of the core gate discipline.
 > The *execution order* is **M → A → L → C → E → H → Y** — necessity before
 > structure, optimization last, because enforcing what shouldn't exist
 > freezes over-engineering in. The orchestration is owned by
@@ -42,9 +46,87 @@ when its question comes up.
 > stage) and in the alchemical-tradition sense (the Hermetic art) — both
 > readings fit.
 
-The result: an agent that doesn't just *write* your code, but argues with
-you about whether the code should exist — and whether it should look the
-way you proposed.
+The result: an agent that doesn't just *write* your code, but argues with you
+about whether the code should exist, where it belongs, how complex it makes the
+system, and which quality space it should improve.
+
+---
+
+## Three quality spaces
+
+### Geometric architecture
+
+Architecture quality is a coordinate problem: a component should sit in the
+right domain, at the right abstraction tier, in the right runtime layer.
+`geometric-architecture` assigns that `(x, y, z)` address; `architecture-as-code`
+turns the allowed neighboring edges into enforceable rules.
+
+```mermaid
+flowchart LR
+    Origin["Architecture quality space"]
+    X["X axis: Domain"]
+    Y["Y axis: Abstraction tier"]
+    Z["Z axis: Runtime layer"]
+    Address["Architecture quality address: (x, y, z)"]
+    Edges["Allowed neighbor edges encoded by architecture-as-code"]
+
+    Origin --> X
+    Origin --> Y
+    Origin --> Z
+    X --> Address
+    Y --> Address
+    Z --> Address
+    Address --> Edges
+```
+
+### Structural simplification
+
+Structural quality is a vector problem: a change is simpler only if it improves
+the shape of the system across component kinds, dependency edges, chain depth,
+and module count. `structural-simplification` makes that claim measurable.
+
+```mermaid
+flowchart LR
+    Origin["Structural quality space"]
+    D["D axis: Component kinds"]
+    K["K axis: Dependency edges"]
+    P["P axis: Max chain depth"]
+    N["n axis: Module count"]
+    Vector["Structural quality vector: (D, K, P, n)"]
+    Verdict["Simpler only if the vector improves without hidden offsetting cost"]
+
+    Origin --> D
+    Origin --> K
+    Origin --> P
+    Origin --> N
+    D --> Vector
+    K --> Vector
+    P --> Vector
+    N --> Vector
+    Vector --> Verdict
+```
+
+### DevOps improvement axes
+
+DevOps quality is also a coordinate problem. The improvement skills move work
+along three axes: detect defects earlier, push recurring toil outward, and
+bring bespoke implementation down into reusable capability.
+
+```mermaid
+flowchart LR
+    Origin["DevOps quality space"]
+    X["X axis: defect-shift-left, late detection -> earlier gate"]
+    Y["Y axis: push-out, manual toil -> durable system"]
+    Z["Z axis: bring-down, bespoke code -> reusable capability"]
+    Quality["DevOps quality address: (x, y, z)"]
+
+    Origin --> X
+    Origin --> Y
+    Origin --> Z
+    X --> Quality
+    Y --> Quality
+    Z --> Quality
+```
 
 ---
 
@@ -147,10 +229,10 @@ edits needed unless you move things.
 
 ## The full skill index
 
-Twelve skills total: seven gate skills, one orchestrator, two stack
+Fourteen skills total: seven gate skills, one orchestrator, two stack
 implementations of **E**, one pipeline-reliability skill that extends **H**,
-and one meta-layer. Every skill ships as a `SKILL.md` (operational
-reference) with a matching `READ-<skill>.md` primer in
+two additional DevOps improvement-axis skills, and one meta-layer. Every skill ships
+as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer in
 [`./.documentation/`](./.documentation/).
 
 ### Prime directives
@@ -179,6 +261,8 @@ reference) with a matching `READ-<skill>.md` primer in
 | [architecture-as-code-javascript](./.claude/skills/architecture-as-code-javascript/SKILL.md) | **E** impl | [READ](./.documentation/READ-architecture-as-code-javascript.md) | JavaScript / TypeScript implementation — `eslint.architecture.mjs` files merged into one ESLint flat-config via `eslint-plugin-boundaries`. |
 | [architecture-as-code-python](./.claude/skills/architecture-as-code-python/SKILL.md) | **E** impl | [READ](./.documentation/READ-architecture-as-code-python.md) | Python implementation — per-package `architecture.toml` files merged into an `import-linter` config and enforced via `lint-imports`. |
 | [ci-cd-reliability-architecture](./.claude/skills/ci-cd-reliability-architecture/SKILL.md) | Extends **H** | [READ](./.documentation/READ-ci-cd-reliability-architecture.md) | Design or audit a CI/CD pipeline against six rules: idempotent, self-contained, immutable artifacts, self-healing, zero-downtime, zero-knowledge. |
+| [push-out](./.claude/skills/push-out/SKILL.md) | Improvement | [READ](./.documentation/READ-push-out.md) | Move recurring DevOps work out of individual memory, manual execution, ticket queues, and local practice into standards, platforms, self-service controls, and feedback loops. |
+| [bring-down](./.claude/skills/bring-down/SKILL.md) | Improvement | [READ](./.documentation/READ-bring-down.md) | Move bespoke, duplicated, or over-local code down into reusable components, patterns, platform primitives, or managed services. |
 | [continuous-improvement](./.claude/skills/continuous-improvement/SKILL.md) | Meta-layer | [READ](./.documentation/READ-continuous-improvement.md) | Decide whether a correction becomes a test, a linter rule, or a SKILL edit — and which SKILL owns it — without letting the library bloat. |
 
 ---
@@ -194,6 +278,12 @@ reference) with a matching `READ-<skill>.md` primer in
 - **Hardening a CI/CD pipeline.** Agent runs **H** + `ci-cd-reliability-architecture`
   — sealing defects at the earliest stage and the pipeline against
   non-idempotent steps, mutable artifacts, hidden state.
+- **Pushing out operational toil.** Agent runs `push-out` — locates where
+  recurring work lives, then moves it into standards, platforms, self-service
+  controls, or feedback loops.
+- **Bringing down bespoke code.** Agent runs `bring-down` — moves repeated
+  one-off implementations into components, patterns, platform primitives, or
+  managed services when repetition evidence justifies it.
 - **Speeding up a slow system.** Agent runs **Y** — finds the real
   constraint instead of optimizing whatever is most visible.
 - **Deciding what to delete.** Agent runs **M** retrospectively — same gate,
