@@ -283,6 +283,8 @@ Only put valid owner-changing bring-down moves in `Candidates` and
 `Priorities`. Put same-owner refactors, repo-local patternization, and vague
 ideas without a landing capability in `Handoffs` or `Gaps`. If there are no
 valid moves, say `Decision: No bring-down recommendation; hand off candidates`.
+Do not use wide tables. If a section would need more than 5 columns, use
+labeled bullets instead.
 
 ```
 Scope:          <repos/modules/services/teams/workflows>
@@ -291,23 +293,38 @@ Decision:       <valid bring-down move, or no bring-down recommendation>
 Summary:        <2-4 sentences: main duplication, best bring-down move, key risk>
 
 Candidates:
-| Candidate | Current | Current owner | Target | Landing capability | Target owner | Distance | Repetition evidence | Variation | Confidence | Next action |
-| --------- | ------- | ------------- | ------ | ------------------ | ------------ | -------- | ------------------- | --------- | ---------- | ----------- |
+- <candidate>
+  - Move: <current level> -> <target level> (distance <n>)
+  - Landing: <exact package/API/standard/platform/service>
+  - Owners: <current owner> -> <target owner>
+  - Evidence: <maintenance burden, repetition, churn, or risk>
+  - Variation: <what differs and whether it blocks the move>
+  - Confidence: <High | Medium | Low>
+  - Next action: <smallest proof or migration step>
 
 Priorities:
-| Rank | Candidate | Why now | Bring-down move | Landing capability | Migration proof | Custom code to retire |
-| ---- | --------- | ------- | --------------- | ------------------ | --------------- | --------------------- |
+1. <candidate>
+   - Why now: <priority driver>
+   - Move: <current level> -> <target level>
+   - Landing: <exact capability>
+   - Migration proof: <real consumer or workflow to migrate>
+   - Retire: <custom code/path to delete after proof>
 
 Gaps:
-<Missing evidence, unclear ownership, unproven repetition, variation risks, or excluded candidates>
+- <missing evidence, unclear ownership, unproven repetition, variation risk, or excluded candidate>
 
 Handoffs:
-| Candidate | Reason excluded | Better skill |
-| --------- | --------------- | ------------ |
+- <candidate>
+  - Reason excluded: <same owner, repo-local patternization, vague landing, or non-bring-down issue>
+  - Better skill: <architecture/refactor/push-out/defect-shift-left/etc.>
 
 Service comparison:
-| Service option | Fit | Gaps | Lock-in | Migration cost | Rollback path |
-| -------------- | --- | ---- | ------- | -------------- | ------------- |
+- <service option>
+  - Fit: <why it matches or does not>
+  - Gaps: <constraint failures or unknowns>
+  - Lock-in: <low/medium/high plus reason>
+  - Migration cost: <small/medium/large plus reason>
+  - Rollback path: <how to return to current approach>
 ```
 
 ---
