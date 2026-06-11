@@ -247,4 +247,4 @@ step 5 (invoke) are stack-specific.
 
 - **`architecture-guidelines`** — first-principles rules this pattern enforces.
 - **`geometric-architecture`** — the spatial rationale (cells, faces, locality) this enforces.
-- **`defect-shift-left`** — §7.2 (ADR → executable architectural rule) names this pattern.
+- **`defect-shift-left`** — §6.2 (ADR → executable architectural rule) names this pattern.

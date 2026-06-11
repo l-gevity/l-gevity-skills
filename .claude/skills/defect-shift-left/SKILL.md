@@ -18,32 +18,34 @@ description: >-
 >    a check.
 > 2. **Earliest possible stage is mandatory.** If a check _can_ run at stage N,
 >    running it at N+1 is a regression.
-> 3. **Replace, don't layer.** When shifting a check earlier, remove the later
->    one.
+> 3. **Replace same-scope duplicates.** When shifting a check earlier, remove
+>    any later check that covers the same scope. Keep a later backstop only
+>    when it covers a broader or less-bypassable scope.
 > 4. **Fail loud at the origin.** Errors must surface where they originated.
 
 ---
 
 ## 1. The Ladder
 
-| Stage  | Phase                   | What runs here                                                            |
-| ------ | ----------------------- | ------------------------------------------------------------------------- |
-| **0**  | Language                | Type system, syntax, language semantics                                   |
-| **1**  | Design                  | Spec, ADR, threat model, schema                                           |
-| **2**  | Authoring               | LSP, in-editor lint, formatter                                            |
-| **3**  | Pre-commit              | Format, fast lint, secret scan, commit-msg hook                           |
-| **4**  | Compile                 | Compiler, type-checker, codegen                                           |
-| **5**  | Build / Static analysis | Full lint, depcheck, SAST, license, CVE, bundle, IaC, fitness functions   |
-| **6**  | Unit test               | Local test runner, property tests                                         |
-| **7**  | Integration / Contract  | CI suite, contract tests, container builds                                |
-| **8a** | Pre-deploy static       | Migration dry-run, config-vs-env, capacity, IAM diff _(deploy abortable)_ |
-| **8b** | Deploy execution        | Smoke, health probes, slot readiness _(rollback on failure)_              |
-| **9**  | Canary / Staging        | Partial traffic, real env, perf regression                                |
-| **10** | Production runtime      | Live traffic, monitoring                                                  |
-| **11** | Post-incident           | Forensics, RCA                                                            |
+| Stage  | Rank | Phase                   | What runs here                                                            |
+| ------ | ---- | ----------------------- | ------------------------------------------------------------------------- |
+| **0**  | 0    | Language                | Type system, syntax, language semantics                                   |
+| **1**  | 1    | Design                  | Spec, ADR, threat model, schema                                           |
+| **2**  | 2    | Authoring               | LSP, in-editor lint, formatter                                            |
+| **3**  | 3    | Pre-commit              | Format, fast lint, secret scan, commit-msg hook                           |
+| **4**  | 4    | Compile                 | Compiler, type-checker, codegen                                           |
+| **5**  | 5    | Build / Static analysis | Full lint, depcheck, SAST, license, CVE, bundle, IaC, fitness functions   |
+| **6**  | 6    | Unit test               | Local test runner, property tests                                         |
+| **7**  | 7    | Integration / Contract  | CI suite, contract tests, container builds                                |
+| **8a** | 8    | Pre-deploy static       | Migration dry-run, config-vs-env, capacity, IAM diff _(deploy abortable)_ |
+| **8b** | 9    | Deploy execution        | Smoke, health probes, slot readiness _(rollback on failure)_              |
+| **9**  | 10   | Canary / Staging        | Partial traffic, real env, perf regression                                |
+| **10** | 11   | Production runtime      | Live traffic, monitoring                                                  |
+| **11** | 12   | Post-incident           | Forensics, RCA                                                            |
 
-Cost grows roughly geometrically with stage. The ladder is monotonic — later
-detection is never neutral.
+Cost grows roughly geometrically with rank. The ladder is monotonic — later
+detection is never neutral. Use `Rank` for distance math; stage labels like
+`8a` and `8b` are names, not numbers.
 
 Stages **8a** and **8b** are split because some defects only become detectable
 when target-environment state is available; pre-deploy can abort cheaply, deploy
@@ -71,109 +73,115 @@ unrepresentable?_ If yes, the check belongs at Stage 0.
 
 ## 3. Defect Taxonomy → Earliest Stage
 
-| Defect class                                    | Stage | Mechanism (fallback)                            |
-| ----------------------------------------------- | ----- | ----------------------------------------------- |
-| Type mismatch, null deref, semantic-type mixing | 0     | Type system                                     |
-| Missing case handling                           | 0     | Exhaustive sum types                            |
-| Off-by-one / range                              | 0     | Refinement types (else 6: property test)        |
-| Use-after-free, race                            | 0     | Linear / borrow types (else 5: static analysis) |
-| Schema / contract mismatch                      | 1     | Shared schema (else 5: codegen check)           |
-| Forbidden architectural dependency              | 1     | ADR (else 5: depcheck)                          |
-| Authorization model gap                         | 1     | Threat model (else 7: security test)            |
-| Style, formatting, unused code, API misuse      | 2     | LSP / editor (else 5: lint)                     |
-| Banned API / unsafe pattern                     | 2     | LSP rule (else 5: lint)                         |
-| Secret in source                                | 3     | Pre-commit scanner (else 5: SAST)               |
-| Symbol resolution / missing import              | 4     | Compiler                                        |
-| CVE in dependency                               | 5     | SCA audit                                       |
-| License incompatibility                         | 5     | License audit                                   |
-| Bundle / artifact regression                    | 5     | Bundle validator                                |
-| Logic error in pure function                    | 6     | Unit test                                       |
-| Property violation across input space           | 6     | Property test                                   |
-| Integration boundary mismatch                   | 7     | Contract test                                   |
-| Container / build reproducibility               | 7     | CI image build                                  |
-| Performance regression (micro)                  | 7     | Benchmark (else 9: load test)                   |
-| Migration vs current schema                     | 8a    | Dry-run against prod DB                         |
-| Irreversible migration                          | 8a    | Reversibility check                             |
-| Cross-service version skew                      | 8a    | Version-matrix gate                             |
-| Backwards-incompatible API change               | 8a    | Contract diff vs deployed                       |
-| Missing / expired secret in target env          | 8a    | Secret-store presence check                     |
-| Undefined feature flag in target                | 8a    | Flag-store consistency                          |
-| Capacity / quota exceeded                       | 8a    | Resource projection                             |
-| IAM permission expansion                        | 8a    | IAM diff                                        |
-| Cost / budget breach                            | 8a    | Cost projection                                 |
-| Missing rollback artifact                       | 8a    | Registry probe                                  |
-| Compliance approval missing                     | 8a    | Policy gate                                     |
-| Artifact crashes on boot                        | 8b    | Startup smoke                                   |
-| Health probe never passes                       | 8b    | Orchestrator readiness gate                     |
-| Target env unreachable dependency               | 8b    | Boot connectivity check                         |
-| Resource exhaustion under load                  | 9     | Load test                                       |
-| Real-world latency / SLO breach                 | 10    | Production monitoring                           |
+| Defect class                                    | Stage | Mechanism (fallback)                             |
+| ----------------------------------------------- | ----- | ------------------------------------------------ |
+| Type mismatch, null deref, semantic-type mixing | 0     | Type system                                      |
+| Missing case handling                           | 0     | Exhaustive sum types                             |
+| Off-by-one / range                              | 0     | Refinement types (else 6: property test)         |
+| Use-after-free, race                            | 0     | Linear / borrow types (else 5: static analysis)  |
+| Generated code drift from schema                | 0     | Codegen types (else 5: codegen drift check)      |
+| Contract / schema absent or ambiguous           | 1     | Shared schema / spec                             |
+| Authorization model gap                         | 1     | Threat model (else 7: security test)             |
+| Style, formatting, unused code, API misuse      | 2     | LSP / editor (else 5: lint)                      |
+| Banned API / unsafe pattern                     | 2     | LSP rule (else 5: lint)                          |
+| Forbidden architectural dependency              | 2     | Editor import rule (else 5: depcheck / lint)     |
+| Committed config violates schema                | 2     | Editor schema hint (else 5: schema validation)   |
+| Secret in source                                | 3     | Pre-commit scanner (else 5: SAST)                |
+| Symbol resolution / missing import              | 4     | Compiler                                         |
+| CVE in dependency                               | 5     | SCA audit                                        |
+| License incompatibility                         | 5     | License audit                                    |
+| Bundle / artifact regression                    | 5     | Bundle validator                                 |
+| Logic error in pure function                    | 6     | Unit test                                        |
+| Property violation across input space           | 6     | Property test                                    |
+| Integration boundary mismatch                   | 7     | Contract test                                    |
+| Container / build reproducibility               | 7     | CI image build                                   |
+| Performance regression (micro)                  | 7     | Benchmark (else 9: load test)                    |
+| Migration vs current schema                     | 8a    | Dry-run against prod DB                          |
+| Irreversible migration                          | 8a    | Reversibility check                              |
+| Cross-service version skew                      | 8a    | Version-matrix gate                              |
+| Backwards-incompatible API change               | 8a    | Contract diff vs deployed                        |
+| Missing / expired secret in target env          | 8a    | Secret-store presence check                      |
+| Undefined feature flag in target                | 8a    | Flag-store consistency                           |
+| Target-env config violates schema               | 8a    | Pre-deploy config / env validation               |
+| Capacity / quota exceeded                       | 8a    | Resource projection                              |
+| IAM permission expansion                        | 8a    | IAM diff                                         |
+| Cost / budget breach                            | 8a    | Cost projection                                  |
+| Missing rollback artifact                       | 8a    | Registry probe                                   |
+| Compliance approval missing                     | 8a    | Policy gate                                      |
+| Artifact crashes on boot                        | 8b    | Startup smoke                                    |
+| Health probe never passes                       | 8b    | Orchestrator readiness gate                      |
+| Target env unreachable dependency               | 8b    | Boot connectivity check                          |
+| Resource exhaustion under load                  | 9     | Load test                                        |
+| Real-world latency / SLO breach                 | 10    | Production monitoring                            |
 
 ---
 
-## 4. The Algorithm
+## 4. Audit Protocol
 
-1. **Inventory** every check and the stage it runs at (including manual reviews
-   and runtime asserts).
+1. **Inventory** every check and the stage it runs at, including manual reviews,
+   advisory warnings, and runtime asserts.
 2. **Classify** each by defect class (§3).
-3. **Compute Δstage** = current − earliest possible.
-4. **Prioritize** by Δstage × frequency.
-5. **Move the check** to the earlier stage.
-6. **Verify and remove** the later check once the earlier one is proven.
-   Layering is doubled cost, not doubled safety.
-7. **Every escaped defect is a forced audit:** find its earliest possible stage;
-   place the check there.
+3. **Look up** the earliest possible stage and its rank (§1).
+4. **Compute stage distance** = current rank − earliest rank.
+5. **Prioritize** by stage distance × frequency × blast radius.
+6. **Move the check** to the earliest feasible stage.
+7. **Gate it.** A correct-stage check that does not block is still a detection
+   gap.
+8. **Remove later same-scope duplicates** once the earlier gate is proven. Keep
+   only broader or less-bypassable backstops.
+9. **Audit every escaped defect:** find its earliest possible stage and place a
+   gate there.
 
----
+| Situation                                      | Action                                         |
+| ---------------------------------------------- | ---------------------------------------------- |
+| Proposed = earliest possible                   | Proceed                                        |
+| Proposed > earliest, earlier feasible now      | Reject — implement at the earlier stage        |
+| Proposed > earliest, earlier requires effort   | Document gap as technical debt; schedule shift |
+| No check; defects only found in production     | Critical — work backward from Stage 10         |
+| Check requires target-env state                | Stage 8a is earliest — do not push to Stage 10 |
+| Check exists but does not block                | Promote to blocking gate or remove as theatre  |
+| Later check covers same scope as earlier check | Remove later duplicate after proof             |
+| Later check covers broader / unbypassable scope | Keep as backstop; record distinct scope        |
 
-## 5. Anti-Patterns
+Emit one row per gap:
 
-| Pattern                                    | Stage actual / earliest      |
-| ------------------------------------------ | ---------------------------- |
-| Runtime check for type errors              | 10 / 0                       |
-| CI test for formatting                     | 7 / 2                        |
-| Linter only in CI                          | 7 / 2 + 5                    |
-| Code review as primary defect filter       | 7 / 2–5                      |
-| Production monitor for known-bad input     | 10 / 0                       |
-| Compile errors hidden behind dynamic types | 6+ / 0                       |
-| Manual deployment checklist                | 8 / 5                        |
-| Documentation as the contract              | 7+ / 1                       |
-| Deploy-and-pray monitoring                 | 10 / 8a                      |
-| Migration applied without dry-run          | 8b–10 / 8a                   |
-| Secrets / config validated only at runtime | 10 / 8a                      |
-| Manual rollback on deploy failure          | 10 / 8b                      |
-| No canary, full traffic on new artifact    | 10 carries full blast radius |
-| Retry as error handling                    | hides 10 indefinitely        |
-| Catch-and-log silent failure               | propagates past origin       |
-| Warnings nobody reads                      | detection without action     |
-
----
-
-## 6. Decision Protocol
-
-1. Identify the defect class (§3).
-2. Look up earliest possible stage.
-3. Compare to current/proposed stage.
-
-| Situation                                 | Action                                         |
-| ----------------------------------------- | ---------------------------------------------- |
-| Proposed = earliest possible              | Proceed                                        |
-| Proposed > earliest, earlier feasible now | Reject — implement at the earlier stage        |
-| Proposed > earliest, requires effort      | Document gap as technical debt; schedule shift |
-| No check; defects only in production      | Critical — work backward from Stage 10         |
-| Check requires target-env state           | Stage 8a is earliest — do not push to Stage 10 |
+| Defect class | Current stage | Earliest stage | Stage distance | Mechanism | Action | Later duplicate removed? |
+| ------------ | ------------- | -------------- | -------------- | --------- | ------ | ------------------------ |
 
 If a gap remains, state: _"Detection Gap: defect class catchable at Stage [X],
 currently at Stage [Y]. Mechanism: [...]."_
 
 ---
 
-## 7. Common Shift Patterns
+## 5. Anti-Patterns
+
+| Pattern                                    | Actual / earliest             |
+| ------------------------------------------ | ----------------------------- |
+| Runtime check for type errors              | Stage 10 / Stage 0            |
+| CI formatting check with no editor support | Stage 5 / Stage 2             |
+| Linter only in CI                          | Stage 5 / Stage 2 + Stage 5   |
+| Code review as primary defect filter       | Manual / Stage 2–5            |
+| Production monitor for known-bad input     | Stage 10 / Stage 0            |
+| Compile errors hidden behind dynamic types | Stage 6+ / Stage 0            |
+| Manual deployment checklist                | Manual / Stage 5 or 8a        |
+| Documentation as the contract              | Stage 7+ / Stage 1            |
+| Deploy-and-pray monitoring                 | Stage 10 / Stage 8a           |
+| Migration applied without dry-run          | Stage 8b–10 / Stage 8a        |
+| Secrets / config validated only at runtime | Stage 10 / Stage 8a           |
+| Manual rollback on deploy failure          | Stage 10 / Stage 8b           |
+| No canary, full traffic on new artifact    | Stage 10 carries full blast radius |
+| Retry as error handling                    | Hides Stage 10 indefinitely   |
+| Catch-and-log silent failure               | Propagates past origin        |
+| Warnings nobody reads                      | Detection without action      |
+
+---
+
+## 6. Common Shift Patterns
 
 Recurring moves that shift a defect class from a later stage to an earlier one.
 Recognise them; apply them deliberately.
 
-### 7.1 Untyped → strict-typed source
+### 6.1 Untyped → strict-typed source
 
 |            |                                                                                       |
 | ---------- | ------------------------------------------------------------------------------------- |
@@ -189,20 +197,21 @@ its own shift: the compiler enumerates the defects, you fix them in batches.
 
 The shift completes only when the strict typecheck is a **blocking gate** at
 both pre-commit (fast feedback on staged files) and CI (full-repo backstop). A
-typecheck nobody runs is theatre — see §7.4.
+typecheck nobody runs is theatre — see §6.4.
 
-### 7.2 ADR → executable architectural rule
+### 6.2 ADR → executable architectural rule
 
 |            |                                                                                            |
 | ---------- | ------------------------------------------------------------------------------------------ |
 | **Shifts** | Forbidden imports, layering violations, banned API usage, accidental cross-module coupling |
 | **From**   | Stage 1 (design doc) or Stage 7+ (code review)                                             |
-| **To**     | Stage 5 (static analysis)                                                                  |
+| **To**     | Stage 2 (editor rule) + Stage 5 (blocking static analysis)                                 |
 
 Architectural rules expressed in prose are advice; rules expressed in lint
 config are enforcement. `eslint-plugin-boundaries`,
-`import/no-restricted- paths`, `dependency-cruiser`, ArchUnit (JVM), Pyright
-import rules — all turn an ADR sentence into a build failure.
+`import/no-restricted-paths`, `dependency-cruiser`, ArchUnit (JVM), Pyright
+import rules — all turn an ADR sentence into editor feedback and a build
+failure.
 
 The recipe: encode each architectural decision as a rule that fails the build
 when violated. The ADR document remains as rationale; the lint config is the
@@ -214,7 +223,7 @@ implementations in `architecture-as-code-javascript` or
 `architecture-guidelines`; for the spatial rationale this enforces, see
 `geometric-architecture`.
 
-### 7.3 Hand-validated boundary → schema-as-code
+### 6.3 Hand-validated boundary → schema-as-code
 
 |            |                                                                                                            |
 | ---------- | ---------------------------------------------------------------------------------------------------------- |
@@ -237,7 +246,7 @@ artifact powers checks at every stage that can read it:
   before it reaches a running service.
 - **Boundary runtime** — schema-bridged TS libraries (`zod`, `typebox`, `io-ts`,
   `valibot`) make the schema the single source: static type plus runtime
-  validator generated from one declaration. Use at every external- input
+  validator generated from one declaration. Use at every external input
   boundary (HTTP body, env vars, message payload).
 
 Catalogue: JSON Schema (configs, `package.json`), OpenAPI (HTTP), gRPC /
@@ -245,11 +254,11 @@ Protobuf (service-to-service), GraphQL SDL, AsyncAPI (events), Avro (streaming),
 XSD (XML / SOAP).
 
 The win is not _"we validate"_ — it is _"validation comes from a single artifact
-that fans out to every appropriate stage."_ Two checks for the same shape from
-two hand-written sources is exactly the layering §Directive 3 forbids; one
-schema is the antidote.
+that fans out to every appropriate stage."_ Two hand-written sources checking
+the same shape are the same-scope duplication §Directive 3 forbids; one schema
+is the antidote.
 
-### 7.4 Optional check → blocking gate
+### 6.4 Optional check → blocking gate
 
 |            |                                                 |
 | ---------- | ----------------------------------------------- |
@@ -266,10 +275,10 @@ shift-left value relative to no typecheck at all. Audit:
 - Lint warning → is the rule severity `error` or `warn`?
 - Coverage drop → does it fail the build, or land in a report nobody opens?
 
-### Layering exception: scope-justified defense-in-depth
+### 6.5 Scope-justified backstops
 
-§Directive 3 says _"replace, don't layer."_ The exception is when two layers run
-the same check on different scopes:
+§Directive 3 allows later backstops when two layers run the same check on
+different scopes:
 
 - **Pre-commit** — staged files only, fast, narrow, bypassable with
   `--no-verify`.
@@ -281,35 +290,16 @@ the later layer is the un-bypassable backstop, not a duplicate.
 
 ---
 
-## 8. Stack-Aware Tooling Survey
+## 7. Stack-Aware Tooling Survey
 
-The ladder is universal; the tools that staff each rung are not. When auditing
-or designing a pipeline, derive the toolset from the project's actual stack — do
-not assume one. Names go stale; categories do not.
+Use this only when the user asks for tooling recommendations or implementation
+options. A plain shift-left audit stops at the missing category.
 
-### 8.1 Detect the stack
-
-Inspect, in order, only what exists:
-
-1. **Language / runtime** — manifest files (`package.json`, `pyproject.toml`,
-   `go.mod`, `Cargo.toml`, `pom.xml`, `*.csproj`, `Gemfile`, `composer.json`,
-   etc.), lockfiles, and primary source extensions.
-2. **Build / package system** — declared scripts, build tool, bundler.
-3. **Test frameworks** — already-declared test runners and assertion libs.
-4. **CI / CD** — `.github/workflows/`, `.gitlab-ci.yml`, `azure-pipelines.yml`,
-   `Jenkinsfile`, etc.
-5. **Infra / deploy targets** — IaC files (`*.tf`, `*.bicep`, `serverless.yml`,
-   `Dockerfile`, k8s manifests), platform configs (`staticwebapp.config.json`,
-   `vercel.json`, `netlify.toml`).
-6. **VCS hooks** — `husky`, `pre-commit`, `lefthook`, native `.git/hooks`.
-7. **Editor config** — `.editorconfig`, `.vscode/`, declared LSPs.
-
-Record what is present. Record what is absent — absence is the gap.
-
-### 8.2 Map stages to tool categories
-
-For each ladder stage, the survey asks _what category of tool belongs here_,
-never _which specific tool_:
+1. **Detect the stack:** manifests, lockfiles, scripts, test runners, CI/CD
+   files, IaC/deploy config, hook runners, and editor config. Record present and
+   absent signals.
+2. **Map gaps to categories:** name the stage, defect class, and missing tool
+   category. Do not jump straight to products.
 
 | Stage  | Tool category to look for                                         |
 | ------ | ----------------------------------------------------------------- |
@@ -327,34 +317,21 @@ never _which specific tool_:
 | **10** | Runtime monitoring, error tracker, SLO alerting                   |
 | **11** | Incident-record system, RCA template                              |
 
-### 8.3 Find stack-compatible options
+3. **Find specific options only on request:** search the detected ecosystem,
+   filter for stack compatibility, prefer tools already present in the stack,
+   and cite each option with a source URL and release/currency signal.
 
-For every stage where a category is unstaffed in the detected stack:
+Produce one row per gap:
 
-1. **Search the ecosystem of the detected stack** for current tools in that
-   category. Use a web search; do not rely on training-time recall, which is
-   stale.
-2. **Filter for compatibility.** Reject candidates that require a runtime,
-   package manager, or platform the project does not already use, unless the
-   benefit clearly justifies adopting it.
-3. **Prefer tools the stack already pulls in.** A linter plugin beats a new
-   linter; a built-in compiler flag beats a third-party checker.
-4. **Cite each candidate** with its source URL and last-release signal so the
-   user can verify currency.
-
-### 8.4 Output
-
-Produce a survey table — one row per stage that has a gap:
-
-| Stage | Defect class at risk | Detected stack signal | Candidate tool category
-| Specific options (cited) | Effort |
+| Stage | Defect class at risk | Detected stack signal | Candidate tool category | Specific options (cited) | Effort |
+| ----- | -------------------- | --------------------- | ----------------------- | ------------------------ | ------ |
 
 Do not propose a tool without naming the stage it staffs and the defect class it
 catches. A tool that does not map to a rung on §1 has no place in the output.
 
-## 9. See also
+## 8. See also
 
-- **`architecture-as-code`** — the codified-architecture pattern this skill names in §7.2.
+- **`architecture-as-code`** — the codified-architecture pattern this skill names in §6.2.
 - **`architecture-guidelines`** — first-principles rules whose violations this skill places on the ladder.
 - **`ci-cd-reliability-architecture`** — pipeline rules that staff Stages 5–10.
 - **`continuous-improvement`** — how to promote a recurring escaped-defect into a permanent gate (Directive 1).
