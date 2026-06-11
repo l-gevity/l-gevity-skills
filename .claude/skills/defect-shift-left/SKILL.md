@@ -23,6 +23,12 @@ description: >-
 >    when it covers a broader or less-bypassable scope.
 > 4. **Fail loud at the origin.** Errors must surface where they originated.
 
+> **Improvement Trio**
+>
+> - `defect-shift-left`: move defect detection earlier.
+> - `push-out`: move recurring operational work outward.
+> - `bring-down`: move bespoke code down into reusable capability.
+
 ---
 
 ## 1. The Ladder
@@ -334,4 +340,6 @@ catches. A tool that does not map to a rung on §1 has no place in the output.
 - **`architecture-as-code`** — the codified-architecture pattern this skill names in §6.2.
 - **`architecture-guidelines`** — first-principles rules whose violations this skill places on the ladder.
 - **`ci-cd-reliability-architecture`** — pipeline rules that staff Stages 5–10.
+- **`push-out`** — move recurring operational work out of human/manual execution into durable systems.
+- **`bring-down`** — move bespoke or duplicated code down into reusable capability.
 - **`continuous-improvement`** — how to promote a recurring escaped-defect into a permanent gate (Directive 1).
