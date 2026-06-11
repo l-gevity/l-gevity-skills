@@ -147,10 +147,10 @@ edits needed unless you move things.
 
 ## The full skill index
 
-Twelve skills total: seven gate skills, one orchestrator, two stack
+Thirteen skills total: seven gate skills, one orchestrator, two stack
 implementations of **E**, one pipeline-reliability skill that extends **H**,
-and one meta-layer. Every skill ships as a `SKILL.md` (operational
-reference) with a matching `READ-<skill>.md` primer in
+one DevOps capability-assessment skill, and one meta-layer. Every skill ships
+as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer in
 [`./.documentation/`](./.documentation/).
 
 ### Prime directives
@@ -179,6 +179,7 @@ reference) with a matching `READ-<skill>.md` primer in
 | [architecture-as-code-javascript](./.claude/skills/architecture-as-code-javascript/SKILL.md) | **E** impl | [READ](./.documentation/READ-architecture-as-code-javascript.md) | JavaScript / TypeScript implementation — `eslint.architecture.mjs` files merged into one ESLint flat-config via `eslint-plugin-boundaries`. |
 | [architecture-as-code-python](./.claude/skills/architecture-as-code-python/SKILL.md) | **E** impl | [READ](./.documentation/READ-architecture-as-code-python.md) | Python implementation — per-package `architecture.toml` files merged into an `import-linter` config and enforced via `lint-imports`. |
 | [ci-cd-reliability-architecture](./.claude/skills/ci-cd-reliability-architecture/SKILL.md) | Extends **H** | [READ](./.documentation/READ-ci-cd-reliability-architecture.md) | Design or audit a CI/CD pipeline against six rules: idempotent, self-contained, immutable artifacts, self-healing, zero-downtime, zero-knowledge. |
+| [devops-capability-matrix](./.claude/skills/devops-capability-matrix/SKILL.md) | Assessment | [READ](./.documentation/READ-devops-capability-matrix.md) | Assess DevOps capability by pipeline phase, stack component, and maturity level; produce evidence-backed current/target levels and next-step roadmap actions. |
 | [continuous-improvement](./.claude/skills/continuous-improvement/SKILL.md) | Meta-layer | [READ](./.documentation/READ-continuous-improvement.md) | Decide whether a correction becomes a test, a linter rule, or a SKILL edit — and which SKILL owns it — without letting the library bloat. |
 
 ---
@@ -194,6 +195,9 @@ reference) with a matching `READ-<skill>.md` primer in
 - **Hardening a CI/CD pipeline.** Agent runs **H** + `ci-cd-reliability-architecture`
   — sealing defects at the earliest stage and the pipeline against
   non-idempotent steps, mutable artifacts, hidden state.
+- **Assessing DevOps maturity.** Agent runs `devops-capability-matrix`
+  — maps pipeline phase x stack component x maturity level, then names the
+  next evidence-backed improvement.
 - **Speeding up a slow system.** Agent runs **Y** — finds the real
   constraint instead of optimizing whatever is most visible.
 - **Deciding what to delete.** Agent runs **M** retrospectively — same gate,
