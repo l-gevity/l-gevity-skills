@@ -4,7 +4,7 @@
 
 A pure routing skill that sequences the architecture skills into a deterministic gate flow. Names the order, the trigger discipline, and the diagnostic signature for each common over-engineering pattern.
 
-> **Reporting vocabulary.** Gate-output phrases below (e.g. "Domain / tier / layer per component", "Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ") match the architect-facing names defined in the **Reporting Vocabulary** sections of [`geometric-architecture`](../.claude/skills/geometric-architecture/SKILL.md) and [`structural-simplification`](../.claude/skills/structural-simplification/SKILL.md). Those sections also list the internal axis symbols (`X, Y, Z`, `D, K, P, n`) that the model uses underneath.
+> **Reporting vocabulary.** Gate-output phrases below (e.g. "Domain / tier / layer per component", "Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ") match the coder-facing fields defined in the **Reporting Vocabulary** sections of [`geometric-architecture`](../.claude/skills/geometric-architecture/SKILL.md) and [`structural-simplification`](../.claude/skills/structural-simplification/SKILL.md). Those sections also list the internal axis symbols (`X, Y, Z`, `D, K, P, n`) that the model uses underneath.
 
 ## Why use this
 

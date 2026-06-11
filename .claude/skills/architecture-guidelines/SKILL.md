@@ -114,6 +114,20 @@ against concurrent mutation?"_
 > [Y]."_ If the violation is non-trivial, see `structural-simplification` §8
 > Decision Protocol for a per-axis comparison before accepting it.
 
+## 8. Output Contract
+
+When this skill changes or rejects a design, emit a coder-facing decision
+record:
+
+```
+Subject:        <module / service / abstraction / PR / code path>
+Decision:       Proceed | Simplify | Split | Inline | Reject | Defer
+Principle:      <YAGNI | Rule of 3 | DRY | SoC | SRP | DI | fail-fast | idempotency | atomicity | naming | concurrency>
+Evidence:       <callers, imports, tests, runtime invariant, or file paths checked>
+Next action:    <edit, delete, extract, add test, add lint rule, or ask user>
+Verification:   <command / review check / Not run + reason>
+```
+
 ## See also
 
 - **`functionality-complexity-tradeoff`** — necessity gate and worth ledger applied to individual decisions.

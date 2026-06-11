@@ -4,7 +4,7 @@
 
 A first-principles SKILL for deciding whether a piece of functionality is worth keeping or building. Two stages: a **necessity gate** ("does the problem this code addresses actually occur in this stack?") followed by a **worth ledger** ("does the value justify the cost?").
 
-> **Reporting vocabulary.** Cost-side phrases below (e.g. "Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ") match the architect-facing names defined in the **Reporting Vocabulary** section of [`structural-simplification`](../.claude/skills/structural-simplification/SKILL.md). The aggregate-cost formula below uses the internal symbols (`ΔD, ΔK, ΔP, Δn`) because it is math, not narrative.
+> **Reporting vocabulary.** Cost-side phrases below (e.g. "Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ") match the coder-facing fields defined in the **Reporting Vocabulary** section of [`structural-simplification`](../.claude/skills/structural-simplification/SKILL.md). The aggregate-cost formula below uses the internal symbols (`ΔD, ΔK, ΔP, Δn`) because it is math, not narrative.
 
 ## Why use this
 

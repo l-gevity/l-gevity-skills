@@ -167,7 +167,21 @@ For identifying constraints, waste, and root causes in operational analysis:
 > `structural-simplification` without measurably improving flow, reliability,
 > cost, or another complexity axis, it is not an optimization.
 
-## 10. See also
+## 10. Output Contract
+
+When applying this skill, emit a coder-facing optimization decision record:
+
+```
+Scope:          <repo / pipeline / workflow / module / time window>
+Constraint:     <measured bottleneck or Not measured + reason>
+Decision:       Delete | Simplify | Stabilize | Optimize | Automate | Defer | Reject
+Evidence:       <metric, log, queue, test result, file path, or user workflow checked>
+Next action:    <one concrete edit, experiment, measurement, or owner question>
+Verification:   <before/after metric, command, CI run, or Not run + reason>
+Residual risk:  <risk left for judgment, rollout, or future measurement>
+```
+
+## 11. See also
 
 - **`structural-simplification`** — per-axis complexity comparison used for Kaizen Δ scoring.
 - **`defect-shift-left`** — placement of each error detection at the earliest possible stage (operationalizes "Build Quality In").

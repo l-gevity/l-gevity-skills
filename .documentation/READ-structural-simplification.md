@@ -24,7 +24,7 @@
 > Max-chain-depth Δ, Module-count Δ** — see the **Reporting Vocabulary**
 > section of [`SKILL.md`](../.claude/skills/structural-simplification/SKILL.md)
 > for the mapping. Treat any bare-symbol narrative below as describing the
-> model itself, not the architect-facing output.
+> model itself, not the coder-facing output.
 
 ---
 

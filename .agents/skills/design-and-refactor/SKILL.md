@@ -34,7 +34,7 @@ description: >-
 
 ## 1. The Gates
 
-| # | Gate | Skill | Output |
+| # | Gate | Skill | Decision record |
 |:--|:--|:--|:--|
 | 1 | Necessity check | `functionality-complexity-tradeoff` | PASS / DROP per type, method, parameter |
 | 2 | First principles | `architecture-guidelines` | Smallest correct design |
@@ -45,7 +45,8 @@ description: >-
 | 7 | Optimize value stream | `system-optimization` | Constraint analysis (deferred to iter 2) |
 
 For each gate's procedure and output contract: invoke the sibling skill. This
-file does not duplicate that content.
+file does not duplicate that content, but the final report must normalize each
+gate into the common coder-facing shape in §5.
 
 ---
 
@@ -96,7 +97,24 @@ the order:
 
 ---
 
-## 5. Discipline
+## 5. Output Contract
+
+Emit one gate row per sibling skill used:
+
+| Gate | Skill | Decision | Evidence | Files/checks | Next action |
+| ---- | ----- | -------- | -------- | ------------ | ----------- |
+
+Then state:
+
+```
+Scope:          <module / service / refactor / PR>
+Mode:           Design | Refactor | Audit
+Blocking gate:  <first gate that blocks, or None>
+Decision:       Proceed | Redesign | Reject | Defer
+Verification:   <commands, lint rules, tests, or Not run + reason>
+```
+
+## 6. Discipline
 
 - **Skipped gates require a one-line rationale.** Skipped gates with no
   rationale are over-engineering risk for the next audit.

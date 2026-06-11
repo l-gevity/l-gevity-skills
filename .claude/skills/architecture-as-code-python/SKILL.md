@@ -211,7 +211,20 @@ project's virtualenv to import the analyzed packages.
 .import_linter_cache/    # import-linter's own cache
 ```
 
-## 4. Python-specific gotchas
+## 4. Output Contract
+
+When applying this implementation, emit:
+
+```
+Scope:          <repo / package / module path>
+Decision:       Add architecture.toml | Update assembler | Update import-linter config | Blocked
+Generated config:<path, if any>
+Contracts changed:<forbidden / layers / independence contracts>
+Verification:   <lint-imports command / assembler command / Not run + reason>
+Next action:    <specific file edit, package install, cache clear, or unresolved question>
+```
+
+## 5. Python-specific gotchas
 
 > [!NOTE] **Dynamic imports bypass enforcement.** import-linter reads static
 > `import` and `from ... import` statements via Grimp. Imports through

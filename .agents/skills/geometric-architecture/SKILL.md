@@ -27,12 +27,13 @@ resists impossible plumbing.
 
 ## Reporting Vocabulary
 
-The skill thinks in coordinates and faces; the **report it emits speaks
-architect**. The internal model (§§1–2) uses `(X, Y, Z)` and the six face
-names. Every emit block, gate-table output, failure-mode citation, and
-cross-skill reference uses the architect phrase instead.
+The skill may reason in coordinates and faces, but reports are for a coding
+agent that must choose files, imports, lint rules, or review checks. The
+internal model (§§1–2) uses `(X, Y, Z)` and the six face names. Every emit block,
+gate-table output, failure-mode citation, and cross-skill reference uses the
+coder-facing field below.
 
-| Internal term                | Architect phrase used in reports                                      |
+| Internal term                | Coder-facing field used in reports                                    |
 | ---------------------------- | --------------------------------------------------------------------- |
 | `(X, Y, Z)` address          | **Domain / abstraction tier / layer** (kept visible as three concerns) |
 | `X` axis                     | **Domain** (bounded context)                                          |
@@ -52,10 +53,10 @@ cross-skill reference uses the architect phrase instead.
 - **Layer** = Z only. **Abstraction tier** = Y only. Never let "layer" leak onto Y.
 - "Inbound/outbound interface" is the only primary phrasing. "Port" appears once above as a deprecated alias and nowhere else.
 - **Component** = the thing at an address (behavior + interface). **Position** = the address itself (the slot). Conflating them is the most common reader mistake — when a sentence is about *where* something lives, use "position" or "placement at <Domain/Tier/Layer>", not "component."
-- Internal terms appear in exactly three places: inside a formula, inside this table, and inside §§1–2 (the internal model). Anywhere else in narrative, use the architect phrase.
+- Internal terms appear in exactly three places: inside a formula, inside this table, and inside §§1–2 (the internal model). Anywhere else in narrative, use the coder-facing field.
 
 > **2026-05-22 — emit field-name change.** Field labels and failure-mode
-> names changed from internal terms to architect phrases:
+> names changed from internal terms to coder-facing fields:
 > `(X, Y, Z) → Domain / Tier / Layer`,
 > `Front/Back/Top/Bottom/Left/Right → inbound/outbound interface / caller / callee / peer`,
 > `wormhole → layer-skip violation`,
@@ -80,8 +81,8 @@ others.
 
 ## 2. Six faces (directionality)
 
-Every cell exposes six conceptual faces with fixed semantic roles (architect
-phrases in *italics* — used in all reports):
+Every cell exposes six conceptual faces with fixed semantic roles
+(coder-facing fields in *italics* — used in all reports):
 
 - **Front** — *inbound interface*; the public surface through which callers enter.
 - **Back** — *outbound interface*; outward calls / I/O / infrastructure access.
@@ -160,10 +161,11 @@ codebase gets disabled the first time someone needs to merge.
 
 ## 6. Audit Output
 
-When applying this skill, emit one row per violation:
+When applying this skill, emit one row per violation and include the exact code
+action Codex should take next:
 
-| Component / import | Domain / tier / layer | Violation | Evidence | Action |
-| ------------------ | --------------------- | --------- | -------- | ------ |
+| Component / import | Domain / tier / layer | Violation | Evidence | Decision | Next action | Verification |
+| ------------------ | --------------------- | --------- | -------- | -------- | ----------- | ------------ |
 
 Use these violation names: **layer-skip violation**, **tier inversion**,
 **cross-domain coupling**, **forbidden import cycle**, **god component**,

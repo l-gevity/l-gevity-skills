@@ -228,7 +228,22 @@ Before merge:
 
 ---
 
-## 8. Implementations
+## 8. Output Contract
+
+When designing or auditing rules, emit a coder-facing decision record:
+
+```
+Scope:          <repo / package / module path>
+Stack:          JavaScript | Python | Other
+Decision:       Add config | Update config | Reject rule | Defer | Blocked
+Config files:   <eslint.architecture.mjs / architecture.toml / generated config>
+Components:     <component names or patterns added/changed>
+Forbidden edges:<from -> to rules added/changed>
+Verification:   <lint command / meta-lint / Not run + reason>
+Next action:    <specific edit, rule, test, or owner question>
+```
+
+## 9. Implementations
 
 This skill defines the pattern. Concrete implementations live in
 sibling skills:
@@ -243,7 +258,7 @@ edges between named module sets, then write a small assembler that emits its
 native config. Everything in §§ 1–6 transfers; only step 4 of §5 (emit) and
 step 5 (invoke) are stack-specific.
 
-## 9. See also
+## 10. See also
 
 - **`architecture-guidelines`** — first-principles rules this pattern enforces.
 - **`geometric-architecture`** — the spatial rationale (cells, faces, locality) this enforces.

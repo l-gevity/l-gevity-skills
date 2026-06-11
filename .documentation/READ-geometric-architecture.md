@@ -4,7 +4,7 @@
 
 A 3-D spatial coordinate system for your dependency graph. Every component is placed at a **Domain / Tier / Layer** position and dependency coupling is routed through declared adjacent positions or named boundary adapters; long-range and forbidden cyclic dependencies become structurally hard to express — the way a building's geometry resists impossible plumbing.
 
-> **Reporting vocabulary.** Terms like "Domain / Tier / Layer", "inbound interface", "outbound interface", "caller / callee / peer", and "layer-skip violation" match the architect-facing names defined in the **Reporting Vocabulary** section of [`geometric-architecture` SKILL.md](../.claude/skills/geometric-architecture/SKILL.md). The internal model uses `(X, Y, Z)` coordinates and the six face names (Front / Back / Top / Bottom / Left / Right) underneath — see the Vocabulary section for the mapping.
+> **Reporting vocabulary.** Terms like "Domain / Tier / Layer", "inbound interface", "outbound interface", "caller / callee / peer", and "layer-skip violation" match the coder-facing fields defined in the **Reporting Vocabulary** section of [`geometric-architecture` SKILL.md](../.claude/skills/geometric-architecture/SKILL.md). The internal model uses `(X, Y, Z)` coordinates and the six face names (Front / Back / Top / Bottom / Left / Right) underneath — see the Vocabulary section for the mapping.
 
 ## Why use this
 

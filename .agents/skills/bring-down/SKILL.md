@@ -222,11 +222,13 @@ Emit results in this shape:
 ```
 Scope:          <repos/modules/services/teams/workflows>
 Mode:           Assessment | Improvement | Roadmap
+Decision:       Keep local | Componentize | Patternize | Platformize | Use managed service | Reject
 Summary:        <2-4 sentences: main duplication, best bring-down move, key risk>
+Verification:   <searches, callers, service docs, tests, or Not run + reason>
 
 Candidates:
-| Candidate | Current level | Target level | Distance | Existing lower placement | Repetition evidence | Variation | Service candidates | Confidence | Next action |
-| --------- | ------------- | ------------ | -------- | ------------------------ | ------------------- | --------- | ------------------ | ---------- | ----------- |
+| Candidate | Current level | Target level | Distance | Existing lower placement | Repetition evidence | Variation | Service candidates | Decision | Confidence | Next action |
+| --------- | ------------- | ------------ | -------- | ------------------------ | ------------------- | --------- | ------------------ | -------- | ---------- | ----------- |
 
 Priorities:
 | Rank | Candidate | Why now | Bring-down move | Migration proof | Duplicate to retire |
