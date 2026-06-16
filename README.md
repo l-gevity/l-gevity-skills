@@ -1,8 +1,9 @@
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/670c0a5f-3a52-468a-83ee-a7c27394e6e5" />
+
 # /ALCHEMY $ALCHEMY
 
 **THE AI ARCHITECT** By [Patrick Savalle](https://github.com/patricksavalle)
 
-[![image](overview-abstract.png)](overview.png)
 
     Open-source, platform-agnostic, drop-in for any project and any compatible
     agent that you activate with /alchemy (Claude) or $alchemy (Codex).
