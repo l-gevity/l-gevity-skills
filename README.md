@@ -100,6 +100,12 @@ system, and which quality space it should improve.
 
 ---
 
+## Example output
+
+<img width="631" height="473" alt="image" src="https://github.com/user-attachments/assets/ad431fd7-d298-4d9c-9051-05223a82183a" />
+
+---
+
 ## Three quality spaces
 
 ### Geometric architecture
@@ -175,8 +181,6 @@ flowchart LR
     Y --> Quality
     Z --> Quality
 ```
-
-<img width="631" height="473" alt="image" src="https://github.com/user-attachments/assets/ad431fd7-d298-4d9c-9051-05223a82183a" />
 
 ---
 
