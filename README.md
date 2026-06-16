@@ -1,9 +1,11 @@
-# L-GEVITY Skills — AI A.L.C.H.E.M.Y.
-**The architect for your AI coding agent.**
+# /ALCHEMY $ALCHEMY
 
-*By [Patrick Savalle](https://github.com/patricksavalle)*
+**THE AI ARCHITECT** By [Patrick Savalle](https://github.com/patricksavalle)
 
 [![image](overview-abstract.png)](overview.png)
+
+    Open-source, platform-agnostic, drop-in for any project and any compatible
+    agent that you activate with /alchemy (Claude) or $alchemy (Codex).
 
 Most agent skills teach an AI *how* to do specific tasks — write tests,
 scaffold boilerplate, format code. L-GEVITY skills do something different.
@@ -11,9 +13,6 @@ They teach an agent how to *think* about software at a structural level:
 the voice that asks whether a feature earns its complexity, whether a
 pipeline is truly idempotent, whether a structure can be simpler before
 it's optimized.
-
-Open-source, platform-agnostic, drop-in for any project and any compatible
-agent.
 
 ---
 
