@@ -97,7 +97,7 @@
 <text x="0" y="32" font-size="12" fill="#E0DDF8" text-anchor="middle">the team ships the result</text>
 </g>
 
-<!-- ========== ORBITING ROUTER: design-and-refactor ========== -->
+<!-- ========== ORBITING ROUTER: alchemy ========== -->
 <!-- Sits just above the brain — it's the meta skill that sequences all others -->
 <g transform="translate(800, 380)">
 <rect x="-150" y="-42" width="300" height="84" rx="14" fill="#26215C" stroke="#534AB7" stroke-width="1"/>

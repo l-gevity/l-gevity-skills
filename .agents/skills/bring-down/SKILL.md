@@ -3,14 +3,14 @@ name: bring-down
 description: >-
     Moves bespoke, duplicated, or over-local code down into reusable
     capabilities outside the immediate implementation: framework-native
-    features, approved libraries, internal platform products, managed services, or
-    external standards. Use when assessing whether custom code should be
-    replaced by a lower-level capability, especially an external library or
-    service; when reducing bespoke wrappers around commodity behavior; or when
-    designing an improvement roadmap for reuse and platform leverage. Skip
-    purely in-codebase componentization or patternization unless the target is
-    an approved external library, framework capability, platform product, or
-    managed service.
+    features, stack-aware approved libraries, internal platform products,
+    managed services, or external standards. Use when assessing whether custom
+    code should be replaced by a lower-level capability, especially an external
+    library or service; when reducing bespoke wrappers around commodity
+    behavior; or when designing an improvement roadmap for reuse and platform
+    leverage. Skip purely in-codebase componentization or patternization unless
+    the target is an approved external library, framework capability, platform
+    product, or managed service.
 ---
 
 # Bring-Down
@@ -39,7 +39,8 @@ description: >-
 >    retires, not when another abstraction exists.
 > 6. **Search the current stack first.** Prefer framework-native features,
 >    approved libraries, platform products, and already-approved services
->    before surveying the external market.
+>    before surveying the external market. When a new L3 LIB landing is
+>    plausible, search stack-native package indexes and current primary sources.
 > 7. **Name the landing capability.** A recommendation is incomplete unless it
 >    says where the functionality lands and who maintains that destination.
 
@@ -161,10 +162,49 @@ the candidate as "no bring-down landing found".
 
 ---
 
-## 5. Service Survey
+## 5. Library Survey
+
+Run a library survey when recommending a new or not-yet-approved `L3 LIB`
+landing. Do not browse for every assessment; browse when library status,
+compatibility, maintenance, or security affects the recommendation.
+
+Detect the stack before searching. Use manifests, lockfiles, imports, framework
+files, and build/deploy config such as `package.json`, `pyproject.toml`,
+`requirements.txt`, `go.mod`, `Cargo.toml`, `.csproj`, `pom.xml`,
+`build.gradle`, `composer.json`, `Gemfile`, Dockerfiles, IaC files, and
+framework conventions.
+
+Search in this order:
+
+1. **Current repo/org stack.** Existing dependencies, imports, framework-native
+   APIs, SDK features, internal approved libraries, and platform catalogs.
+2. **Stack-native indexes.** npm, PyPI, Go Packages, crates.io, Maven Central,
+   NuGet, Packagist, RubyGems, Docker Hub, Terraform Registry, cloud/provider
+   catalogs, framework plugin registries, or equivalent ecosystem index.
+3. **Primary docs.** Official documentation, changelog, compatibility matrix,
+   migration guide, security policy, and license.
+4. **Source repository.** Use GitHub or another source host for release
+   history, maintenance activity, issue health, examples, ownership, and
+   project governance. Do not treat stars as proof of fit.
+5. **Broad web search.** Use only when stack-native indexes, docs, and source
+   repositories do not identify credible candidates.
+
+Evaluate candidates by exact commodity fit, current repo/org adoption,
+maintenance activity, release cadence, security advisories, license
+compatibility, framework/runtime compatibility, API surface size, lock-in,
+migration cost, rollback path, and custom code retired.
+
+Recommend `L3 LIB` only when the landing is a named package, framework API, SDK
+feature, or plugin with current evidence. If no credible library is found,
+report "no L3 LIB landing found" and compare L4 CODE, L2 STD, L1 PLP, or L0
+SRVC as appropriate.
+
+---
+
+## 6. Service Survey
 
 Browse only after L0 SRVC is plausible and the current-stack survey has not
-found a suitable already-approved alternative. Do not use internet search to
+found a suitable already-approved alternative. Do not use service search to
 justify replacement, deletion, or abstraction; use it only to compare current
 external service alternatives.
 
@@ -186,7 +226,7 @@ capabilities, pricing, SLAs, regions, and compliance posture are time-sensitive.
 
 ---
 
-## 6. Bring-Down Protocol
+## 7. Bring-Down Protocol
 
 1. **Define scope.** Name the repos, modules, services, teams, or workflows
    under review.
@@ -197,19 +237,22 @@ capabilities, pricing, SLAs, regions, and compliance posture are time-sensitive.
 4. **Search the current stack.** Look for existing lower placements:
    framework-native capabilities, approved libraries, standards, platform
    products, or approved services.
-5. **Compare variation.** List what is common, what differs, and why.
-6. **Assign current level.** Use the scale with evidence.
-7. **Choose target level.** Pick the lowest responsible level by maintenance
+5. **Survey libraries when L3 is plausible.** Search stack-native indexes and
+   current primary sources before recommending a new or not-yet-approved
+   library.
+6. **Compare variation.** List what is common, what differs, and why.
+7. **Assign current level.** Use the scale with evidence.
+8. **Choose target level.** Pick the lowest responsible level by maintenance
    burden, commodity fit, risk, and variation.
-8. **Name landing capability.** Record the exact package/API, standard,
+9. **Name landing capability.** Record the exact package/API, standard,
    platform product, or service and its maintenance owner.
-9. **Reject same-owner moves.** If the target owner is the same codebase/team,
+10. **Reject same-owner moves.** If the target owner is the same codebase/team,
    remove it from bring-down recommendations and hand it off.
-10. **Compute distance.** Current level - target level.
-11. **Choose one move.** Move down one level unless the intermediate level is
+11. **Compute distance.** Current level - target level.
+12. **Choose one move.** Move down one level unless the intermediate level is
    already satisfied. If the move is purely internal componentization or
    patternization, hand off to architecture skills.
-12. **Prove and retire.** Migrate at least one real consumer and remove the old
+13. **Prove and retire.** Migrate at least one real consumer and remove the old
    duplicate path.
 
 Prioritize by:
@@ -223,7 +266,7 @@ If the improvement is mainly about human execution rather than code shape, use
 
 ---
 
-## 7. Move Patterns
+## 8. Move Patterns
 
 | Move | Use when | Action |
 | ---- | -------- | ------ |
@@ -240,7 +283,7 @@ the named standard path is maintained outside the consuming code owner.
 
 ---
 
-## 8. Do Not Confuse With Placement
+## 9. Do Not Confuse With Placement
 
 `bring-down` changes reuse/specificity altitude. It does not assign domain,
 tier, layer, or dependency direction.
@@ -255,13 +298,15 @@ graph.
 
 ---
 
-## 9. Anti-Patterns
+## 10. Anti-Patterns
 
 | Anti-pattern | Correction |
 | ------------ | ---------- |
 | Replacing custom code only because it exists | Prove commodity fit, maintenance burden, risk reduction, or repetition |
 | Shared abstraction hiding real variation | Split stable core from explicit extension points |
 | Building a new shared thing before looking locally | Search the current stack for existing lower placements first |
+| Library recommendation from stale memory | Search stack-native indexes and current primary sources before recommending new L3 LIB |
+| GitHub stars as library proof | Require exact fit, compatibility, maintenance, security, license, migration, and deletion evidence |
 | Triggering bring-down for repo-local componentization | Use architecture skills unless the target is an external/library/platform capability |
 | Recommendation has no landing capability | Name the exact package/API, standard, platform product, or service before recommending it |
 | Target has the same maintenance owner | Exclude it from bring-down and hand off to the relevant skill |
@@ -275,7 +320,7 @@ graph.
 
 ---
 
-## 10. Output Contract
+## 11. Output Contract
 
 Emit results in this shape:
 
@@ -284,7 +329,8 @@ Only put valid owner-changing bring-down moves in `Candidates` and
 ideas without a landing capability in `Handoffs` or `Gaps`. If there are no
 valid moves, say `Decision: No bring-down recommendation; hand off candidates`.
 Do not use wide tables. If a section would need more than 5 columns, use
-labeled bullets instead.
+labeled bullets instead. Include `Library search` only when a library survey
+was needed.
 
 ```
 Scope:          <repos/modules/services/teams/workflows>
@@ -313,6 +359,13 @@ Priorities:
 Gaps:
 - <missing evidence, unclear ownership, unproven repetition, variation risk, or excluded candidate>
 
+Library search:
+- Stack: <detected language/framework/runtime/package manager>
+- Indexes: <package indexes, docs, and source hosts searched>
+- Selected: <exact package/API/plugin, or "no L3 LIB landing found">
+- Rejected: <credible alternatives rejected and why>
+- Evidence: <current source/date for compatibility, maintenance, security, or license>
+
 Handoffs:
 - <candidate>
   - Reason excluded: <same owner, repo-local patternization, vague landing, or non-bring-down issue>
@@ -329,7 +382,7 @@ Service comparison:
 
 ---
 
-## 11. See Also
+## 12. See Also
 
 - **`functionality-complexity-tradeoff`** - decide whether the functionality should exist before replacing it.
 - **`structural-simplification`** - verify the externalization actually reduces component kinds, edges, depth, or count.

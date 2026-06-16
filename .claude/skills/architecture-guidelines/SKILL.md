@@ -68,6 +68,11 @@ description: >-
 - **SoC**: One concern per module; cross-cutting concerns are extracted, not
   interleaved.
 - **SRP**: One reason to change per module. Two forces of change → split.
+- **Capability Boundary = Module Boundary**: A capability with its own domain
+  name, lifecycle, dependency surface, test surface, or reason to change gets
+  its own module directory. Do not group multiple atomic capabilities in one
+  subsystem directory unless they form a higher-level capability with a single
+  public interface and shared change reason.
 - **High Cohesion, Loose Coupling**: Internals tightly related; external
   dependencies minimized and abstracted.
 - **Interface Discipline**:
@@ -75,6 +80,10 @@ description: >-
     - _Module_: internals encapsulated; the interface is the only access point.
     - _Designer_: expose everything every caller needs and only what every
       caller needs.
+
+**Review check:** If a directory contains multiple named capabilities, require
+one of: a single facade/interface proving they are one higher-level capability,
+or a split into capability-named module directories.
 
 ## 5. Resilience
 
@@ -122,7 +131,7 @@ record:
 ```
 Subject:        <module / service / abstraction / PR / code path>
 Decision:       Proceed | Simplify | Split | Inline | Reject | Defer
-Principle:      <YAGNI | Rule of 3 | DRY | SoC | SRP | DI | fail-fast | idempotency | atomicity | naming | concurrency>
+Principle:      <YAGNI | Rule of 3 | DRY | SoC | SRP | capability-boundary | DI | fail-fast | idempotency | atomicity | naming | concurrency>
 Evidence:       <callers, imports, tests, runtime invariant, or file paths checked>
 Next action:    <edit, delete, extract, add test, add lint rule, or ask user>
 Verification:   <command / review check / Not run + reason>

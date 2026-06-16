@@ -113,7 +113,20 @@ export default [
 **Dependencies:** `eslint-plugin-boundaries`, plus `"type": "module"` in the
 repo-root `package.json`.
 
-## 3. JavaScript-specific gotchas
+## 3. Output Contract
+
+When applying this implementation, emit:
+
+```
+Scope:          <repo / package / module path>
+Decision:       Add eslint.architecture.mjs | Update assembler | Update ESLint config | Blocked
+Generated config:<path, if any>
+Rules changed:  <boundaries/dependencies or no-restricted-imports entries>
+Verification:   <eslint command / assembler command / Not run + reason>
+Next action:    <specific file edit, dependency install, or unresolved question>
+```
+
+## 4. JavaScript-specific gotchas
 
 > [!NOTE] **Unresolved imports bypass enforcement.** `eslint-plugin-boundaries`
 > only enforces rules on imports it can resolve to a file path. Host-served

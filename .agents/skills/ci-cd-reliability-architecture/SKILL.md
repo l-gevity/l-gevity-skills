@@ -320,7 +320,20 @@ curl -f -X POST https://api/resource -d "${DEFINITION}"
 - [ ] DB migrations: Expand/Contract pattern for schema changes (multi-tenant)
 - [ ] Secret rotation audit: quarterly seed secret rotation logged
 
-## 9. See also
+## 9. Output Contract
+
+When applying this skill, emit a coder-facing pipeline decision record:
+
+```
+Scope:          <workflow / job / environment / deploy path>
+Decision:       Proceed | Block | Add gate | Split job | Make idempotent | Add rollback | Remove secret
+Risk:           <idempotency | timeout | mutable artifact | deploy-build | secret | health check | e2e | concurrency | IaC>
+Evidence:       <workflow file, command, log, branch rule, secret path, or deployment behavior checked>
+Verification:   <local command / CI check / dry run / Not run + reason>
+Next action:    <specific workflow edit, test, policy, or owner question>
+```
+
+## 10. See also
 
 - **`defect-shift-left`** — where each pipeline check belongs on the stage ladder.
 - **`system-optimization`** — value-stream optimization built on top of a reliable pipeline.

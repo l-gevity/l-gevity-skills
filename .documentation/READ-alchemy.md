@@ -1,4 +1,4 @@
-# Design & Refactor
+# Alchemy
 
 ![Design and Refactor](design_and_refactor.svg)
 
@@ -26,17 +26,40 @@ Most over-engineering is timing, not capability. Run enforcement before necessit
 
 ## How to use
 
-The skill applies in two situations: **designing** a new module, or **auditing** existing code for over-engineering.
+The skill is a command entrypoint. Use it for **designing** a new module,
+**auditing** existing code for over-engineering, or running one focused gate.
+
+```
+/alchemy <subject>   | $alchemy <subject>   route through the needed gates
+/alchemy M <subject> | $alchemy M <subject> Minimum: worth it?
+/alchemy A <subject> | $alchemy A <subject> Architecture: sound design?
+/alchemy L <subject> | $alchemy L <subject> Locality: where belongs?
+/alchemy C <subject> | $alchemy C <subject> Complexity: simpler?
+/alchemy E <subject> | $alchemy E <subject> Enforcement: rules as code?
+/alchemy H <subject> | $alchemy H <subject> Hermetic: catch earlier?
+/alchemy Y <subject> | $alchemy Y <subject> Yield: optimize flow?
+/alchemy left <subject> | $alchemy left <subject> detect defects earlier
+/alchemy out <subject>  | $alchemy out <subject> move toil out of humans
+/alchemy down <subject> | $alchemy down <subject> move bespoke code down
+```
+
+Use `/alchemy ?` or `$alchemy ?` to print the grammar without running a gate.
 
 1. **Identify the trigger.** Introducing a new module / service / library, refactoring across module boundaries, designing a new abstraction, extracting a sub-component into a package, or auditing existing code for over-engineering.
 2. **Prompt the AI.**
 
-   > *Design:* "I'm extracting the import logic into its own module so it can ship to npm. Walk me through the design-and-refactor gates."
+   > *Design:* "/alchemy I'm extracting the import logic into its own module so it can ship to npm."
    >
-   > *Audit:* "Run design-and-refactor in retrospective mode on `packages/shared-ui/js/biomarker-import/`. Flag any speculative generality."
+   > *Audit:* "/alchemy audit `packages/shared-ui/js/biomarker-import/`. Flag any speculative generality."
+   >
+   > *Shorthand:* "/alchemy this auth refactor."
+   >
+   > *Focused gate:* "/alchemy E the new module boundaries."
+   >
+   > *DevOps improvement triad:* "/alchemy out release handoffs."
 
-3. **Read the verdict.** The skill names which gates passed, which gates were skipped (with rationale), the necessity-gate output (PASS / DROP), the complexity vector, and which `eslint.architecture.mjs` files need to land in the same PR.
-4. **Apply the fix.** Drop everything Gate 1 flagged. Place each surviving component at its Domain / Tier / Layer position. Compute Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ for the proposed structure. Write the architecture file. Move every error path to its earliest catchable stage.
+3. **Read the verdict.** The default response is terse: route, verdict, one- or two-line reason, and next action. Full gate tables appear only for multi-gate runs, non-trivial design/refactor passes, audits, or explicit requests for detail.
+4. **Apply the fix.** For focused gates, apply only that gate's next action. For full passes, drop everything Gate 1 flagged, place each surviving component at its Domain / Tier / Layer position, compute Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ, write the architecture file, and move every error path to its earliest catchable stage.
 
 ## The seven gates at a glance
 
@@ -51,6 +74,20 @@ The skill applies in two situations: **designing** a new module, or **auditing**
 | **7** | Optimize the value stream     | [`system-optimization`](../.claude/skills/system-optimization/)                                     | Constraint analysis (deferred to iter 2)     |
 
 The skill does not duplicate sibling content. Each gate is one row in this table; running a gate means invoking its sibling skill.
+
+## DevOps improvement triad
+
+The triad is separate from the core seven-gate sequence:
+
+| Command | Skill | Use when |
+|---------|-------|----------|
+| `/alchemy left` | [`defect-shift-left`](../.claude/skills/defect-shift-left/) | Defects are found too late; move detection to the earliest capable stage. |
+| `/alchemy out` | [`push-out`](../.claude/skills/push-out/) | Recurring operational work lives in human memory, tickets, or local team practice. |
+| `/alchemy down` | [`bring-down`](../.claude/skills/bring-down/) | Bespoke, duplicated, or over-local code should move into reusable capability. |
+
+Run triad commands directly when the user names the move. `/alchemy Y` can
+recommend `out` or `down` when a bottleneck is toil or bespoke implementation,
+but the triad does not run by default inside the seven-gate sequence.
 
 ## The retrospective inversion
 
@@ -87,7 +124,7 @@ Bug fixes within an existing module, content/copy edits, CSS-only changes, depen
 
 ## Next steps
 
-- See [SKILL.md](../.claude/skills/design-and-refactor/SKILL.md) for the full pre-flight checklist, gate sequence, and failure-mode diagnostic table.
+- See [SKILL.md](../.claude/skills/alchemy/SKILL.md) for the full pre-flight checklist, gate sequence, and failure-mode diagnostic table.
 - For the necessity gate (Gate 1) and what it catches in detail, see [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/).
 - For first-principles rules driving Gate 2, see [`architecture-guidelines`](../.claude/skills/architecture-guidelines/).
 - For the Domain / Tier / Layer placement model used at Gate 3, see [`geometric-architecture`](../.claude/skills/geometric-architecture/).
@@ -95,4 +132,5 @@ Bug fixes within an existing module, content/copy edits, CSS-only changes, depen
 - For the enforcement files produced at Gate 5, see [`architecture-as-code`](../.claude/skills/architecture-as-code/) (the pattern), with [`-javascript`](../.claude/skills/architecture-as-code-javascript/) and [`-python`](../.claude/skills/architecture-as-code-python/) as concrete implementations.
 - For the shift-left hierarchy applied at Gate 6, see [`defect-shift-left`](../.claude/skills/defect-shift-left/).
 - For the constraint analysis applied at Gate 7, see [`system-optimization`](../.claude/skills/system-optimization/).
+- For the DevOps improvement triad, see [`defect-shift-left`](../.claude/skills/defect-shift-left/), [`push-out`](../.claude/skills/push-out/), and [`bring-down`](../.claude/skills/bring-down/).
 - For the meta-loop that updates this skill when a gate is repeatedly skipped, see [`continuous-improvement`](../.claude/skills/continuous-improvement/).

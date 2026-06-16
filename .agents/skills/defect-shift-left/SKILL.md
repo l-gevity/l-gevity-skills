@@ -149,10 +149,10 @@ unrepresentable?_ If yes, the check belongs at Stage 0.
 | Later check covers same scope as earlier check | Remove later duplicate after proof             |
 | Later check covers broader / unbypassable scope | Keep as backstop; record distinct scope        |
 
-Emit one row per gap:
+Emit one coder-facing row per gap:
 
-| Defect class | Current stage | Earliest stage | Stage distance | Mechanism | Action | Later duplicate removed? |
-| ------------ | ------------- | -------------- | -------------- | --------- | ------ | ------------------------ |
+| Defect class | Current stage | Earliest stage | Stage distance | Mechanism | Decision | Owner/check | Verification | Next action |
+| ------------ | ------------- | -------------- | -------------- | --------- | -------- | ----------- | ------------ | ----------- |
 
 If a gap remains, state: _"Detection Gap: defect class catchable at Stage [X],
 currently at Stage [Y]. Mechanism: [...]."_

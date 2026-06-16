@@ -31,22 +31,22 @@ description: >-
 
 ## Reporting Vocabulary
 
-The skill thinks in axis symbols; the **report it emits speaks architect**.
-The model below uses `D / K / P / n` as shorthand; every emit block, gate-table
-output, and cross-skill citation uses the architect phrase instead.
+The skill may reason with axis symbols, but reports are for a coding agent that
+must choose an edit, test, lint rule, or rejection. Use the coder-facing field
+names below in every emit block, gate table, and cross-skill citation.
 
-| Internal symbol  | Architect phrase used in reports                                       |
-| ---------------- | ---------------------------------------------------------------------- |
-| `ΔD` (diversity) | **Component-kinds Δ** — distinct component types added / removed       |
-| `ΔK` (coupling)  | **Dependency-edges Δ** — edges in the dependency graph added / removed |
-| `ΔP` (depth)     | **Max-chain-depth Δ** — change in longest dependency chain             |
-| `Δn` (quantity)  | **Module-count Δ** — modules / instances added / removed               |
+| Internal symbol  | Coder-facing field used in reports                                    |
+| ---------------- | --------------------------------------------------------------------- |
+| `ΔD` (diversity) | **Component-kinds Δ** — distinct component/interface/pattern types added or removed |
+| `ΔK` (coupling)  | **Dependency-edges Δ** — imports, calls, package edges, or runtime links added or removed |
+| `ΔP` (depth)     | **Max-chain-depth Δ** — longest import/call/build chain before vs after |
+| `Δn` (quantity)  | **Module-count Δ** — files, modules, jobs, services, or instances added or removed |
 | Wormhole         | **Layer-skip violation** (term carried over from `geometric-architecture`) |
 
-**Naming guardrails.** `P` is **max-chain-depth**, never "depth" alone — bare "depth" collides with the layer axis in `geometric-architecture`. Symbols appear in exactly three places: inside a formula, inside this table, and inside §§1–7 (the internal model). Anywhere else in narrative, use the architect phrase.
+**Naming guardrails.** `P` is **max-chain-depth**, never "depth" alone — bare "depth" collides with the layer axis in `geometric-architecture`. Symbols appear in exactly three places: inside a formula, inside this table, and inside §§1–7 (the internal model). Anywhere else in narrative, use the coder-facing field name.
 
 > **2026-05-22 — emit field-name change.** Field labels in emit blocks
-> changed from internal symbols to architect phrases:
+> changed from internal symbols to coder-facing fields:
 > `ΔD → Component-kinds Δ`, `ΔK → Dependency-edges Δ`,
 > `ΔP → Max-chain-depth Δ`, `Δn → Module-count Δ`.
 > Any downstream consumer (script, hook, agent prompt) that pattern-matched
@@ -237,7 +237,7 @@ first.
 ## 8. Decision Protocol
 
 1. **Model** before-state and after-state. Record D, K, P, n for each
-   (internal axes; see Reporting Vocabulary for the architect-facing names).
+   (internal axes; see Reporting Vocabulary for the coder-facing field names).
 2. **Cycle check.** If the modeled projection is required to be acyclic, a
    cycle in the after-state is a hard fault — fix before continuing. If the
    domain permits cycles, record the cycle semantics and score the chosen
@@ -264,10 +264,12 @@ first.
     | Mixed (some improve, some worsen) | Consult §6 trade-offs, apply §7, then check gates |
     | No axis improves                  | Reject or redesign unless required by an external gate |
 
-6. **Emit** (architect-facing; see Reporting Vocabulary for the symbol mapping):
+6. **Emit a coder-facing decision record** (see Reporting Vocabulary for the symbol mapping):
 
     ```
     Subject:              <structure / module / refactor under review>
+    Decision:             Proceed | Redesign | Reject
+                          (retrospective: KEEP | SIMPLIFY | DELETE)
     Component-kinds Δ:    <±n>   (evidence: novel pattern, 2nd concrete instance)
     Dependency-edges Δ:   <±n>   (evidence: what newly couples to what)
     Max-chain-depth Δ:    <±n>   (evidence: longest path before → after)
@@ -275,10 +277,9 @@ first.
     Cycle:                Pass | Fail
     Non-structural gates: Pass | Fail | Not evaluated
     Trade-off:            <§6 row matched; §7 sub-section if asymmetric>
-    Verdict:              Proceed | Redesign | Reject
-                          (retrospective: KEEP | SIMPLIFY | DELETE)
-    Rationale:            <1–3 sentences tying the four deltas and forcing-Q answers → verdict>
-    Alternative:          <if not Proceed: smaller restructuring that improves ≥1 axis>
+    Rationale:            <1–3 sentences tying the four deltas and forcing-Q answers → decision>
+    Next action:          <edit, test, lint rule, measurement, or smaller alternative>
+    Verification:         <command / graph check / review evidence, or Not run + reason>
     ```
 
 > [!IMPORTANT] If no axis improves, state: *"Complexity Warning:

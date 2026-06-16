@@ -97,12 +97,14 @@ Ensure the learning "sticks":
 When applying this skill, emit:
 
 ```
+Subject:        <skill / test / linter / schema / template>
 Trigger:        <correction | regression | new pattern | systemic failure | process break>
 Root cause:     <missing/ambiguous | conflict | ignored rule | technical constraint | ownership gap>
 Owner:          <skill/test/linter/schema/template that should own the fix>
 Automation:     <implemented | infeasible | deferred> - <reason>
-Change:         <replace | add | delete | cross-reference | no change>
+Decision:       <replace | add | delete | cross-reference | no change>
 Verification:   <test/lint/audit/search performed>
+Next action:    <edit made, check added, follow-up owner, or stop>
 Residual risk:  <what still depends on judgment or future enforcement>
 ```
 

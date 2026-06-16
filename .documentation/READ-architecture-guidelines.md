@@ -34,7 +34,7 @@ The skill applies in two situations: **designing** a new module, or **reviewing*
    > *Review:* "Audit this PR against architecture-guidelines. Flag any violation with the section number."
 
 3. **Read the verdict.** The skill names the principle violated (e.g. "§3 — pure core: `OrderService` calls `fetch()` directly") and proposes the smallest fix.
-4. **Apply the fix.** Pull I/O to the edge; raise the abstraction only when the third instance arrives; rename the module so its layer is visible.
+4. **Apply the fix.** Pull I/O to the edge; split capability-named module directories when a folder holds multiple independent capabilities; raise the abstraction only when the third instance arrives; rename the module so its layer is visible.
 
 ## The seven sections at a glance
 
@@ -43,7 +43,7 @@ The skill applies in two situations: **designing** a new module, or **reviewing*
 | **1** | Minimalism & abstraction    | Does this exist? Is there a third instance? Is the rule one source of truth? |
 | **2** | Consistency & coupling      | Eventual consistency by default; depend on contracts, not implementations.   |
 | **3** | Functional core             | Is the domain logic pure? Does I/O live at the edge?                         |
-| **4** | Modularity                  | One concern, one reason to change, interface as the only access point.       |
+| **4** | Modularity                  | One concern, one reason to change, capability boundary = module directory.   |
 | **5** | Resilience                  | Validated at boundaries? Idempotent? Failure mode classified? Atomic?        |
 | **6** | Naming & traceability       | Does the name reveal layer, domain role, and technical purpose?              |
 | **7** | Concurrency & shared state  | Is the concurrency model declared (per-instance / per-tab / global)?         |

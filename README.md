@@ -17,34 +17,82 @@ agent.
 
 ---
 
+## The command: alchemy
+
+After install, use one command as the entrypoint:
+
+```text
+/alchemy <subject>   # Claude Code
+$alchemy <subject>   # Codex
+```
+
+Examples:
+
+```text
+/alchemy this auth refactor
+/alchemy M this feature
+/alchemy E module boundaries
+/alchemy H the deploy pipeline
+/alchemy out repeated release handoffs
+/alchemy down our bespoke retry wrapper
+/alchemy ?
+```
+
+Codex uses the same grammar with `$alchemy` instead of `/alchemy`.
+
+Default output is intentionally small:
+
+```text
+Route:    <M | A | L | C | E | H | Y | left | out | down>
+Verdict:  Proceed | Redesign | Drop | Defer
+Reason:   <one or two lines>
+Next:     <one concrete action>
+```
+
+Use `/alchemy <subject>` when you want the agent to pick the right gates. Use
+`/alchemy <letter> <subject>` when you already know the question you want
+answered. Use the DevOps improvement triad, `/alchemy left|out|down`, when the
+work is about earlier defect detection, operational toil, or reusable
+capability. Focused commands stay focused; ask for `full`, `all`, or `audit`
+when you want the complete pass.
+
 ## The seven gates of A.L.C.H.E.M.Y.
 
-A.L.C.H.E.M.Y. names the seven core reasoning gates in this skillset. Around
-those gates, the library adds quality-space models and DevOps improvement axes:
-ways to place components, measure structural complexity, harden delivery, and
-move work toward more durable systems.
+A.L.C.H.E.M.Y. is the name of the gate discipline. The letters are memorable;
+the execution order is different: **M → A → L → C → E → H → Y**. Necessity runs
+first, optimization runs last, because enforcing or optimizing the wrong design
+locks in waste.
 
-Each letter names a gate; each gate is a separate SKILL the agent invokes when
-its question comes up.
+| Command | Gate | The question it forces | Skill |
+|---|---|---|---|
+| `/alchemy M` | **Minimum** | *Does this functionality address a real problem worth its cost?* | [`functionality-complexity-tradeoff`](./.claude/skills/functionality-complexity-tradeoff/SKILL.md) |
+| `/alchemy A` | **Architecture** | *Is the design minimal, modular, named for its purpose?* | [`architecture-guidelines`](./.claude/skills/architecture-guidelines/SKILL.md) |
+| `/alchemy L` | **Locality** | *Where does this component live? Which neighbors may it import?* | [`geometric-architecture`](./.claude/skills/geometric-architecture/SKILL.md) |
+| `/alchemy C` | **Complexity** | *Does this restructuring actually simplify, on every axis?* | [`structural-simplification`](./.claude/skills/structural-simplification/SKILL.md) |
+| `/alchemy E` | **Enforcement** | *Are the architectural rules encoded as lint, not prose?* | [`architecture-as-code`](./.claude/skills/architecture-as-code/SKILL.md) |
+| `/alchemy H` | **Hermetic** | *Is each defect sealed at the earliest stage that can catch it?* | [`defect-shift-left`](./.claude/skills/defect-shift-left/SKILL.md) |
+| `/alchemy Y` | **Yield** | *What is the constraint that actually limits flow?* | [`system-optimization`](./.claude/skills/system-optimization/SKILL.md) |
 
-| | Letter | Gate | The question it forces | Skill |
-|---|---|---|---|---|
-| **A** | **Architecture** | First principles | *Is the design minimal, modular, named for its purpose?* | [`architecture-guidelines`](./.claude/skills/architecture-guidelines/SKILL.md) |
-| **L** | **Locality** | Geometric placement | *Where does this component live? Which neighbors may it import?* | [`geometric-architecture`](./.claude/skills/geometric-architecture/SKILL.md) |
-| **C** | **Complexity** | Structural measurement | *Does this restructuring actually simplify, on every axis?* | [`structural-simplification`](./.claude/skills/structural-simplification/SKILL.md) |
-| **H** | **Hermetic** | Shift-left sealing | *Is each defect sealed at the earliest stage that can catch it?* | [`defect-shift-left`](./.claude/skills/defect-shift-left/SKILL.md) |
-| **E** | **Enforcement** | Architecture as code | *Are the architectural rules encoded as lint, not prose?* | [`architecture-as-code`](./.claude/skills/architecture-as-code/SKILL.md) |
-| **M** | **Minimum** | Necessity & worth | *Does this functionality address a real problem worth its cost?* | [`functionality-complexity-tradeoff`](./.claude/skills/functionality-complexity-tradeoff/SKILL.md) |
-| **Y** | **Yield** | System optimization | *What is the constraint that actually limits flow?* | [`system-optimization`](./.claude/skills/system-optimization/SKILL.md) |
+The [`alchemy`](./.claude/skills/alchemy/SKILL.md) skill is the orchestrator. It
+routes to the sibling skills, reads the selected sibling `SKILL.md`, and returns
+the smallest useful verdict. **H = Hermetic** in the literal sense (sealed
+against leakage at every stage) and in the alchemical-tradition sense (the
+Hermetic art).
 
-> **Mnemonic vs. sequence.** A.L.C.H.E.M.Y. is the *name* of the core gate discipline.
-> The *execution order* is **M → A → L → C → E → H → Y** — necessity before
-> structure, optimization last, because enforcing what shouldn't exist
-> freezes over-engineering in. The orchestration is owned by
-> [`design-and-refactor`](./.claude/skills/design-and-refactor/SKILL.md).
-> **H = Hermetic** in the literal sense (sealed against leakage at every
-> stage) and in the alchemical-tradition sense (the Hermetic art) — both
-> readings fit.
+## DevOps improvement triad
+
+The core gates answer architecture and refactor questions. The DevOps
+improvement triad moves recurring operational problems into better places:
+
+| Command | Move | Use when | Skill |
+|---|---|---|---|
+| `/alchemy left` | Shift left | Defects are detected too late. | [`defect-shift-left`](./.claude/skills/defect-shift-left/SKILL.md) |
+| `/alchemy out` | Push out | Recurring toil lives in human memory, tickets, or local practice. | [`push-out`](./.claude/skills/push-out/SKILL.md) |
+| `/alchemy down` | Bring down | Bespoke or duplicated code should become reusable capability. | [`bring-down`](./.claude/skills/bring-down/SKILL.md) |
+
+`/alchemy Y` may recommend `out` or `down` when the bottleneck is toil or
+bespoke implementation, but the triad does not run as part of the seven-gate
+sequence unless you ask for it.
 
 The result: an agent that doesn't just *write* your code, but argues with you
 about whether the code should exist, where it belongs, how complex it makes the
@@ -106,10 +154,10 @@ flowchart LR
     Vector --> Verdict
 ```
 
-### DevOps improvement axes
+### DevOps improvement triad
 
-DevOps quality is also a coordinate problem. The improvement skills move work
-along three axes: detect defects earlier, push recurring toil outward, and
+DevOps quality is also a coordinate problem. The DevOps improvement triad moves
+work along three axes: detect defects earlier, push recurring toil outward, and
 bring bespoke implementation down into reusable capability.
 
 ```mermaid
@@ -217,13 +265,15 @@ After install:
 your-project/
 ├── CLAUDE.md                    ← strategic directives
 └── .claude/skills/
+    ├── alchemy/
     ├── architecture-guidelines/
     ├── structural-simplification/
     └── ...
 ```
 
-`CLAUDE.md` already references skills by `./.claude/skills/<name>/` — no
-edits needed unless you move things.
+`CLAUDE.md` already references skills by `./.claude/skills/<name>/` — no edits
+needed unless you move things. Start with `/alchemy ?` in Claude Code or
+`$alchemy ?` in Codex.
 
 ---
 
@@ -257,7 +307,7 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
 
 | Skill | Role | Primer | Use it to |
 | :---- | :--- | :----- | :-------- |
-| [design-and-refactor](./.claude/skills/design-and-refactor/SKILL.md) | Orchestrator | [READ](./.documentation/READ-design-and-refactor.md) | Sequence the seven gates in dependency order (M → A → L → C → E → H → Y) so enforcement never precedes design and speculative generality is caught at **M**, not after a rewrite. |
+| [alchemy](./.claude/skills/alchemy/SKILL.md) | Orchestrator | [READ](./.documentation/READ-alchemy.md) | Route `/alchemy` commands through the seven gates and the DevOps improvement triad while keeping focused commands focused. |
 | [architecture-as-code-javascript](./.claude/skills/architecture-as-code-javascript/SKILL.md) | **E** impl | [READ](./.documentation/READ-architecture-as-code-javascript.md) | JavaScript / TypeScript implementation — `eslint.architecture.mjs` files merged into one ESLint flat-config via `eslint-plugin-boundaries`. |
 | [architecture-as-code-python](./.claude/skills/architecture-as-code-python/SKILL.md) | **E** impl | [READ](./.documentation/READ-architecture-as-code-python.md) | Python implementation — per-package `architecture.toml` files merged into an `import-linter` config and enforced via `lint-imports`. |
 | [ci-cd-reliability-architecture](./.claude/skills/ci-cd-reliability-architecture/SKILL.md) | Extends **H** | [READ](./.documentation/READ-ci-cd-reliability-architecture.md) | Design or audit a CI/CD pipeline against six rules: idempotent, self-contained, immutable artifacts, self-healing, zero-downtime, zero-knowledge. |
@@ -269,24 +319,24 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
 
 ## Use cases at a glance
 
-- **Before adding a feature.** Agent runs **M** — weighs value against
+- **Before adding a feature.** Run `/alchemy M this feature` — weighs value against
   complexity cost, proposes a smaller version, or pushes back entirely.
-- **Reviewing a pull request.** Agent runs **A** + **L** — checks the diff
+- **Reviewing a pull request.** Run `/alchemy audit this PR` — checks the diff
   against first-principles and against the Domain / Tier / Layer grid.
-- **Cleaning up a tangled module.** Agent runs **C** — measures complexity
+- **Cleaning up a tangled module.** Run `/alchemy C this module` — measures complexity
   on four axes; surfaces hot-spots before any optimization work begins.
-- **Hardening a CI/CD pipeline.** Agent runs **H** + `ci-cd-reliability-architecture`
+- **Hardening a CI/CD pipeline.** Run `/alchemy H the deploy pipeline`
   — sealing defects at the earliest stage and the pipeline against
   non-idempotent steps, mutable artifacts, hidden state.
-- **Pushing out operational toil.** Agent runs `push-out` — locates where
+- **Pushing out operational toil.** Run `/alchemy out release handoffs` — locates where
   recurring work lives, then moves it into standards, platforms, self-service
   controls, or feedback loops.
-- **Bringing down bespoke code.** Agent runs `bring-down` — moves repeated
+- **Bringing down bespoke code.** Run `/alchemy down retry wrapper` — moves repeated
   one-off implementations into components, patterns, platform primitives, or
   managed services when repetition evidence justifies it.
-- **Speeding up a slow system.** Agent runs **Y** — finds the real
+- **Speeding up a slow system.** Run `/alchemy Y this slow system` — finds the real
   constraint instead of optimizing whatever is most visible.
-- **Deciding what to delete.** Agent runs **M** retrospectively — same gate,
+- **Deciding what to delete.** Run `/alchemy M this old code` — same gate,
   same rigor, applied to existing code.
 - **Improving the skills themselves.** When a skill gives bad advice,
   `continuous-improvement` runs root-cause analysis on the skill's text
