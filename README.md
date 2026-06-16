@@ -1,4 +1,4 @@
-<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/670c0a5f-3a52-468a-83ee-a7c27394e6e5" />
+<img width="768" height="512" alt="image" src="https://github.com/user-attachments/assets/03e1f706-bfec-4e77-965f-5d248ddfb7e6" />
 
 # /ALCHEMY $ALCHEMY
 
