@@ -318,7 +318,7 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
 | [architecture-as-code-python](./.claude/skills/architecture-as-code-python/SKILL.md) | **E** impl | [READ](./.documentation/READ-architecture-as-code-python.md) | Python implementation — per-package `architecture.toml` files merged into an `import-linter` config and enforced via `lint-imports`. |
 | [ci-cd-reliability-architecture](./.claude/skills/ci-cd-reliability-architecture/SKILL.md) | Extends **H** | [READ](./.documentation/READ-ci-cd-reliability-architecture.md) | Design or audit a CI/CD pipeline against six rules: idempotent, self-contained, immutable artifacts, self-healing, zero-downtime, zero-knowledge. |
 | [push-out](./.claude/skills/push-out/SKILL.md) | Improvement | [READ](./.documentation/READ-push-out.md) | Move recurring DevOps work out of individual memory, manual execution, ticket queues, and local practice into standards, platforms, self-service controls, and feedback loops. |
-| [bring-down](./.claude/skills/bring-down/SKILL.md) | Improvement | [READ](./.documentation/READ-bring-down.md) | Move bespoke, duplicated, or over-local code down into reusable components, patterns, platform primitives, or managed services. |
+| [bring-down](./.claude/skills/bring-down/SKILL.md) | Improvement | [READ](./.documentation/READ-bring-down.md) | Move bespoke, duplicated, or over-local code down into approved libraries, external standards, platform products, or managed services. |
 | [continuous-improvement](./.claude/skills/continuous-improvement/SKILL.md) | Meta-layer | [READ](./.documentation/READ-continuous-improvement.md) | Decide whether a correction becomes a test, a linter rule, or a SKILL edit — and which SKILL owns it — without letting the library bloat. |
 
 ---
@@ -338,8 +338,9 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
   recurring work lives, then moves it into standards, platforms, self-service
   controls, or feedback loops.
 - **Bringing down bespoke code.** Run `/alchemy down retry wrapper` — moves repeated
-  one-off implementations into components, patterns, platform primitives, or
-  managed services when repetition evidence justifies it.
+  one-off implementations into approved libraries, external standards, platform
+  products, or managed services when maintenance-burden and owner-change
+  evidence justify it.
 - **Speeding up a slow system.** Run `/alchemy Y this slow system` — finds the real
   constraint instead of optimizing whatever is most visible.
 - **Deciding what to delete.** Run `/alchemy M this old code` — same gate,

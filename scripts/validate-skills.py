@@ -8,6 +8,39 @@ CLAUDE_SKILLS = ROOT / ".claude" / "skills"
 AGENT_SKILLS = ROOT / ".agents" / "skills"
 DOCS = ROOT / ".documentation"
 MAX_DESCRIPTION = 1024
+OUTPUT_MARKERS = (
+    "Output Contract",
+    "Audit Output",
+    "Emit one coder-facing",
+    "Emit a coder-facing",
+)
+PRIMER_REQUIRED_TERMS = {
+    "bring-down": (
+        "L4 CODE",
+        "L3 LIB",
+        "L2 STD",
+        "L1 PLP",
+        "L0 SRVC",
+        "same-team",
+    ),
+}
+PUBLIC_DOC_FORBIDDEN = {
+    "bring-down old public model": {
+        "files": (
+            ROOT / "README.md",
+            DOCS / "READ-bring-down.md",
+            DOCS / "READ-push-out.md",
+        ),
+        "patterns": (
+            "reusable components, patterns",
+            "components, patterns, platform primitives",
+            "Componentized",
+            "Patternized / templated",
+            "Level 0",
+            "Level 5",
+        ),
+    },
+}
 
 
 def fail(message: str) -> None:
@@ -23,7 +56,7 @@ def skill_dirs(root: Path) -> list[Path]:
 
 def parse_frontmatter(path: Path) -> dict[str, str]:
     text = path.read_text(encoding="utf-8")
-    match = re.match(r"^---\n(.*?)\n---", text, re.S)
+    match = re.match(r"^---\r?\n(.*?)\r?\n---", text, re.S)
     if not match:
         fail(f"{path.relative_to(ROOT)} missing YAML frontmatter")
 
@@ -52,7 +85,9 @@ def parse_frontmatter(path: Path) -> dict[str, str]:
 
 
 def validate_skill(path: Path) -> None:
-    fields = parse_frontmatter(path / "SKILL.md")
+    skill_file = path / "SKILL.md"
+    text = skill_file.read_text(encoding="utf-8")
+    fields = parse_frontmatter(skill_file)
     expected = path.name
     name = fields.get("name", "")
     description = fields.get("description", "")
@@ -65,6 +100,10 @@ def validate_skill(path: Path) -> None:
             f"{path.relative_to(ROOT)} description too long "
             f"({len(description)} > {MAX_DESCRIPTION})"
         )
+    if not re.search(r"^#\s+\S", text, re.M):
+        fail(f"{skill_file.relative_to(ROOT)} missing top-level heading")
+    if not any(marker in text for marker in OUTPUT_MARKERS):
+        fail(f"{skill_file.relative_to(ROOT)} missing coder-facing output marker")
 
 
 def validate_root(root: Path) -> None:
@@ -99,6 +138,39 @@ def validate_primers() -> None:
         fail(f"missing primers: {', '.join(missing)}")
     if orphan:
         fail(f"orphan primers: {', '.join(orphan)}")
+    for name in sorted(skills):
+        primer = DOCS / f"READ-{name}.md"
+        text = primer.read_text(encoding="utf-8")
+        expected_link = f"../.claude/skills/{name}"
+        if expected_link not in text:
+            fail(f"{primer.relative_to(ROOT)} missing canonical skill backlink")
+        for term in PRIMER_REQUIRED_TERMS.get(name, ()):
+            if term not in text:
+                fail(f"{primer.relative_to(ROOT)} missing required term '{term}'")
+
+
+def validate_readme_index() -> None:
+    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    for path in skill_dirs(CLAUDE_SKILLS):
+        name = path.name
+        skill_link = f"./.claude/skills/{name}/SKILL.md"
+        primer_link = f"./.documentation/READ-{name}.md"
+        if skill_link not in text:
+            fail(f"README.md missing skill link for {name}")
+        if primer_link not in text:
+            fail(f"README.md missing primer link for {name}")
+
+
+def validate_public_doc_drift() -> None:
+    for rule, config in PUBLIC_DOC_FORBIDDEN.items():
+        for path in config["files"]:
+            text = path.read_text(encoding="utf-8")
+            for pattern in config["patterns"]:
+                if pattern in text:
+                    fail(
+                        f"{path.relative_to(ROOT)} contains stale public-doc "
+                        f"pattern for {rule}: {pattern!r}"
+                    )
 
 
 def main() -> int:
@@ -106,6 +178,8 @@ def main() -> int:
     validate_root(AGENT_SKILLS)
     validate_mirrors()
     validate_primers()
+    validate_readme_index()
+    validate_public_doc_drift()
     print("Skills validated")
     return 0
 

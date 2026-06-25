@@ -2,6 +2,10 @@
 
 ![System Optimization](system_optimization.svg)
 
+> **Companion to [`SKILL.md`](../.claude/skills/system-optimization/SKILL.md).**
+> Read SKILL.md first for the operational protocol; this primer explains why
+> the sequence matters.
+
 > **The core claim:** Most optimization effort makes systems worse — because it
 > speeds up the wrong thing, in the wrong order, at the wrong time. The single
 > most expensive mistake in optimization is doing the right things in the wrong

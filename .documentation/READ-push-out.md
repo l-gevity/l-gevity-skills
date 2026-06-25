@@ -55,7 +55,8 @@ Example prompt:
 
 - Use `defect-shift-left` when the improvement is about moving a check earlier.
 - Use `bring-down` when the improvement is about replacing custom duplicated
-  implementation with components, patterns, platform primitives, or services.
+  implementation with an approved library, external standard, platform product,
+  or managed service.
 - Use `system-optimization` when many push-out candidates compete and the
   constraint is unclear.
 - Use `ci-cd-reliability-architecture` for deploy-path reliability findings.

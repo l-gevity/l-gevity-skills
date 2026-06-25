@@ -2,7 +2,7 @@
 
 ![Continuous Improvement](continuous_improvement.svg)
 
-A protocol for updating SKILL files when the agent makes a recurring or high-impact mistake. Trace each correction to its root cause; check whether a test, linter, schema, type, build gate, or template should own the fix before adding prose.
+A protocol for updating SKILL files when the agent makes a recurring or high-impact mistake, or when the skill library itself needs optimization. Trace each correction to its root cause; check whether a test, linter, schema, type, build gate, validator, or template should own the fix before adding prose.
 
 ## Why use this
 
@@ -11,6 +11,7 @@ A protocol for updating SKILL files when the agent makes a recurring or high-imp
 - **Symptoms aren't preserved as rules.** Every change traces to the missing boundary, ambiguous wording, or misunderstood platform behavior — not to the surface error.
 - **Automation is checked before instruction.** Before adding a sentence to a SKILL, the protocol checks whether an enforceable artifact should own the rule.
 - **Skills stay non-redundant.** Cross-skill overlap is routed to a primary owner; brief references are allowed when they prevent misuse.
+- **Skill edits get guardrails.** Mirror sync, primer backlinks, frontmatter, and output-shape checks belong in validation when they can be detected mechanically.
 
 ## Fundamental principles
 
@@ -31,7 +32,11 @@ The skill activates when the agent is corrected on an issue likely to recur, whe
    > *"I just corrected the agent on [X]. Apply continuous-improvement: trace the root cause, decide whether it should be automation or a SKILL update, and pick the right SKILL."*
 
 3. **Read the diagnosis.** The skill names the root-cause category (missing/ambiguous, conflict, ignored rule, technical-constraint), the proposed fix (test, linter, or SKILL edit), and the SKILL that owns the change.
-4. **Apply the update.** Add or update the owned artifact, prune only obsolete or contradictory guidance, keep mirrors and primers aligned, and verify that the previous mistake is caught earlier or made less likely.
+4. **Apply the update.** Add or update the owned artifact, prune only obsolete or contradictory guidance, keep mirrors, primers, and any affected README index text aligned, run the skill validator, and verify that the previous mistake is caught earlier or made less likely.
+
+## Skill-library optimization
+
+When improving the skills themselves, define the behavior to improve before editing wording. Prefer validator, template, or primer checks for drift risks; keep reusable rules in one owning SKILL; let sibling skills route to the owner; update `.agents`, `.claude`, the matching primer, and any affected README index text together.
 
 ## Triggers for learning
 
@@ -42,6 +47,7 @@ The skill activates when the agent is corrected on an issue likely to recur, whe
 | **New Pattern**     | A new, validated standard is successfully introduced to the codebase.                 |
 | **Systemic Failure**| The same anti-pattern class is attempted repeatedly, or once with high blast radius.  |
 | **Process Break**   | Recurring CI/CD or linter failures indicating a broken foundational rule.             |
+| **Skill Optimization** | User asks to optimize, prune, audit, or increase efficiency of the skill library itself. |
 
 ## Root-cause questions
 
