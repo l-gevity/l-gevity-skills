@@ -10,6 +10,8 @@ into durable standards, platforms, self-service controls, and feedback loops.
   self-service, or adaptive system.
 - It prevents automating chaos by requiring deletion and standardization before
   automation.
+- It prunes prose documentation that only repeats code, config, tests,
+  generated output, CI, policy-as-code, or architecture-as-code.
 - It mirrors `defect-shift-left`: shift-left moves defect detection earlier;
   push-out moves recurring operational work outward.
 - It pairs with `bring-down`: push-out moves work outward; bring-down lowers
@@ -39,6 +41,9 @@ into durable standards, platforms, self-service controls, and feedback loops.
 6. Emit one next move: document, standardize, platform, self-serve, or add
    feedback.
 7. Prove the new path, then retire same-scope manual duplicates.
+8. When executable sources already cover documentation mechanics, keep only
+   intent, ownership, rationale, external constraints, rollback notes, and a
+   link to the executable source.
 
 Example prompt:
 

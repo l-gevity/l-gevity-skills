@@ -6,8 +6,9 @@ description: >-
     procedures, repo standards, shared platforms, self-service controls, and
     adaptive feedback loops. Use when reducing toil, designing an improvement
     roadmap, deciding what to standardize or automate, assessing where
-    operational work currently lives, or asking how to move work from humans
-    into durable systems.
+    operational work currently lives, pruning prose documentation duplicated by
+    code/config/tests/policy-as-code/architecture-as-code, or asking how to move
+    work from humans into durable systems.
 ---
 
 # Push-Out
@@ -34,6 +35,10 @@ description: >-
 >    observability, and rollback exports toil to users.
 > 6. **Feedback closes the loop.** Dashboards and metrics are not improvement
 >    until they trigger action.
+> 7. **Executable sources beat prose duplicates.** When code, config, tests,
+>    schemas, CI, policy-as-code, or architecture-as-code already define the
+>    operational truth, keep prose only for intent, ownership, rationale,
+>    external constraints, trade-offs, rollback notes, and links to that source.
 
 ---
 
@@ -111,6 +116,14 @@ before improving adjacent work.
 | **3 to 4** | Platform team is still a ticket queue | Add self-service UI/API/CLI with validation, permissions, audit, and rollback |
 | **4 to 5** | Self-service exists but does not improve | Add SLOs, trend review, alert thresholds, incident learning, and removal loop |
 
+**Documentation pruning pattern:** when prose documentation repeats behavior,
+rules, setup, policy, or architecture that is already enforced or derivable
+from code, config, tests, schemas, generated output, CI, policy-as-code, or
+architecture-as-code, do not create a second source of truth. Verify the
+executable source covers the same scope, then replace the prose duplicate with
+the smallest useful note: why it exists, who owns it, where the executable source
+lives, and which external constraint or trade-off is not visible from the code.
+
 When the move concerns deployment safety, apply `ci-cd-reliability-architecture`.
 When the move concerns check placement, apply `defect-shift-left`. When the
 move concerns duplicated custom implementation, apply `bring-down`.
@@ -129,6 +142,7 @@ move concerns duplicated custom implementation, apply `bring-down`.
 | Golden path with no adoption signal | Measure usage, escape hatches, and support load |
 | Manual approval called governance | Replace with policy-as-code where technically possible |
 | Keeping manual duplicate forever | Retire same-scope duplicate after proof |
+| Prose repeats an executable source of truth | Keep intent/rationale/ownership/link; delete the repeated mechanics |
 
 ---
 
