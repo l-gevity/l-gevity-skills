@@ -2,19 +2,14 @@
 name: architecture-as-code
 description: >-
     Stack-agnostic pattern for declaring and enforcing component boundaries via
-    per-module config files merged into a single ruleset and lint-enforced.
-    Every module lives in a directory and MAY ship an architecture config
-    declaring its components and forbidden dependency edges. Files merge
-    recursively: rules from higher levels accumulate. A small assembler
-    discovers them and emits a single config for the stack's import-graph
-    linter. TRIGGER when: designing or auditing a dependency-rule enforcement
-    mechanism, deciding what a per-module file should and shouldn't say,
-    placing a new rule, debugging a forbidden edge, or extending the assembler.
-    SKIP for routine edits inside a governed module. Defines the pattern; for
-    a concrete implementation see `architecture-as-code-javascript` (ESLint +
-    `eslint-plugin-boundaries`) or `architecture-as-code-python` (import-linter
-    + Grimp). See `architecture-guidelines` for first principles and
-    `geometric-architecture` for the spatial rationale this enforces.
+    per-module architecture configs merged into import-graph linter rules.
+    TRIGGER when designing/auditing dependency-rule enforcement, deciding what a
+    per-module file should say, placing a rule, debugging a forbidden edge, or
+    extending the assembler. Consume explicit `Enforcement` handoffs from
+    `architecture-guidelines` by turning enforceable dependency constraints into
+    architecture config rules. SKIP routine edits inside a governed module. For
+    stack implementations see `architecture-as-code-javascript` or
+    `architecture-as-code-python`.
 ---
 
 # Architecture-as-Code (Pattern)
@@ -26,6 +21,12 @@ description: >-
 > prescribe what the graph should look like — that's `architecture-guidelines`
 > and `geometric-architecture`. Does NOT govern code style — that's your
 > project's coding-style convention.
+
+> **Input Contract.** Consume only explicit `Enforcement` handoffs from
+> `architecture-guidelines` (or an equivalent architecture decision). Translate
+> the named constraint into components and forbidden edges. Do not restate or
+> reinterpret first-principles doctrine here; if a constraint is not enforceable
+> as an import/dependency rule, return `Decision: Defer` or `Reject rule`.
 
 > **Core Directives**
 >
@@ -235,6 +236,7 @@ When designing or auditing rules, emit a coder-facing decision record:
 ```
 Scope:          <repo / package / module path>
 Stack:          JavaScript | Python | Other
+Input:          <Enforcement handoff consumed, or none>
 Decision:       Add config | Update config | Reject rule | Defer | Blocked
 Config files:   <eslint.architecture.mjs / architecture.toml / generated config>
 Components:     <component names or patterns added/changed>

@@ -11,6 +11,7 @@ A first-principles ruleset for module design. Minimalism, modularity, functional
 - **Domain logic stays pure.** Side effects live at the edges; the core is unit-testable without mocks.
 - **Failure modes are decided up front.** Every external call is classified hard or best-effort *before* implementation, not after the first incident.
 - **Names carry architecture.** `utils` and `helpers` fail the test; every name reveals layer, domain role, and technical purpose.
+- **Enforceable decisions become lint rules.** When a principle yields an import/dependency constraint, the skill emits an `Enforcement` handoff for `architecture-as-code`.
 
 ## Fundamental principles
 
@@ -34,7 +35,8 @@ The skill applies in two situations: **designing** a new module, or **reviewing*
    > *Review:* "Audit this PR against architecture-guidelines. Flag any violation with the section number."
 
 3. **Read the verdict.** The skill names the principle violated (e.g. "§3 — pure core: `OrderService` calls `fetch()` directly") and proposes the smallest fix.
-4. **Apply the fix.** Pull I/O to the edge; split capability-named module directories when a folder holds multiple independent capabilities; raise the abstraction only when the third instance arrives; rename the module so its layer is visible.
+4. **Route enforceable constraints.** If the verdict includes `Enforcement: add/update architecture rule`, pass that constraint to `architecture-as-code`.
+5. **Apply the fix.** Pull I/O to the edge; split capability-named module directories when a folder holds multiple independent capabilities; raise the abstraction only when the third instance arrives; rename the module so its layer is visible.
 
 ## The seven sections at a glance
 
@@ -65,4 +67,5 @@ Bug fixes inside an existing module, content/copy edits, CSS-only changes, depen
 - See [SKILL.md](../.claude/skills/architecture-guidelines/SKILL.md) for the full ruleset (numbered sections, examples, complexity-warning protocol).
 - For refactor cost/benefit analysis once a violation is found, see [`structural-simplification`](../.claude/skills/structural-simplification/).
 - For spatial dependency-graph constraints and lint enforcement, see [`geometric-architecture`](../.claude/skills/geometric-architecture/).
+- For turning explicit `Enforcement` handoffs into dependency lint rules, see [`architecture-as-code`](../.claude/skills/architecture-as-code/).
 - For deciding whether a piece of functionality justifies its cost, see [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/).

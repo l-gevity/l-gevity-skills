@@ -1,18 +1,14 @@
 ---
 name: architecture-guidelines
 description: >-
-    First-principles architectural rules for this project: minimalism (YAGNI,
-    Rule of 3, DRY), modularity (SoC, SRP, interface discipline, dependency
-    inversion), functional core (pure domain logic, I/O at the edges),
-    resilience (fail-fast, idempotency, atomicity, failure classification),
-    domain-driven naming, and concurrency on shared mutable state. TRIGGER when:
-    introducing a new module/service/abstraction, refactoring across module
-    boundaries, applying SOLID, or reviewing a PR for architectural concerns
-    (purity, idempotency, naming, fail-fast). SKIP for: bug fixes within an
-    existing module, content/copy edits, CSS-only changes, dependency bumps,
-    trivial renames. For refactor cost/benefit analysis see
-    `structural-simplification`; for spatial dependency-graph constraints and
-    lint enforcement see `geometric-architecture`.
+    First-principles architectural rules for module/service/abstraction design:
+    minimalism, modularity, functional core, resilience, naming, and concurrency.
+    TRIGGER when introducing a module/service/abstraction, refactoring across
+    module boundaries, applying SOLID, or reviewing architectural concerns
+    (purity, idempotency, naming, fail-fast). SKIP for bug fixes within an
+    existing module, content/copy edits, CSS-only changes, dependency bumps, and
+    trivial renames. Emits an `Enforcement` handoff to `architecture-as-code`
+    when a design decision yields an enforceable dependency constraint.
 ---
 
 # Architectural Discipline (First Principles)
@@ -123,7 +119,27 @@ against concurrent mutation?"_
 > [Y]."_ If the violation is non-trivial, see `structural-simplification` §8
 > Decision Protocol for a per-axis comparison before accepting it.
 
-## 8. Output Contract
+## 8. Enforcement Handoff
+
+Use `architecture-as-code` only for constraints that can be enforced as import
+or dependency rules. Do not duplicate this skill's principles there; hand off
+the specific rule to encode.
+
+Examples:
+
+```
+Principle:   DI / functional core
+Constraint:  domain must not import infrastructure
+Enforcement: add architecture rule: forbid <domain-component> -> <infra-component>
+```
+
+```
+Principle:   interface discipline
+Constraint:  external callers use the facade only
+Enforcement: add architecture rule: forbid * -> <module-internal-*>, except <module-*>
+```
+
+## 9. Output Contract
 
 When this skill changes or rejects a design, emit a coder-facing decision
 record:
@@ -133,6 +149,7 @@ Subject:        <module / service / abstraction / PR / code path>
 Decision:       Proceed | Simplify | Split | Inline | Reject | Defer
 Principle:      <YAGNI | Rule of 3 | DRY | SoC | SRP | capability-boundary | DI | fail-fast | idempotency | atomicity | naming | concurrency>
 Evidence:       <callers, imports, tests, runtime invariant, or file paths checked>
+Enforcement:    <none | add architecture rule: constraint | update architecture rule: constraint>
 Next action:    <edit, delete, extract, add test, add lint rule, or ask user>
 Verification:   <command / review check / Not run + reason>
 ```
@@ -142,3 +159,4 @@ Verification:   <command / review check / Not run + reason>
 - **`functionality-complexity-tradeoff`** — necessity gate and worth ledger applied to individual decisions.
 - **`structural-simplification`** — per-axis complexity comparison (`D, K, P, n`).
 - **`geometric-architecture`** — spatial placement and dependency-graph constraints.
+- **`architecture-as-code`** — consumes explicit `Enforcement` handoffs and turns enforceable dependency constraints into lint rules.

@@ -20,6 +20,9 @@ plain-English `why`.
   mistakes.
 - **Architectural drift becomes impossible.** Year-five stays as clean as
   year-one.
+- **Principles get a mechanical handoff.** `architecture-guidelines` decides
+  the constraint; this pattern encodes only the enforceable import/dependency
+  rule.
 
 ## Fundamental principles
 
@@ -38,6 +41,20 @@ touch.
 
 Architecture-as-code makes these principles *enforceable* instead of
 aspirational.
+
+## How it combines with architecture-guidelines
+
+Use `architecture-guidelines` first to decide the boundary and emit an
+`Enforcement` handoff. Use this pattern second to translate that handoff into
+components, forbidden edges, config placement, and lint verification.
+
+Example:
+
+```text
+Guideline:    Domain logic depends on abstractions, never infrastructure.
+Enforcement: add architecture rule: forbid payments-domain -> payments-infra
+As-code:     add the component patterns and forbidden edge in the relevant config.
+```
 
 ## How the pattern works
 
