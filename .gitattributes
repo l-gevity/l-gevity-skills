@@ -1,2 +1,13 @@
-.install/*.sh  text eol=lf
+* text=auto
+.gitattributes text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.mjs text eol=lf
+*.js text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.svg text eol=lf
+.install/*.sh text eol=lf
 .install/*.ps1 text eol=crlf

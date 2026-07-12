@@ -1,8 +1,8 @@
 {
   "name": "@l-gevity/skills",
   "version": "1.0.0",
-  "description": "Open-source Claude Code skills for architecture, CI/CD, and continuous improvement",
-  "keywords": ["claude", "claude-code", "skills", "architecture", "ci-cd", "devops"],
+  "description": "Open-source agent skills for architecture, requirements, CI/CD, and continuous improvement",
+  "keywords": ["claude", "claude-code", "skills", "architecture", "requirements", "ci-cd", "devops"],
   "homepage": "https://github.com/l-gevity/l-gevity-skills",
   "repository": {
     "type": "git",
@@ -15,6 +15,7 @@
     ".claude/skills/",
     ".documentation/",
     "scripts/",
+    "ALCHEMY-PIPELINE-DESIGN.md",
     "CLAUDE.md",
     "README.md",
     "LICENSE"

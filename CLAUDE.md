@@ -23,16 +23,31 @@ flag the loser, or escalate if migration cost is real. Never blend a hybrid.
 Touch only what the task requires. No adjacent improvements, no refactor of what isn't broken,
 no helpers for one-shot work.
 
-## 6. Walk the gates in order
-Non-trivial design/refactor: sequence these. **1–4 design, 5–6 enforce, 7 optimizes (iter 2).
-Gate 5 before 1 freezes over-engineering in; Gate 7 before 4 optimizes the wrong thing.**
-Audits reverse (4 → 1). Enforcement files for new modules are **written before** their
+## 6. Walk the adaptive pipeline in order
+For non-trivial design/refactor work, resume from the latest trustworthy decision artifact:
+
+```text
+Requirements Grounding, when evidence or meaning is absent or stale
+→ M — Minimum
+→ Requirements Topology, when relationships are non-trivial
+→ Implementation Readiness
+→ A — Architecture → L → C → E → H → Y
+```
+
+Focused aliases stay focused; report missing prerequisites instead of silently running the
+full pipeline. Only `READY`, or `PARTLY-READY` as a bounded reversible slice, may enter A.
+`NOT-GROUNDED`, `BLOCKED`, and `NOT-READY` stop or return to the failed stage. Audits start
+at the read-only `C₀` structural baseline and recover requirements only when current intent
+is missing, stale, contradictory, or disputed.
+
+**Qualification and Gates 1–4 shape the design; 5–6 enforce it; 7 optimizes a stable
+baseline in iteration 2.** Enforcement files for new modules are **written before** their
 implementation code, not retrofitted — both ship in the same PR. Spike/throwaway code is
 the only exception, and must not cross the merge boundary without rules.
 
 | # | Gate | Skill | Output |
 |---|---|---|---|
-| 1 | Necessity | [`functionality-complexity-tradeoff`](.../functionality-complexity-tradeoff) | PASS / DROP |
+| 1 | Necessity | [`functionality-complexity-tradeoff`](.../functionality-complexity-tradeoff) | BUILD / KEEP / SIMPLIFY or stop |
 | 2 | First principles | [`architecture-guidelines`](.../architecture-guidelines) | Smallest correct design |
 | 3 | Placement | [`geometric-architecture`](.../geometric-architecture) | Domain / tier / layer per component |
 | 4 | Complexity | [`structural-simplification`](.../structural-simplification) | Component-kinds / dependency-edges / max-chain-depth / module-count Δ |

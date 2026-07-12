@@ -79,6 +79,17 @@ the smallest useful verdict. **H = Hermetic** in the literal sense (sealed
 against leakage at every stage) and in the alchemical-tradition sense (the
 Hermetic art).
 
+For non-trivial work, Alchemy now uses an adaptive **Requirements Qualification
+Phase** around M: `requirements-grounding` when meaning or evidence is missing,
+optional `requirements-topology` when relationships are non-trivial, and
+`implementation-readiness` before A. Focused aliases stay focused, and every
+skipped stage records a rationale. `NOT-GROUNDED`, `BLOCKED`, and `NOT-READY`
+work cannot enter Architecture; `PARTLY-READY` work may enter only as a bounded,
+reversible slice.
+
+The implemented routing design and acceptance criteria are recorded in
+[ALCHEMY-PIPELINE-DESIGN.md](./ALCHEMY-PIPELINE-DESIGN.md).
+
 ## DevOps improvement triad
 
 The core gates answer architecture and refactor questions. The DevOps
@@ -285,9 +296,10 @@ needed unless you move things. Start with `/alchemy ?` in Claude Code or
 
 ## The full skill index
 
-Fourteen skills total: seven gate skills, one orchestrator, two stack
+Seventeen skills total: seven gate skills, one orchestrator, two stack
 implementations of **E**, one pipeline-reliability skill that extends **H**,
-two additional DevOps improvement-axis skills, and one meta-layer. Every skill ships
+two additional DevOps improvement-axis skills, three requirements-discipline
+skills, and one meta-layer. Every skill ships
 as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer in
 [`./.documentation/`](./.documentation/).
 
@@ -309,14 +321,22 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
 | [functionality-complexity-tradeoff](./.claude/skills/functionality-complexity-tradeoff/SKILL.md) | **M** | [READ](./.documentation/READ-functionality-complexity-tradeoff.md) | Decide whether to BUILD / DEFER / DROP a proposed feature, or KEEP / SIMPLIFY / DELETE / OBSOLETE existing code — via a necessity gate followed by a worth ledger. |
 | [system-optimization](./.claude/skills/system-optimization/SKILL.md) | **Y** | [READ](./.documentation/READ-system-optimization.md) | Run optimization in the right order — question, delete, simplify, speed up, automate — instead of caching or parallelizing work that should have been deleted. |
 
+### Requirements discipline
+
+| Skill | Discipline | Primer | Use it to |
+| :---- | :--------- | :----- | :-------- |
+| [requirements-grounding](./.claude/skills/requirements-grounding/SKILL.md) | Grounding | [READ](./.documentation/READ-requirements-grounding.md) | Ground proposed requirements in an actor-bound problem, or recover provisional candidates from code and project evidence without mistaking implementation for intent. |
+| [requirements-topology](./.claude/skills/requirements-topology/SKILL.md) | Topology | [READ](./.documentation/READ-requirements-topology.md) | Structure validated requirements as a typed dependency graph; detect cycles, orphans, duplicates, conflicts, stale references, and missing verification. |
+| [implementation-readiness](./.claude/skills/implementation-readiness/SKILL.md) | Readiness | [READ](./.documentation/READ-implementation-readiness.md) | Decide what is ready, partly ready, or blocked, then derive the smallest traceable build-preparation package without inventing requirement meaning. |
+
 ### Orchestration and implementations
 
 | Skill | Role | Primer | Use it to |
 | :---- | :--- | :----- | :-------- |
-| [alchemy](./.claude/skills/alchemy/SKILL.md) | Orchestrator | [READ](./.documentation/READ-alchemy.md) | Route `/alchemy` commands through the seven gates and the DevOps improvement triad while keeping focused commands focused. |
+| [alchemy](./.claude/skills/alchemy/SKILL.md) | Orchestrator | [READ](./.documentation/READ-alchemy.md) | Qualify requirements conditionally, then route `/alchemy` commands through the seven gates and DevOps improvement triad while keeping focused commands focused. |
 | [architecture-as-code-javascript](./.claude/skills/architecture-as-code-javascript/SKILL.md) | **E** impl | [READ](./.documentation/READ-architecture-as-code-javascript.md) | JavaScript / TypeScript implementation — `eslint.architecture.mjs` files merged into one ESLint flat-config via `eslint-plugin-boundaries`. |
 | [architecture-as-code-python](./.claude/skills/architecture-as-code-python/SKILL.md) | **E** impl | [READ](./.documentation/READ-architecture-as-code-python.md) | Python implementation — per-package `architecture.toml` files merged into an `import-linter` config and enforced via `lint-imports`. |
-| [ci-cd-reliability-architecture](./.claude/skills/ci-cd-reliability-architecture/SKILL.md) | Extends **H** | [READ](./.documentation/READ-ci-cd-reliability-architecture.md) | Design or audit a CI/CD pipeline against six rules: idempotent, self-contained, immutable artifacts, self-healing, zero-downtime, zero-knowledge. |
+| [ci-cd-reliability-architecture](./.claude/skills/ci-cd-reliability-architecture/SKILL.md) | Extends **H** | [READ](./.documentation/READ-ci-cd-reliability-architecture.md) | Design or audit reliable CI/CD, evidence-gated release, production promotion, rollback, and operational handoff. |
 | [push-out](./.claude/skills/push-out/SKILL.md) | Improvement | [READ](./.documentation/READ-push-out.md) | Move recurring DevOps work out of individual memory, manual execution, ticket queues, and local practice into standards, platforms, self-service controls, and feedback loops. |
 | [bring-down](./.claude/skills/bring-down/SKILL.md) | Improvement | [READ](./.documentation/READ-bring-down.md) | Move bespoke, duplicated, or over-local code down into approved libraries, external standards, platform products, or managed services. |
 | [continuous-improvement](./.claude/skills/continuous-improvement/SKILL.md) | Meta-layer | [READ](./.documentation/READ-continuous-improvement.md) | Decide whether a correction becomes a test, a linter rule, or a SKILL edit — and which SKILL owns it — without letting the library bloat. |
@@ -333,7 +353,7 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
   on four axes; surfaces hot-spots before any optimization work begins.
 - **Hardening a CI/CD pipeline.** Run `/alchemy H the deploy pipeline`
   — sealing defects at the earliest stage and the pipeline against
-  non-idempotent steps, mutable artifacts, hidden state.
+  non-idempotent steps, mutable artifacts, hidden state, and unverified promotion.
 - **Pushing out operational toil.** Run `/alchemy out release handoffs` — locates where
   recurring work lives, then moves it into standards, platforms, self-service
   controls, or feedback loops.
@@ -345,6 +365,16 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
   constraint instead of optimizing whatever is most visible.
 - **Deciding what to delete.** Run `/alchemy M this old code` — same gate,
   same rigor, applied to existing code.
+- **Grounding a requirement set.** Use `requirements-grounding` to separate the
+  real problem, scope, sources, evidence, assumptions, and atomic requirement
+  candidates before a backlog hardens around an assumed solution—or recover
+  provisional candidates from an undocumented or drifted implementation.
+- **Finding requirement dependencies.** Use `requirements-topology` to expose
+  prerequisites, constraints, cycles, duplicates, conflicts, and missing
+  verification, then derive a trustworthy dependency order.
+- **Preparing implementation.** Use `implementation-readiness` to distinguish
+  ready, partly ready, and blocked work and derive the smallest coherent slice,
+  contracts, ADR questions, and test references.
 - **Improving the skills themselves.** When a skill gives bad advice,
   `continuous-improvement` runs root-cause analysis on the skill's text
   and proposes an edit, so the same mistake does not recur.
@@ -354,11 +384,13 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
 ## What this pack is *not*
 
 Scoped deliberately. These skills teach an agent how to *think* about
-architecture and pipeline reliability. They do **not** cover coding
+architecture, requirements, and pipeline reliability. They do **not** cover coding
 standards (language conventions, naming), testing strategy (what to test,
 when to mock), security baseline (input sanitization, OWASP), PR / commit
-hygiene, release management, UI / visual design, or your domain-specific
-knowledge. Layer those on top with your own SKILLs.
+hygiene, product release planning/versioning, ongoing production operations,
+UI / visual design, or your domain-specific
+knowledge. The requirements skills supply a method, not domain facts. Layer those
+on top with your own SKILLs.
 
 ---
 

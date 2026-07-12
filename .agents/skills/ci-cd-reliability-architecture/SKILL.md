@@ -3,15 +3,17 @@ name: ci-cd-reliability-architecture
 description: >-
     Establishes idempotency, self-containment, immutable artifacts,
     self-healing, zero-downtime, and zero-knowledge security for CI/CD
-    pipelines. Use this skill when designing, auditing, or debugging any
-    workflow or deployment pipeline.
+    pipelines, including evidence-gated release and production promotion. Use
+    this skill when designing, auditing, or debugging any workflow, release, or
+    deployment pipeline.
 ---
 
 # CI/CD Reliability Architecture
 
 > **Out of scope**: Business logic (`architecture-guidelines`), value-stream
-> optimization (`system-optimization`). Code style and release procedures
-> follow your project's own conventions.
+> optimization (`system-optimization`), release planning/versioning, and ongoing
+> production operations. This skill owns technical promotion from a verified
+> artifact through a bounded production-verification window and owner handoff.
 
 > **Core Directives**
 >
@@ -290,7 +292,31 @@ curl -f -X POST https://api/resource -d "${DEFINITION}"
 
 ---
 
-## 8. Pre-Merge Checklist
+## 8. Release and Production Promotion
+
+Promotion is an evidence-gated state machine, not a successful deploy command:
+
+```text
+BUILD-VERIFIED → RELEASE-READY → DEPLOYING
+→ PRODUCTION-VERIFYING → DEPLOYED-HEALTHY
+Any failed gate → BLOCKED or ROLLBACK
+```
+
+| Gate | Required evidence |
+| --- | --- |
+| Artifact | Commit, immutable digest, provenance; signing/SBOM when policy requires |
+| Preflight | Config/schema, contract compatibility, migration reversibility, secrets, IAM and capacity checked before mutation |
+| Promotion | Same digest as verified; protected approval when required; one deployment owns the target environment |
+| Rollout | Atomic, blue/green, or canary strategy with explicit health thresholds |
+| Verification | Bounded window checks health, error rate, latency and availability; breach triggers automatic rollback |
+| Record and handoff | Immutable release record names artifact, checks, outcome, rollback result and operational owner |
+
+The skill's boundary ends at `DEPLOYED-HEALTHY`, when the verification window
+passes and the named operational owner accepts the handoff.
+
+---
+
+## 9. Delivery Checklist
 
 ### CRITICAL (Must-Have)
 
@@ -310,6 +336,9 @@ curl -f -X POST https://api/resource -d "${DEFINITION}"
       promoted atomically
 - [ ] **PR concurrency**: Cancel-in-progress enabled; only the latest commit
       deploys
+- [ ] **Release evidence**: Artifact digest/provenance and preflight results recorded
+- [ ] **Production verification**: Bounded signal window with automatic rollback
+- [ ] **Owner handoff**: Operational owner named before `DEPLOYED-HEALTHY`
 
 ### ADVANCED (Nice-to-Have)
 
@@ -320,20 +349,26 @@ curl -f -X POST https://api/resource -d "${DEFINITION}"
 - [ ] DB migrations: Expand/Contract pattern for schema changes (multi-tenant)
 - [ ] Secret rotation audit: quarterly seed secret rotation logged
 
-## 9. Output Contract
+## 10. Output Contract
 
 When applying this skill, emit a coder-facing pipeline decision record:
 
 ```
 Scope:          <workflow / job / environment / deploy path>
-Decision:       Proceed | Block | Add gate | Split job | Make idempotent | Add rollback | Remove secret
-Risk:           <idempotency | timeout | mutable artifact | deploy-build | secret | health check | e2e | concurrency | IaC>
+Decision:       Proceed | Block | Add gate | Split job | Make idempotent | Promote | Rollback | Remove secret
+Risk:           <idempotency | timeout | mutable artifact | deploy-build | secret | health check | e2e | concurrency | IaC | provenance | preflight | rollout | production-verification | handoff>
+Artifact:       <commit, digest, provenance>
+Release state:  <BUILD-VERIFIED | RELEASE-READY | DEPLOYING | PRODUCTION-VERIFYING | DEPLOYED-HEALTHY | BLOCKED | ROLLBACK>
+Preflight:      <checks and results>
+Rollout:        <strategy and health thresholds>
+Rollback:       <trigger, known-good artifact, result>
+Owner handoff:  <operational owner or missing>
 Evidence:       <workflow file, command, log, branch rule, secret path, or deployment behavior checked>
-Verification:   <local command / CI check / dry run / Not run + reason>
+Verification:   <window, signals, outcome / local command / dry run / Not run + reason>
 Next action:    <specific workflow edit, test, policy, or owner question>
 ```
 
-## 10. See also
+## 11. See also
 
 - **`defect-shift-left`** — where each pipeline check belongs on the stage ladder.
 - **`system-optimization`** — value-stream optimization built on top of a reliable pipeline.

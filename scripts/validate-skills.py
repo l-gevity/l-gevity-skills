@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 import re
 import sys
 
@@ -8,6 +9,20 @@ CLAUDE_SKILLS = ROOT / ".claude" / "skills"
 AGENT_SKILLS = ROOT / ".agents" / "skills"
 DOCS = ROOT / ".documentation"
 MAX_DESCRIPTION = 1024
+ALCHEMY_PIPELINE_STAGES = (
+    "Requirements Grounding",
+    "M — Minimum",
+    "Requirements Topology",
+    "Implementation Readiness",
+    "A — Architecture",
+)
+CI_CD_RELEASE_STATES = (
+    "BUILD-VERIFIED",
+    "RELEASE-READY",
+    "DEPLOYING",
+    "PRODUCTION-VERIFYING",
+    "DEPLOYED-HEALTHY",
+)
 OUTPUT_MARKERS = (
     "Output Contract",
     "Audit Output",
@@ -15,6 +30,14 @@ OUTPUT_MARKERS = (
     "Emit a coder-facing",
 )
 PRIMER_REQUIRED_TERMS = {
+    "alchemy": (
+        "Requirements Qualification Phase",
+        "requirements-grounding",
+        "requirements-topology",
+        "implementation-readiness",
+        "PARTLY-READY",
+        "C₀",
+    ),
     "bring-down": (
         "L4 CODE",
         "L3 LIB",
@@ -23,6 +46,37 @@ PRIMER_REQUIRED_TERMS = {
         "L0 SRVC",
         "same-team",
     ),
+    "ci-cd-reliability-architecture": (
+        "Release and production promotion",
+        "BUILD-VERIFIED",
+        "PRODUCTION-VERIFYING",
+        "DEPLOYED-HEALTHY",
+    ),
+}
+SKILL_REQUIRED_TERMS = {
+    "alchemy": (
+        "Adaptive Requirements Qualification",
+        "requirements-grounding",
+        "requirements-topology",
+        "implementation-readiness",
+        "PARTLY-READY",
+        "NOT-GROUNDED",
+        "NOT-READY",
+        "Focused aliases never silently run requirements qualification",
+        "Blocking stage:",
+        "C₀",
+    ),
+    "ci-cd-reliability-architecture": (
+        "Release and Production Promotion",
+        "BUILD-VERIFIED",
+        "PRODUCTION-VERIFYING",
+        "DEPLOYED-HEALTHY",
+        "Rollback:",
+        "Owner handoff:",
+    ),
+    "requirements-grounding": ("requirements-topology", "GROUNDED", "PROVISIONAL", "NOT-GROUNDED"),
+    "requirements-topology": ("requirements-grounding", "implementation-readiness", "STABLE", "BLOCKED"),
+    "implementation-readiness": ("requirements-grounding", "requirements-topology", "READY", "PARTLY-READY", "NOT-READY"),
 }
 PUBLIC_DOC_FORBIDDEN = {
     "bring-down old public model": {
@@ -104,6 +158,9 @@ def validate_skill(path: Path) -> None:
         fail(f"{skill_file.relative_to(ROOT)} missing top-level heading")
     if not any(marker in text for marker in OUTPUT_MARKERS):
         fail(f"{skill_file.relative_to(ROOT)} missing coder-facing output marker")
+    for term in SKILL_REQUIRED_TERMS.get(name, ()):
+        if term not in text:
+            fail(f"{skill_file.relative_to(ROOT)} missing required term '{term}'")
 
 
 def validate_root(root: Path) -> None:
@@ -161,6 +218,82 @@ def validate_readme_index() -> None:
             fail(f"README.md missing primer link for {name}")
 
 
+def validate_alchemy_pipeline() -> None:
+    path = CLAUDE_SKILLS / "alchemy" / "SKILL.md"
+    text = path.read_text(encoding="utf-8")
+    match = re.search(
+        r"## 2\. Adaptive Requirements Qualification.*?```text\s+(.*?)```",
+        text,
+        re.S,
+    )
+    if not match:
+        fail(f"{path.relative_to(ROOT)} missing adaptive pipeline block")
+
+    pipeline = match.group(1)
+    positions = [pipeline.find(stage) for stage in ALCHEMY_PIPELINE_STAGES]
+    if -1 in positions or positions != sorted(positions):
+        fail(
+            f"{path.relative_to(ROOT)} adaptive pipeline must preserve order: "
+            + " -> ".join(ALCHEMY_PIPELINE_STAGES)
+        )
+
+
+def validate_alchemy_root_guidance() -> None:
+    path = ROOT / "CLAUDE.md"
+    text = path.read_text(encoding="utf-8")
+    match = re.search(r"## 6\. Walk the adaptive pipeline in order(.*?)(?=\n## 7\.)", text, re.S)
+    if not match:
+        fail(f"{path.relative_to(ROOT)} missing adaptive pipeline guidance")
+
+    guidance = match.group(1)
+    positions = [guidance.find(stage) for stage in ALCHEMY_PIPELINE_STAGES]
+    if -1 in positions or positions != sorted(positions):
+        fail(
+            f"{path.relative_to(ROOT)} adaptive pipeline must preserve order: "
+            + " -> ".join(ALCHEMY_PIPELINE_STAGES)
+        )
+
+    required = (
+        "Focused aliases stay focused",
+        "PARTLY-READY",
+        "NOT-GROUNDED",
+        "BLOCKED",
+        "NOT-READY",
+        "C₀",
+        "BUILD / KEEP / SIMPLIFY or stop",
+    )
+    for term in required:
+        if term not in guidance:
+            fail(f"{path.relative_to(ROOT)} missing Alchemy guidance term '{term}'")
+
+    forbidden = ("Audits reverse", "PASS / DROP")
+    for term in forbidden:
+        if term in guidance:
+            fail(f"{path.relative_to(ROOT)} contains stale Alchemy guidance '{term}'")
+
+
+def validate_design_and_release_contracts() -> None:
+    design = ROOT / "ALCHEMY-PIPELINE-DESIGN.md"
+    text = design.read_text(encoding="utf-8")
+    required = ("Status: Implemented", "Blocking stage: None", "## Acceptance Criteria")
+    for term in required:
+        if term not in text:
+            fail(f"{design.relative_to(ROOT)} missing finalization term '{term}'")
+
+    package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+    if "ALCHEMY-PIPELINE-DESIGN.md" not in package.get("files", []):
+        fail("package.json must publish ALCHEMY-PIPELINE-DESIGN.md")
+
+    skill = CLAUDE_SKILLS / "ci-cd-reliability-architecture" / "SKILL.md"
+    release = skill.read_text(encoding="utf-8")
+    positions = [release.find(state) for state in CI_CD_RELEASE_STATES]
+    if -1 in positions or positions != sorted(positions):
+        fail(
+            f"{skill.relative_to(ROOT)} must preserve release state order: "
+            + " -> ".join(CI_CD_RELEASE_STATES)
+        )
+
+
 def validate_public_doc_drift() -> None:
     for rule, config in PUBLIC_DOC_FORBIDDEN.items():
         for path in config["files"]:
@@ -179,6 +312,9 @@ def main() -> int:
     validate_mirrors()
     validate_primers()
     validate_readme_index()
+    validate_alchemy_pipeline()
+    validate_alchemy_root_guidance()
+    validate_design_and_release_contracts()
     validate_public_doc_drift()
     print("Skills validated")
     return 0

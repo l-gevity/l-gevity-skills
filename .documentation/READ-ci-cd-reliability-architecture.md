@@ -2,7 +2,7 @@
 
 ![CI/CD Reliability](cicd_reliability.svg)
 
-A pipeline-design SKILL for builds and deployments that converge safely when retried, build artifacts once, deploy without downtime, and authenticate without standing cloud credentials.
+A pipeline-design SKILL for builds and deployments that converge safely when retried, build artifacts once, promote with evidence, deploy without downtime, and authenticate without standing cloud credentials.
 
 ## Why use this
 
@@ -11,6 +11,7 @@ A pipeline-design SKILL for builds and deployments that converge safely when ret
 - **Deploys don't drop traffic.** Preview environments per PR, atomic promotion, post-deploy health checks, automatic rollback.
 - **Stored cloud credentials disappear.** OIDC federation issues short-lived tokens; the pipeline proves identity instead of presenting a secret.
 - **Platform-builder surprises stop shipping stale code.** Every build runs in a dedicated fail-fast CI step; the deploy action receives a pre-built artifact.
+- **A successful deploy is not mistaken for a healthy release.** Promotion records artifact provenance, passes preflight, observes a bounded production-verification window, and hands off to a named operational owner.
 
 ## Fundamental principles
 
@@ -22,6 +23,15 @@ CI/CD reliability is mostly the application of six rules. When pipelines fail in
 - **Self-healing.** Transient failures auto-retry with backoff; permanent failures fail fast.
 - **Zero-downtime.** Preview environments, atomic promotion, never touch production directly.
 - **Zero-knowledge.** No standing cloud secrets; dynamic tokens via OIDC/STS; unavoidable application secrets stay in a managed secrets store.
+- **Evidence-gated promotion.** The six rules culminate in `BUILD-VERIFIED → RELEASE-READY → DEPLOYING → PRODUCTION-VERIFYING → DEPLOYED-HEALTHY`; failure blocks or rolls back.
+
+## Release and production promotion
+
+Before production mutation, validate configuration, contracts, migration
+reversibility, secrets, IAM, and capacity. Promote the verified artifact digest
+with an atomic, blue/green, or canary strategy. A bounded production-verification
+window checks health, errors, latency, and availability; threshold breaches roll
+back automatically. Record the evidence and hand off only to a named owner.
 
 ## How to use
 
@@ -51,7 +61,7 @@ The skill has two modes: **design** a new pipeline, or **audit** an existing one
 | Stomping on shared paths between jobs             | Namespace artifacts by SHA/run ID; explicit artifact fetch   | Self-contained     |
 | Leaving in-progress runs to fight each other      | `cancel-in-progress: true` on the same branch                | Zero-downtime      |
 
-## Pre-merge checklist (critical items)
+## Delivery checklist (critical items)
 
 - [ ] Idempotent: converges to the same desired state if skipped, run once, or retried.
 - [ ] Timeouts on every long-running step.
@@ -60,6 +70,7 @@ The skill has two modes: **design** a new pipeline, or **audit** an existing one
 - [ ] Post-deploy health check present; rollback on failure.
 - [ ] Preview environment per PR; atomic promotion to production on merge.
 - [ ] `cancel-in-progress` enabled; only the latest commit deploys.
+- [ ] Artifact provenance, preflight results, rollout thresholds, verification outcome, and operational owner recorded.
 
 ## When to skip
 
