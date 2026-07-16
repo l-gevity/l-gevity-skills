@@ -1,19 +1,17 @@
 ---
 name: alchemy
 description: >-
-    Orchestrates non-trivial design, refactor, and audit work through an adaptive
-    requirements-qualification phase and the A.L.C.H.E.M.Y. gates: grounding,
-    necessity, topology, readiness, first principles, placement, complexity,
-    enforcement, shift-left, and optimization. Invoke with
-    `/alchemy` in Claude Code or `$alchemy` in Codex. Use for a design, feature,
-    refactor, module, service, abstraction, architecture, complexity,
-    enforcement, shift-left, or optimization review; when introducing a module,
-    service, or library; designing an abstraction; extracting a package or
-    component; refactoring across boundaries; or auditing over-engineering.
-    Use `/alchemy left`, `/alchemy out`, and `/alchemy down` for the DevOps
-    improvement triad: shift defects left, push toil out, and bring bespoke code
-    down into reusable capability. Use `/alchemy ?` or `$alchemy ?` for command
-    help. Skip for local bug fixes, content or CSS edits, dependency bumps, and
+    Orchestrates non-trivial design, refactor, and audit work through adaptive
+    requirements qualification and the A.L.C.H.E.M.Y. gates. Invoke with
+    `/alchemy` in Claude Code or `$alchemy` in Codex. Use for architecture,
+    complexity, enforcement, shift-left, or optimization reviews; introducing a
+    module, service, or library; implementing a vertical slice across transport,
+    domain, and persistence; consolidating duplicate implementations; designing
+    an abstraction; extracting a package or component; refactoring across
+    boundaries; or auditing over-engineering. Use `/alchemy left`, `/alchemy
+    out`, and `/alchemy down` to shift defects left, push toil out, or bring
+    bespoke code down into reusable capability. Use `/alchemy ?` or `$alchemy ?`
+    for help. Skip local bug fixes, content or CSS edits, dependency bumps, and
     trivial renames. Defines no new rules; routes to sibling skills.
 ---
 
@@ -181,6 +179,10 @@ Core directives:
    existing bottleneck.
 5. Audit starts at `C₀`, conditionally recovers intent, then resumes the
    qualification phase and remaining gates from the earliest failed decision.
+6. Before deleting either of two duplicate implementations, inventory their
+   divergences and invariants, then run the same conformance cases against every
+   adapter. Backend-specific tests or a fake that repeats one adapter's
+   assumptions do not prove equivalence.
 
 ---
 
@@ -238,6 +240,7 @@ contradictory, or disputed:
 | Eslint rules added in follow-up PR | 5 — same-PR discipline broken | Block the follow-up; add rules to original PR |
 | Defects caught at runtime that types could express | 6 — left-shift not applied | Move the check upward; remove the runtime guard |
 | Architecture file disagrees with code | 5 — drift | Re-run lint; treat as a defect |
+| Duplicate implementations are unified but retain separate behavior tests | 6 — integration / contract | Add one shared conformance suite and real-boundary coverage for backend-specific semantics before deleting either copy |
 | "Just in case" extension point with one user | 1 — speculative optionality | DROP unless second use is named and probable |
 | Premature performance optimization | 7 — applied before baseline | Revert; re-apply after stability |
 
