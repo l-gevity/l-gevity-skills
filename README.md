@@ -1,10 +1,14 @@
-<img width="768" height="512" alt="image" src="https://github.com/user-attachments/assets/03e1f706-bfec-4e77-965f-5d248ddfb7e6" />
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/2fb2f2c2-193b-4e50-a334-be6a72053ea4" />
 
-# /ALCHEMY $ALCHEMY
+### THE AI ARCHITECT By [Patrick Savalle](https://github.com/patricksavalle)
 
-**THE AI ARCHITECT** By [Patrick Savalle](https://github.com/patricksavalle)
+## Need advice or a review of any part of your DevOps project?
 
+# 'DO SOME ALCHEMY'
 
+    The Alechmey router will select the right skjill in the right intensity, automatic!
+    Super-efficient, no context bloating.
+    
     Open-source, platform-agnostic, drop-in for any project and any compatible
     agent that you activate with /alchemy (Claude) or $alchemy (Codex).
 
