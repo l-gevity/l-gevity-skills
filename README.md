@@ -28,6 +28,10 @@ After install, use one command as the entrypoint:
 ```text
 /alchemy <subject>   # Claude Code
 $alchemy <subject>   # Codex
+
+or just:
+
+do some alchemy      # adaptive skill selection
 ```
 
 Or say it naturally: `do some alchemy`, `run alchemy on this refactor`, or
@@ -37,6 +41,7 @@ dispatch preflight; they do not imply a full gate walk.
 Examples:
 
 ```text
+do some alchemy
 /alchemy this auth refactor
 do some alchemy on this auth refactor
 /alchemy M this feature
