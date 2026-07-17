@@ -26,10 +26,15 @@ After install, use one command as the entrypoint:
 $alchemy <subject>   # Codex
 ```
 
+Or say it naturally: `do some alchemy`, `run alchemy on this refactor`, or
+`give this an alchemy pass`. Natural language requests run the same lightweight
+dispatch preflight; they do not imply a full gate walk.
+
 Examples:
 
 ```text
 /alchemy this auth refactor
+do some alchemy on this auth refactor
 /alchemy M this feature
 /alchemy E module boundaries
 /alchemy H the deploy pipeline
@@ -43,10 +48,12 @@ Codex uses the same grammar with `$alchemy` instead of `/alchemy`.
 Default output is intentionally small:
 
 ```text
-Route:    <M | A | L | C | E | H | Y | left | out | down>
-Verdict:  Proceed | Redesign | Drop | Defer
-Reason:   <one or two lines>
-Next:     <one concrete action>
+Dispatch:   <SKIP | DIRECT | ADAPTIVE | FULL>
+Core route: <None | M | A | L | C | E | H | Y | left | out | down | ordered set>
+Companions: <None | task-matched skills>
+Verdict:    Proceed | Redesign | Drop | Defer
+Reason:     <one or two lines>
+Next:       <one concrete action>
 ```
 
 Use `/alchemy <subject>` when you want the agent to pick the right gates. Use
@@ -54,7 +61,14 @@ Use `/alchemy <subject>` when you want the agent to pick the right gates. Use
 answered. Use the DevOps improvement triad, `/alchemy left|out|down`, when the
 work is about earlier defect detection, operational toil, or reusable
 capability. Focused commands stay focused; ask for `full`, `all`, or `audit`
-when you want the complete pass.
+when you want an expanded trail. `audit` starts at `C₀`; only `full` or `all`
+requests a full traversal.
+
+The preflight classifies the task before loading gate bodies. Routine local
+work returns `SKIP`, one clear concern returns `DIRECT`, structural work uses
+the smallest `ADAPTIVE` route, and only explicit full language selects `FULL`.
+Matching domain or stack skills remain independent companions even when the
+Alchemy core is skipped.
 
 ## The seven gates of A.L.C.H.E.M.Y.
 
@@ -334,7 +348,7 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
 
 | Skill | Role | Primer | Use it to |
 | :---- | :--- | :----- | :-------- |
-| [alchemy](./.claude/skills/alchemy/SKILL.md) | Orchestrator | [READ](./.documentation/READ-alchemy.md) | Qualify requirements conditionally, then route `/alchemy` commands through the seven gates and DevOps improvement triad while keeping focused commands focused. |
+| [alchemy](./.claude/skills/alchemy/SKILL.md) | Orchestrator | [READ](./.documentation/READ-alchemy.md) | Dispatch commands or natural-language requests cheaply, qualify requirements conditionally, and route only the needed gates while preserving task-matched companion skills. |
 | [architecture-as-code-javascript](./.claude/skills/architecture-as-code-javascript/SKILL.md) | **E** impl | [READ](./.documentation/READ-architecture-as-code-javascript.md) | JavaScript / TypeScript implementation — `eslint.architecture.mjs` files merged into one ESLint flat-config via `eslint-plugin-boundaries`. |
 | [architecture-as-code-python](./.claude/skills/architecture-as-code-python/SKILL.md) | **E** impl | [READ](./.documentation/READ-architecture-as-code-python.md) | Python implementation — per-package `architecture.toml` files merged into an `import-linter` config and enforced via `lint-imports`. |
 | [ci-cd-reliability-architecture](./.claude/skills/ci-cd-reliability-architecture/SKILL.md) | Extends **H** | [READ](./.documentation/READ-ci-cd-reliability-architecture.md) | Design or audit reliable CI/CD, evidence-gated release, production promotion, rollback, and operational handoff. |

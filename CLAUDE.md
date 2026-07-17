@@ -24,6 +24,12 @@ Touch only what the task requires. No adjacent improvements, no refactor of what
 no helpers for one-shot work.
 
 ## 6. Walk the adaptive pipeline in order
+An explicit `/alchemy`, `$alchemy`, or natural-language request such as "do some alchemy"
+starts with metadata-only dispatch: `SKIP` routine local work, `DIRECT` one clear gate,
+`ADAPTIVE` structural work, and use `FULL` only for explicit full-traversal language.
+Do not load every gate to decide to skip. A core skip never suppresses independently matching
+project, domain, stack, UX, security, accessibility, API, release, or evidence skills.
+
 For non-trivial design/refactor work, resume from the latest trustworthy decision artifact:
 
 ```text

@@ -9,7 +9,9 @@ Verification: `npm run validate`; package dry-run; mirror and pipeline-order che
 
 ## Purpose
 
-Integrate `requirements-grounding`, `requirements-topology`, and
+Provide one cheap command or natural-language entrypoint that classifies work
+before loading gate skills, then integrate `requirements-grounding`,
+`requirements-topology`, and
 `implementation-readiness` into A.L.C.H.E.M.Y. without changing the acronym,
 weakening the existing gates, or forcing every request through a longer linear
 pipeline.
@@ -39,8 +41,13 @@ qualification stage, gate, acronym letter, or prerequisite for Architecture.
 
 ```mermaid
 flowchart TD
-    New["New request or source"] --> Current{"Current grounded requirements?"}
-    Existing["Existing code or project"] --> C0["C₀ · Structural baseline<br/>audit entry only"]
+    Invoke["Command or natural-language Alchemy request"] --> Dispatch{"Dispatch preflight"}
+    Dispatch -- "SKIP" --> Companion["Task-matched companion skills"]
+    Dispatch -- "DIRECT" --> Focused["One focused gate or triad skill"]
+    Dispatch -- "ADAPTIVE / FULL design" --> New["New request or source"]
+    Dispatch -- "ADAPTIVE audit" --> Existing["Existing code or project"]
+    New --> Current{"Current grounded requirements?"}
+    Existing --> C0["C₀ · Structural baseline<br/>audit entry only"]
     C0 --> Current
 
     Current -- "No or stale" --> G["Requirements Grounding<br/>recovery mode for code"]
@@ -120,6 +127,18 @@ confirmation.
 
 ## Routing Rules
 
+- `do some alchemy`, `run/use/apply alchemy`, and `give this an alchemy pass`
+  use the active subject and mean adaptive dispatch, never implicit `FULL`.
+- Dispatch runs from task context, diff scope, skill metadata, and existing
+  decision artifacts before any sibling skill body is loaded.
+- Dispatch is emitted before substantive repository discovery; selected routes
+  bound all later artifact and skill reads.
+- `SKIP` loads no core gate, `DIRECT` loads one gate or triad skill,
+  `ADAPTIVE` selects the smallest justified set, and `FULL` requires explicit
+  full-traversal language.
+- Task-matched companion skills remain independent: a core skip or focused
+  route never suppresses a project, domain, stack, UX, security,
+  accessibility, API, release, or evidence skill.
 - `$alchemy <subject>` selects the smallest useful path and resumes from the
   latest trustworthy decision artifact.
 - `$alchemy audit <subject>` starts with `C₀`; it enters requirements recovery
@@ -166,6 +185,10 @@ meaning or invalidate its verification.
 7. Every skipped stage has an explicit rationale in the orchestration record.
 8. Readiness, implementation, and verification remain independent;
    `requirements-traceability` owns post-readiness evidence state.
+9. Dispatch happens before sibling bodies are loaded; natural language never
+   broadens into `FULL` without explicit full-traversal language.
+10. Core routing and companion routing remain separate; neither can silently
+    suppress the other.
 
 ## Complexity Assessment
 
@@ -184,6 +207,9 @@ without reducing the number of existing A.L.C.H.E.M.Y. modules:
 The adaptive pipeline invokes the Requirements Qualification Phase only when
 the work's risk or dependency structure justifies the extra reasoning cost. It
 preserves the shortest useful route for local and already-grounded decisions.
+The dispatch preflight adds no module and no mandatory gate depth: `SKIP`
+returns before sibling loading, while `DIRECT` and `ADAPTIVE` replace ad hoc
+route inference with one explicit classification.
 
 ## Acceptance Criteria
 
@@ -191,6 +217,12 @@ The design is ready to implement when the orchestrator can satisfy all of the
 following:
 
 - Route a new, ungrounded request through grounding before M.
+- Treat "do some alchemy" and equivalent natural phrases as adaptive dispatch
+  over the active subject, not as help or a full traversal.
+- Return `SKIP` for routine local work without loading core gate skills while
+  preserving independently triggered companion skills.
+- Return `DIRECT` for one clear gate concern, `ADAPTIVE` for structural work,
+  and `FULL` only for explicit full-traversal language.
 - Route an already-grounded request directly to M.
 - Skip topology with a recorded rationale for one bounded independent
   requirement.
@@ -208,6 +240,8 @@ following:
 
 - Renaming A.L.C.H.E.M.Y. or assigning new letters to requirements skills.
 - Running every skill for every request.
+- Replacing the host agent's domain-skill triggering with a hard-coded global
+  companion catalogue.
 - Treating existing implementation behavior as authoritative product intent.
 - Replacing architecture or implementation decisions with requirements
   analysis.

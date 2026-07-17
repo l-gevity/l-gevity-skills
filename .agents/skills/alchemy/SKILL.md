@@ -1,18 +1,17 @@
 ---
 name: alchemy
 description: >-
-    Orchestrates non-trivial design, refactor, and audit work through adaptive
-    requirements qualification and the A.L.C.H.E.M.Y. gates. Invoke with
-    `/alchemy` in Claude Code or `$alchemy` in Codex. Use for architecture,
-    complexity, enforcement, shift-left, or optimization reviews; introducing a
-    module, service, or library; implementing a vertical slice across transport,
-    domain, and persistence; consolidating duplicate implementations; designing
-    an abstraction; extracting a package or component; refactoring across
-    boundaries; or auditing over-engineering. Use `/alchemy left`, `/alchemy
-    out`, and `/alchemy down` to shift defects left, push toil out, or bring
-    bespoke code down into reusable capability. Use `/alchemy ?` or `$alchemy ?`
-    for help. Skip local bug fixes, content or CSS edits, dependency bumps, and
-    trivial renames. Defines no new rules; routes to sibling skills.
+    Runs a lightweight change preflight, then routes non-trivial design,
+    refactor, and audit work through only the needed requirements and
+    A.L.C.H.E.M.Y. skills. Explicitly trigger with `/alchemy`, `$alchemy`, or
+    natural phrases such as "do some alchemy", "run alchemy on this", "use
+    alchemy", or "give this an alchemy pass". Use for architecture, complexity,
+    enforcement, shift-left, optimization, modules, vertical slices,
+    abstractions, cross-boundary refactors, consolidation, and over-engineering
+    audits. Explicit invocation on a local bug fix, content or CSS edit,
+    dependency bump, or trivial rename returns a cheap `SKIP` or `DIRECT`
+    dispatch instead of loading every gate. Defines no new domain rules; routes
+    to core sibling skills and task-matched companion skills.
 ---
 
 # Alchemy
@@ -25,7 +24,9 @@ action.
 
 ## 1. Command Grammar
 
-Invoke as `/alchemy` in Claude Code or `$alchemy` in Codex.
+Invoke as `/alchemy` in Claude Code or `$alchemy` in Codex. Natural language is
+equivalent: `do some alchemy`, `run alchemy on this`, `use alchemy`, and `give
+this an alchemy pass` all request adaptive dispatch, not a full traversal.
 
 Request context:
 
@@ -33,8 +34,13 @@ Request context:
 - In environments that expand command arguments, `$ARGUMENTS` is the argument
   string. If `$ARGUMENTS` is empty or appears literally unexpanded, use the
   surrounding user request text instead.
+- When a natural phrase contains no explicit subject, use the active request or
+  most recent unresolved task. Do not ask the user to restate context already
+  available in the conversation or worktree.
 
-If the argument is empty, `?`, `help`, or `--help`, return only this help:
+If the argument is `?`, `help`, or `--help`, return only this help. An empty
+command with no active subject also returns help; a natural phrase with active
+task context runs the preflight.
 
 ```
 /alchemy <subject>   | $alchemy <subject>   route through the needed gates
@@ -55,6 +61,7 @@ If the argument is empty, `?`, `help`, or `--help`, return only this help:
 | User phrase | Route |
 |:--|:--|
 | `alchemy <subject>` | Infer Design, Refactor, or Audit mode from context, then run the relevant gate sequence. |
+| `do some alchemy`, `run/use/apply alchemy`, `give this an alchemy pass` | Use the active subject and run the dispatch preflight; never imply `full`. |
 | `alchemy audit ...` | Start with the read-only `C₀` structural baseline; recover requirements only when intent is missing, stale, contradictory, or disputed. |
 | `alchemy full ...`, `alchemy all ...`, `alchemy walk the gates ...`, `alchemy complete alchemy ...` | Traverse every justified qualification stage and gate; record why any conditional stage is skipped. |
 | `alchemy M ...`, `alchemy minimum ...`, `alchemy necessity ...`, `alchemy worth ...` | Invoke `functionality-complexity-tradeoff`. |
@@ -68,17 +75,65 @@ If the argument is empty, `?`, `help`, or `--help`, return only this help:
 | `alchemy out ...`, `alchemy push-out ...` | Invoke `push-out`. |
 | `alchemy down ...`, `alchemy bring-down ...` | Invoke `bring-down`. |
 
+### Dispatch Preflight
+
+Classify before reading any sibling skill body. Use prompt context, current
+diff/task scope, available skill metadata, and the latest trustworthy decision
+artifacts only.
+
+Make dispatch the first observable checkpoint. Decide from the user request and
+already-loaded context; do not scan the repository or open sibling bodies merely
+to choose a dispatch. After emitting the dispatch, inspect only the artifacts
+and skills selected by that route.
+
+| Dispatch | Select when | Core action |
+|:--|:--|:--|
+| `SKIP` | Local behavior stays inside one governed boundary and does not ask an Alchemy question: copy/CSS, trivial rename, routine dependency bump, or isolated bug fix | Load no Alchemy gate skill; continue with task-matched companion skills and normal verification |
+| `DIRECT` | A focused alias or one unambiguous concern maps to exactly one gate or triad skill | Load only that core sibling skill |
+| `ADAPTIVE` | Structure, responsibility, data flow, abstraction, multiple requirements, or boundaries may change | Select the smallest justified qualification and gate set |
+| `FULL` | The user explicitly requests `full`, `all`, `walk the gates`, or `complete alchemy` | Traverse every justified stage and record all skips |
+
+Use this deterministic signal matrix when no alias is present:
+
+| Change signal | Dispatch / minimum core route |
+|:--|:--|
+| Copy, CSS, trivial rename, routine dependency bump, isolated in-boundary fix | `SKIP` |
+| Worth, dead code, speculative abstraction, or "should this exist?" | `DIRECT → M` |
+| Defect found late, check placement, or CI detection timing | `DIRECT → H` or `left` |
+| Structural refactor inside one boundary | `ADAPTIVE → M, C`; add A when responsibility or public contract changes, H when verification placement changes |
+| New module/service/library, cross-boundary dependency, vertical slice, or consolidation | `ADAPTIVE → qualification as needed, M, A, L, C, E, H` |
+| Existing-code over-engineering audit | `ADAPTIVE` Audit mode beginning at `C₀` |
+| Explicit full traversal | `FULL` |
+
+Do not convert uncertainty into `FULL`. Select the smallest plausible route,
+state the uncertain signal, and stop at the first missing prerequisite.
+
+### Companion Skill Routing
+
+Alchemy owns the core qualification and gate route, not every task domain.
+Inspect available skill metadata and project instructions, then select any
+non-Alchemy skill whose trigger independently matches the subject. Read only
+the selected companion skill bodies.
+
+- A project profile may require companion skills for its domain, stack, UX,
+  security, accessibility, API, release, or evidence rules.
+- `SKIP` skips only the Alchemy core; it never suppresses a matching companion.
+- `DIRECT` keeps the core route focused while allowing independently triggered
+  companions.
+- Report companions explicitly. Use `None` when no companion trigger matches.
+- Never hard-code project-specific companion names into this generic skill.
+
 Gate and triad aliases are authoritative. If an alias is present, use only that
-gate or triad move, even when the subject mentions module boundaries. Expand
-beyond the selected route only when the user explicitly asks for `full`, `all`,
-`audit`, `walk the gates`, or `complete alchemy`.
+core gate or triad move, even when the subject mentions module boundaries.
+Independently triggered companions may still apply. Expand the core route only
+when the user explicitly asks for `full`, `all`, `audit`, `walk the gates`, or
+`complete alchemy`.
 
 If no gate alias is present, infer Design, Refactor, or Audit mode and run only
 the relevant gates.
 
-Do not run every gate by default. Expand to the full sequence only when the
-request is non-trivial, crosses module boundaries, or explicitly asks for a full
-alchemy pass.
+Do not run every gate by default. Non-trivial or cross-boundary work uses the
+smallest `ADAPTIVE` route; only explicit full language selects `FULL`.
 
 Focused aliases never silently run requirements qualification. If a focused
 gate lacks a prerequisite, report the missing decision artifact and stop at that
@@ -259,11 +314,16 @@ contradictory, or disputed:
 Default output for a single-gate or simple routed request:
 
 ```
-Route:    <M | A | L | C | E | H | Y | left | out | down>
-Verdict:  Proceed | Redesign | Drop | Defer
-Reason:   <one or two lines>
-Next:     <one concrete action>
+Dispatch:   <SKIP | DIRECT | ADAPTIVE | FULL>
+Core route: <None | M | A | L | C | E | H | Y | left | out | down | ordered set>
+Companions: <None | task-matched skills>
+Verdict:    Proceed | Redesign | Drop | Defer
+Reason:     <one or two lines>
+Next:       <one concrete action>
 ```
+
+For `SKIP`, emit the same compact output with `Core route: None`; do not load a
+core sibling merely to justify the skip.
 
 Use the expanded output only for multi-stage runs, non-trivial design/refactor
 passes, audits, or explicit requests for detail. Emit one combined decision
@@ -278,6 +338,8 @@ Then state:
 ```
 Scope:          <module / service / refactor / PR>
 Mode:           Design | Refactor | Audit
+Dispatch:       SKIP | DIRECT | ADAPTIVE | FULL
+Companions:     <None | task-matched skills>
 Blocking stage: <first non-passing qualification decision or gate, or None>
 Decision:       Proceed | Redesign | Reject | Defer
 Verification:   <commands, lint rules, tests, or Not run + reason>
@@ -290,6 +352,14 @@ verdict.
 
 - **Skipped stages require a one-line rationale.** Skipped qualification stages
   or gates with no rationale are over-engineering risk for the next audit.
+- **Dispatch before loading.** `SKIP` must be decidable from task context and
+  metadata; reading every sibling before skipping defeats the preflight.
+- **Dispatch before inspecting.** Emit the route before substantive repository
+  discovery; inspection begins only after the route bounds what to read.
+- **Natural language stays adaptive.** "Do some alchemy" never means `FULL`
+  without explicit full-traversal language.
+- **Companions remain independent.** A core skip or focused alias must not hide
+  a task-matched domain, stack, security, UX, accessibility, or evidence skill.
 - **When a gate is consistently skipped across tasks**, that's a signal for
   `continuous-improvement` to update THIS skill — not paper over with
   case-by-case reminders.

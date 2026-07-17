@@ -3,9 +3,10 @@
 ![Design and Refactor](design_and_refactor.svg)
 
 An adaptive routing skill that qualifies requirements when needed, then
-sequences the seven architecture gates into a deterministic flow. It preserves
-short focused routes while preventing ungrounded, blocked, or unready work from
-entering Architecture.
+sequences the seven architecture gates into a deterministic flow. A lightweight
+preflight returns `SKIP`, `DIRECT`, `ADAPTIVE`, or `FULL` before gate bodies are
+loaded. It preserves short focused routes while preventing ungrounded, blocked,
+or unready work from entering Architecture.
 
 > **Reporting vocabulary.** Gate-output phrases below (e.g. "Domain / tier / layer per component", "Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ") match the coder-facing fields defined in the **Reporting Vocabulary** sections of [`geometric-architecture`](../.claude/skills/geometric-architecture/SKILL.md) and [`structural-simplification`](../.claude/skills/structural-simplification/SKILL.md). Those sections also list the internal axis symbols (`X, Y, Z`, `D, K, P, n`) that the model uses underneath.
 
@@ -13,6 +14,12 @@ entering Architecture.
 
 - **Routing becomes deterministic.** The same evidence state selects the same
   qualification stages and gate order instead of relying on ad hoc judgment.
+- **Natural language stays cheap.** "Do some alchemy" uses the active task and
+  never implies a full gate walk.
+- **Dispatch is the first checkpoint.** The agent selects and reports the route
+  before repository discovery, then inspects only what that route requires.
+- **Companion skills survive core skips.** Matching project, domain, stack, UX,
+  security, accessibility, API, release, or evidence skills still apply.
 - **Requirements are qualified without bloating every route.** Grounding,
   topology, and readiness run only when evidence, relationships, or build
   preparation require them.
@@ -60,6 +67,8 @@ The skill is a command entrypoint. Use it for **designing** a new module,
 ```
 
 Use `/alchemy ?` or `$alchemy ?` to print the grammar without running a gate.
+Natural equivalents such as `do some alchemy`, `run alchemy on this`, and `give
+this an alchemy pass` run adaptive dispatch over the active task.
 
 1. **Identify the trigger.** Introducing a new module / service / library, refactoring across module boundaries, designing a new abstraction, extracting a sub-component into a package, or auditing existing code for over-engineering.
 2. **Prompt the AI.**
@@ -70,11 +79,16 @@ Use `/alchemy ?` or `$alchemy ?` to print the grammar without running a gate.
    >
    > *Shorthand:* "/alchemy this auth refactor."
    >
+   > *Natural:* "Do some alchemy on this auth refactor."
+   >
    > *Focused gate:* "/alchemy E the new module boundaries."
    >
    > *DevOps improvement triad:* "/alchemy out release handoffs."
 
-3. **Read the verdict.** The default response is terse: route, verdict, one- or two-line reason, and next action. Full gate tables appear only for multi-gate runs, non-trivial design/refactor passes, audits, or explicit requests for detail.
+3. **Read the verdict.** The default response is terse: dispatch, core route,
+   companions, verdict, reason, and next action. Full gate tables appear only
+   for multi-gate runs, non-trivial design/refactor passes, audits, or explicit
+   requests for detail.
 4. **Apply the fix.** For focused gates, apply only that gate's next action. For
    full passes, qualify uncertain requirements, stop at the first non-passing
    decision, drop everything M rejects, place each surviving component at its
@@ -180,9 +194,14 @@ meaning, and unsafe `PARTLY-READY` slices.
 
 Each row points back to the gate that would have caught it prospectively.
 
-## When to skip
+## Dispatch behavior
 
-Bug fixes within an existing module, content/copy edits, CSS-only changes, dependency bumps, trivial renames. The skill earns its keep when module boundaries are being drawn, crossed, or audited — not for routine work inside a governed component.
+- `SKIP`: in-boundary bug fix, content/copy, CSS, routine dependency bump, or
+  trivial rename; load no core gate, but retain matching companion skills.
+- `DIRECT`: one focused alias or one unambiguous M/H/triad concern.
+- `ADAPTIVE`: structure, responsibility, data flow, abstraction, requirements,
+  or boundaries may change.
+- `FULL`: only explicit `full`, `all`, `walk the gates`, or `complete alchemy`.
 
 ## Next steps
 

@@ -16,6 +16,7 @@ ALCHEMY_PIPELINE_STAGES = (
     "Implementation Readiness",
     "A — Architecture",
 )
+ALCHEMY_DISPATCH_STATES = ("SKIP", "DIRECT", "ADAPTIVE", "FULL")
 CI_CD_RELEASE_STATES = (
     "BUILD-VERIFIED",
     "RELEASE-READY",
@@ -32,6 +33,9 @@ OUTPUT_MARKERS = (
 PRIMER_REQUIRED_TERMS = {
     "alchemy": (
         "Requirements Qualification Phase",
+        "Dispatch behavior",
+        "do some alchemy",
+        "companion skills",
         "requirements-grounding",
         "requirements-topology",
         "implementation-readiness",
@@ -83,6 +87,12 @@ PRIMER_REQUIRED_TERMS = {
 SKILL_REQUIRED_TERMS = {
     "alchemy": (
         "Adaptive Requirements Qualification",
+        "Dispatch Preflight",
+        "Companion Skill Routing",
+        "do some alchemy",
+        "Dispatch:   <SKIP | DIRECT | ADAPTIVE | FULL>",
+        "Core route:",
+        "Companions:",
         "requirements-grounding",
         "requirements-topology",
         "implementation-readiness",
@@ -331,6 +341,51 @@ def validate_alchemy_pipeline() -> None:
         )
 
 
+def validate_alchemy_dispatch_contract() -> None:
+    path = CLAUDE_SKILLS / "alchemy" / "SKILL.md"
+    text = path.read_text(encoding="utf-8")
+
+    preflight = text.find("### Dispatch Preflight")
+    qualification = text.find("## 2. Adaptive Requirements Qualification")
+    if preflight == -1 or qualification == -1 or preflight > qualification:
+        fail(f"{path.relative_to(ROOT)} must dispatch before qualification")
+
+    for state in ALCHEMY_DISPATCH_STATES:
+        if f"`{state}`" not in text:
+            fail(f"{path.relative_to(ROOT)} missing dispatch state '{state}'")
+
+    required = (
+        "Classify before reading any sibling skill body",
+        "Make dispatch the first observable checkpoint",
+        "do not scan the repository",
+        "Natural language stays adaptive",
+        "`SKIP` skips only the Alchemy core",
+        "never suppresses a matching companion",
+        "only explicit full language selects `FULL`",
+    )
+    for term in required:
+        if term not in text:
+            fail(f"{path.relative_to(ROOT)} missing dispatch rule '{term}'")
+
+    public_contracts = {
+        ROOT / "README.md": ("do some alchemy", "Dispatch:", "Companions:"),
+        ROOT / "CLAUDE.md": ("do some alchemy", "`SKIP` routine", "`FULL` only"),
+        ROOT / "ALCHEMY-PIPELINE-DESIGN.md": (
+            "Dispatch preflight",
+            "do some alchemy",
+            "companion skills",
+        ),
+        DOCS / "READ-alchemy.md": ("Dispatch behavior", "do some alchemy", "companion skills"),
+    }
+    for contract_path, terms in public_contracts.items():
+        contract = contract_path.read_text(encoding="utf-8")
+        for term in terms:
+            if term not in contract:
+                fail(
+                    f"{contract_path.relative_to(ROOT)} missing Alchemy dispatch term '{term}'"
+                )
+
+
 def validate_alchemy_root_guidance() -> None:
     path = ROOT / "CLAUDE.md"
     text = path.read_text(encoding="utf-8")
@@ -348,6 +403,9 @@ def validate_alchemy_root_guidance() -> None:
 
     required = (
         "Focused aliases stay focused",
+        "do some alchemy",
+        "`SKIP` routine",
+        "`FULL` only",
         "PARTLY-READY",
         "NOT-GROUNDED",
         "BLOCKED",
@@ -419,6 +477,7 @@ def main() -> int:
     validate_readme_index()
     validate_generic_requirements()
     validate_alchemy_pipeline()
+    validate_alchemy_dispatch_contract()
     validate_alchemy_root_guidance()
     validate_design_and_release_contracts()
     validate_contribution_contract()
