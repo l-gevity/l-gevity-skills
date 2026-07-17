@@ -31,6 +31,9 @@ systemic, root-cause adjustments, without growing bloated.
 >    extend validation, templates, or primer checks before broad prose changes.
 >    If prose is still needed, keep the rule at the owning SKILL and route
 >    siblings to it.
+> 6. **Promote Before Repinning**: When a consumer project proves a reusable
+>    lesson, update the canonical generic skill library first. Publish that
+>    revision, then repin the consumer; keep project facts in a local overlay.
 
 ## When to use this skill
 
@@ -62,6 +65,27 @@ When the subject is the skills themselves, optimize in this order:
    public role or trigger changed, update the `README.md` skill index too.
 5. Run `python scripts/validate-skills.py`. If no mechanical check can cover
    the lesson, record why in the output contract.
+
+## Consumer-to-Library Promotion
+
+Use this sequence when learning originates in a consumer project:
+
+1. Capture the concrete failure, correction, or repeated successful pattern and
+   its verification evidence in the consumer.
+2. Extract the smallest behavior that applies without the project name, private
+   paths, roles, domain taxonomy, local commands, or provider assumptions.
+3. Update the one canonical generic owner in the skill library. Add a skill only
+   when the capability has a distinct trigger, lifecycle, and output contract.
+4. Update mirrors, primers, indexes, root routing guidance, and validation in the
+   same library change.
+5. Validate and publish the library revision.
+6. Repin or reinstall that revision in the consumer, then retain only its
+   project profile and other domain-specific skills locally.
+
+Do not overwrite a generic library from a consumer tree or treat byte-identical
+vendored files as locally owned. If a local emergency patch is unavoidable,
+mark it as temporary divergence with an upstream owner and remove it when the
+published fix is repinned.
 
 ---
 

@@ -38,6 +38,13 @@ The skill activates when the agent is corrected on an issue likely to recur, whe
 
 When improving the skills themselves, define the behavior to improve before editing wording. Prefer validator, template, or primer checks for drift risks; keep reusable rules in one owning SKILL; let sibling skills route to the owner; update `.agents`, `.claude`, the matching primer, and any affected README index text together.
 
+When evidence comes from a consumer project, promote the reusable lesson into
+the canonical library before repinning the consumer. Project names, paths,
+commands, roles, taxonomies, and provider assumptions stay in a project profile
+or local skill. The safe direction is consumer evidence → generic library
+change → validated publication → consumer repin; never overwrite the library
+from a vendored consumer tree.
+
 ## Triggers for learning
 
 | Trigger Type        | Scenario                                                                              |

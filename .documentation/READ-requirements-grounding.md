@@ -80,6 +80,17 @@ The default model distinguishes four kinds of grounding:
 Projects may supply a different taxonomy. The skill preserves project policy
 instead of pretending one domain's categories are universal.
 
+## Project profiles and canonical source
+
+Compose generic grounding with a project profile instead of forking the method.
+The profile owns source hierarchy, repository paths, schemas, roles, taxonomies,
+commands, and domain conventions. Grounding owns the reusable problem, evidence,
+and validation method.
+
+Before authoring, identify the canonical editable source and distinguish it from
+generated registers, diagrams, code constants, reports, and implementation
+evidence. Derived views may expose drift but never become a second authority.
+
 ## Output
 
 The core result is a confirmed problem boundary plus atomic requirement candidates
@@ -105,4 +116,5 @@ and the task is implementation preparation; use `implementation-readiness`.
 
 - Read the operational [`requirements-grounding` SKILL.md](../.claude/skills/requirements-grounding/SKILL.md).
 - Structure validated requirements with [`requirements-topology`](../.claude/skills/requirements-topology/SKILL.md).
+- Trace post-readiness implementation and executed evidence with [`requirements-traceability`](../.claude/skills/requirements-traceability/SKILL.md).
 - Apply [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/SKILL.md) when a proposed capability still needs a worth decision.

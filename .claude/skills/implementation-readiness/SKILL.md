@@ -40,6 +40,12 @@ Read project instructions, architecture constraints, domain glossaries, source
 catalogs, and policy files when present. Treat them as inputs; do not generalize
 their domain rules into this skill.
 
+After this skill admits a slice into implementation, use
+`requirements-traceability` to maintain implementation anchors, executed test or
+operational evidence, reverse traceability, and stale-reference checks. Readiness
+defines the evidence obligation; traceability records whether later work fulfills
+it.
+
 ## Minimum Inputs
 
 Require enough information to make readiness falsifiable:
@@ -76,6 +82,8 @@ route to the missing stage.
 9. Reference grounding's complete-when conditions as acceptance tests; add only
    concrete fixtures, expected values, and edge cases still needed.
 10. Separate ready work, blockers, risks, and technical questions.
+11. Seed stable requirement and acceptance-criterion references for downstream
+    traceability without claiming implementation or verification evidence yet.
 
 ## Readiness Gate
 
@@ -97,6 +105,10 @@ explicit assumption, adapter, configuration point, or reversible decision.
 Mark it **not ready** when source meaning, actor permission, data availability,
 acceptance conditions, external ownership, or dependency order prevents a
 responsible implementation decision.
+
+Readiness, implementation, and verification are independent states. A `READY`
+decision permits work to start; it does not mean an artifact exists or evidence
+has passed.
 
 Do not use architecture uncertainty alone as a blocker when the requirement is
 clear and the design decision can be captured as an ADR. Do treat product or
@@ -217,5 +229,13 @@ decision.
 - Do not turn every graph edge into a contract or runtime dependency.
 - Do not bury product, domain, security, privacy, compliance, or source-currency
   decisions inside developer notes.
+- Do not mark a requirement implemented or verified in a readiness package; hand
+  the admitted IDs and evidence obligations to `requirements-traceability`.
 - If grounding or topology changes materially, refresh the readiness package or
   state exactly what is stale.
+
+## See also
+
+- `requirements-grounding` — problem, source, evidence, and canonical meaning.
+- `requirements-topology` — stable IDs, typed graph, repository validation, and order.
+- `requirements-traceability` — implementation and executed verification after readiness.

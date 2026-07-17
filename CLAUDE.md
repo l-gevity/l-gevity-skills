@@ -40,6 +40,11 @@ full pipeline. Only `READY`, or `PARTLY-READY` as a bounded reversible slice, ma
 at the read-only `C₀` structural baseline and recover requirements only when current intent
 is missing, stale, contradictory, or disputed.
 
+Once an admitted slice enters implementation, use `requirements-traceability` to maintain
+bidirectional links between canonical IDs, implementation anchors, and executed evidence.
+Traceability is follow-through, not a new qualification stage or gate; `READY` never means
+implemented, and a code anchor never means verified.
+
 **Qualification and Gates 1–4 shape the design; 5–6 enforce it; 7 optimizes a stable
 baseline in iteration 2.** Enforcement files for new modules are **written before** their
 implementation code, not retrofitted — both ship in the same PR. Spike/throwaway code is

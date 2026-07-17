@@ -53,13 +53,29 @@ readiness.
 
 This prevents three nearly identical representations from drifting apart.
 
+## Repository enforcement
+
+When requirements live in a repository, one canonical model should drive four
+separate checks: file schema, cross-record semantic validation, deterministic
+generated views, and generated-drift detection. Semantic checks cover unique
+IDs, stable criterion references, aliases and lineage, unresolved edges,
+dependency cycles, ownership, and other invariants a single-file schema cannot
+prove.
+
+Run the aggregate requirements check at the earliest project validation stage
+and as a blocking CI backstop. Generated registers, diagrams, dependency order,
+and code constants are read-only views. During migrations, freeze the imported
+source, retain an old-to-new map, prove equivalence, and retire temporary import
+code after the canonical source is durable.
+
 ## Output
 
 The full package contains reader context, source lineage, genuine transformations,
 graph vocabulary, normalized records, an evidenced edge list, dependency order,
 an optional faithful diagram, and one attention list. Every use starts with a
 `STABLE`, `NEEDS-REFACTOR`, or `BLOCKED` decision record containing graph size,
-cycle status, blocking issues, the next action, and verification performed.
+cycle status (`Pass`, `Fail`, or `Not evaluated`), blocking issues, the next
+action, and verification performed. Unknown graph state is not a cycle failure.
 
 ## When to skip
 
@@ -71,4 +87,5 @@ task is to prepare developers and architects; use `implementation-readiness`.
 
 - Read the operational [`requirements-topology` SKILL.md](../.claude/skills/requirements-topology/SKILL.md).
 - Ground uncertain inputs with [`requirements-grounding`](../.claude/skills/requirements-grounding/SKILL.md).
+- Maintain implementation evidence with [`requirements-traceability`](../.claude/skills/requirements-traceability/SKILL.md).
 - Measure proposed regrouping with [`structural-simplification`](../.claude/skills/structural-simplification/SKILL.md).

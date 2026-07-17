@@ -131,6 +131,11 @@ Decision hand-offs:
 | Requirements Topology | `STABLE` | `NEEDS-REFACTOR`, `BLOCKED` | Atomic typed graph, stable IDs, conflicts, dependency order |
 | Implementation Readiness | `READY`, bounded `PARTLY-READY` | `NOT-READY` | Smallest coherent slice, verification obligations, blockers |
 
+After a slice passes readiness and enters architecture/implementation, use
+`requirements-traceability` to connect canonical IDs to implementation and
+executed evidence. Traceability is implementation follow-through, not another
+qualification stage, A.L.C.H.E.M.Y. gate, acronym letter, or prerequisite for A.
+
 For an existing project, implementation is evidence rather than intent.
 Code-derived requirements remain `PROVISIONAL` until an authoritative artifact
 or independent confirmation supports them.
@@ -200,6 +205,8 @@ Core directives:
 - [ ] Gate 5 — eslint.architecture.mjs in the SAME PR as the code
 - [ ] Gate 6 — Every error path mapped to earliest catchable stage
 - [ ] Gate 7 — Deferred to iteration 2
+- [ ] Follow-through — When implementation is in scope, hand admitted IDs and
+                       evidence obligations to requirements-traceability
 - [ ] Trail — Evidence, skipped-stage rationales, first blocker, and next action
 ```
 
@@ -240,6 +247,7 @@ contradictory, or disputed:
 | Eslint rules added in follow-up PR | 5 — same-PR discipline broken | Block the follow-up; add rules to original PR |
 | Defects caught at runtime that types could express | 6 — left-shift not applied | Move the check upward; remove the runtime guard |
 | Architecture file disagrees with code | 5 — drift | Re-run lint; treat as a defect |
+| Requirement marked verified from a code anchor or unexecuted test | Implementation follow-through | Run `requirements-traceability`; separate implemented from verified evidence |
 | Duplicate implementations are unified but retain separate behavior tests | 6 — integration / contract | Add one shared conformance suite and real-boundary coverage for backend-specific semantics before deleting either copy |
 | "Just in case" extension point with one user | 1 — speculative optionality | DROP unless second use is named and probable |
 | Premature performance optimization | 7 — applied before baseline | Revert; re-apply after stability |

@@ -35,6 +35,9 @@ uncertainty.
 > 6. **Implementation is evidence, not intent.** Code proves what can happen in
 >    the inspected version; it does not by itself prove what should happen, why it
 >    exists, or whether it remains wanted.
+> 7. **Compose; do not fork.** Generic method stays in this skill. A project
+>    profile owns repository paths, source policy, schemas, taxonomies, roles,
+>    commands, and other domain conventions.
 
 ## Boundary
 
@@ -45,6 +48,10 @@ Use `requirements-topology` after grounding when stable IDs, typed relationships
 dependency order, duplicate/conflict checks, or a graph package are needed. Use
 `implementation-readiness` after topology when developers and architects need a
 build-preparation package.
+
+When a project provides a requirements profile or overlay, apply it alongside
+this skill. Do not copy generic workflow into the profile and do not move project
+facts into this skill.
 
 Do not introduce graph edges, domain entities, APIs, services, ADRs, or
 implementation slices here. Record them only as questions for later stages.
@@ -75,10 +82,16 @@ Before relying on a project-specific source:
 4. Surface conflicting sources or interpretations instead of silently choosing.
 5. Read project instructions, domain glossaries, role catalogs, and policy files
    when present. Treat them as the domain overlay for this run.
+6. Identify the canonical editable requirement source and distinguish it from
+   generated registers, diagrams, code constants, reports, and implementation
+   evidence. Never author meaning in a derived view.
 
 If source currency cannot be verified, mark the affected requirements provisional.
 Do not imply legal, compliance, security, or contractual certainty that the source
 set does not support.
+
+If the canonical source or project profile is missing or contradictory, name the
+ownership gap instead of choosing the most polished artifact.
 
 ## Recovery Mode
 

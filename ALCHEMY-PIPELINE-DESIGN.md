@@ -30,6 +30,11 @@ Phase** that spans the Minimum gate and precedes architectural design:
 These skills qualify work entering A.L.C.H.E.M.Y.; they do not become new
 letters in the acronym.
 
+`requirements-traceability` begins after a passing readiness decision when an
+admitted slice enters architecture, implementation, verification, review, or
+closeout. It maintains implementation and executed-evidence links; it is not a
+qualification stage, gate, acronym letter, or prerequisite for Architecture.
+
 ## Pipeline
 
 ```mermaid
@@ -159,6 +164,8 @@ meaning or invalidate its verification.
 5. Focused aliases preserve current A.L.C.H.E.M.Y. command behavior.
 6. Enforcement follows design decisions; Yield follows a stable baseline.
 7. Every skipped stage has an explicit rationale in the orchestration record.
+8. Readiness, implementation, and verification remain independent;
+   `requirements-traceability` owns post-readiness evidence state.
 
 ## Complexity Assessment
 
@@ -194,6 +201,8 @@ following:
 - Emit one combined decision trail with evidence, skipped-stage rationales,
   the first blocking decision, and the next action.
 - Keep the solid execution path acyclic and make every rework edge explicit.
+- Hand admitted requirement and criterion IDs to `requirements-traceability`
+  when implementation is in scope without treating it as another pipeline gate.
 
 ## Non-goals
 

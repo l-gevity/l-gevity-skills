@@ -296,9 +296,9 @@ needed unless you move things. Start with `/alchemy ?` in Claude Code or
 
 ## The full skill index
 
-Seventeen skills total: seven gate skills, one orchestrator, two stack
+Eighteen skills total: seven gate skills, one orchestrator, two stack
 implementations of **E**, one pipeline-reliability skill that extends **H**,
-two additional DevOps improvement-axis skills, three requirements-discipline
+two additional DevOps improvement-axis skills, four requirements-discipline
 skills, and one meta-layer. Every skill ships
 as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer in
 [`./.documentation/`](./.documentation/).
@@ -328,6 +328,7 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
 | [requirements-grounding](./.claude/skills/requirements-grounding/SKILL.md) | Grounding | [READ](./.documentation/READ-requirements-grounding.md) | Ground proposed requirements in an actor-bound problem, or recover provisional candidates from code and project evidence without mistaking implementation for intent. |
 | [requirements-topology](./.claude/skills/requirements-topology/SKILL.md) | Topology | [READ](./.documentation/READ-requirements-topology.md) | Structure validated requirements as a typed dependency graph; detect cycles, orphans, duplicates, conflicts, stale references, and missing verification. |
 | [implementation-readiness](./.claude/skills/implementation-readiness/SKILL.md) | Readiness | [READ](./.documentation/READ-implementation-readiness.md) | Decide what is ready, partly ready, or blocked, then derive the smallest traceable build-preparation package without inventing requirement meaning. |
+| [requirements-traceability](./.claude/skills/requirements-traceability/SKILL.md) | Traceability | [READ](./.documentation/READ-requirements-traceability.md) | Maintain bidirectional links from canonical IDs to implementation and executed evidence while keeping implemented and verified states distinct. |
 
 ### Orchestration and implementations
 
@@ -375,11 +376,26 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
 - **Preparing implementation.** Use `implementation-readiness` to distinguish
   ready, partly ready, and blocked work and derive the smallest coherent slice,
   contracts, ADR questions, and test references.
+- **Tracing implementation and proof.** Use `requirements-traceability` after
+  readiness to connect canonical IDs to implementation, passing test or
+  operational evidence, and reverse-trace gaps without treating anchors as
+  verification.
 - **Improving the skills themselves.** When a skill gives bad advice,
   `continuous-improvement` runs root-cause analysis on the skill's text
   and proposes an edit, so the same mistake does not recur.
 
 ---
+
+## Project-to-library learning loop
+
+Consumer projects are evidence sources, not owners of generic method. Promote a
+reusable correction into this repository first, keep `.agents` and `.claude`
+mirrors plus primers/validation aligned, publish the reviewed revision, and only
+then repin the consumer. Project names, paths, schemas, taxonomies, commands,
+roles, and domain policy stay in a project profile or local skill.
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the complete promotion and genericity
+contract.
 
 ## What this pack is *not*
 

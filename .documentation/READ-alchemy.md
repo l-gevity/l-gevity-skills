@@ -110,6 +110,11 @@ Focused aliases remain focused. If `/alchemy A` lacks a trustworthy readiness
 decision, it reports that prerequisite instead of silently running the full
 phase.
 
+After readiness admits a slice, `requirements-traceability` follows work through
+implementation, verification, review, and closeout. It is not another
+qualification stage or gate: readiness defines what evidence will be needed;
+traceability records implementation separately from executed proof.
+
 ## The seven gates at a glance
 
 | #   | Gate                          | Skill                                                                                | Output                                       |
@@ -187,6 +192,7 @@ Bug fixes within an existing module, content/copy edits, CSS-only changes, depen
   [`requirements-grounding`](../.claude/skills/requirements-grounding/),
   [`requirements-topology`](../.claude/skills/requirements-topology/), and
   [`implementation-readiness`](../.claude/skills/implementation-readiness/).
+- For post-readiness evidence, see [`requirements-traceability`](../.claude/skills/requirements-traceability/).
 - For first-principles rules driving Gate 2, see [`architecture-guidelines`](../.claude/skills/architecture-guidelines/).
 - For the Domain / Tier / Layer placement model used at Gate 3, see [`geometric-architecture`](../.claude/skills/geometric-architecture/).
 - For the per-axis complexity scoring used at Gate 4, see [`structural-simplification`](../.claude/skills/structural-simplification/).

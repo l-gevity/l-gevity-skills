@@ -29,6 +29,9 @@ meaning.
 >    edges; never infer dependencies from document order.
 > 6. **Graph structure is not software architecture.** An edge does not imply an
 >    API, event, service, or deployment boundary.
+> 7. **Operationalize one canonical model.** Schemas, semantic checks, generated
+>    views, and CI gates must derive from the same requirement source instead of
+>    creating parallel authorities.
 
 ## Boundary
 
@@ -130,6 +133,40 @@ Check explicitly for:
 Do not delete a requirement merely because it looks redundant. Mark the edge,
 preserve lineage, and propose the consolidation decision.
 
+## Repository Operationalization
+
+When requirements live in a repository, keep four concerns explicit:
+
+1. **Canonical inputs** own meaning and accepted relationships. Human-authored
+   requirement text and structured metadata must agree or fail validation.
+2. **Schema validation** checks record shape, required fields, enums, and ID
+   syntax as early as editor tooling permits and again in blocking CI.
+3. **Semantic validation** checks global uniqueness, criterion IDs, reference
+   resolution, alias ambiguity, lineage, dependency cycles, ownership, and
+   cross-record invariants that a file schema cannot prove.
+4. **Generated views** such as registers, diagrams, dependency order, code
+   constants, and summaries are deterministic, marked read-only, and checked for
+   drift in CI.
+
+Keep requirement status, approval, readiness, implementation, and verification
+as independent facts. For example, an approval state may require an approval
+date, but it never implies implementation or passed evidence.
+
+Use stable acceptance-criterion IDs when downstream tests or evidence must
+reference individual completion conditions. Preserve active IDs across edits;
+record aliases, splits, merges, replacements, and deprecated criteria without
+recycling identifiers.
+
+For migrations, freeze the imported source with a revision or checksums, keep an
+old-to-new ID/path map, prove structural and semantic equivalence, and remove the
+temporary importer after the canonical source and rollback evidence are durable.
+
+The repository gate should expose separate commands or phases for validation,
+generation, generated-drift checking, and traceability. A single aggregate
+requirements check should run them at the earliest project validation stage and
+again as an unbypassable CI backstop. Use `requirements-traceability` for live
+implementation and executed-evidence relationships.
+
 ## Requirement-Scope Heuristics
 
 Group requirements when they share data ownership, decision ownership,
@@ -166,9 +203,10 @@ Mode:              analysis | hybrid | patch | graph-package
 Decision:          STABLE | NEEDS-REFACTOR | BLOCKED
 Canonical source:  <grounding artifact and version>
 Graph size:        <node count / typed-edge count>
-Cycle:             Pass | Fail
+Cycle:             Pass | Fail | Not evaluated
 Blocking issues:   <IDs, cycles, conflicts, verification, ownership, or lineage>
 Inferred edges:    <count and evidence status>
+Repository gate:   <schema / semantics / generated drift / not configured>
 Next action:       <split, merge, source, decide, fix cycle, or run implementation-readiness>
 Verification:      <graph checks and source comparisons run, or Not run + reason>
 ```
@@ -211,5 +249,9 @@ source, source currency, and caveats once near the top.
 - Do not hide uncertainty by converting an inference into a source fact.
 - Do not claim the graph is stable while cycles, must-have verification gaps, or
   unresolved ID transformations remain.
+- Do not report a cycle failure without inspecting the `depends_on` projection;
+  use `Not evaluated` and name the missing graph input instead.
+- Do not hand-edit generated views or let them become a competing requirement
+  source.
 - If grounding changes materially, refresh the topology or state exactly what is
   stale.

@@ -35,6 +35,7 @@ PRIMER_REQUIRED_TERMS = {
         "requirements-grounding",
         "requirements-topology",
         "implementation-readiness",
+        "requirements-traceability",
         "PARTLY-READY",
         "C₀",
     ),
@@ -52,6 +53,32 @@ PRIMER_REQUIRED_TERMS = {
         "PRODUCTION-VERIFYING",
         "DEPLOYED-HEALTHY",
     ),
+    "continuous-improvement": (
+        "consumer project",
+        "canonical library",
+        "repinning the consumer",
+    ),
+    "requirements-grounding": (
+        "project profile",
+        "canonical editable source",
+        "generated registers",
+    ),
+    "requirements-topology": (
+        "Repository enforcement",
+        "Semantic checks",
+        "blocking CI backstop",
+    ),
+    "implementation-readiness": (
+        "Post-readiness traceability",
+        "requirements-traceability",
+        "independent",
+    ),
+    "requirements-traceability": (
+        "bidirectional",
+        "implemented",
+        "verified",
+        "CI enforcement",
+    ),
 }
 SKILL_REQUIRED_TERMS = {
     "alchemy": (
@@ -59,6 +86,7 @@ SKILL_REQUIRED_TERMS = {
         "requirements-grounding",
         "requirements-topology",
         "implementation-readiness",
+        "requirements-traceability",
         "PARTLY-READY",
         "NOT-GROUNDED",
         "NOT-READY",
@@ -74,10 +102,66 @@ SKILL_REQUIRED_TERMS = {
         "Rollback:",
         "Owner handoff:",
     ),
-    "requirements-grounding": ("requirements-topology", "GROUNDED", "PROVISIONAL", "NOT-GROUNDED"),
-    "requirements-topology": ("requirements-grounding", "implementation-readiness", "STABLE", "BLOCKED"),
-    "implementation-readiness": ("requirements-grounding", "requirements-topology", "READY", "PARTLY-READY", "NOT-READY"),
+    "continuous-improvement": (
+        "Consumer-to-Library Promotion",
+        "Promote Before Repinning",
+        "consumer project",
+    ),
+    "requirements-grounding": (
+        "requirements-topology",
+        "GROUNDED",
+        "PROVISIONAL",
+        "NOT-GROUNDED",
+        "Compose; do not fork",
+        "canonical editable requirement source",
+    ),
+    "requirements-topology": (
+        "requirements-grounding",
+        "implementation-readiness",
+        "requirements-traceability",
+        "Repository Operationalization",
+        "Semantic validation",
+        "Generated views",
+        "Cycle:             Pass | Fail | Not evaluated",
+        "STABLE",
+        "BLOCKED",
+    ),
+    "implementation-readiness": (
+        "requirements-grounding",
+        "requirements-topology",
+        "requirements-traceability",
+        "READY",
+        "PARTLY-READY",
+        "NOT-READY",
+        "independent states",
+    ),
+    "requirements-traceability": (
+        "Trace both directions",
+        "Implementation is not verification",
+        "Evidence States",
+        "CI Enforcement",
+        "TRACEABLE",
+        "Stale references:",
+    ),
 }
+GENERIC_REQUIREMENTS_SKILLS = (
+    "requirements-grounding",
+    "requirements-topology",
+    "implementation-readiness",
+    "requirements-traceability",
+)
+GENERIC_REQUIREMENTS_FORBIDDEN = (
+    "PayQuality",
+    "PayLens",
+    "docs/requirements",
+    "npm run requirements",
+)
+CONTRIBUTION_REQUIRED_TERMS = (
+    "canonical source for generic skill method",
+    "Consumer-to-library promotion loop",
+    "Publish, then repin",
+    "project overlay",
+)
 PUBLIC_DOC_FORBIDDEN = {
     "bring-down old public model": {
         "files": (
@@ -218,6 +302,15 @@ def validate_readme_index() -> None:
             fail(f"README.md missing primer link for {name}")
 
 
+def validate_generic_requirements() -> None:
+    for name in GENERIC_REQUIREMENTS_SKILLS:
+        path = AGENT_SKILLS / name / "SKILL.md"
+        text = path.read_text(encoding="utf-8")
+        for term in GENERIC_REQUIREMENTS_FORBIDDEN:
+            if term in text:
+                fail(f"{path.relative_to(ROOT)} contains project-specific term '{term}'")
+
+
 def validate_alchemy_pipeline() -> None:
     path = CLAUDE_SKILLS / "alchemy" / "SKILL.md"
     text = path.read_text(encoding="utf-8")
@@ -294,6 +387,18 @@ def validate_design_and_release_contracts() -> None:
         )
 
 
+def validate_contribution_contract() -> None:
+    path = ROOT / "CONTRIBUTING.md"
+    text = path.read_text(encoding="utf-8")
+    for term in CONTRIBUTION_REQUIRED_TERMS:
+        if term not in text:
+            fail(f"{path.relative_to(ROOT)} missing promotion term '{term}'")
+
+    package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+    if "CONTRIBUTING.md" not in package.get("files", []):
+        fail("package.json must publish CONTRIBUTING.md")
+
+
 def validate_public_doc_drift() -> None:
     for rule, config in PUBLIC_DOC_FORBIDDEN.items():
         for path in config["files"]:
@@ -312,9 +417,11 @@ def main() -> int:
     validate_mirrors()
     validate_primers()
     validate_readme_index()
+    validate_generic_requirements()
     validate_alchemy_pipeline()
     validate_alchemy_root_guidance()
     validate_design_and_release_contracts()
+    validate_contribution_contract()
     validate_public_doc_drift()
     print("Skills validated")
     return 0

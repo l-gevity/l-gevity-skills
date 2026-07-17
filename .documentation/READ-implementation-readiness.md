@@ -59,6 +59,14 @@ expected values, and edge cases. Every use starts with a `READY`, `PARTLY-READY`
 or `NOT-READY` decision record naming prerequisites, blockers, the smallest
 supported slice, the next action, and verification performed.
 
+## Post-readiness traceability
+
+Readiness, implementation, and verification are independent. `READY` permits an
+admitted slice to enter architecture and build; it does not prove an artifact
+exists or a test passed. Hand stable requirement and criterion IDs plus evidence
+obligations to `requirements-traceability`, which owns implementation anchors,
+executed results, reverse-trace gaps, and stale-reference checks.
+
 ## When to skip
 
 Skip when the problem and source basis are unclear; use `requirements-grounding`.
@@ -68,5 +76,6 @@ use `requirements-topology`.
 ## Next steps
 
 - Read the operational [`implementation-readiness` SKILL.md](../.claude/skills/implementation-readiness/SKILL.md).
+- Follow admitted work with [`requirements-traceability`](../.claude/skills/requirements-traceability/SKILL.md).
 - Shape resulting module and service designs with [`architecture-guidelines`](../.claude/skills/architecture-guidelines/SKILL.md).
 - Challenge speculative implementation surface with [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/SKILL.md).
