@@ -247,7 +247,20 @@ commands and write files, and paste:
 > project root. If a memory file already exists, the upstream version
 > is written beside it as `<name>.l-gevity` for me to merge manually.
 > Re-running this prompt later refreshes upstream skills without
-> touching anything in `.claude/skills/` that I added myself.**
+> touching anything in `.claude/skills/` that I added myself. Each run
+> records provenance in `.claude/skills/l-gevity-skills.lock.json`
+> (ref, commit, upstream skill list) so refreshes show up as reviewable
+> diffs; set `L_GEVITY_SKILLS_REF` to pin a branch, tag, or commit. If
+> no script matches the agent I am, install generically: copy
+> `.claude/skills/` from the repo into the project, derive my root
+> memory file from `CLAUDE.md`, and use a skill by reading
+> `.claude/skills/<name>/SKILL.md` whenever its frontmatter description
+> matches the task. Finally, prove the install with the dispatch
+> self-test: "do some alchemy on this: fixing a typo in one HTML page"
+> must yield `Dispatch: SKIP` with `Core route: None`, and "/alchemy M
+> should we keep an unused export?" must load exactly one skill
+> (`functionality-complexity-tradeoff`). Report both results; on a
+> miss, diagnose the wiring — never adjust the expected output.**
 
 The agent will fetch, inspect, and run the appropriate script — no need
 to remember `curl` flags or PowerShell syntax. Re-paste the prompt later
@@ -271,6 +284,20 @@ iwr -useb https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.insta
 Swap `install-claude` for `install-codex` / `install-gemini` /
 `install-grok` to target another agent's memory file. Re-run any time
 to refresh upstream.
+
+Pin a version with `L_GEVITY_SKILLS_REF` (branch, tag, or commit):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-claude.sh | L_GEVITY_SKILLS_REF=<ref> bash
+```
+
+```powershell
+$env:L_GEVITY_SKILLS_REF = '<ref>'; iwr -useb https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-claude.ps1 | iex
+```
+
+Every run writes `.claude/skills/l-gevity-skills.lock.json` recording
+the installed ref, resolved commit, and upstream skill list — so a
+refresh is a reviewable diff, not a silent overwrite.
 
 </details>
 
@@ -305,6 +332,7 @@ After install:
 your-project/
 ├── CLAUDE.md                    ← strategic directives
 └── .claude/skills/
+    ├── l-gevity-skills.lock.json ← installed ref + commit provenance
     ├── alchemy/
     ├── architecture-guidelines/
     ├── structural-simplification/
