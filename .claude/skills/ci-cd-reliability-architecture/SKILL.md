@@ -23,6 +23,8 @@ description: >-
 > 4. **Self-Healing** — retry transient, fail-fast permanent (§4).
 > 5. **Zero-Downtime** — preview environment, atomic promotion (§5).
 > 6. **Zero-Knowledge** — OIDC / federated identity, no standing cloud secrets (§6).
+> 7. **Evidence-Gated** — every merge and promotion is blocked by the earliest
+>    applicable verification gate (§9).
 
 ---
 
@@ -305,6 +307,7 @@ Any failed gate → BLOCKED or ROLLBACK
 | Gate | Required evidence |
 | --- | --- |
 | Artifact | Commit, immutable digest, provenance; signing/SBOM when policy requires |
+| Test evidence | Applicable Stage 5–9 gates from §9 passed against the named commit or artifact digest |
 | Preflight | Config/schema, contract compatibility, migration reversibility, secrets, IAM and capacity checked before mutation |
 | Promotion | Same digest as verified; protected approval when required; one deployment owns the target environment |
 | Rollout | Atomic, blue/green, or canary strategy with explicit health thresholds |
@@ -316,7 +319,66 @@ passes and the named operational owner accepts the handoff.
 
 ---
 
-## 9. Delivery Checklist
+## 9. Verification Gates
+
+Verification is a staged evidence system, not a single `test` job. Place each
+check at the earliest stage capable of detecting its defect, following
+`defect-shift-left`. Every applicable check is blocking. A pipeline may mark a
+check not applicable only when it records the component or risk evidence that
+justifies the omission.
+
+| Stage / trigger | Required verification | Gate behavior |
+| --- | --- | --- |
+| **Build / every PR** | Format and lint; strict type-check; build/package; secret scan; SAST; dependency/CVE and license audit; IaC scan when IaC exists; bundle/artifact budget | Block merge; branch protection requires the full-repository CI backstop |
+| **Unit / every PR** | Unit and property tests; project-owned coverage policy with no unexplained regression | Block merge; publish machine-readable results and coverage evidence |
+| **Integration / every PR** | Component/integration tests; API/schema contract and backward-compatibility tests; authorization negative-path tests; container/artifact reproducibility | Block merge; test the same output that becomes the immutable artifact |
+| **Preview / every deployable PR** | Startup smoke; critical-journey E2E; supported-browser compatibility; visual regression where rendered UI is material; broken-link validation for navigable content | Block merge and promotion; run against the isolated preview using the candidate artifact |
+| **Frontend preview / applicable routes** | Bundle/resource budgets; Lighthouse performance, accessibility, best-practices, and SEO assertions as applicable; dedicated automated accessibility rules | Block merge on breached budgets or new violations; test representative public and authenticated routes under declared mobile/desktop profiles |
+| **Pre-deploy / every target environment** | Config/schema and feature-flag consistency; secret presence/expiry; migration dry-run and reversibility; deployed-contract diff; IAM/capacity/quota/cost projection; rollback-artifact availability | Abort before mutation; attach results to the release record |
+| **Deploy execution / every deployment** | Startup, readiness, dependency-connectivity, health, and rollback-trigger verification | Withhold traffic or roll back automatically on failure |
+| **Canary/staging / promotion and scheduled** | Performance regression, load/stress/soak as risk requires; resilience/fault-injection; rollback drill; backup-restore verification for stateful systems | Block promotion on threshold breach; expensive suites may be scheduled, but their evidence must be fresh enough for the release policy |
+| **Production / bounded verification window** | Health, availability, latency, error rate, saturation, and critical synthetic journeys | Roll back automatically on threshold breach; otherwise advance to `DEPLOYED-HEALTHY` |
+
+### Frontend Quality Rules
+
+- Run Lighthouse against the deployed preview, never only against a local dev
+  server; record the URL, profile, thresholds, report, commit, and artifact
+  digest
+- Select representative route classes instead of auditing only the home page:
+  public landing/content, authenticated application, and the most important
+  user journey where present
+- Treat Lighthouse accessibility as a fast automated gate, not proof of
+  accessibility conformance; keep a dedicated automated ruleset and a recorded
+  manual/semi-automated review policy for checks automation cannot decide
+- Calibrate performance budgets to stable CI runners and declared profiles;
+  do not turn a real regression into a non-blocking warning to avoid flakiness
+- Run SEO assertions only for pages intended for indexing; authenticated and
+  explicitly non-indexed routes must record that exclusion
+
+### Gate Evidence Contract
+
+Each gate declares and records:
+
+```
+Check:          <category and command/tool>
+Stage/trigger:  <PR | preview | pre-deploy | deploy | canary | production>
+Scope:          <components, routes, contracts, or environment>
+Artifact:       <commit and immutable digest>
+Policy:         <threshold, baseline, compatibility rule, or expected result>
+Result:         <pass | fail | not-applicable + evidence>
+Report:         <durable artifact or log reference>
+Failure action: <block merge | abort deploy | withhold traffic | rollback>
+Owner:          <team or operational owner>
+```
+
+Do not run every expensive test on every commit. Fast deterministic checks
+block the PR; environment-dependent checks block preview or promotion; costly
+load, soak, resilience, and restore suites run on a risk-based schedule and
+must satisfy the release's evidence-freshness policy.
+
+---
+
+## 10. Delivery Checklist
 
 ### CRITICAL (Must-Have)
 
@@ -330,13 +392,27 @@ passes and the named operational owner accepts the handoff.
       (no reliance on Oryx/Buildpacks/Vercel auto-build)
 - [ ] **Secrets**: OIDC/federated identity for cloud auth; no standing cloud
       credentials
+- [ ] **Static quality gates**: format/lint, strict type-check, build, secret
+      scan, SAST, dependency/CVE, license, and applicable IaC checks block merge
+- [ ] **Unit and property tests**: results and coverage policy block merge
+- [ ] **Integration and contract tests**: boundaries, compatibility,
+      authorization negative paths, and candidate artifact verified
 - [ ] **Health check**: Post-deploy validation present; rollback on failure
-- [ ] **E2E tests**: Failure blocks merge via branch protection rule
+- [ ] **Preview verification**: smoke, critical E2E, supported browsers, and
+      applicable visual/link checks block merge via branch protection
+- [ ] **Frontend quality**: applicable representative routes have bundle,
+      Lighthouse, and dedicated automated accessibility gates
+- [ ] **Pre-deploy tests**: config, migration, contract, secret, feature-flag,
+      IAM/capacity, and rollback-artifact checks abort before mutation
+- [ ] **Scheduled risk tests**: applicable load/soak, resilience, rollback, and
+      restore evidence satisfies the release's freshness policy
 - [ ] **Preview environments**: All deployments use isolated preview; production
       promoted atomically
 - [ ] **PR concurrency**: Cancel-in-progress enabled; only the latest commit
       deploys
 - [ ] **Release evidence**: Artifact digest/provenance and preflight results recorded
+- [ ] **Test evidence**: Every gate records scope, policy, artifact, result,
+      report, failure action, and owner; exclusions include evidence
 - [ ] **Production verification**: Bounded signal window with automatic rollback
 - [ ] **Owner handoff**: Operational owner named before `DEPLOYED-HEALTHY`
 
@@ -349,16 +425,17 @@ passes and the named operational owner accepts the handoff.
 - [ ] DB migrations: Expand/Contract pattern for schema changes (multi-tenant)
 - [ ] Secret rotation audit: quarterly seed secret rotation logged
 
-## 10. Output Contract
+## 11. Output Contract
 
 When applying this skill, emit a coder-facing pipeline decision record:
 
 ```
 Scope:          <workflow / job / environment / deploy path>
 Decision:       Proceed | Block | Add gate | Split job | Make idempotent | Promote | Rollback | Remove secret
-Risk:           <idempotency | timeout | mutable artifact | deploy-build | secret | health check | e2e | concurrency | IaC | provenance | preflight | rollout | production-verification | handoff>
+Risk:           <idempotency | timeout | mutable artifact | deploy-build | secret | static-quality | unit | integration | contract | authorization | frontend-quality | accessibility | performance | migration | health-check | e2e | resilience | restore | concurrency | IaC | provenance | preflight | rollout | production-verification | handoff>
 Artifact:       <commit, digest, provenance>
 Release state:  <BUILD-VERIFIED | RELEASE-READY | DEPLOYING | PRODUCTION-VERIFYING | DEPLOYED-HEALTHY | BLOCKED | ROLLBACK>
+Test evidence:  <applicable gates, reports, exclusions, and results>
 Preflight:      <checks and results>
 Rollout:        <strategy and health thresholds>
 Rollback:       <trigger, known-good artifact, result>
@@ -368,7 +445,7 @@ Verification:   <window, signals, outcome / local command / dry run / Not run + 
 Next action:    <specific workflow edit, test, policy, or owner question>
 ```
 
-## 11. See also
+## 12. See also
 
 - **`defect-shift-left`** — where each pipeline check belongs on the stage ladder.
 - **`system-optimization`** — value-stream optimization built on top of a reliable pipeline.
