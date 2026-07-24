@@ -79,6 +79,10 @@ unrepresentable?_ If yes, the check belongs at Stage 0.
 
 ## 3. Defect Taxonomy → Earliest Stage
 
+> **Stage vs rank.** The `Stage` column is the label from §1; for distance
+> math use the **rank**. Labels `0`–`7` equal their rank, then `8a`→8, `8b`→9,
+> `9`→10, `10`→11, `11`→12 — never subtract stage labels.
+
 | Defect class                                    | Stage | Mechanism (fallback)                             |
 | ----------------------------------------------- | ----- | ------------------------------------------------ |
 | Type mismatch, null deref, semantic-type mixing | 0     | Type system                                      |
@@ -128,8 +132,8 @@ unrepresentable?_ If yes, the check belongs at Stage 0.
    advisory warnings, and runtime asserts.
 2. **Classify** each by defect class (§3).
 3. **Look up** the earliest possible stage and its rank (§1).
-4. **Compute stage distance** = current rank − earliest rank.
-5. **Prioritize** by stage distance × frequency × blast radius.
+4. **Compute rank distance** = current rank − earliest rank.
+5. **Prioritize** by rank distance × frequency × blast radius.
 6. **Move the check** to the earliest feasible stage.
 7. **Gate it.** A correct-stage check that does not block is still a detection
    gap.
@@ -151,11 +155,11 @@ unrepresentable?_ If yes, the check belongs at Stage 0.
 
 Emit one coder-facing row per gap:
 
-| Defect class | Current stage | Earliest stage | Stage distance | Mechanism | Decision | Owner/check | Verification | Next action |
+| Defect class | Current stage (rank) | Earliest stage (rank) | Rank distance | Mechanism | Decision | Owner/check | Verification | Next action |
 | ------------ | ------------- | -------------- | -------------- | --------- | -------- | ----------- | ------------ | ----------- |
 
-If a gap remains, state: _"Detection Gap: defect class catchable at Stage [X],
-currently at Stage [Y]. Mechanism: [...]."_
+If a gap remains, state: _"Detection Gap: defect class catchable at Stage [X] (rank [Xr]),
+currently at Stage [Y] (rank [Yr]). Mechanism: [...]."_
 
 ---
 
@@ -175,10 +179,14 @@ currently at Stage [Y]. Mechanism: [...]."_
 | Migration applied without dry-run          | Stage 8b–10 / Stage 8a        |
 | Secrets / config validated only at runtime | Stage 10 / Stage 8a           |
 | Manual rollback on deploy failure          | Stage 10 / Stage 8b           |
-| No canary, full traffic on new artifact    | Stage 10 carries full blast radius |
-| Retry as error handling                    | Hides Stage 10 indefinitely   |
-| Catch-and-log silent failure               | Propagates past origin        |
-| Warnings nobody reads                      | Detection without action      |
+| No canary, full traffic on new artifact    | Stage 10 / Stage 9            |
+
+These three do not detect late — they **suppress** a defect rather than move it
+earlier, so they have no "earliest stage":
+
+- **Retry as error handling** — masks a Stage 10 failure indefinitely instead of surfacing it.
+- **Catch-and-log silent failure** — swallows the error, violating "fail loud at the origin" (Directive 4).
+- **Warnings nobody reads** — detection with no gate; see §6.4.
 
 ---
 
@@ -215,9 +223,9 @@ typecheck nobody runs is theatre — see §6.4.
 
 Architectural rules expressed in prose are advice; rules expressed in lint
 config are enforcement. `eslint-plugin-boundaries`,
-`import/no-restricted-paths`, `dependency-cruiser`, ArchUnit (JVM), Pyright
-import rules — all turn an ADR sentence into editor feedback and a build
-failure.
+`import/no-restricted-paths`, `dependency-cruiser`, ArchUnit (JVM), and
+`import-linter` (Python) — all turn an ADR sentence into editor feedback and a
+build failure.
 
 The recipe: encode each architectural decision as a rule that fails the build
 when violated. The ADR document remains as rationale; the lint config is the
