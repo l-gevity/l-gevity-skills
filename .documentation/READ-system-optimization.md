@@ -167,6 +167,13 @@ operational nuisance. A flaky test is not just a small cost per run — it is a
 large cost on the entire optimization programme that depends on the pipeline
 producing trustworthy signals.
 
+The operational test the skill adds is the distinction between **common-cause**
+variation — the inherent run-to-run noise of a stable process — and
+**special-cause** variation — an assignable, out-of-bounds event. Reacting to
+common-cause noise as though it were signal (tampering) _adds_ variance rather
+than removing it. The discipline is to establish a baseline band first and treat
+only out-of-band moves as regressions worth chasing.
+
 ---
 
 ## 6. Flow Over Utilization
@@ -194,6 +201,14 @@ It just accumulates, ages, and quietly costs more to clear with every passing
 day. The skill's directive — flag every step where wait time exceeds cycle time
 — is a direct measurement of inventory: if a unit of work spends more time
 waiting than being acted upon, the system is inventory-bound.
+
+Two laws make this quantitative. **Little's Law** (`cycle time = WIP /
+throughput`) says the fastest lever on delivery time is usually cutting
+work-in-progress, not speeding up individual steps. The **utilization curve**
+says wait time climbs non-linearly as a resource approaches full load — past
+roughly 80% it explodes — so a resource pinned at 95% is not efficient but a
+delay generator. Driving every person or runner to full utilization is precisely
+how a system fills with the inventory this section warns against.
 
 This is why **small PRs and short feedback loops** are not stylistic
 preferences. They are inventory controls. A small PR clears the system quickly;
