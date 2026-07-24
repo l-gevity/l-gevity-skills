@@ -1,0 +1,128 @@
+<svg width="860" height="1120" viewBox="0 0 860 1120" role="img" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif">
+  <title>Morphogenetic software architecture</title>
+  <desc>A Rapid-to-Full selector maps a declared software scaffold through bounded checks or evidence fields and natural mechanisms into verified topology evolution.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071512"/>
+      <stop offset="0.55" stop-color="#10231E"/>
+      <stop offset="1" stop-color="#11182A"/>
+    </linearGradient>
+    <linearGradient id="life" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#65E6B4"/>
+      <stop offset="0.5" stop-color="#B8E986"/>
+      <stop offset="1" stop-color="#F2C96D"/>
+    </linearGradient>
+    <linearGradient id="field" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5AD8C5" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#8D7CFF" stop-opacity="0.18"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M1 1L8 5L1 9" fill="none" stroke="#78DDBB" stroke-width="1.5"/>
+    </marker>
+  </defs>
+
+  <rect width="860" height="1120" fill="url(#background)"/>
+  <circle cx="750" cy="90" r="180" fill="#4A8F79" opacity="0.07"/>
+  <circle cx="95" cy="825" r="240" fill="#6D5EE7" opacity="0.06"/>
+
+  <path d="M88 62H160" stroke="url(#life)" stroke-width="5" stroke-linecap="round"/>
+  <text x="88" y="108" font-size="30" font-weight="650" fill="#F1F7F4">Morphogenetic architecture</text>
+  <text x="88" y="138" font-size="14" fill="#A8BAB4">Start Rapid · escalate proof · evidence decides · enforcement preserves</text>
+
+  <rect x="88" y="154" width="684" height="31" rx="15" fill="#65E6B4" fill-opacity="0.08" stroke="#65E6B4" stroke-opacity="0.28"/>
+  <text x="430" y="174" font-size="11" font-weight="650" fill="#B8F3DB" text-anchor="middle">RAPID BY DEFAULT · FULL FOR RESTRUCTURING, MULTI-FIELD EVIDENCE, BROAD SCOPE, OR AMBIGUITY</text>
+
+  <text x="88" y="193" font-size="12" font-weight="700" letter-spacing="1.8" fill="#65E6B4">01 · GENETIC SCAFFOLD</text>
+  <text x="88" y="219" font-size="18" font-weight="600" fill="#F1F7F4">Declare the intended organism</text>
+  <rect x="88" y="242" width="684" height="102" rx="22" fill="#FFFFFF" fill-opacity="0.045" stroke="#A8BAB4" stroke-opacity="0.24"/>
+  <g font-size="13">
+    <rect x="111" y="265" width="196" height="56" rx="15" fill="#65E6B4" fill-opacity="0.12" stroke="#65E6B4" stroke-opacity="0.35"/>
+    <text x="209" y="288" font-weight="650" fill="#83EBC5" text-anchor="middle">DOMAIN</text>
+    <text x="209" y="307" font-size="11" fill="#A8BAB4" text-anchor="middle">semantic territory</text>
+    <rect x="332" y="265" width="196" height="56" rx="15" fill="#F2C96D" fill-opacity="0.11" stroke="#F2C96D" stroke-opacity="0.35"/>
+    <text x="430" y="288" font-weight="650" fill="#F2D58B" text-anchor="middle">ABSTRACTION TIER</text>
+    <text x="430" y="307" font-size="11" fill="#A8BAB4" text-anchor="middle">orchestrator → primitive</text>
+    <rect x="553" y="265" width="196" height="56" rx="15" fill="#8D7CFF" fill-opacity="0.12" stroke="#A99CFF" stroke-opacity="0.38"/>
+    <text x="651" y="288" font-weight="650" fill="#BDB4FF" text-anchor="middle">LAYER</text>
+    <text x="651" y="307" font-size="11" fill="#A8BAB4" text-anchor="middle">consumer → infrastructure</text>
+  </g>
+
+  <path d="M430 344C430 363 412 367 412 388C412 405 430 409 430 426" fill="none" stroke="#78DDBB" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <text x="88" y="431" font-size="12" font-weight="700" letter-spacing="1.8" fill="#65E6B4">02 · MORPHOGEN FIELDS</text>
+  <text x="88" y="457" font-size="18" font-weight="600" fill="#F1F7F4">Observe pressure without mixing its meanings</text>
+  <rect x="88" y="478" width="684" height="102" rx="22" fill="url(#field)" stroke="#78DDBB" stroke-opacity="0.2"/>
+  <g font-size="11" text-anchor="middle">
+    <circle cx="158" cy="529" r="30" fill="#071512" stroke="#65E6B4" stroke-opacity="0.55"/>
+    <text x="158" y="526" font-weight="650" fill="#EAF7F1">STATIC</text>
+    <text x="158" y="543" fill="#8FA8A0">imports</text>
+    <circle cx="294" cy="529" r="30" fill="#071512" stroke="#6ED8E8" stroke-opacity="0.55"/>
+    <text x="294" y="526" font-weight="650" fill="#EAF7F1">RUNTIME</text>
+    <text x="294" y="543" fill="#8FA8A0">flows</text>
+    <circle cx="430" cy="529" r="30" fill="#071512" stroke="#F2C96D" stroke-opacity="0.58"/>
+    <text x="430" y="526" font-weight="650" fill="#EAF7F1">CHANGE</text>
+    <text x="430" y="543" fill="#8FA8A0">history</text>
+    <circle cx="566" cy="529" r="30" fill="#071512" stroke="#C29BFF" stroke-opacity="0.6"/>
+    <text x="566" y="526" font-weight="650" fill="#EAF7F1">DATA</text>
+    <text x="566" y="543" fill="#8FA8A0">ownership</text>
+    <circle cx="702" cy="529" r="30" fill="#071512" stroke="#FF8E82" stroke-opacity="0.62"/>
+    <text x="702" y="526" font-weight="650" fill="#EAF7F1">FAILURE</text>
+    <text x="702" y="543" fill="#8FA8A0">impact</text>
+  </g>
+
+  <path d="M430 580C430 598 448 603 448 622C448 641 430 646 430 664" fill="none" stroke="#78DDBB" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <text x="88" y="670" font-size="12" font-weight="700" letter-spacing="1.8" fill="#F2C96D">03 · NATURAL PATTERN ATLAS</text>
+  <text x="88" y="696" font-size="18" font-weight="600" fill="#F1F7F4">Transfer a mechanism; generate one candidate</text>
+  <g font-size="11">
+    <rect x="88" y="718" width="210" height="66" rx="17" fill="#FFFFFF" fill-opacity="0.05" stroke="#65E6B4" stroke-opacity="0.32"/>
+    <circle cx="119" cy="751" r="15" fill="none" stroke="#65E6B4"/>
+    <circle cx="127" cy="751" r="15" fill="none" stroke="#65E6B4" opacity="0.75"/>
+    <text x="151" y="747" font-weight="650" fill="#EAF7F1">DIFFERENTIATION</text>
+    <text x="151" y="765" fill="#8FA8A0">position → specialization</text>
+
+    <rect x="325" y="718" width="210" height="66" rx="17" fill="#FFFFFF" fill-opacity="0.05" stroke="#F2C96D" stroke-opacity="0.34"/>
+    <path d="M354 766V737M354 746L341 735M354 751L369 738M354 758L340 767M354 758L370 769" fill="none" stroke="#F2C96D" stroke-width="1.6" stroke-linecap="round"/>
+    <text x="388" y="747" font-weight="650" fill="#EAF7F1">BRANCHING</text>
+    <text x="388" y="765" fill="#8FA8A0">trunks → local twigs</text>
+
+    <rect x="562" y="718" width="210" height="66" rx="17" fill="#FFFFFF" fill-opacity="0.05" stroke="#A99CFF" stroke-opacity="0.38"/>
+    <path d="M592 751c0-11 16-15 22-5 7 12-6 24-19 17-13-7-12-26 2-34" fill="none" stroke="#BDB4FF" stroke-width="1.6" stroke-linecap="round"/>
+    <text x="628" y="747" font-weight="650" fill="#EAF7F1">PHYLLOTAXIS</text>
+    <text x="628" y="765" fill="#8FA8A0">growth + exclusion</text>
+
+    <rect x="88" y="800" width="210" height="66" rx="17" fill="#FFFFFF" fill-opacity="0.05" stroke="#6ED8E8" stroke-opacity="0.34"/>
+    <path d="M104 846C116 820 129 862 143 833C152 815 167 858 182 832" fill="none" stroke="#6ED8E8" stroke-width="1.6"/>
+    <text x="151" y="829" font-weight="650" fill="#EAF7F1">CYMATICS</text>
+    <text x="151" y="847" fill="#8FA8A0">frequency → nodal lines</text>
+
+    <rect x="325" y="800" width="210" height="66" rx="17" fill="#FFFFFF" fill-opacity="0.05" stroke="#65E6B4" stroke-opacity="0.32"/>
+    <path d="M343 849C343 826 361 818 375 827C384 834 380 851 366 854C353 857 346 848 351 839C356 830 370 832 371 842" fill="none" stroke="#65E6B4" stroke-width="1.6"/>
+    <text x="388" y="829" font-weight="650" fill="#EAF7F1">ADAPTIVE FLOW</text>
+    <text x="388" y="847" fill="#8FA8A0">reinforce → prune</text>
+
+    <rect x="562" y="800" width="210" height="66" rx="17" fill="#FFFFFF" fill-opacity="0.05" stroke="#FF8E82" stroke-opacity="0.35"/>
+    <path d="M588 835a14 14 0 1 1 5 12M588 835l-5 4M588 835l4 5" fill="none" stroke="#FF9E94" stroke-width="1.6" stroke-linecap="round"/>
+    <text x="628" y="829" font-weight="650" fill="#EAF7F1">HOMEOSTASIS</text>
+    <text x="628" y="847" fill="#8FA8A0">bounded feedback</text>
+  </g>
+  <text x="430" y="891" font-size="11" fill="#A8BAB4" text-anchor="middle">mechanism → software match → candidate → break point</text>
+
+  <path d="M430 902V934" fill="none" stroke="#78DDBB" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <text x="88" y="944" font-size="12" font-weight="700" letter-spacing="1.8" fill="#65E6B4">04 · DIFFERENTIATION &amp; REMODELING</text>
+  <rect x="88" y="963" width="684" height="82" rx="22" fill="#65E6B4" fill-opacity="0.09" stroke="#65E6B4" stroke-opacity="0.4"/>
+  <text x="430" y="991" font-size="13" font-weight="650" fill="#B8F3DB" text-anchor="middle">DOMAIN MEANING + INDEPENDENT OBSERVED FIELD</text>
+  <text x="430" y="1011" font-size="13" fill="#F1F7F4" text-anchor="middle">PLACE · KEEP · MOVE · SPLIT · MERGE</text>
+  <text x="430" y="1032" font-size="13" fill="#F1F7F4" text-anchor="middle">INTRODUCE-BOUNDARY · DECLARE-RUNTIME-CYCLE · DEFER</text>
+
+  <path d="M128 1074H732" stroke="url(#life)" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+  <text x="430" y="1096" font-size="11" fill="#A8BAB4" text-anchor="middle">Measure structural Δ · encode static constraints · observe again</text>
+</svg>

@@ -158,5 +158,5 @@ Verification:   <command / review check / Not run + reason>
 
 - **`functionality-complexity-tradeoff`** — necessity gate and worth ledger applied to individual decisions.
 - **`structural-simplification`** — per-axis complexity comparison (`D, K, P, n`).
-- **`geometric-architecture`** — spatial placement and dependency-graph constraints.
+- **`morphogenetic-architecture`** — declared placement, observed coupling fields, and topology evolution.
 - **`architecture-as-code`** — consumes explicit `Enforcement` handoffs and turns enforceable dependency constraints into lint rules.

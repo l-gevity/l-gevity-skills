@@ -71,9 +71,14 @@ flowchart TD
     R -- "PARTLY-READY<br/>bounded reversible slice" --> A
     R -. "NOT-READY" .-> G
 
-    A --> L["L · Locality"]
-    L --> C["C · Complexity"]
-    C --> E["E · Enforcement"]
+    A --> L["L · Locality<br/>candidate or final decision"]
+    L -- "Final PLACE / KEEP / DECLARE-RUNTIME-CYCLE" --> C["C · Complexity"]
+    L -- "DEFER without candidate" --> StopTopology["Stop"]
+    L -- "Provisional DEFER with candidate" --> C
+    C -- "No structural topology evolution" --> E["E · Enforcement"]
+    C -- "Measured topology candidate" --> LA["L · Acceptance<br/>one re-entry"]
+    LA -- "Accepted restructuring" --> E
+    LA -- "DEFER" --> StopTopology
     E --> H["H · Hermetic<br/>shift defects left"]
     H --> Y["Y · Yield<br/>iteration 2"]
 
@@ -162,8 +167,14 @@ confirmation.
 | M — Minimum | `BUILD`, `KEEP`, `SIMPLIFY` | `DEFER`, `DROP`, `OBSOLETE` | Functionality/complexity decision per candidate |
 | Requirements Topology | `STABLE` | `NEEDS-REFACTOR`, `BLOCKED` | Atomic typed graph, stable IDs, dependencies, conflicts, dependency order |
 | Implementation Readiness | `READY`, bounded `PARTLY-READY` | `NOT-READY` | Smallest coherent slice, verification obligations, unresolved blockers |
-| A through H | Gate-specific pass | Redesign, reject, or defer | Architecture, placement, complexity, enforcement, and shift-left records |
+| A — Architecture | Gate-specific pass | Redesign, reject, or defer | First-principles design record |
+| L — Morphogenetic topology | Final `PLACE`, `KEEP`, `DECLARE-RUNTIME-CYCLE`, or measured restructuring decision | `DEFER`, including an unmeasured restructuring candidate | Rapid/Full selection plus final topology report, or one candidate plus Gate C measurement request |
+| C — Complexity | `Proceed` | `Redesign`, `Reject` | Four structural deltas; re-enter L once when measuring its unchanged candidate |
+| E through H | Gate-specific pass | Reject, defer, or blocked | Enforcement and shift-left records |
 | Y — Yield | Improvement decision | Defer until a measured constraint exists | Constraint and value-stream analysis |
+
+An L-stage provisional `DEFER` with one restructuring candidate is a bounded
+measurement handoff to C, not permission to enter E. Any other `DEFER` stops.
 
 `PARTLY-READY` may enter Architecture only as an explicitly bounded,
 reversible slice whose unresolved requirements cannot change the slice's
@@ -173,21 +184,31 @@ meaning or invalidate its verification.
 
 1. Grounding validates evidence and meaning; M owns the build, keep, simplify,
    defer, drop, or obsolete decision.
-2. Requirements Topology models requirement relationships;
-   Geometric Architecture places implementation components. Neither substitutes
-   for the other.
+2. Requirements Topology models requirement relationships; Morphogenetic
+   Architecture places implementation components and compares declared
+   topology with observed coupling fields. Neither substitutes for the other.
 3. Implementation Readiness prepares a coherent build slice without inventing
    missing requirement meaning.
 4. A failed requirements decision cannot be bypassed by advancing to
    Architecture.
 5. Focused aliases preserve current A.L.C.H.E.M.Y. command behavior.
-6. Enforcement follows design decisions; Yield follows a stable baseline.
-7. Every skipped stage has an explicit rationale in the orchestration record.
-8. Readiness, implementation, and verification remain independent;
+6. A structural topology change uses the bounded
+   `L candidate → C measurement → L acceptance` handshake. The orchestrator
+   permits one L re-entry for an unchanged candidate and blocks E until final
+   L acceptance.
+7. L starts in Rapid for bounded placement and static-edge checks, escalates to
+   Full for restructuring, multi-field evidence, broad scope, ambiguity, or an
+   explicit deep audit, and records `Analysis mode` plus `Selection reason`.
+   A `rapid` or `quick` request cannot bypass `Rapid → Full`. L `Full` is local
+   analysis; Alchemy `FULL` remains a traversal dispatch and does not override
+   the L selector.
+8. Enforcement follows design decisions; Yield follows a stable baseline.
+9. Every skipped stage has an explicit rationale in the orchestration record.
+10. Readiness, implementation, and verification remain independent;
    `requirements-traceability` owns post-readiness evidence state.
-9. Dispatch happens before sibling bodies are loaded; natural language never
-   broadens into `FULL` without explicit full-traversal language.
-10. Core routing and companion routing remain separate; neither can silently
+11. Dispatch happens before sibling bodies are loaded; natural language never
+    broadens into `FULL` without explicit full-traversal language.
+12. Core routing and companion routing remain separate; neither can silently
     suppress the other.
 
 ## Complexity Assessment
@@ -202,7 +223,7 @@ without reducing the number of existing A.L.C.H.E.M.Y. modules:
 | Dependency-edges Δ | `+3` on every full route | Added only where evidence, topology, or readiness is unresolved |
 | Max-chain-depth Δ | `+3` | Between `0` and `+3`, based on the subject |
 | Module-count Δ | `0` | `0` |
-| Cycle pass | Pass | Pass on solid path; dashed rework loops are controlled |
+| Cycle pass | Pass | Pass on solid path; rework and the single L/C/L acceptance loop are bounded and explicit |
 
 The adaptive pipeline invokes the Requirements Qualification Phase only when
 the work's risk or dependency structure justifies the extra reasoning cost. It
@@ -230,6 +251,11 @@ following:
 - Admit `PARTLY-READY` only as a bounded reversible slice.
 - Begin an existing-project audit at `C₀` and use recovery mode conditionally.
 - Preserve focused gate and DevOps-triad aliases.
+- Start L in Rapid when the subject is bounded; escalate to Full without
+  downgrading the proof standard and retain completed checks.
+- Route structural topology changes through
+  `L candidate → C measurement → L acceptance`, with one L re-entry for the
+  unchanged candidate and E blocked until acceptance.
 - Emit one combined decision trail with evidence, skipped-stage rationales,
   the first blocking decision, and the next action.
 - Keep the solid execution path acyclic and make every rework edge explicit.

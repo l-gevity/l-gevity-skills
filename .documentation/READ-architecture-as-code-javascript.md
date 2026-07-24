@@ -71,6 +71,12 @@ export default {
   only enforces rules on imports it can resolve to a file path. Host-served
   absolute paths (e.g. SWA's `/js/...`) need
   `eslint-import-resolver-alias`.
+- **Computed dynamic imports bypass enforcement.** Add
+  `no-restricted-syntax` for non-literal `ImportExpression` nodes so every
+  dynamic import path remains statically resolvable.
+- **Keep test code out of production.** Match test files as narrower boundary
+  components before the production catch-all, then forbid production
+  components from importing test-only components.
 - **Repo-root `package.json` must include `"type": "module"`** for the
   `.mjs` discovery and dynamic import to work.
 

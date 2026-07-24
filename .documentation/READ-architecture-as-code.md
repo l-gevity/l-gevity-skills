@@ -20,9 +20,9 @@ plain-English `why`.
   mistakes.
 - **Architectural drift becomes impossible.** Year-five stays as clean as
   year-one.
-- **Principles get a mechanical handoff.** `architecture-guidelines` decides
-  the constraint; this pattern encodes only the enforceable import/dependency
-  rule.
+- **Architecture decisions get a mechanical handoff.**
+  `architecture-guidelines` or `morphogenetic-architecture` decides the
+  constraint; this pattern encodes only the enforceable import/dependency rule.
 
 ## Fundamental principles
 
@@ -42,11 +42,13 @@ touch.
 Architecture-as-code makes these principles *enforceable* instead of
 aspirational.
 
-## How it combines with architecture-guidelines
+## How it combines with architecture decisions
 
-Use `architecture-guidelines` first to decide the boundary and emit an
-`Enforcement` handoff. Use this pattern second to translate that handoff into
-components, forbidden edges, config placement, and lint verification.
+Use `architecture-guidelines` to decide an internal design constraint or
+`morphogenetic-architecture` to decide a placement, interface-direction, or
+static-topology constraint. Either skill emits an `Enforcement` handoff. Use
+this pattern second to translate that handoff into components, forbidden edges,
+config placement, and lint verification.
 
 Example:
 
@@ -126,5 +128,5 @@ tries to import your storage layer from a UI handler.
   placement, anti-patterns, pre-merge audit).
 - For first principles on what goes inside a module, see
   [`architecture-guidelines`](../.claude/skills/architecture-guidelines/).
-- For the spatial rationale behind layered/sibling rules, see
-  [`geometric-architecture`](../.claude/skills/geometric-architecture/).
+- For the placement and static-topology rationale behind layered/sibling rules,
+  see [`morphogenetic-architecture`](../.claude/skills/morphogenetic-architecture/).

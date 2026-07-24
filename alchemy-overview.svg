@@ -1,6 +1,6 @@
 <svg width="1400" height="1100" viewBox="0 0 1400 1100" role="img" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif">
 <title>L-GEVITY — The A.L.C.H.E.M.Y. Method</title>
-<desc>The seven gates of A.L.C.H.E.M.Y. arranged as a heptagonal seal. Each vertex names one letter (A Architecture, L Locality, C Complexity, H Hermetic, E Enforcement, M Minimum, Y Yield), the gate it implements, and the question it forces. Center seal carries the A.L.C.H.E.M.Y. wordmark. Bottom strip shows execution order — M → A → L → C → E → H → Y — necessity first, optimization last.</desc>
+<desc>The seven gates of A.L.C.H.E.M.Y. arranged as a heptagonal seal. Each vertex names one letter (A Architecture, L Locality, C Complexity, H Hermetic, E Enforcement, M Minimum, Y Yield), the gate it implements, and the question it forces. Center seal carries the A.L.C.H.E.M.Y. wordmark. Bottom strip shows execution order — M → A → L → C → E → H → Y — with a bounded L candidate → C measurement → L acceptance handshake for structural topology changes.</desc>
 
 <defs>
   <radialGradient id="sealGrad" cx="50%" cy="50%" r="50%">
@@ -102,7 +102,7 @@
   <rect x="0" y="0" width="200" height="4" rx="2" fill="#8B6A1F"/>
   <text x="20" y="40" font-size="36" font-weight="500" fill="#8B6A1F">L</text>
   <text x="62" y="38" font-size="15" font-weight="500" fill="#2C2C2A">Locality</text>
-  <text x="62" y="56" font-size="11" fill="#888780">Geometric placement</text>
+  <text x="62" y="56" font-size="11" fill="#888780">Adaptive topology</text>
   <text x="20" y="82" font-size="11" font-style="italic" fill="#5F5E5A">"Where does it live? Which</text>
   <text x="20" y="98" font-size="11" font-style="italic" fill="#5F5E5A">neighbors may it import?"</text>
 </g>
@@ -204,7 +204,7 @@
     </g>
   </g>
 
-  <text x="0" y="82" font-size="12" font-style="italic" fill="#5F5E5A" text-anchor="middle">necessity first · enforcement before drift · optimization last (iteration 2)</text>
+  <text x="0" y="82" font-size="11" font-style="italic" fill="#5F5E5A" text-anchor="middle">structural change: L candidate → C measurement → L acceptance · E waits · Y runs in iteration 2</text>
 </g>
 
 <!-- Footer corners -->
@@ -212,7 +212,7 @@
   <text x="0" y="0" font-size="11" font-weight="500" fill="#888780" letter-spacing="2.5">改善 · KAIZEN · continuous-improvement closes the loop</text>
 </g>
 <g transform="translate(1340, 1060)" text-anchor="end">
-  <text x="0" y="0" font-size="11" font-weight="500" fill="#888780" letter-spacing="2.5">12 SKILLS · 7 GATES · 1 ORCHESTRATOR · 1 META-LOOP</text>
+  <text x="0" y="0" font-size="11" font-weight="500" fill="#888780" letter-spacing="2.5">18 SKILLS · 7 GATES · 1 ORCHESTRATOR · 1 META-LOOP</text>
 </g>
 
 </svg>

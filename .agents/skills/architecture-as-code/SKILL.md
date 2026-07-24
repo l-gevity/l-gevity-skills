@@ -6,10 +6,10 @@ description: >-
     TRIGGER when designing/auditing dependency-rule enforcement, deciding what a
     per-module file should say, placing a rule, debugging a forbidden edge, or
     extending the assembler. Consume explicit `Enforcement` handoffs from
-    `architecture-guidelines` by turning enforceable dependency constraints into
-    architecture config rules. SKIP routine edits inside a governed module. For
-    stack implementations see `architecture-as-code-javascript` or
-    `architecture-as-code-python`.
+    `architecture-guidelines` or `morphogenetic-architecture` by turning
+    enforceable dependency constraints into architecture config rules. SKIP
+    routine edits inside a governed module. For stack implementations see
+    `architecture-as-code-javascript` or `architecture-as-code-python`.
 ---
 
 # Architecture-as-Code (Pattern)
@@ -19,14 +19,15 @@ description: >-
 > dependency graph. Implementation is delegated to a per-stack linter (e.g.
 > `eslint-plugin-boundaries` for JS, `import-linter` for Python). Does NOT
 > prescribe what the graph should look like — that's `architecture-guidelines`
-> and `geometric-architecture`. Does NOT govern code style — that's your
+> and `morphogenetic-architecture`. Does NOT govern code style — that's your
 > project's coding-style convention.
 
 > **Input Contract.** Consume only explicit `Enforcement` handoffs from
-> `architecture-guidelines` (or an equivalent architecture decision). Translate
-> the named constraint into components and forbidden edges. Do not restate or
-> reinterpret first-principles doctrine here; if a constraint is not enforceable
-> as an import/dependency rule, return `Decision: Defer` or `Reject rule`.
+> `architecture-guidelines` or `morphogenetic-architecture` (or an equivalent
+> architecture decision). Translate the named constraint into components and
+> forbidden edges. Do not restate or reinterpret architecture doctrine here;
+> if a constraint is not enforceable as an import/dependency rule, return
+> `Decision: Defer` or `Reject rule`.
 
 > **Core Directives**
 >
@@ -263,5 +264,6 @@ step 5 (invoke) are stack-specific.
 ## 10. See also
 
 - **`architecture-guidelines`** — first-principles rules this pattern enforces.
-- **`geometric-architecture`** — the spatial rationale (cells, faces, locality) this enforces.
+- **`morphogenetic-architecture`** — the placement, locality,
+  interface-direction, and static-topology rationale this enforces.
 - **`defect-shift-left`** — §6.2 (ADR → executable architectural rule) names this pattern.

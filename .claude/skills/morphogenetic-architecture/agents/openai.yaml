@@ -1,0 +1,4 @@
+interface:
+  display_name: "Morphogenetic Architecture"
+  short_description: "Rapid placement, evidence-driven topology"
+  default_prompt: "Use $morphogenetic-architecture to start with a rapid topology scan and escalate to full evidence-driven analysis when the boundary decision requires it."

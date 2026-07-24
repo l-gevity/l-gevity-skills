@@ -46,8 +46,8 @@ hierarchy, but keep domain policy out of this generic model.
 
 This topology describes requirement relationships, not component placement. Do
 not assign Domain / abstraction tier / layer coordinates here; use
-`geometric-architecture` when software components need spatial placement or import
-constraints.
+`morphogenetic-architecture` when software components need placement,
+observed-field analysis, or import constraints.
 
 ## Requirement Record
 

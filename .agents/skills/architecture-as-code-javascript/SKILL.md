@@ -113,7 +113,59 @@ export default [
 **Dependencies:** `eslint-plugin-boundaries`, plus `"type": "module"` in the
 repo-root `package.json`.
 
-## 3. Output Contract
+## 3. JavaScript-specific enforcement recipes
+
+### Require literal dynamic-import paths
+
+A computed `import(expression)` can bypass path resolution and therefore every
+component boundary. Apply this rule to every production and test source block:
+
+```js
+{
+    files: ['**/*.{js,jsx,mjs,ts,tsx}'],
+    rules: {
+        'no-restricted-syntax': [
+            'error',
+            {
+                selector: 'ImportExpression[source.type!="Literal"]',
+                message:
+                    'Dynamic import paths must be string literals so dependency boundaries remain enforceable.',
+            },
+        ],
+    },
+}
+```
+
+This permits `import('./known-module.js')` and rejects variables, concatenation,
+and template expressions. Keep the rule in the same flat config as the
+boundaries rules so a new source block cannot silently omit it.
+
+### Prevent production imports of test-only code
+
+Declare test code as a narrower component before the production catch-all, then
+forbid the production component from importing it:
+
+```js
+export default {
+    components: [
+        { name: 'app-test', pattern: 'src/**/*.test.{js,jsx,ts,tsx}' },
+        { name: 'app-test-support', pattern: 'test/**' },
+        { name: 'app-prod', pattern: 'src/**' }, // catch-all, last
+    ],
+    forbidden: [
+        {
+            from: 'app-prod',
+            to: 'app-test*',
+            why: 'Production code must not import test-only code.',
+        },
+    ],
+};
+```
+
+Tests may still import production components. Adapt the globs to the repository,
+but retain the direction: production → test is forbidden.
+
+## 4. Output Contract
 
 When applying this implementation, emit:
 
@@ -126,7 +178,7 @@ Verification:   <eslint command / assembler command / Not run + reason>
 Next action:    <specific file edit, dependency install, or unresolved question>
 ```
 
-## 4. JavaScript-specific gotchas
+## 5. JavaScript-specific gotchas
 
 > [!NOTE] **Unresolved imports bypass enforcement.** `eslint-plugin-boundaries`
 > only enforces rules on imports it can resolve to a file path. Host-served

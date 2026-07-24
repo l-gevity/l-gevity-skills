@@ -47,9 +47,9 @@
 <!-- Gate 3 -->
 <rect x="40" y="320" width="28" height="28" rx="6" fill="#9FE1CB"/>
 <text x="54" y="334" font-size="13" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">3</text>
-<text x="80" y="328" font-size="13" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Geometric placement</text>
-<text x="340" y="328" font-size="12" fill="#888780" dominant-baseline="central">geometric-architecture</text>
-<text x="530" y="328" font-size="12" fill="#5F5E5A" dominant-baseline="central">(X, Y, Z) + edges</text>
+<text x="80" y="328" font-size="13" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Morphogenetic topology</text>
+<text x="340" y="328" font-size="12" fill="#888780" dominant-baseline="central">morphogenetic-architecture</text>
+<text x="530" y="328" font-size="12" fill="#5F5E5A" dominant-baseline="central">Final decision or candidate</text>
 <line x1="40" y1="356" x2="640" y2="356" stroke="#F1EFE8" stroke-width="0.5"/>
 
 <!-- Gate 4 -->
@@ -57,7 +57,7 @@
 <text x="54" y="380" font-size="13" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">4</text>
 <text x="80" y="374" font-size="13" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Complexity measurement</text>
 <text x="340" y="374" font-size="12" fill="#888780" dominant-baseline="central">structural-simplification</text>
-<text x="530" y="374" font-size="12" fill="#5F5E5A" dominant-baseline="central">ΔD, ΔK, ΔP, Δn</text>
+<text x="530" y="374" font-size="12" fill="#5F5E5A" dominant-baseline="central">Four structural deltas</text>
 <line x1="40" y1="402" x2="640" y2="402" stroke="#F1EFE8" stroke-width="0.5"/>
 
 <!-- Gate 5 -->
@@ -154,19 +154,19 @@
 
 <!-- Diagnostic row 4 -->
 <rect x="40" y="1052" width="210" height="24" rx="12" fill="#F5C4B3"/>
-<text x="145" y="1064" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Cross-domain non-adjacent import</text>
+<text x="145" y="1064" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Cross-domain boundary bypass</text>
 <text x="258" y="1064" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
 <rect x="270" y="1052" width="60" height="24" rx="12" fill="#CECBF6"/>
 <text x="300" y="1064" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Gate 3</text>
-<text x="345" y="1064" font-size="12" fill="#5F5E5A" dominant-baseline="central">Placement violated.</text>
+<text x="345" y="1064" font-size="12" fill="#5F5E5A" dominant-baseline="central">Topology violated.</text>
 
 <!-- Diagnostic row 5 -->
 <rect x="40" y="1084" width="210" height="24" rx="12" fill="#F5C4B3"/>
 <text x="145" y="1096" font-size="11" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Refactor "felt simpler", no data</text>
 <text x="258" y="1096" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
 <rect x="270" y="1084" width="60" height="24" rx="12" fill="#CECBF6"/>
-<text x="300" y="1096" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Gate 4</text>
-<text x="345" y="1096" font-size="12" fill="#5F5E5A" dominant-baseline="central">Complexity not scored.</text>
+<text x="300" y="1096" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">Gates 3–4</text>
+<text x="345" y="1096" font-size="12" fill="#5F5E5A" dominant-baseline="central">Candidate not accepted.</text>
 
 <!-- Diagnostic row 6 -->
 <rect x="40" y="1116" width="210" height="24" rx="12" fill="#F5C4B3"/>

@@ -90,7 +90,7 @@ locks in waste.
 |---|---|---|---|
 | `/alchemy M` | **Minimum** | *Does this functionality address a real problem worth its cost?* | [`functionality-complexity-tradeoff`](./.claude/skills/functionality-complexity-tradeoff/SKILL.md) |
 | `/alchemy A` | **Architecture** | *Is the design minimal, modular, named for its purpose?* | [`architecture-guidelines`](./.claude/skills/architecture-guidelines/SKILL.md) |
-| `/alchemy L` | **Locality** | *Where does this component live? Which neighbors may it import?* | [`geometric-architecture`](./.claude/skills/geometric-architecture/SKILL.md) |
+| `/alchemy L` | **Locality** | *Where does this component live, and does observed coupling agree?* | [`morphogenetic-architecture`](./.claude/skills/morphogenetic-architecture/SKILL.md) |
 | `/alchemy C` | **Complexity** | *Does this restructuring actually simplify, on every axis?* | [`structural-simplification`](./.claude/skills/structural-simplification/SKILL.md) |
 | `/alchemy E` | **Enforcement** | *Are the architectural rules encoded as lint, not prose?* | [`architecture-as-code`](./.claude/skills/architecture-as-code/SKILL.md) |
 | `/alchemy H` | **Hermetic** | *Is each defect sealed at the earliest stage that can catch it?* | [`defect-shift-left`](./.claude/skills/defect-shift-left/SKILL.md) |
@@ -101,6 +101,12 @@ routes to the sibling skills, reads the selected sibling `SKILL.md`, and returns
 the smallest useful verdict. **H = Hermetic** in the literal sense (sealed
 against leakage at every stage) and in the alchemical-tradition sense (the
 Hermetic art).
+
+Structural topology changes use one bounded
+`L candidate → C measurement → L acceptance` handshake. Gate L first names the
+candidate, Gate C measures its four structural deltas, and Gate L re-enters once
+to accept or defer that unchanged candidate. Gate E cannot run before that
+final acceptance.
 
 For non-trivial work, Alchemy now uses an adaptive **Requirements Qualification
 Phase** around M: `requirements-grounding` when meaning or evidence is missing,
@@ -142,29 +148,47 @@ system, and which quality space it should improve.
 
 ## Three quality spaces
 
-### Geometric architecture
+### Morphogenetic architecture
 
-Architecture quality is a coordinate problem: a component should sit in the
-right domain, at the right abstraction tier, in the right runtime layer.
-`geometric-architecture` assigns that `(x, y, z)` address; `architecture-as-code`
-turns the allowed neighboring edges into enforceable rules.
+Architecture quality combines declared placement with observed pressure. A
+component should sit in the right domain, at the right abstraction tier, and in
+the right layer; its imports, traffic, co-change, data, and failure
+relationships should support that boundary. `morphogenetic-architecture`
+starts with a Rapid placement/static-edge scan, escalates deterministically to
+Full for restructuring, multi-field evidence, broad scope, or ambiguity, and
+uses a fitting natural-system mechanism to generate Full-analysis candidates.
+It requires predeclared evidence thresholds and reproducible graph output,
+compares intent with software evidence, and lets `architecture-as-code` enforce
+the static edges. Reports expose the selected path as Rapid, Full, or
+Rapid → Full.
 
 ```mermaid
 flowchart LR
-    Origin["Architecture quality space"]
-    X["X axis: Domain"]
-    Y["Y axis: Abstraction tier"]
-    Z["Z axis: Runtime layer"]
-    Address["Architecture quality address: (x, y, z)"]
-    Edges["Allowed neighbor edges encoded by architecture-as-code"]
+    Selector["Mode selector<br/>Rapid by default"]
+    Rapid["Rapid<br/>bounded placement + static checks"]
+    Full["Full<br/>evidence-driven topology"]
+    Declared["Declared topology<br/>Domain / tier / layer"]
+    Static["Static dependencies"]
+    Runtime["Runtime flow"]
+    Change["Co-change"]
+    Data["Shared data"]
+    Failure["Failure propagation"]
+    Decision["PLACE / KEEP / MOVE / SPLIT<br/>MERGE / INTRODUCE-BOUNDARY / DECLARE-RUNTIME-CYCLE / DEFER"]
+    Enforcement["Static rules encoded by architecture-as-code"]
 
-    Origin --> X
-    Origin --> Y
-    Origin --> Z
-    X --> Address
-    Y --> Address
-    Z --> Address
-    Address --> Edges
+    Selector --> Rapid
+    Declared --> Rapid
+    Static --> Rapid
+    Rapid -->|"PLACE · KEEP · DECLARE-RUNTIME-CYCLE · DEFER"| Decision
+    Rapid -->|"restructure · non-static evidence · broad scope · ambiguity"| Full
+    Declared --> Full
+    Static --> Full
+    Runtime --> Full
+    Change --> Full
+    Data --> Full
+    Failure --> Full
+    Full --> Decision
+    Decision --> Enforcement
 ```
 
 ### Structural simplification
@@ -365,7 +389,7 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
 | Skill | Letter | Primer | Use it to |
 | :---- | :----- | :----- | :-------- |
 | [architecture-guidelines](./.claude/skills/architecture-guidelines/SKILL.md) | **A** | [READ](./.documentation/READ-architecture-guidelines.md) | Test every module decision — minimalism, modularity, functional core, resilience, naming, concurrency — against a first-principles checklist before code is written. |
-| [geometric-architecture](./.claude/skills/geometric-architecture/SKILL.md) | **L** | [READ](./.documentation/READ-geometric-architecture.md) | Place a component on the Domain / Tier / Layer grid, and audit existing graphs for layer-skip violations, cycles, god components, and cross-domain coupling. |
+| [morphogenetic-architecture](./.claude/skills/morphogenetic-architecture/SKILL.md) | **L** | [READ](./.documentation/READ-morphogenetic-architecture.md) | Start with a Rapid Domain / Tier / Layer scan, then escalate to Full evidence-driven topology analysis when restructuring, broader evidence, scope, or ambiguity requires it. |
 | [structural-simplification](./.claude/skills/structural-simplification/SKILL.md) | **C** | [READ](./.documentation/READ-structural-simplification.md) | Compare two designs along four independent axes — component-kinds, dependency-edges, max-chain-depth, module-count — so "this is simpler" becomes a measurable claim instead of a feeling. |
 | [defect-shift-left](./.claude/skills/defect-shift-left/SKILL.md) | **H** | [READ](./.documentation/READ-defect-shift-left.md) | For every error path, name the earliest stage (type system, lint, pre-commit, CI gate, …) that can catch it — and move the check there. |
 | [architecture-as-code](./.claude/skills/architecture-as-code/SKILL.md) | **E** | [READ](./.documentation/READ-architecture-as-code.md) | Stack-agnostic pattern: per-module config files merged into a single ruleset, lint-enforced. Schema, rule-placement discipline, assembler pipeline, and anti-patterns. |
@@ -400,7 +424,7 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
 - **Before adding a feature.** Run `/alchemy M this feature` — weighs value against
   complexity cost, proposes a smaller version, or pushes back entirely.
 - **Reviewing a pull request.** Run `/alchemy audit this PR` — checks the diff
-  against first-principles and against the Domain / Tier / Layer grid.
+  against first-principles, declared topology, and observed boundary pressure.
 - **Cleaning up a tangled module.** Run `/alchemy C this module` — measures complexity
   on four axes; surfaces hot-spots before any optimization work begins.
 - **Hardening a CI/CD pipeline.** Run `/alchemy H the deploy pipeline`

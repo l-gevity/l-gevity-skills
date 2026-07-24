@@ -40,6 +40,11 @@ Requirements Grounding, when evidence or meaning is absent or stale
 → A — Architecture → L → C → E → H → Y
 ```
 
+For `MOVE`, `SPLIT`, `MERGE`, or `INTRODUCE-BOUNDARY`, the L/C segment is the
+bounded `L candidate → C measurement → L acceptance` handshake. L re-enters
+once for the unchanged candidate, and E remains blocked until that final
+topology decision.
+
 Focused aliases stay focused; report missing prerequisites instead of silently running the
 full pipeline. Only `READY`, or `PARTLY-READY` as a bounded reversible slice, may enter A.
 `NOT-GROUNDED`, `BLOCKED`, and `NOT-READY` stop or return to the failed stage. Audits start
@@ -60,11 +65,18 @@ the only exception, and must not cross the merge boundary without rules.
 |---|---|---|---|
 | 1 | Necessity | [`functionality-complexity-tradeoff`](.../functionality-complexity-tradeoff) | BUILD / KEEP / SIMPLIFY or stop |
 | 2 | First principles | [`architecture-guidelines`](.../architecture-guidelines) | Smallest correct design |
-| 3 | Placement | [`geometric-architecture`](.../geometric-architecture) | Domain / tier / layer per component |
-| 4 | Complexity | [`structural-simplification`](.../structural-simplification) | Component-kinds / dependency-edges / max-chain-depth / module-count Δ |
+| 3 | Topology | [`morphogenetic-architecture`](.../morphogenetic-architecture) | Rapid/Full mode selection plus a final topology decision, or one candidate requiring Gate 4 measurement |
+| 4 | Complexity | [`structural-simplification`](.../structural-simplification) | Structural deltas, then Gate 3 acceptance when restructuring |
 | 5 | Enforcement | [`architecture-as-code`](.../architecture-as-code) + [`-javascript`](.../architecture-as-code-javascript) / [`-python`](.../architecture-as-code-python) | Per-module config |
 | 6 | Shift-left | [`defect-shift-left`](.../defect-shift-left) | Each error path → earliest stage |
 | 7 | Optimize (iter 2) | [`system-optimization`](.../system-optimization) | Constraint analysis |
+
+At Gate 3, start in Rapid for bounded placement and static-edge checks. Escalate
+to Full for restructuring, multi-field evidence, broad scope, ambiguity, or an
+explicit deep audit. Record `Analysis mode` and `Selection reason`; a request
+for speed cannot waive the `Rapid → Full` escalation or the Gate 3–4
+measurement handshake. Gate 3 `Full` is a topology-analysis mode; Alchemy
+`FULL` remains a traversal dispatch and does not override the Gate 3 selector.
 
 ## 7. Define success; checkpoint
 Strong success criteria let you loop independently. After each significant step, summarize

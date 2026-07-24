@@ -18,9 +18,9 @@ approved libraries, external standards, platform products, or managed services.
   before creating or buying anything new.
 - It searches current external services only after L0 SRVC managed-service
   replacement is plausible.
-- It separates reuse altitude from geometric placement: `bring-down` chooses
-  reuse level; `geometric-architecture` chooses coordinates and dependency
-  rules.
+- It separates reuse altitude from topology placement: `bring-down` chooses
+  reuse level; `morphogenetic-architecture` chooses position, dependency
+  direction, and evidence checks.
 
 ## The scale
 
@@ -70,8 +70,9 @@ Example prompt:
   duplicated functionality should exist.
 - Use `structural-simplification` to verify the externalization lowers real
   complexity.
-- Use `geometric-architecture` after bring-down chooses a reuse level, so the
-  resulting component gets the correct domain/tier/layer placement.
+- Use `morphogenetic-architecture` after bring-down chooses a reuse level, so
+  the resulting component gets the correct Domain / Tier / Layer placement and
+  is checked against observed boundary pressure.
 - Use `push-out` when the issue is recurring manual work rather than code
   shape.
 - Use `defect-shift-left` when the issue is late defect detection.

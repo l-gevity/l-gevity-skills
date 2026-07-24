@@ -66,7 +66,7 @@ task context runs the preflight.
 | `alchemy full ...`, `alchemy all ...`, `alchemy walk the gates ...`, `alchemy complete alchemy ...` | Traverse every justified qualification stage and gate; record why any conditional stage is skipped. |
 | `alchemy M ...`, `alchemy minimum ...`, `alchemy necessity ...`, `alchemy worth ...` | Invoke `functionality-complexity-tradeoff`. |
 | `alchemy A ...`, `alchemy architecture ...`, `alchemy first-principles ...` | Invoke `architecture-guidelines`. |
-| `alchemy L ...`, `alchemy locality ...`, `alchemy placement ...` | Invoke `geometric-architecture`. |
+| `alchemy L ...`, `alchemy locality ...`, `alchemy placement ...` | Invoke `morphogenetic-architecture`. |
 | `alchemy C ...`, `alchemy complexity ...`, `alchemy simplify ...` | Invoke `structural-simplification`. |
 | `alchemy E ...`, `alchemy enforcement ...`, `alchemy architecture-as-code ...` | Invoke `architecture-as-code`; add `-javascript` or `-python` when the stack is known. |
 | `alchemy H ...`, `alchemy hermetic ...`, `alchemy shift-left ...` | Invoke `defect-shift-left`; add `ci-cd-reliability-architecture` for pipeline reliability. |
@@ -172,10 +172,12 @@ Routing rules:
    meaning or verification, may enter A. `NOT-GROUNDED`, `BLOCKED`, and
    `NOT-READY` stop or return to the named failed stage.
 6. **Keep graphs distinct.** Requirements topology models requirement
-   relationships. Geometric Architecture places implementation components.
+   relationships. Morphogenetic Architecture places implementation components
+   and compares declared topology with observed coupling fields.
 7. **Keep the solid path acyclic.** Rework is explicit:
    `PROVISIONAL → grounding`, `NEEDS-REFACTOR/BLOCKED → grounding`,
-   `NOT-READY → grounding`, and `C redesign → A`.
+   `NOT-READY → grounding`, `C redesign → A`, and the bounded topology
+   handshake `L candidate → C measurement → L acceptance`.
 
 Decision hand-offs:
 
@@ -203,8 +205,8 @@ or independent confirmation supports them.
 |:--|:--|:--|:--|
 | 1 | Necessity check | `functionality-complexity-tradeoff` | BUILD / KEEP / SIMPLIFY or stop per candidate |
 | 2 | First principles | `architecture-guidelines` | Smallest correct design |
-| 3 | Geometric placement | `geometric-architecture` | Domain / tier / layer per component + allowed dependency edges |
-| 4 | Complexity measurement | `structural-simplification` | Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ |
+| 3 | Morphogenetic topology | `morphogenetic-architecture` | Rapid/Full mode + declared Domain / tier / layer + final decision, or one restructuring candidate requiring measurement |
+| 4 | Complexity measurement | `structural-simplification` | Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ; then Gate 3 acceptance when restructuring |
 | 5 | Architecture as code | `architecture-as-code` (pattern); `-javascript` / `-python` (impl) | Per-module architecture config |
 | 6 | Shift defect detection left | `defect-shift-left` | Each error path → earliest catchable stage |
 | 7 | Optimize value stream | `system-optimization` | Constraint analysis (deferred to iter 2) |
@@ -212,6 +214,31 @@ or independent confirmation supports them.
 For each qualification stage or gate selected, read the sibling skill's
 `SKILL.md` and follow its procedure and output contract. This file does not
 duplicate that content.
+
+### Gate 3–4 topology handshake
+
+Gate 3 starts in Rapid for bounded placement and static-edge checks, then
+escalates to Full for restructuring, multi-field evidence, broad scope,
+ambiguity, or an explicit deep audit. Preserve the skill's `Analysis mode` and
+`Selection reason` in the combined trail. A request for `rapid` or `quick`
+cannot bypass a required `Rapid → Full` escalation. Gate 3 `Full` is a local
+analysis mode; Alchemy `FULL` is a traversal dispatch and does not override the
+Gate 3 selector.
+
+Gate 3 is final on its first pass for `PLACE`, `KEEP`,
+`DECLARE-RUNTIME-CYCLE`, and a `DEFER` that contains no restructuring
+candidate. A proposed `MOVE`, `SPLIT`, `MERGE`, or `INTRODUCE-BOUNDARY` first
+emits a provisional `DEFER` with one named candidate and the measurement
+required from Gate 4. Run the bounded handshake
+`L candidate → C measurement → L acceptance`: Gate 4 reports the four
+structural deltas, then Gate 3 re-enters once for that unchanged candidate and
+emits the final topology decision.
+
+Gate E remains blocked until Gate 3 records final acceptance. If Gate 4 rejects
+or redesigns the candidate, return to Gate A; a changed candidate starts a new
+bounded handshake. The Alchemy orchestrator owns the re-entry, the combined
+decision trail records both passes, and one candidate may re-enter Gate 3 only
+once.
 
 DevOps improvement triad:
 
@@ -230,7 +257,8 @@ Core directives:
 
 1. Order matters. Qualification and Gates 1-4 shape the design; Gates 5-6
    enforce it. Never run Gate 5 before a passing readiness decision in a full
-   pass.
+   pass, or before final Gate 3 acceptance when a topology restructuring uses
+   the Gate 3–4 handshake.
 2. Name the second instance before writing an abstraction. Rule of 3 is the
    null hypothesis. If absent, DROP.
 3. Ship `eslint.architecture.mjs` with the code it governs. Follow-up PRs to
@@ -255,8 +283,10 @@ Core directives:
 - [ ] Topology — Typed graph when relationships are non-trivial, or recorded skip
 - [ ] Readiness — READY or bounded reversible PARTLY-READY before Architecture
 - [ ] Gate 2 — Smallest correct design (SoC + SRP + DI; pure core, I/O at edges)
-- [ ] Gate 3 — Each component placed at Domain / Tier / Layer; allowed dependency edges drawn
+- [ ] Gate 3 — Rapid/Full mode and selection reason recorded; each component placed at Domain / Tier / Layer; allowed edges and observed fields recorded
 - [ ] Gate 4 — Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ computed for design vs status quo
+- [ ] Gate 3 acceptance — MOVE / SPLIT / MERGE / INTRODUCE-BOUNDARY re-entered
+                              once with Gate 4 measurement; final decision recorded
 - [ ] Gate 5 — eslint.architecture.mjs in the SAME PR as the code
 - [ ] Gate 6 — Every error path mapped to earliest catchable stage
 - [ ] Gate 7 — Deferred to iteration 2
@@ -297,8 +327,8 @@ contradictory, or disputed:
 | Generic registry / plugin system with one entry | 1 — generality without instantiation | Inline the entry; remove the registry |
 | Empty config / config with one value across all envs | 1 — one-value config | Inline the value |
 | `if (impossible_state)` runtime guards | 1 — impossible-state guard | OBSOLETE; document the invariant elsewhere |
-| Cross-domain imports across non-adjacent faces | 3 — placement violated | Move the component or extract a face-adjacent shim |
-| Refactor "felt simpler" but no measurement | 4 — complexity not scored | Compute Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ before merging |
+| Cross-domain imports bypass the declared boundary | 3 — topology violated | Move the component or introduce one named boundary |
+| Refactor "felt simpler" but no measurement | 3–4 — topology candidate not accepted | Compute Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ, then re-enter Gate 3 once for final acceptance |
 | Eslint rules added in follow-up PR | 5 — same-PR discipline broken | Block the follow-up; add rules to original PR |
 | Defects caught at runtime that types could express | 6 — left-shift not applied | Move the check upward; remove the runtime guard |
 | Architecture file disagrees with code | 5 — drift | Re-run lint; treat as a defect |

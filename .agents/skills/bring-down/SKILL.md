@@ -289,9 +289,9 @@ the named standard path is maintained outside the consuming code owner.
 tier, layer, or dependency direction.
 
 When the best answer is to componentize or patternize inside the codebase, use
-`geometric-architecture`, `architecture-guidelines`, and `architecture-as-code`
-instead. Use `structural-simplification` to verify any externalization or
-platform move actually reduces complexity.
+`morphogenetic-architecture`, `architecture-guidelines`, and
+`architecture-as-code` instead. Use `structural-simplification` to verify any
+externalization or platform move actually reduces complexity.
 
 Here, "down" means less bespoke and more systemic, not lower in the dependency
 graph.
@@ -316,7 +316,7 @@ graph.
 | Service selection from stale memory | Browse current primary sources before recommending alternatives |
 | Wrapper around commodity service with no added policy | Delete wrapper or state the invariant it enforces |
 | Replacement without deleting custom code | Require migration and retirement criteria |
-| Treating bring-down as layer movement | Use `geometric-architecture` for placement and dependency direction |
+| Treating bring-down as layer movement | Use `morphogenetic-architecture` for placement and dependency direction |
 
 ---
 
@@ -386,7 +386,8 @@ Service comparison:
 
 - **`functionality-complexity-tradeoff`** - decide whether the functionality should exist before replacing it.
 - **`structural-simplification`** - verify the externalization actually reduces component kinds, edges, depth, or count.
-- **`geometric-architecture`** - place the resulting component after bring-down chooses the reuse level.
+- **`morphogenetic-architecture`** - place the resulting component and check
+  observed boundary pressure after bring-down chooses the reuse level.
 - **`push-out`** - move recurring operational work outward.
 - **`defect-shift-left`** - move defect detection earlier.
 - **`architecture-as-code`** - enforce accepted patterns as code.

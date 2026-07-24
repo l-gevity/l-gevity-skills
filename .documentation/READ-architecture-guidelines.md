@@ -66,6 +66,6 @@ Bug fixes inside an existing module, content/copy edits, CSS-only changes, depen
 
 - See [SKILL.md](../.claude/skills/architecture-guidelines/SKILL.md) for the full ruleset (numbered sections, examples, complexity-warning protocol).
 - For refactor cost/benefit analysis once a violation is found, see [`structural-simplification`](../.claude/skills/structural-simplification/).
-- For spatial dependency-graph constraints and lint enforcement, see [`geometric-architecture`](../.claude/skills/geometric-architecture/).
+- For placement, observed coupling fields, and static-topology constraints, see [`morphogenetic-architecture`](../.claude/skills/morphogenetic-architecture/).
 - For turning explicit `Enforcement` handoffs into dependency lint rules, see [`architecture-as-code`](../.claude/skills/architecture-as-code/).
 - For deciding whether a piece of functionality justifies its cost, see [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/).

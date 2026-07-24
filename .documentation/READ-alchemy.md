@@ -8,7 +8,7 @@ preflight returns `SKIP`, `DIRECT`, `ADAPTIVE`, or `FULL` before gate bodies are
 loaded. It preserves short focused routes while preventing ungrounded, blocked,
 or unready work from entering Architecture.
 
-> **Reporting vocabulary.** Gate-output phrases below (e.g. "Domain / tier / layer per component", "Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ") match the coder-facing fields defined in the **Reporting Vocabulary** sections of [`geometric-architecture`](../.claude/skills/geometric-architecture/SKILL.md) and [`structural-simplification`](../.claude/skills/structural-simplification/SKILL.md). Those sections also list the internal axis symbols (`X, Y, Z`, `D, K, P, n`) that the model uses underneath.
+> **Reporting vocabulary.** Gate-output phrases below (e.g. "Domain / tier / layer", "Observed fields", and "Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ") match the coder-facing fields defined by [`morphogenetic-architecture`](../.claude/skills/morphogenetic-architecture/SKILL.md) and [`structural-simplification`](../.claude/skills/structural-simplification/SKILL.md).
 
 ## Why use this
 
@@ -92,9 +92,10 @@ this an alchemy pass` run adaptive dispatch over the active task.
 4. **Apply the fix.** For focused gates, apply only that gate's next action. For
    full passes, qualify uncertain requirements, stop at the first non-passing
    decision, drop everything M rejects, place each surviving component at its
-   Domain / Tier / Layer position, compute Component-kinds / Dependency-edges /
-   Max-chain-depth / Module-count Δ, write the architecture file, and move every
-   error path to its earliest catchable stage.
+   Domain / Tier / Layer position, run the bounded
+   `L candidate → C measurement → L acceptance` handshake for a structural
+   topology change, write the architecture file only after final L acceptance,
+   and move every error path to its earliest catchable stage.
 
 ## Requirements Qualification Phase
 
@@ -135,13 +136,27 @@ traceability records implementation separately from executed proof.
 |-----|-------------------------------|--------------------------------------------------------------------------------------|----------------------------------------------|
 | **1** | Necessity check               | [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/)                      | BUILD / KEEP / SIMPLIFY or stop per candidate |
 | **2** | First principles              | [`architecture-guidelines`](../.claude/skills/architecture-guidelines/)                             | Smallest correct design                      |
-| **3** | Geometric placement           | [`geometric-architecture`](../.claude/skills/geometric-architecture/)                               | Domain / tier / layer per component + allowed dependency edges |
-| **4** | Complexity measurement        | [`structural-simplification`](../.claude/skills/structural-simplification/)                         | Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ |
+| **3** | Morphogenetic topology        | [`morphogenetic-architecture`](../.claude/skills/morphogenetic-architecture/)                       | Rapid/Full mode plus a final topology decision, or one candidate requiring Gate 4 measurement |
+| **4** | Complexity measurement        | [`structural-simplification`](../.claude/skills/structural-simplification/)                         | Four structural deltas, then Gate 3 acceptance when restructuring |
 | **5** | Architecture as code          | [`architecture-as-code`](../.claude/skills/architecture-as-code/) (pattern); [`-javascript`](../.claude/skills/architecture-as-code-javascript/) / [`-python`](../.claude/skills/architecture-as-code-python/) (impl) | Per-module architecture config        |
 | **6** | Shift defect detection left   | [`defect-shift-left`](../.claude/skills/defect-shift-left/)                                         | Each error path → earliest catchable stage   |
 | **7** | Optimize the value stream     | [`system-optimization`](../.claude/skills/system-optimization/)                                     | Constraint analysis (deferred to iter 2)     |
 
 The skill does not duplicate sibling content. Each gate is one row in this table; running a gate means invoking its sibling skill.
+
+Gate 3 starts in Rapid for bounded placement and static-edge checks, then
+escalates to Full for restructuring, multi-field evidence, broad scope,
+ambiguity, or an explicit deep audit. The trail records `Analysis mode` and
+`Selection reason`; a `rapid` or `quick` request cannot bypass a required
+`Rapid → Full` escalation. Gate 3 `Full` is local to topology analysis;
+Alchemy `FULL` still means full gate traversal and does not override the Gate 3
+selector.
+
+For `MOVE`, `SPLIT`, `MERGE`, or `INTRODUCE-BOUNDARY`, Gate 3 first emits
+`DEFER` with one candidate and its measurement request. Gate 4 reports the four
+deltas, then Gate 3 re-enters once for that unchanged candidate and emits the
+final decision. Gate E remains blocked until this
+`L candidate → C measurement → L acceptance` handshake completes.
 
 ## DevOps improvement triad
 
@@ -186,8 +201,8 @@ meaning, and unsafe `PARTLY-READY` slices.
 - Generic registry / plugin system with one entry → Gate 1, generality without instantiation.
 - Empty config / config with one value across all envs → Gate 1, one-value config.
 - `if (impossible_state)` runtime guards → Gate 1, impossible-state guard.
-- Cross-domain imports across non-adjacent faces → Gate 3, placement violated.
-- Refactor "felt simpler" but no measurement → Gate 4, complexity not scored.
+- Cross-domain imports bypass the declared boundary → Gate 3, topology violated.
+- Refactor "felt simpler" but no measurement → Gates 3–4, topology candidate not accepted.
 - Eslint rules added in follow-up PR → Gate 5, same-PR discipline broken.
 - Architecture file disagrees with code → Gate 5, drift.
 - Defects caught at runtime that types could express → Gate 6, left-shift not applied.
@@ -213,7 +228,7 @@ Each row points back to the gate that would have caught it prospectively.
   [`implementation-readiness`](../.claude/skills/implementation-readiness/).
 - For post-readiness evidence, see [`requirements-traceability`](../.claude/skills/requirements-traceability/).
 - For first-principles rules driving Gate 2, see [`architecture-guidelines`](../.claude/skills/architecture-guidelines/).
-- For the Domain / Tier / Layer placement model used at Gate 3, see [`geometric-architecture`](../.claude/skills/geometric-architecture/).
+- For declared placement, observed coupling fields, and topology evolution at Gate 3, see [`morphogenetic-architecture`](../.claude/skills/morphogenetic-architecture/).
 - For the per-axis complexity scoring used at Gate 4, see [`structural-simplification`](../.claude/skills/structural-simplification/).
 - For the enforcement files produced at Gate 5, see [`architecture-as-code`](../.claude/skills/architecture-as-code/) (the pattern), with [`-javascript`](../.claude/skills/architecture-as-code-javascript/) and [`-python`](../.claude/skills/architecture-as-code-python/) as concrete implementations.
 - For the shift-left hierarchy applied at Gate 6, see [`defect-shift-left`](../.claude/skills/defect-shift-left/).
