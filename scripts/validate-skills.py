@@ -31,6 +31,7 @@ OUTPUT_MARKERS = (
     "Emit one coder-facing",
     "Emit a coder-facing",
 )
+PYTHON_CACHE_SUFFIXES = {".pyc", ".pyo"}
 PRIMER_REQUIRED_TERMS = {
     "alchemy": (
         "Requirements Qualification Phase",
@@ -364,6 +365,19 @@ def validate_root(root: Path) -> None:
         validate_skill(path)
 
 
+def mirror_source_files(skill: Path) -> set[Path]:
+    """Return authored skill files, excluding interpreter-generated caches."""
+    files = set()
+    for path in skill.rglob("*"):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(skill)
+        if "__pycache__" in relative.parts or relative.suffix in PYTHON_CACHE_SUFFIXES:
+            continue
+        files.add(relative)
+    return files
+
+
 def validate_mirrors() -> None:
     claude = {path.name: path for path in skill_dirs(CLAUDE_SKILLS)}
     agents = {path.name: path for path in skill_dirs(AGENT_SKILLS)}
@@ -376,16 +390,8 @@ def validate_mirrors() -> None:
             fail(f".claude missing mirrors: {', '.join(missing_claude)}")
 
     for name in sorted(claude):
-        claude_files = {
-            path.relative_to(claude[name])
-            for path in claude[name].rglob("*")
-            if path.is_file()
-        }
-        agent_files = {
-            path.relative_to(agents[name])
-            for path in agents[name].rglob("*")
-            if path.is_file()
-        }
+        claude_files = mirror_source_files(claude[name])
+        agent_files = mirror_source_files(agents[name])
         if claude_files != agent_files:
             fail(f"mirror file-set mismatch for {name}")
         for relative in sorted(claude_files):
