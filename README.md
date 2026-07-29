@@ -157,10 +157,13 @@ relationships should support that boundary. `morphogenetic-architecture`
 starts with a Rapid placement/static-edge scan, escalates deterministically to
 Full for restructuring, multi-field evidence, broad scope, or ambiguity, and
 uses a fitting natural-system mechanism to generate Full-analysis candidates.
-It requires predeclared evidence thresholds and reproducible graph output,
-compares intent with software evidence, and lets `architecture-as-code` enforce
-the static edges. Reports expose the selected path as Rapid, Full, or
-Rapid → Full.
+It records a lens-free baseline, permits one routed operational lens only when
+it adds a distinct contribution falsifiable by an unused independent field or
+held-out window, requires predeclared evidence thresholds and reproducible graph
+output, and compares every candidate with software evidence. Reversibility is
+reported as high, medium, low, or Unknown with the Low bar applied;
+`architecture-as-code` enforces the static edges. Reports expose the selected
+path as Rapid, Full, or Rapid → Full.
 
 ```mermaid
 flowchart LR

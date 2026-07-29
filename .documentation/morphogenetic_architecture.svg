@@ -1,6 +1,6 @@
 <svg width="860" height="1120" viewBox="0 0 860 1120" role="img" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif">
   <title>Morphogenetic software architecture</title>
-  <desc>A Rapid-to-Full selector maps a declared software scaffold through bounded checks or evidence fields and natural mechanisms into verified topology evolution.</desc>
+  <desc>A Rapid-to-Full selector maps a declared software scaffold through discovery evidence, an optional natural-lens contribution, and unused or held-out validation evidence into verified topology evolution.</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#071512"/>
@@ -57,7 +57,7 @@
   <path d="M430 344C430 363 412 367 412 388C412 405 430 409 430 426" fill="none" stroke="#78DDBB" stroke-width="1.5" marker-end="url(#arrow)"/>
 
   <text x="88" y="431" font-size="12" font-weight="700" letter-spacing="1.8" fill="#65E6B4">02 · MORPHOGEN FIELDS</text>
-  <text x="88" y="457" font-size="18" font-weight="600" fill="#F1F7F4">Observe pressure without mixing its meanings</text>
+  <text x="88" y="457" font-size="18" font-weight="600" fill="#F1F7F4">Discover the finding; reserve independent or held-out validation</text>
   <rect x="88" y="478" width="684" height="102" rx="22" fill="url(#field)" stroke="#78DDBB" stroke-opacity="0.2"/>
   <g font-size="11" text-anchor="middle">
     <circle cx="158" cy="529" r="30" fill="#071512" stroke="#65E6B4" stroke-opacity="0.55"/>
@@ -79,47 +79,47 @@
 
   <path d="M430 580C430 598 448 603 448 622C448 641 430 646 430 664" fill="none" stroke="#78DDBB" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <text x="88" y="670" font-size="12" font-weight="700" letter-spacing="1.8" fill="#F2C96D">03 · NATURAL PATTERN ATLAS</text>
-  <text x="88" y="696" font-size="18" font-weight="600" fill="#F1F7F4">Transfer a mechanism; generate one candidate</text>
+  <text x="88" y="670" font-size="12" font-weight="700" letter-spacing="1.8" fill="#F2C96D">03 · OPERATIONAL LENS GATE</text>
+  <text x="88" y="696" font-size="18" font-weight="600" fill="#F1F7F4">One routed lens must add a distinct, falsifiable contribution</text>
   <g font-size="11">
     <rect x="88" y="718" width="210" height="66" rx="17" fill="#FFFFFF" fill-opacity="0.05" stroke="#65E6B4" stroke-opacity="0.32"/>
     <circle cx="119" cy="751" r="15" fill="none" stroke="#65E6B4"/>
     <circle cx="127" cy="751" r="15" fill="none" stroke="#65E6B4" opacity="0.75"/>
-    <text x="151" y="747" font-weight="650" fill="#EAF7F1">DIFFERENTIATION</text>
-    <text x="151" y="765" fill="#8FA8A0">position → specialization</text>
+    <text x="151" y="747" font-weight="650" fill="#EAF7F1">BASELINE</text>
+    <text x="151" y="765" fill="#8FA8A0">lens-free candidate</text>
 
     <rect x="325" y="718" width="210" height="66" rx="17" fill="#FFFFFF" fill-opacity="0.05" stroke="#F2C96D" stroke-opacity="0.34"/>
     <path d="M354 766V737M354 746L341 735M354 751L369 738M354 758L340 767M354 758L370 769" fill="none" stroke="#F2C96D" stroke-width="1.6" stroke-linecap="round"/>
-    <text x="388" y="747" font-weight="650" fill="#EAF7F1">BRANCHING</text>
-    <text x="388" y="765" fill="#8FA8A0">trunks → local twigs</text>
+    <text x="388" y="747" font-weight="650" fill="#EAF7F1">INDEX</text>
+    <text x="388" y="765" fill="#8FA8A0">one deterministic route</text>
 
     <rect x="562" y="718" width="210" height="66" rx="17" fill="#FFFFFF" fill-opacity="0.05" stroke="#A99CFF" stroke-opacity="0.38"/>
     <path d="M592 751c0-11 16-15 22-5 7 12-6 24-19 17-13-7-12-26 2-34" fill="none" stroke="#BDB4FF" stroke-width="1.6" stroke-linecap="round"/>
-    <text x="628" y="747" font-weight="650" fill="#EAF7F1">PHYLLOTAXIS</text>
-    <text x="628" y="765" fill="#8FA8A0">growth + exclusion</text>
+    <text x="628" y="747" font-weight="650" fill="#EAF7F1">CONTRIBUTION</text>
+    <text x="628" y="765" fill="#8FA8A0">alternative or missed risk</text>
 
     <rect x="88" y="800" width="210" height="66" rx="17" fill="#FFFFFF" fill-opacity="0.05" stroke="#6ED8E8" stroke-opacity="0.34"/>
     <path d="M104 846C116 820 129 862 143 833C152 815 167 858 182 832" fill="none" stroke="#6ED8E8" stroke-width="1.6"/>
-    <text x="151" y="829" font-weight="650" fill="#EAF7F1">CYMATICS</text>
-    <text x="151" y="847" fill="#8FA8A0">frequency → nodal lines</text>
+    <text x="151" y="829" font-weight="650" fill="#EAF7F1">FALSIFIER</text>
+    <text x="151" y="847" fill="#8FA8A0">observable reject-when</text>
 
     <rect x="325" y="800" width="210" height="66" rx="17" fill="#FFFFFF" fill-opacity="0.05" stroke="#65E6B4" stroke-opacity="0.32"/>
     <path d="M343 849C343 826 361 818 375 827C384 834 380 851 366 854C353 857 346 848 351 839C356 830 370 832 371 842" fill="none" stroke="#65E6B4" stroke-width="1.6"/>
-    <text x="388" y="829" font-weight="650" fill="#EAF7F1">ADAPTIVE FLOW</text>
-    <text x="388" y="847" fill="#8FA8A0">reinforce → prune</text>
+    <text x="388" y="829" font-weight="650" fill="#EAF7F1">SAME POLICY</text>
+    <text x="388" y="847" fill="#8FA8A0">compare both candidates</text>
 
     <rect x="562" y="800" width="210" height="66" rx="17" fill="#FFFFFF" fill-opacity="0.05" stroke="#FF8E82" stroke-opacity="0.35"/>
     <path d="M588 835a14 14 0 1 1 5 12M588 835l-5 4M588 835l4 5" fill="none" stroke="#FF9E94" stroke-width="1.6" stroke-linecap="round"/>
-    <text x="628" y="829" font-weight="650" fill="#EAF7F1">HOMEOSTASIS</text>
-    <text x="628" y="847" fill="#8FA8A0">bounded feedback</text>
+    <text x="628" y="829" font-weight="650" fill="#EAF7F1">EVIDENCE</text>
+    <text x="628" y="847" fill="#8FA8A0">accept or reject</text>
   </g>
-  <text x="430" y="891" font-size="11" fill="#A8BAB4" text-anchor="middle">mechanism → software match → candidate → break point</text>
+  <text x="430" y="891" font-size="11" fill="#A8BAB4" text-anchor="middle">baseline → one lens → contribution → falsifier → unused / held-out evidence</text>
 
   <path d="M430 902V934" fill="none" stroke="#78DDBB" stroke-width="1.5" marker-end="url(#arrow)"/>
 
   <text x="88" y="944" font-size="12" font-weight="700" letter-spacing="1.8" fill="#65E6B4">04 · DIFFERENTIATION &amp; REMODELING</text>
   <rect x="88" y="963" width="684" height="82" rx="22" fill="#65E6B4" fill-opacity="0.09" stroke="#65E6B4" stroke-opacity="0.4"/>
-  <text x="430" y="991" font-size="13" font-weight="650" fill="#B8F3DB" text-anchor="middle">DOMAIN MEANING + INDEPENDENT OBSERVED FIELD</text>
+  <text x="430" y="991" font-size="13" font-weight="650" fill="#B8F3DB" text-anchor="middle">DOMAIN MEANING + AUTHORITATIVE EVIDENCE · REVERSIBILITY SETS THE BAR</text>
   <text x="430" y="1011" font-size="13" fill="#F1F7F4" text-anchor="middle">PLACE · KEEP · MOVE · SPLIT · MERGE</text>
   <text x="430" y="1032" font-size="13" fill="#F1F7F4" text-anchor="middle">INTRODUCE-BOUNDARY · DECLARE-RUNTIME-CYCLE · DEFER</text>
 

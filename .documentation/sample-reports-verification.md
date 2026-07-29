@@ -82,13 +82,20 @@ Decision policy:     Hard invariant — proposed static edges must follow the
                      declared interfaces and remain acyclic.
 Graph analysis:      Not required — PLACE fills an existing position and no
                      graph algorithm generated the candidate.
+Candidate baseline:  Place token validation in identity / primitive /
+                     infrastructure from domain meaning and declared edges.
 Natural lens:        none
+Lens contribution:   none — the declared position already supplies the
+                     complete candidate.
+Lens falsifier:      none — no lens contribution is being tested.
 Transfer:            none — domain placement and proposed static edges decide
                      the position without a natural-system analogy.
 Static cycle:        Pass — all static edges point toward declared callees
 Runtime cycles:      none
 Boundary evidence:   Token verification belongs to identity; proposed callers
                      and callees remain within the identity boundary.
+Reversibility:       Not required — PLACE fills an existing position and moves
+                     no boundary.
 Enforcement:         add architecture rule: forbid auth-token-validator ->
                      billing/*, orders/*, and undeclared infrastructure
 Measurement:         Not required — PLACE fills an existing position and does
@@ -118,21 +125,30 @@ Declared topology:   commerce/checkout / orchestrator / application
                      Inbound: checkout/submit-order
                      Outbound: payments/authorize, shipping/reserve
 Observed fields:     Static = two edge clusters through separate domain APIs
-                     Change = 18/20 recent edits touched only one cluster
+                     Change = held-out 20-merge window inspected after the
+                     lens record; 18/20 edits touched only one cluster
                      Runtime / data / failure = Not measured
 Decision policy:     Change affinity — baseline = 20 merged changes;
                      accept independent cluster when >= 80% of edits remain
                      cluster-local; sensitivity = threshold ± 10%.
 Graph analysis:      Not required — no algorithmic cut generated the candidate.
-Natural lens:        cell differentiation
-Transfer:            Independent signals suggest specialization into payment
-                     and shipment coordinators; the analogy stops at software
-                     ownership, and static/change evidence accepted the split.
+Candidate baseline:  Split the orchestrator into payment and shipment
+                     coordinators along the declared domain responsibilities.
+Natural lens:        segmentation
+Lens contribution:   Preserve one symmetric checkout entry contract and forbid
+                     direct payment-to-shipment peer crossings.
+Lens falsifier:      Reject that contribution if more than 20% of the declared
+                     held-out 20-merge window requires both clusters to change.
+Transfer:            Compartment lineage suggests sibling interfaces without
+                     peer crossing; the analogy stops at transaction semantics,
+                     and the predeclared change policy accepted the contribution.
 Static cycle:        Pass
 Runtime cycles:      none observed
 Boundary evidence:   Payment authorization and shipment reservation have
                      separate domain owners; 90% cluster-local change exceeds
                      the predeclared 80% threshold.
+Reversibility:       medium — several internal callers share the checkout
+                     contract; the retained facade is the reversal path.
 Enforcement:         add architecture rule: checkout entry may depend on the
                      two new inbound interfaces, not their internals
 Measurement:         Proceed — Component-kinds Δ=0; Dependency-edges Δ=-2;

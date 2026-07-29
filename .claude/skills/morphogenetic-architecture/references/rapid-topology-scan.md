@@ -25,16 +25,26 @@ telemetry, partition a graph, or accept a restructuring decision.
    Design or Audit.
 2. **Declare the position.** Record Domain / abstraction tier / layer,
    inbound interface, outbound interface, and allowed static neighbors.
-3. **Inspect the bounded evidence.** Check only the proposed or current static
+3. **Grade reversibility, but only when a boundary would move.** A Rapid PLACE,
+   KEEP, or DECLARE-RUNTIME-CYCLE marks the field **Not required** with a short
+   reason. Once a restructuring candidate appears, record high / medium / low
+   from consumers, published contracts, data-migration need, and deployment
+   coupling, or record **Unknown — Low bar applies** with the missing facts, as
+   defined in SKILL.md §5. Carry it into the escalation.
+4. **Inspect the bounded evidence.** Check only the proposed or current static
    edges and, when applicable, the named runtime loop.
-4. **Apply hard tests.** Check for a forbidden import cycle, layer-skip
+5. **Apply hard tests.** Check for a forbidden import cycle, layer-skip
    violation, tier inversion, cross-domain interface bypass, external SDK
    bypass, hidden runtime ownership, and placement ambiguity.
-5. **Choose or escalate.** Emit one permitted Rapid decision, or continue in
+6. **Choose or escalate.** Emit one permitted Rapid decision, or continue in
    Full using the escalation rules below.
-6. **Report the mode.** Fill `Analysis mode` and `Selection reason` in the main
-   skill's summary block. Mark unused Full-only fields **Not required** with a
-   short reason; do not omit them.
+7. **Report the mode.** Fill `Analysis mode` and `Selection reason` in the main
+   skill's summary block. Mark unused Full-only fields, `Reversibility`
+   included, **Not required** with a short reason; do not omit them.
+
+A Low grade or Unknown reversibility never lets Rapid accept a restructuring
+decision. It raises the evidence bar once the task escalates, and it belongs in
+the escalation record.
 
 ## Decision Guard
 

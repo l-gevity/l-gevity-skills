@@ -95,7 +95,11 @@ PRIMER_REQUIRED_TERMS = {
         "Decision policy:",
         "Graph analysis:",
         "Natural pattern atlas",
-        "nature proposes",
+        "Nature may propose",
+        "Reversibility:",
+        "operational lens index",
+        "Candidate baseline:",
+        "held-out evidence window",
     ),
     "requirements-traceability": (
         "bidirectional",
@@ -198,8 +202,17 @@ SKILL_REQUIRED_TERMS = {
         "Analysis mode:",
         "Selection reason:",
         "Natural lens:",
+        "Candidate baseline:",
+        "Lens contribution:",
+        "Lens falsifier:",
+        "unused independent field or a",
         "Transfer:",
         "Emit DEFER",
+        "Scale proof to reversibility",
+        "### Scale Proof to Reversibility",
+        "Grade only when a boundary actually moves",
+        "Reversibility:       <high | medium | low",
+        "Unknown — Low bar applies",
     ),
     "requirements-traceability": (
         "Trace both directions",
@@ -237,15 +250,44 @@ MORPHOGENETIC_REPORT_FIELDS = (
     "Observed fields",
     "Decision policy",
     "Graph analysis",
+    "Candidate baseline",
     "Natural lens",
+    "Lens contribution",
+    "Lens falsifier",
     "Transfer",
     "Static cycle",
     "Runtime cycles",
     "Boundary evidence",
+    "Reversibility",
     "Enforcement",
     "Measurement",
     "Next action",
     "Verification",
+)
+NATURAL_PATTERN_FAMILIES = (
+    "### Pattern and Differentiation",
+    "### Transport and Connection",
+    "### Persistence and Renewal",
+)
+NATURAL_PATTERN_OPERATIONAL_LENSES = (
+    "Cell differentiation",
+    "Segmentation",
+    "Convergent evolution",
+    "Hierarchical branching",
+    "Physarum",
+    "Leaf venation",
+    "Stigmergy",
+    "Endosymbiosis",
+    "Homeostasis",
+    "Bone remodeling",
+    "Quorum sensing",
+    "Apoptosis",
+)
+NATURAL_PATTERN_NON_OPERATIONAL = (
+    "Reaction–diffusion",
+    "Phyllotaxis",
+    "Cymatics",
+    "Canalization",
 )
 MORPHOGENETIC_DECISIONS = (
     "PLACE",
@@ -639,6 +681,91 @@ def validate_morphogenetic_graph_analyzer() -> None:
         fail(f"{analyzer.relative_to(ROOT)} self-test failed: {detail}")
 
 
+def validate_morphogenetic_pattern_atlas() -> None:
+    atlas = (
+        AGENT_SKILLS
+        / "morphogenetic-architecture"
+        / "references"
+        / "natural-pattern-atlas.md"
+    )
+    if not atlas.is_file():
+        fail(f"{atlas.relative_to(ROOT)} is missing")
+
+    atlas_text = atlas.read_text(encoding="utf-8")
+    if "## Operational Lens Index" not in atlas_text:
+        fail(f"{atlas.relative_to(ROOT)} missing '## Operational Lens Index'")
+    for family in NATURAL_PATTERN_FAMILIES:
+        if family not in atlas_text:
+            fail(f"{atlas.relative_to(ROOT)} missing lens family '{family}'")
+
+    primer = DOCS / "READ-morphogenetic-architecture.md"
+    primer_text = primer.read_text(encoding="utf-8")
+    index_start = atlas_text.index("## Operational Lens Index")
+    index_end = atlas_text.find("\n## ", index_start + 3)
+    index_text = atlas_text[index_start:index_end]
+
+    for term in (
+        "## Candidate-Contribution Test",
+        "lens-free baseline candidate",
+        "observable condition",
+        "`explanation only`",
+        "reused as prospective validation",
+        "| Natural architecture | Transferable mechanism | Software use | Required evidence | Reject when |",
+    ):
+        if term not in atlas_text:
+            fail(f"{atlas.relative_to(ROOT)} missing contribution guard '{term}'")
+
+    for lens in NATURAL_PATTERN_OPERATIONAL_LENSES:
+        if lens not in atlas_text:
+            fail(f"{atlas.relative_to(ROOT)} missing lens '{lens}'")
+        if lens not in primer_text:
+            fail(f"{primer.relative_to(ROOT)} missing lens '{lens}'")
+        if lens not in index_text:
+            fail(f"{atlas.relative_to(ROOT)} operational index missing '{lens}'")
+
+    for lens in NATURAL_PATTERN_NON_OPERATIONAL:
+        if lens not in atlas_text:
+            fail(f"{atlas.relative_to(ROOT)} missing non-operational lens '{lens}'")
+        if lens not in primer_text:
+            fail(f"{primer.relative_to(ROOT)} missing non-operational lens '{lens}'")
+        if lens in index_text:
+            fail(
+                f"{atlas.relative_to(ROOT)} operational index must not route "
+                f"non-operational lens '{lens}'"
+            )
+
+
+def validate_morphogenetic_reversibility() -> None:
+    skill = AGENT_SKILLS / "morphogenetic-architecture"
+    contracts = {
+        skill / "references" / "rapid-topology-scan.md": (
+            "**Grade reversibility, but only when a boundary would move.**",
+            "`Reversibility`",
+            "A Low grade or Unknown reversibility never lets Rapid accept",
+        ),
+        skill / "references" / "evidence-fields.md": (
+            "## Field Authority",
+            "Reversal cost",
+            "dominant reversal-cost driver",
+            "Use this authority mapping for the dominant driver",
+        ),
+        DOCS / "READ-morphogenetic-architecture.md": (
+            "Reversibility sets the evidence bar",
+            "It applies only where a boundary actually moves",
+            "Reversibility: Unknown — Low bar applies",
+            "separately specified precursor",
+        ),
+    }
+    for path, terms in contracts.items():
+        text = path.read_text(encoding="utf-8")
+        for term in terms:
+            if term not in text:
+                fail(
+                    f"{path.relative_to(ROOT)} missing reversibility contract "
+                    f"'{term}'"
+                )
+
+
 def validate_primers() -> None:
     skills = {path.name for path in skill_dirs(CLAUDE_SKILLS)}
     primers = {path.stem.removeprefix("READ-") for path in DOCS.glob("READ-*.md")}
@@ -871,6 +998,8 @@ def main() -> int:
     validate_retired_skill_references()
     validate_morphogenetic_mode_selection()
     validate_morphogenetic_graph_analyzer()
+    validate_morphogenetic_pattern_atlas()
+    validate_morphogenetic_reversibility()
     validate_sample_reports()
     validate_morphogenetic_public_vocabulary()
     validate_primers()

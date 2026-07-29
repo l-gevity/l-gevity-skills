@@ -44,15 +44,21 @@ that software is literally alive.
    generators, never as domain authority. Accept computed graph evidence only
    from retained executable output, never from a narrated calculation.
 5. **Transfer mechanisms, not silhouettes.** When selecting a natural lens,
-   use its mechanism to generate and explain a candidate, then let software
-   evidence accept or reject it. Never choose a topology because it resembles
-   a spiral, tree, honeycomb, or sacred figure.
+   record the lens-free baseline first, use one indexed mechanism to generate a
+   distinct alternative or expose a missed risk, and predeclare what would
+   reject it. Then let software evidence accept or reject both candidates.
+   Never choose a topology because it resembles a spiral, tree, honeycomb, or
+   sacred figure.
 6. **Preserve one owner per rule.** Hand complexity measurement to
    `structural-simplification`, internal design to `architecture-guidelines`,
    and enforceable edges to `architecture-as-code`.
 7. **Escalate proof monotonically.** Start with the smallest sufficient
    analysis mode, but never let a request for speed waive evidence,
    measurement, or hard-invariant checks.
+8. **Scale proof to reversibility.** Grade how expensive the change would be to
+   undo, then require evidence proportional to that cost. A cheap-to-reverse
+   change still obeys every hard invariant; a hard-to-reverse change is never
+   accepted on one field.
 
 ## Select the Analysis Mode
 
@@ -129,11 +135,14 @@ escalates to Full.
 | **Remodeling / pruning** | MERGE, remove an edge, or retire an obsolete component |
 | **Homeostasis** | Bounded feedback, observability, verification, and enforcement |
 
-When Full uses a natural lens, choose it only after declaring the skeleton and
-available evidence, but before selecting a topology decision. Read
+When Full uses a natural lens, choose it after declaring the skeleton and
+recording the evidence that produced the question, finding, and lens-free
+baseline, but before selecting a topology decision. Read
 [references/natural-pattern-atlas.md](references/natural-pattern-atlas.md) to
 select and transfer a mechanism. Use `none` when no analogy preserves the
-natural system's relevant objective and constraints.
+natural system's relevant objective and constraints or when it adds nothing to
+the lens-free baseline. A lens contribution is operational only when an unused
+independent field or held-out evidence window can still falsify it.
 
 ## 1. Declare the Skeleton
 
@@ -212,25 +221,49 @@ bundled analyzer when computing SCCs, Fiedler/spectral cuts, normalized cuts,
 conductance, or sensitivity. If no executable output is available, mark graph
 analysis **Not measured** and do not report an algorithmic candidate.
 
+Record which field values and windows produced the question, finding, and
+lens-free baseline. Discovery evidence may generate that baseline, but the same
+observations cannot later count as prospective falsification of a natural-lens
+contribution.
+
 ## 4. Select a Natural Lens
 
-In Full mode, select at most two lenses from the natural pattern atlas. In
-Rapid mode, skip this section and report `Natural lens: none` unless the
-analysis has already escalated. State the transfer before using it:
+In Full mode, first record the candidate suggested by declared topology, domain
+meaning, hard-invariant checks, and the discovery evidence already inspected;
+`none` is a valid baseline. Rapid skips this section and reports
+`Natural lens: none` unless the analysis has already escalated.
+
+Enter the atlas through its **Operational Lens Index**, keyed by the question or
+the §5 finding name, rather than by browsing the mechanism families. Select at
+most one operational lens. A hard invariant such as a forbidden import cycle
+needs no lens.
+
+Freeze this candidate-contribution record before inspecting its validation
+surface:
 
 ```text
-Natural system:  <system and pattern>
-Mechanism:       <what produces or preserves the natural form>
-Software match:  <shared objective, pressure, and constraint>
-Candidate:       <placement or topology change the mechanism suggests>
-Break point:     <where the analogy stops>
+Candidate baseline:  <lens-free candidate | none>
+Natural system:      <system and pattern>
+Mechanism:           <what produces or preserves the natural form>
+Software match:      <shared objective, pressure, and constraint>
+Lens contribution:   <one distinct alternative or newly exposed risk>
+Lens falsifier:      <observable rejection condition + unused field or held-out window>
+Break point:         <where the analogy stops>
 ```
 
-Use the candidate to direct observation, not to replace it. For example,
-adaptive transport can suggest reinforcing a valuable interface and pruning an
-unused edge, while runtime and change evidence determine whether either action
-is justified. Mark the lens `inspiration only` when using sacred geometry,
-Fibonacci forms, or cymatic imagery without an equivalent measurable mechanism.
+The lens earns an operational role only when `Lens contribution` differs from
+the baseline and `Lens falsifier` names an unused independent field or a
+predeclared held-out evidence window. Otherwise report the lens
+`explanation only`; it may clarify the result but cannot claim candidate
+contribution. Report `Natural lens: none` when the lens adds nothing to the
+baseline or has no concrete falsifier. Symbolic geometry and the atlas's
+exploratory material are always `inspiration only`.
+
+After freezing the record, inspect the named validation surface and test the
+baseline and lens contribution under the same software-evidence policy. Use a
+retained contribution to extend the candidate set or expose risk, not to
+replace evidence. The lens name, mechanism, and analogy may never appear in
+**Boundary evidence**.
 
 ## 5. Diagnose Mismatches
 
@@ -254,8 +287,38 @@ Use these finding names and tests:
 Treat a single noisy signal as a review prompt. Require a domain reason plus an
 independent observed field whose predeclared policy is met before changing a
 boundary, unless a hard invariant such as an import cycle or ownership
-violation already decides the case. Return DEFER when a threshold or sensitivity
-rule is missing, retrofitted, or unstable.
+violation already decides the case. That is the floor; the reversibility grade
+below decides how much field agreement and evidence window it takes to clear
+it. Return DEFER when a threshold or sensitivity rule is missing, retrofitted,
+or unstable.
+
+### Scale Proof to Reversibility
+
+Grade the cost of undoing the proposed change before setting its evidence bar.
+Grade only when a boundary actually moves: before accepting MOVE, SPLIT, MERGE,
+or INTRODUCE-BOUNDARY, and when DEFER withholds one of them. PLACE, KEEP, and
+DECLARE-RUNTIME-CYCLE mark the field **Not required** with a short reason —
+they fill or bound an existing position rather than change one.
+
+The grade uses declared facts — consumers, published contracts, data, and
+deployment coupling — so it needs no weighted evidence and no extra analysis
+mode.
+
+| Reversibility | Signals | Evidence bar for a boundary change |
+| --- | --- | --- |
+| **High** | One owner, internal callers only, no published contract, no data migration, one deployable | Domain reason plus one independent field; a shorter evidence window is acceptable when the reversal path is named |
+| **Medium** | Several internal consumers, a shared internal contract, reversible data change, or a coordinated deploy | Domain reason plus one independent field meeting its declared policy, plus the sensitivity check for any generated candidate |
+| **Low** | External or cross-team consumers, a published or versioned contract, irreversible data migration, or a separate deployment/ownership boundary | Domain reason plus two independent applicable fields that each meet their declared policy and support the same boundary; at least one field must have authority over the dominant reversal-cost driver. Also require a passing sensitivity check for any generated candidate and a staged path whose reversal step is explicit. If only one field is available, emit DEFER for the Low-reversibility end state; a separately specified precursor may proceed only after it is graded independently and meets its own evidence bar. |
+
+Grade from the least-reversible known signal. When the facts needed to exclude a
+Low signal cannot be stated, report **Reversibility: Unknown — Low bar applies**,
+name the missing consumer, contract, data, deployment, or ownership facts in
+**Next action**, and do not accept the Low-reversibility end state until they
+are resolved. Grade any separately specified precursor independently.
+
+Reversibility never lowers a hard invariant, never authorizes a Rapid
+restructuring decision, and never substitutes for the §7 structural
+measurement.
 
 ## 6. Choose the Smallest Evolution
 
@@ -287,8 +350,16 @@ Apply these growth rules:
 - Split along the axis that explains the strongest independent clusters:
   domain, abstraction tier, or layer.
 - Prune an edge only after checking reachability, callers, and relevant history.
+- Retire a component through an explicit removal signal — deprecation marker,
+  reachability proof, owner, and cleanup path — never by leaving it unreferenced.
 - Prefer one explicit boundary over multiple peer-to-peer exceptions.
-- Reassess after material domain, traffic, ownership, or deployment changes.
+- At Low reversibility, take the smallest reversible step first: introduce the
+  boundary or adapter, then move behind it once the contract holds.
+- When reversibility is Unknown, DEFER the end state but independently grade
+  any smaller precursor that could safely establish the missing facts.
+- Reassess after material domain, ownership, or deployment changes, and when
+  component count, team count, traffic, or data volume changes by an order of
+  magnitude.
 
 ## 7. Measure and Enforce
 
@@ -300,6 +371,8 @@ Before accepting MOVE, SPLIT, MERGE, or INTRODUCE-BOUNDARY:
 3. Hand every static dependency constraint to `architecture-as-code`.
 4. Keep runtime, co-change, data, and failure findings as review, telemetry, or
    runtime-policy checks unless a deterministic repository rule can encode them.
+5. For a Low-reversibility change, record the staged path and its explicit
+   reversal step in **Next action** before the change is accepted.
 
 In standalone use, do not emit MOVE, SPLIT, MERGE, or INTRODUCE-BOUNDARY while
 that measurement is unavailable. Emit DEFER, name the candidate evolution in
@@ -338,11 +411,16 @@ Declared topology:   <Domain / abstraction tier / layer + allowed interfaces>
 Observed fields:     <static | runtime | change | data | failure | Not measured>
 Decision policy:     <field: baseline + metric/operator/threshold + window + sensitivity | hard invariant | Not declared>
 Graph analysis:      <script/tool + version + input/result hash | Not measured | Not required>
-Natural lens:        <pattern | none | inspiration only>
-Transfer:            <mechanism → candidate; break point; evidence accepted/rejected it>
+Candidate baseline:  <lens-free candidate | none>
+Natural lens:        <pattern | none | pattern — explanation only | inspiration only>
+Lens contribution:   <distinct alternative or risk | none>
+Lens falsifier:      <rejection condition + unused field or held-out window | none>
+Transfer:            <mechanism → contribution; break point; evidence accepted/rejected it>
 Static cycle:        Pass | Fail | Not evaluated
 Runtime cycles:      <none | named cycle + bound/owner/observability>
 Boundary evidence:   <domain reason + independent field, or insufficient>
+Reversibility:       <high | medium | low + dominant reversal-cost driver |
+                     Unknown — Low bar applies + missing facts | Not required + reason>
 Enforcement:         <none | add/update architecture rule: exact constraint>
 Measurement:         <structural-simplification result | Not required + reason>
 Next action:         <move, split, merge, add interface, instrument, or stop>
@@ -351,8 +429,9 @@ Verification:        <graph/lint/test/telemetry check>
 
 Always emit the summary block in Design and Audit mode. Keep values terse when
 the user asks for a concise answer; do not omit fields. Make the natural
-mechanism and its break point understandable to a coder; do not let it count as
-an observed field. Emit exactly one decision from the vocabulary above and put
+mechanism, contribution, falsifier, and break point understandable to a coder;
+do not let any of them count as an observed field or appear in **Boundary
+evidence**. Emit exactly one decision from the vocabulary above and put
 qualifications in **Boundary evidence** or **Next action**.
 
 Do not claim that observed agreement proves an architecture optimal. Report the

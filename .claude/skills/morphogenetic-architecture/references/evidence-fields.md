@@ -18,6 +18,37 @@ Record every field independently:
 For every dataset, record its source, time window, coverage, known blind spots,
 and confidence. Mark absent evidence **Not measured**.
 
+## Field Authority
+
+Each field answers one question. Never let a field decide outside its
+authority, however strong its numbers are.
+
+| Field | Can establish | Cannot establish |
+| --- | --- | --- |
+| Static dependency | Direction, reachability, forbidden cycles, layer/tier violations, adapter and SDK ownership | Whether an allowed edge is used, how often, or what it costs |
+| Runtime flow | Which edges carry load, where latency and criticality concentrate, which declared edge is dead in production | Semantic ownership, or permission for a static cycle |
+| Change affinity | Which components currently share a reason to change inside the declared window | Causality, ownership, or that the coupling will persist |
+| Shared data | Write ownership, transaction and schema coupling, migration cost | That co-located data implies one domain |
+| Failure propagation | Blast radius, single points of failure, recovery dependence | That a rare incident justifies permanent restructuring |
+
+When two fields disagree, do not average them. Name the disagreement, prefer
+the field with authority over the question being asked, and return **DEFER**
+when the deciding field is the one that is **Not measured**.
+
+At Low reversibility, two fields count as agreement only when both meet their
+declared policy and support the same boundary, and at least one has authority
+over the dominant reversal-cost driver. Imports plus traffic cannot approve an
+irreversible data split while shared-data evidence is **Not measured**.
+
+Use this authority mapping for the dominant driver:
+
+| Reversal-cost driver | Field with relevant authority |
+| --- | --- |
+| External or cross-team consumers; published/versioned contract | Static dependency/ownership for declared caller and contract edges; runtime flow for active routes |
+| Irreversible data migration | Shared data for schema, transaction, write-ownership, and migration coupling |
+| Separate deployment boundary | Runtime flow for coordination and latency; failure propagation for recovery dependence and blast radius |
+| Separate ownership boundary | Static dependency/ownership for authority direction; change affinity may support but cannot establish ownership |
+
 ## Decision Policy
 
 Declare a policy for each weighted field before generating or inspecting a
@@ -32,6 +63,7 @@ preferred candidate:
 | Candidate size | Minimum group size or fraction that prevents trivial isolation |
 | Sensitivity | Perturbation size and minimum stable membership for generated partitions; metric stability only for fixed supplied partitions |
 | Basis | Why the policy was chosen before candidate generation |
+| Reversal cost | The high / medium / low grade and dominant driver, or Unknown with the missing facts; it sets the field-agreement and window requirements in SKILL.md §5 |
 
 Hard invariants such as a forbidden static cycle do not need a threshold. For
 all weighted candidates, a missing, retrofitted, or unstable policy requires
@@ -73,11 +105,16 @@ result.
 
 ## Natural-Lens Boundary
 
-Use [natural-pattern-atlas.md](natural-pattern-atlas.md) to generate a candidate,
-then return here to test it. A natural analogy is neither an observed field nor
-independent boundary evidence. Fibonacci, sacred geometry, and cymatics remain
-`inspiration only` unless the software shares a measurable mechanism, objective,
-and constraints with the source system.
+Record which evidence produced the lens-free baseline, then add at most one
+indexed contribution and name its observable falsifier in an unused independent
+field or held-out window, as required by
+[natural-pattern-atlas.md](natural-pattern-atlas.md). Test the baseline and
+contribution under the same policy on that validation surface. Discovery
+observations cannot be reused as prospective validation. A natural analogy is
+neither an observed field nor independent boundary evidence, and its name or
+mechanism may not appear in **Boundary evidence**. A lens that adds nothing is
+`none`; one with no unused or held-out validation surface is `explanation
+only`. Fibonacci, sacred geometry, and cymatics remain `inspiration only`.
 
 ## Confidence
 
@@ -91,3 +128,5 @@ Report confidence as:
 
 Permit hard static invariant findings at High confidence without runtime data.
 Require instrumentation before moving a boundary on Low-confidence pressure.
+One-field evidence cannot accept a Low-reversibility end state; DEFER that end
+state and independently grade any separately specified precursor.
