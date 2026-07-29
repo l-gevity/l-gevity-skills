@@ -161,8 +161,9 @@ Routing rules:
    Re-entry begins at the earliest failed decision.
 2. **Ground conditionally.** Route a new or stale ungrounded request through
    `requirements-grounding`. Route current grounded requirements directly to M.
-3. **M owns worth.** Grounding validates evidence and meaning; M alone decides
-   `BUILD`, `KEEP`, `SIMPLIFY`, `DEFER`, `DROP`, or `OBSOLETE`.
+3. **M owns worth.** Grounding validates evidence and meaning and may supply
+   linked outcome hypotheses as value evidence; M alone decides `BUILD`,
+   `KEEP`, `SIMPLIFY`, `DEFER`, `DROP`, or `OBSOLETE`.
 4. **Topology is conditional.** Use `requirements-topology` when multiple
    requirements have prerequisites, constraints, conflicts, shared foundations,
    or non-trivial sequencing. Skip it for one bounded independent requirement
@@ -183,15 +184,42 @@ Decision hand-offs:
 
 | Stage | Passing decisions | Blocking decisions | Required hand-off |
 |:--|:--|:--|:--|
-| Requirements Grounding | `GROUNDED` | `PROVISIONAL`, `NOT-GROUNDED` | Grounded requirements, evidence, assumptions, confirmation queue |
+| Requirements Grounding | `GROUNDED` | `PROVISIONAL`, `NOT-GROUNDED` | Grounded requirements, linked outcome hypotheses when relevant, evidence, assumptions, confirmation queue |
 | M — Minimum | `BUILD`, `KEEP`, `SIMPLIFY` | `DEFER`, `DROP`, `OBSOLETE` | Functionality/complexity decision per candidate |
 | Requirements Topology | `STABLE` | `NEEDS-REFACTOR`, `BLOCKED` | Atomic typed graph, stable IDs, conflicts, dependency order |
 | Implementation Readiness | `READY`, bounded `PARTLY-READY` | `NOT-READY` | Smallest coherent slice, verification obligations, blockers |
 
 After a slice passes readiness and enters architecture/implementation, use
 `requirements-traceability` to connect canonical IDs to implementation and
-executed evidence. Traceability is implementation follow-through, not another
-qualification stage, A.L.C.H.E.M.Y. gate, acronym letter, or prerequisite for A.
+executed completion and outcome evidence. Traceability is implementation
+follow-through, not another qualification stage, A.L.C.H.E.M.Y. gate, acronym
+letter, or prerequisite for A.
+
+When current outcome evidence reaches a revisit trigger, route the bounded
+functionality back to M in Retrospective mode. This is a new worth decision over
+new evidence, not a backward pipeline edge or permission to rerun every gate.
+Grounding still owns hypothesis meaning; Traceability owns evidence state and
+freshness; M alone owns the worth verdict.
+
+When verification design is material and architecture can change the evidence
+boundary, use `test-strategy` as a two-pass task-matched companion:
+
+```text
+Implementation Readiness
+→ Test Strategy — Obligation pass
+→ A → L/C → E, as justified
+→ Test Strategy — Portfolio pass
+→ H
+```
+
+The Obligation pass defines risks, failure modes, oracles, and required
+confidence before A. The Portfolio pass consumes final accepted architecture
+and enforcement to finalize technique, scope, fidelity, dependencies, data,
+environment, and stimulus before H. Collapse them into a Combined pass only
+for stable accepted architecture. Gate H still owns the earliest capable
+stage, CI/CD owns pipeline execution triggers and gating, and traceability owns
+executed-evidence state. Test Strategy is not a qualification stage,
+A.L.C.H.E.M.Y. gate, acronym letter, or prerequisite for A.
 
 For an existing project, implementation is evidence rather than intent.
 Code-derived requirements remain `PROVISIONAL` until an authoritative artifact
@@ -271,6 +299,9 @@ Core directives:
    divergences and invariants, then run the same conformance cases against every
    adapter. Backend-specific tests or a fake that repeats one adapter's
    assumptions do not prove equivalence.
+7. When verification design is material, preserve the Test Strategy two-pass
+   handshake. Architecture may refine the portfolio but must not silently erase
+   an admitted risk or oracle.
 
 ---
 
@@ -278,20 +309,27 @@ Core directives:
 
 ```
 - [ ] Qualification — Current grounded requirements, or grounding decision
+- [ ] Outcomes — Linked outcome hypotheses when decision-relevant, kept separate
+                 from completion criteria; authoritative obligations may be N/A
 - [ ] Gate 1 — Necessity check on every proposed type/method/parameter
             For each abstraction: name the second concrete instance.
 - [ ] Topology — Typed graph when relationships are non-trivial, or recorded skip
 - [ ] Readiness — READY or bounded reversible PARTLY-READY before Architecture
+- [ ] Test strategy — Obligation pass before A: risks, failure modes, oracles,
+                       and required confidence
 - [ ] Gate 2 — Smallest correct design (SoC + SRP + DI; pure core, I/O at edges)
 - [ ] Gate 3 — Rapid/Full mode and selection reason recorded; each component placed at Domain / Tier / Layer; allowed edges and observed fields recorded
 - [ ] Gate 4 — Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ computed for design vs status quo
 - [ ] Gate 3 acceptance — MOVE / SPLIT / MERGE / INTRODUCE-BOUNDARY re-entered
                               once with Gate 4 measurement; final decision recorded
 - [ ] Gate 5 — eslint.architecture.mjs in the SAME PR as the code
+- [ ] Test strategy — Portfolio pass after final A/L/C/E and before H: technique,
+                       scope, fidelity, dependencies, data, environment, stimulus
 - [ ] Gate 6 — Every error path mapped to earliest catchable stage
 - [ ] Gate 7 — Deferred to iteration 2
 - [ ] Follow-through — When implementation is in scope, hand admitted IDs and
-                       evidence obligations to requirements-traceability
+                       completion and outcome-evidence obligations to
+                       requirements-traceability
 - [ ] Trail — Evidence, skipped-stage rationales, first blocker, and next action
 ```
 
@@ -320,6 +358,7 @@ contradictory, or disputed:
 | Symptom | Skipped gate | Recovery |
 |:--|:--|:--|
 | Architecture starts from an assumed or stale problem | Requirements Grounding | Stop; source or confirm actor, problem, scope, and completion evidence |
+| Capability shipped or acceptance passed is reported as outcome success | Requirements Grounding | Separate completion evidence from the linked outcome hypothesis; measure impact after representative use |
 | Requirement order is prose-only, cyclic, or contradictory | Requirements Topology | Build the typed graph; return blocking conflicts or cycles to grounding |
 | Architecture invents meaning, permissions, data, or acceptance criteria | Implementation Readiness | Stop at `NOT-READY`; resolve the named product or policy blocker |
 | `PARTLY-READY` work can be invalidated by an unresolved requirement | Implementation Readiness | Reject the slice; admit only bounded reversible work |
@@ -332,7 +371,10 @@ contradictory, or disputed:
 | Eslint rules added in follow-up PR | 5 — same-PR discipline broken | Block the follow-up; add rules to original PR |
 | Defects caught at runtime that types could express | 6 — left-shift not applied | Move the check upward; remove the runtime guard |
 | Architecture file disagrees with code | 5 — drift | Re-run lint; treat as a defect |
+| Many tests or high coverage but no risk or oracle rationale | Test Strategy companion | Run `test-strategy`; map material risks to credible evidence and remove false-confidence metrics |
+| Test scope or fidelity was frozen before architecture boundaries were accepted | Test Strategy companion | Preserve the Obligation pass; rerun the affected Portfolio rows after final A/L/C/E and before H |
 | Requirement marked verified from a code anchor or unexecuted test | Implementation follow-through | Run `requirements-traceability`; separate implemented from verified evidence |
+| Stale or inconclusive outcome evidence silently justifies KEEP or DROP | Outcome follow-through → M | Refresh or bound the evidence in `requirements-traceability`, then rerun only M in Retrospective mode |
 | Duplicate implementations are unified but retain separate behavior tests | 6 — integration / contract | Add one shared conformance suite and real-boundary coverage for backend-specific semantics before deleting either copy |
 | "Just in case" extension point with one user | 1 — speculative optionality | DROP unless second use is named and probable |
 | Premature performance optimization | 7 — applied before baseline | Revert; re-apply after stability |

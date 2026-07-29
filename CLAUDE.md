@@ -51,10 +51,30 @@ full pipeline. Only `READY`, or `PARTLY-READY` as a bounded reversible slice, ma
 at the read-only `C₀` structural baseline and recover requirements only when current intent
 is missing, stale, contradictory, or disputed.
 
+Grounding keeps the problem outcome, requirement completion, and linked outcome
+hypotheses distinct. Passing completion criteria proves a working capability, not downstream
+impact. When impact is decision-relevant, measured hypothesis evidence flows to M; M retains
+the build, keep, simplify, defer, drop, obsolete, and removal verdicts. An authoritative obligation
+may mark the outcome hypothesis not applicable and must not wait for a value test.
+
 Once an admitted slice enters implementation, use `requirements-traceability` to maintain
 bidirectional links between canonical IDs, implementation anchors, and executed evidence.
 Traceability is follow-through, not a new qualification stage or gate; `READY` never means
 implemented, and a code anchor never means verified.
+
+For linked outcome hypotheses, Grounding owns meaning, Traceability owns measurement links,
+evidence state, and freshness, and M owns the worth verdict. Acceptance, deployment, and
+adoption are not impact proof. When a revisit trigger fires, route only the bounded
+functionality and current evidence back to M in Retrospective mode; do not restart the pipeline.
+
+When verification design is material and architecture can change the evidence boundary,
+use `test-strategy` as a two-pass task-matched companion:
+`Readiness → Obligation pass → A/L/C/E → Portfolio pass → H`. The first pass defines
+risks, failure modes, oracles, and required confidence; the second consumes accepted
+architecture to finalize technique, scope, fidelity, dependencies, data, environment,
+and stimulus. H places the check, CI/CD owns pipeline execution triggers and gating, and
+traceability owns executed-evidence state. Collapse to a Combined pass only for stable
+accepted architecture. Test Strategy is not a new qualification stage, gate, or letter.
 
 **Qualification and Gates 1–4 shape the design; 5–6 enforce it; 7 optimizes a stable
 baseline in iteration 2.** Enforcement files for new modules are **written before** their

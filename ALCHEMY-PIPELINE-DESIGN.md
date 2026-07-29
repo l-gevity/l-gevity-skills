@@ -20,7 +20,8 @@ The requirements skills form a conditional **Requirements Qualification
 Phase** that spans the Minimum gate and precedes architectural design:
 
 1. `requirements-grounding` establishes whether the problem, actors, scope,
-   sources, and evidence are trustworthy.
+   sources, and evidence are trustworthy, and records linked outcome hypotheses
+   when downstream impact is decision-relevant.
 2. A.L.C.H.E.M.Y. **M — Minimum** decides whether grounded functionality is
    worth its complexity cost.
 3. `requirements-topology` structures surviving requirements into an atomic,
@@ -34,8 +35,20 @@ letters in the acronym.
 
 `requirements-traceability` begins after a passing readiness decision when an
 admitted slice enters architecture, implementation, verification, review, or
-closeout. It maintains implementation and executed-evidence links; it is not a
-qualification stage, gate, acronym letter, or prerequisite for Architecture.
+closeout. It maintains implementation, executed-completion, and linked
+outcome-evidence state; it is not a qualification stage, gate, acronym letter,
+or prerequisite for Architecture. When current outcome evidence reaches a
+revisit trigger, the bounded functionality re-enters only M in Retrospective
+mode. That is a new worth decision, not a backward pipeline edge.
+
+When verification design is material and architecture can change the evidence
+boundary, `test-strategy` is an independently matched two-pass companion. Its
+Obligation pass follows readiness and precedes A; its Portfolio pass consumes
+final A/L/C and E when applicable before handing selected checks to H. Use a
+Combined pass only for stable accepted architecture. H owns placement, CI/CD
+owns pipeline execution triggers and gating, and `requirements-traceability`
+owns evidence state. Test Strategy is not a qualification stage, gate, acronym
+letter, or prerequisite for Architecture.
 
 ## Pipeline
 
@@ -70,6 +83,8 @@ flowchart TD
     R -- "READY" --> A["A · Architecture"]
     R -- "PARTLY-READY<br/>bounded reversible slice" --> A
     R -. "NOT-READY" .-> G
+    R -. "verification design material" .-> TS1["Test Strategy<br/>Obligation pass"]
+    TS1 -. "risks · failure modes · oracles" .-> A
 
     A --> L["L · Locality<br/>candidate or final decision"]
     L -- "Final PLACE / KEEP / DECLARE-RUNTIME-CYCLE" --> C["C · Complexity"]
@@ -80,13 +95,16 @@ flowchart TD
     LA -- "Accepted restructuring" --> E
     LA -- "DEFER" --> StopTopology
     E --> H["H · Hermetic<br/>shift defects left"]
+    E -. "accepted architecture" .-> TS2["Test Strategy<br/>Portfolio pass"]
+    TS2 -. "final selected checks" .-> H
     H --> Y["Y · Yield<br/>iteration 2"]
 
     C -. "Redesign" .-> A
 ```
 
-Solid edges are the primary acyclic execution path. Dashed edges are explicit
-rework loops and must carry the failed decision record back to the named gate.
+Solid edges are the primary acyclic core path. Dashed edges are conditional
+companion paths or explicit rework loops; their labels identify which applies.
+Rework must carry the failed decision record back to the named gate.
 
 ## Entry Paths
 
@@ -105,6 +123,14 @@ Requirements Grounding
 → E — Enforcement
 → H — Hermetic
 → Y — Yield
+```
+
+When verification design is material, interleave the companion handshake:
+
+```text
+Readiness → Test Strategy obligation pass
+→ A/L/C/E → Test Strategy portfolio pass
+→ H
 ```
 
 Topology is conditional. A single bounded requirement with no meaningful
@@ -163,7 +189,7 @@ confirmation.
 
 | Stage | Passing decisions | Non-passing decisions | Hand-off artifact |
 |:--|:--|:--|:--|
-| Requirements Grounding | `GROUNDED` | `PROVISIONAL`, `NOT-GROUNDED` | Grounded requirement set, evidence map, assumptions, confirmation queue |
+| Requirements Grounding | `GROUNDED` | `PROVISIONAL`, `NOT-GROUNDED` | Grounded requirement set, linked outcome hypotheses when relevant, evidence map, assumptions, confirmation queue |
 | M — Minimum | `BUILD`, `KEEP`, `SIMPLIFY` | `DEFER`, `DROP`, `OBSOLETE` | Functionality/complexity decision per candidate |
 | Requirements Topology | `STABLE` | `NEEDS-REFACTOR`, `BLOCKED` | Atomic typed graph, stable IDs, dependencies, conflicts, dependency order |
 | Implementation Readiness | `READY`, bounded `PARTLY-READY` | `NOT-READY` | Smallest coherent slice, verification obligations, unresolved blockers |
@@ -184,32 +210,42 @@ meaning or invalidate its verification.
 
 1. Grounding validates evidence and meaning; M owns the build, keep, simplify,
    defer, drop, or obsolete decision.
-2. Requirements Topology models requirement relationships; Morphogenetic
+2. Grounding keeps problem outcomes, requirement completion, and downstream
+   outcome hypotheses distinct. Completion evidence does not support an outcome
+   hypothesis, and measured impact informs but does not replace M's worth verdict.
+3. Requirements Topology models requirement relationships; Morphogenetic
    Architecture places implementation components and compares declared
    topology with observed coupling fields. Neither substitutes for the other.
-3. Implementation Readiness prepares a coherent build slice without inventing
+4. Implementation Readiness prepares a coherent build slice without inventing
    missing requirement meaning.
-4. A failed requirements decision cannot be bypassed by advancing to
+5. A failed requirements decision cannot be bypassed by advancing to
    Architecture.
-5. Focused aliases preserve current A.L.C.H.E.M.Y. command behavior.
-6. A structural topology change uses the bounded
+6. Focused aliases preserve current A.L.C.H.E.M.Y. command behavior.
+7. A structural topology change uses the bounded
    `L candidate → C measurement → L acceptance` handshake. The orchestrator
    permits one L re-entry for an unchanged candidate and blocks E until final
    L acceptance.
-7. L starts in Rapid for bounded placement and static-edge checks, escalates to
+8. L starts in Rapid for bounded placement and static-edge checks, escalates to
    Full for restructuring, multi-field evidence, broad scope, ambiguity, or an
    explicit deep audit, and records `Analysis mode` plus `Selection reason`.
    A `rapid` or `quick` request cannot bypass `Rapid → Full`. L `Full` is local
    analysis; Alchemy `FULL` remains a traversal dispatch and does not override
    the L selector.
-8. Enforcement follows design decisions; Yield follows a stable baseline.
-9. Every skipped stage has an explicit rationale in the orchestration record.
-10. Readiness, implementation, and verification remain independent;
-   `requirements-traceability` owns post-readiness evidence state.
-11. Dispatch happens before sibling bodies are loaded; natural language never
+9. Enforcement follows design decisions; Yield follows a stable baseline.
+10. Every skipped stage has an explicit rationale in the orchestration record.
+11. Readiness, implementation, and verification remain independent;
+   `requirements-traceability` owns post-readiness completion and outcome
+   evidence state. Grounding owns hypothesis meaning; M owns the worth verdict.
+   Stale or inconclusive evidence cannot silently justify KEEP or DROP.
+12. Dispatch happens before sibling bodies are loaded; natural language never
     broadens into `FULL` without explicit full-traversal language.
-12. Core routing and companion routing remain separate; neither can silently
+13. Core routing and companion routing remain separate; neither can silently
     suppress the other.
+14. Test Strategy owns verification design without becoming a gate: the
+    Obligation pass precedes A, the Portfolio pass follows final A/L/C/E and
+    precedes H, and a Combined pass requires stable accepted architecture. H
+    owns placement, CI/CD owns pipeline execution triggers and gating, and
+    traceability owns proof state.
 
 ## Complexity Assessment
 
@@ -238,6 +274,8 @@ The design is ready to implement when the orchestrator can satisfy all of the
 following:
 
 - Route a new, ungrounded request through grounding before M.
+- Keep outcome hypotheses separate from completion criteria or worth verdicts;
+  allow authoritative obligations to record them as not applicable.
 - Treat "do some alchemy" and equivalent natural phrases as adaptive dispatch
   over the active subject, not as help or a full traversal.
 - Return `SKIP` for routine local work without loading core gate skills while
@@ -260,7 +298,12 @@ following:
   the first blocking decision, and the next action.
 - Keep the solid execution path acyclic and make every rework edge explicit.
 - Hand admitted requirement and criterion IDs to `requirements-traceability`
-  when implementation is in scope without treating it as another pipeline gate.
+  when implementation is in scope, then trace linked outcome measurements and
+  freshness without treating Traceability as another pipeline gate.
+- Route a triggered outcome-evidence revisit only to M in Retrospective mode,
+  without restarting the pipeline or treating acceptance as impact proof.
+- Route material verification design through the Test Strategy two-pass
+  handshake without changing the core qualification or gate sequence.
 
 ## Non-goals
 

@@ -13,6 +13,8 @@ A first-principles SKILL for deciding whether a piece of functionality is worth 
 - **Build and audit share a model.** A feature that would fail as a proposal today fails as existing code today.
 - **Verdicts resist re-litigation.** "Removed because the problem cannot occur in this stack" closes the question; "removed because cost > value" reopens it whenever priorities shift.
 - **Necessity findings beat usage data.** You don't need telemetry to prove product value for a code path that's structurally unreachable; you still check whether it documents an invariant or needs a migration path.
+- **Outcome evidence closes the loop.** Current, linked measurements can revisit
+  expected value without treating acceptance, deployment, or adoption as impact.
 
 ## Fundamental principles
 
@@ -23,6 +25,9 @@ Most code review collapses value and cost into a vibe ("this seems useful", "thi
 - **Cost compounds, value decays.** Value is realized per use; cost accrues on every future change, test run, review, and incident.
 - **The default is No.** If worth isn't clearly positive, reject or minimize. **YAGNI is the null hypothesis.**
 - **Remove over refactor, refactor over rewrite.** A retrospective audit with negative or failing-necessity worth prefers safe removal or deprecation to elaborate justification.
+- **Outcome evidence informs worth; M still decides.** Grounding owns hypothesis
+  meaning, Traceability owns measurement state and freshness, and this skill owns
+  the worth verdict.
 
 ## How to use
 
@@ -37,6 +42,13 @@ The skill has two modes: **prospective** (should we build this?) or **retrospect
 
 3. **Read the verdict.** The skill names the verdict (BUILD / BUILD-minimal / NEGOTIATE / DEFER / DROP for prospective; KEEP / SIMPLIFY / QUARANTINE / DEPRECATE / DELETE / OBSOLETE for retrospective) and the rationale.
 4. **Apply the verdict.** Remove or deprecate the OBSOLETE check safely; ship the BUILD-minimal slice; instrument the QUARANTINE candidate; document the structural reason so a later audit doesn't reintroduce the same code.
+
+For a post-release revisit, provide the canonical outcome hypothesis and its
+current `requirements-traceability` record. `unmeasured`, `inconclusive`, or
+`stale` evidence keeps the affected value claim Low unless independent current
+evidence supports it. `supported` is bounded to its cohort, window, and
+guardrails; `rejected` lowers the value claim but does not automatically dictate
+DROP or DELETE.
 
 ## The necessity gate
 
@@ -63,6 +75,11 @@ Once necessity passes, score both sides independently. **Don't collapse to one n
 
 Score 0–3 on each axis with one-line evidence. Record confidence (Low / Medium / High) per side. Low confidence → DEFER (prospective) or QUARANTINE (retrospective). OBSOLETE is exempt only when the necessity finding itself is high confidence.
 
+When outcome evidence exists, the decision record cites hypothesis IDs, states,
+freshness, and observation links. Authoritative legal, contractual,
+accessibility, and safety floors remain source-driven and do not require a
+product-value experiment.
+
 ## When to skip
 
 Routine bug fixes inside a working module, content/copy edits, dependency bumps. The framework earns its keep on triage decisions, dead-code audits, "is this defensive check necessary?" reviews, and PR scope pushback.
@@ -72,4 +89,5 @@ Routine bug fixes inside a working module, content/copy edits, dependency bumps.
 - See [SKILL.md](../.claude/skills/functionality-complexity-tradeoff/SKILL.md) for the full reference (necessity-gate detection heuristics, worth axes, decision protocol, asymmetric trade-offs, output contract).
 - For the structural complexity measurement consumed on the cost side — Component-kinds, Dependency-edges, Max-chain-depth, Module-count (internal symbols `D, K, P, n`) — see [`structural-simplification`](../.claude/skills/structural-simplification/).
 - For the upstream principles (YAGNI, scope control, proportionality), see [`architecture-guidelines`](../.claude/skills/architecture-guidelines/).
+- For hypothesis meaning, see [`requirements-grounding`](../.claude/skills/requirements-grounding/SKILL.md); for measurement links and freshness, see [`requirements-traceability`](../.claude/skills/requirements-traceability/SKILL.md).
 - Run a retrospective audit on the next "just in case" check that lands in code review — the necessity gate often closes the question on the first pass.

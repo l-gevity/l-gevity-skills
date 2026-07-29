@@ -113,6 +113,9 @@ requirements-grounding, when meaning or evidence is absent or stale
 - `GROUNDED` work may enter M; `PROVISIONAL` and `NOT-GROUNDED` return to
   grounding.
 - M alone owns `BUILD`, `KEEP`, `SIMPLIFY`, `DEFER`, `DROP`, and `OBSOLETE`.
+- Grounding may supply linked outcome hypotheses as value evidence, but keeps
+  downstream impact separate from requirement completion and never issues M's
+  worth verdict.
 - `STABLE` topology may enter readiness; `NEEDS-REFACTOR` and `BLOCKED` return
   upstream.
 - `READY` may enter A. `PARTLY-READY` may enter only as a bounded reversible
@@ -128,7 +131,30 @@ phase.
 After readiness admits a slice, `requirements-traceability` follows work through
 implementation, verification, review, and closeout. It is not another
 qualification stage or gate: readiness defines what evidence will be needed;
-traceability records implementation separately from executed proof.
+traceability records implementation separately from executed proof and follows
+linked outcome hypotheses into representative use.
+
+When a hypothesis revisit trigger fires, Traceability supplies the exact
+hypothesis version, evidence state, freshness, and observation links to M. M
+runs a bounded Retrospective worth decision. This does not create a backward
+pipeline edge, restart qualification, or let Traceability issue a worth verdict.
+
+When verification design is material, `test-strategy` joins as a two-pass
+task-matched companion:
+
+```text
+Readiness
+→ Obligation pass: risks, failure modes, oracles, confidence
+→ A/L/C/E
+→ Portfolio pass: technique, scope, fidelity, dependencies, data,
+  environment, stimulus
+→ H
+```
+
+Use a Combined pass only for stable accepted architecture. Defect Shift-Left
+places checks, CI/CD owns pipeline execution triggers and gates them, and
+traceability records proof state. Test Strategy does not add an A.L.C.H.E.M.Y.
+letter or gate.
 
 ## The seven gates at a glance
 
@@ -227,6 +253,7 @@ Each row points back to the gate that would have caught it prospectively.
   [`requirements-topology`](../.claude/skills/requirements-topology/), and
   [`implementation-readiness`](../.claude/skills/implementation-readiness/).
 - For post-readiness evidence, see [`requirements-traceability`](../.claude/skills/requirements-traceability/).
+- For risk-driven verification design, see [`test-strategy`](../.claude/skills/test-strategy/).
 - For first-principles rules driving Gate 2, see [`architecture-guidelines`](../.claude/skills/architecture-guidelines/).
 - For declared placement, observed coupling fields, and topology evolution at Gate 3, see [`morphogenetic-architecture`](../.claude/skills/morphogenetic-architecture/).
 - For the per-axis complexity scoring used at Gate 4, see [`structural-simplification`](../.claude/skills/structural-simplification/).

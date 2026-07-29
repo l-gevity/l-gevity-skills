@@ -14,6 +14,8 @@ without confusing as-built behavior with intended behavior.
 - Keep adjacent ideas visible without silently expanding scope.
 - Give every requirement a readable stable ID and observable completion
   conditions.
+- Separate a working capability from a decision-relevant outcome hypothesis about
+  the impact expected after representative use.
 - Make weak evidence and expensive-to-reverse assumptions visible before build
   planning.
 - Recover evidence-linked candidates from code, tests, schemas, configuration,
@@ -28,7 +30,9 @@ A requirement is grounded only when another reader can answer:
 3. What outcome must become possible?
 4. What prevents it today?
 5. Which source, evidence, interpretation, or hypothesis supports it?
-6. How will we know it is complete?
+6. How will we know the capability is complete?
+7. If downstream impact matters to the decision, what measurable change do we
+   expect after use?
 
 Priority does not answer those questions. A must-have can still be weakly
 grounded, and that mismatch is itself a risk finding.
@@ -80,6 +84,34 @@ The default model distinguishes four kinds of grounding:
 Projects may supply a different taxonomy. The skill preserves project policy
 instead of pretending one domain's categories are universal.
 
+## Outcome hypotheses
+
+Requirements Grounding separates three ideas that are often collapsed:
+
+- The problem outcome says what must become possible for the actor.
+- Requirement completion says how reviewers know the capability works.
+- An outcome hypothesis says what measurable downstream change is expected after
+  representative use, why, by when, and without which guardrail regressions.
+
+Outcome hypotheses are linked records, not acceptance criteria. They name the
+affected requirements, actor or cohort, causal rationale, primary measure,
+baseline, decision threshold, evaluation window, guardrails, evidence plan,
+hypothesis confidence, projected evidence state and reference, owner, and revisit
+trigger. New hypotheses start `unmeasured`; later states come from
+`requirements-traceability`. Unknown values stay explicit; the skill does not
+invent a baseline or target.
+
+An authoritative obligation can mark an outcome hypothesis `not applicable`.
+Compliance with an applicable law, contract, policy, or safety rule must not wait
+for a product-value experiment. Conversely, a working capability does not prove
+that its intended impact occurred.
+
+Measured outcome evidence feeds `functionality-complexity-tradeoff`, which retains
+ownership of build, defer, drop, keep, simplify, and removal decisions.
+After representative use, `requirements-traceability` links the exact hypothesis
+version to observations and classifies evidence state and freshness before M
+revisits worth.
+
 ## Project profiles and canonical source
 
 Compose generic grounding with a project profile instead of forking the method.
@@ -95,8 +127,10 @@ evidence. Derived views may expose drift but never become a second authority.
 
 The core result is a confirmed problem boundary plus atomic requirement candidates
 with readable slugs, actors, complete-when conditions, basis, priority, validation
-decision, confidence, and traceability. Standalone artifacts also carry source
-currency, a decision log, and watch items. Every use starts with a compact
+decision, confidence, and traceability. When impact is decision-relevant, it also
+contains linked outcome hypotheses or an explicit not-applicable reason.
+Standalone artifacts also carry source currency, a decision log, and watch items.
+Every use starts with a compact
 `GROUNDED`, `PROVISIONAL`, or `NOT-GROUNDED` decision record naming blockers,
 the next action, and verification performed. Recovery output additionally includes
 an implementation evidence map, contradictions, obsolete-behavior findings, and a

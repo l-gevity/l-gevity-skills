@@ -1,0 +1,4 @@
+interface:
+  display_name: "Test Strategy"
+  short_description: "Risk-driven test evidence and portfolio design"
+  default_prompt: "Use $test-strategy to design the smallest reliable test portfolio for this change."

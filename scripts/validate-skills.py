@@ -45,6 +45,7 @@ PRIMER_REQUIRED_TERMS = {
         "PARTLY-READY",
         "C₀",
         "L candidate → C measurement → L acceptance",
+        "Retrospective",
     ),
     "architecture-as-code": (
         "`architecture-guidelines` or `morphogenetic-architecture`",
@@ -72,6 +73,12 @@ PRIMER_REQUIRED_TERMS = {
         "project profile",
         "canonical editable source",
         "generated registers",
+        "Outcome hypotheses",
+        "working capability",
+        "authoritative obligation",
+        "functionality-complexity-tradeoff",
+        "requirements-traceability",
+        "freshness",
     ),
     "requirements-topology": (
         "Repository enforcement",
@@ -106,6 +113,28 @@ PRIMER_REQUIRED_TERMS = {
         "implemented",
         "verified",
         "CI enforcement",
+        "Outcome evidence",
+        "freshness",
+        "functionality-complexity-tradeoff",
+    ),
+    "functionality-complexity-tradeoff": (
+        "Outcome evidence closes the loop",
+        "requirements-grounding",
+        "requirements-traceability",
+        "freshness",
+        "M still decides",
+    ),
+    "test-strategy": (
+        "risk-driven",
+        "oracle",
+        "smallest sufficient",
+        "Alchemy companion",
+        "Obligation pass",
+        "Portfolio pass",
+        "stimulus",
+        "defect-shift-left",
+        "ci-cd-reliability-architecture",
+        "requirements-traceability",
     ),
 }
 SKILL_REQUIRED_TERMS = {
@@ -128,6 +157,7 @@ SKILL_REQUIRED_TERMS = {
         "Blocking stage:",
         "C₀",
         "L candidate → C measurement → L acceptance",
+        "When current outcome evidence reaches a revisit trigger",
         "Gate E remains blocked",
         "one candidate may re-enter Gate 3 only",
     ),
@@ -159,6 +189,14 @@ SKILL_REQUIRED_TERMS = {
         "NOT-GROUNDED",
         "Compose; do not fork",
         "canonical editable requirement source",
+        "Completion is not impact",
+        "## Outcome Hypothesis Shape",
+        "Hypothesis confidence:",
+        "Evidence state: unmeasured | supported | rejected | inconclusive | stale",
+        "Evidence reference:",
+        "Outcome hypotheses:",
+        "M alone",
+        "assess evidence state and freshness",
     ),
     "requirements-topology": (
         "requirements-grounding",
@@ -217,13 +255,43 @@ SKILL_REQUIRED_TERMS = {
     "requirements-traceability": (
         "Trace both directions",
         "Implementation is not verification",
-        "Evidence States",
+        "Completion Evidence States",
+        "Outcome Evidence States",
+        "Completion is not outcome evidence",
+        "Hypothesis version:",
+        "Threshold evaluation:",
+        "Freshness: current | stale",
+        "Do not issue BUILD, KEEP, SIMPLIFY, DROP",
+        "do not create an outcome-evidence record",
         "CI Enforcement",
         "TRACEABLE",
         "Stale references:",
     ),
+    "functionality-complexity-tradeoff": (
+        "Outcome evidence informs worth; it is not the verdict",
+        "`requirements-grounding`",
+        "`requirements-traceability`",
+        "Outcome evidence:",
+        "no hypothesis state automatically",
+        "Authoritative floors",
+    ),
     "structural-simplification": (
         "enforceable static constraints to `architecture-as-code`",
+    ),
+    "test-strategy": (
+        "Risk before test type",
+        "Oracle before harness",
+        "Minimum sufficient fidelity",
+        "references/technique-selection.md",
+        "references/portfolio-governance.md",
+        "ADEQUATE | PARTIAL | NOT-ADEQUATE | DEFER",
+        "`test-strategy` is a task-matched Alchemy companion",
+        "Obligation pass — after readiness, before A",
+        "Portfolio pass — after final A/L/C and E when applicable, before H",
+        "System under test | exercised dependencies | environment | stimulus | oracle",
+        "An Obligation pass is provisional by design and cannot emit `ADEQUATE`",
+        "pipeline execution triggers",
+        "quarantined test cannot count as verified evidence",
     ),
 }
 STRUCTURAL_REPORT_FIELDS = (
@@ -806,6 +874,214 @@ def validate_overview_skill_count() -> None:
         fail(f"{path.relative_to(ROOT)} must report '{expected}'")
 
 
+def validate_test_strategy_contract() -> None:
+    skill = AGENT_SKILLS / "test-strategy"
+    for relative in (
+        Path("references") / "technique-selection.md",
+        Path("references") / "portfolio-governance.md",
+    ):
+        if not (skill / relative).is_file():
+            fail(f"{(skill / relative).relative_to(ROOT)} is required")
+
+    contracts = {
+        ROOT / "CLAUDE.md": (
+            "test-strategy",
+            "two-pass task-matched companion",
+            "Obligation pass",
+            "Portfolio pass",
+            "pipeline execution triggers",
+        ),
+        AGENT_SKILLS / "alchemy" / "SKILL.md": (
+            "`test-strategy`",
+            "two-pass task-matched companion",
+            "Obligation pass before A",
+            "Portfolio pass after final A/L/C/E and before H",
+            "earliest capable stage",
+            "executed-evidence state",
+        ),
+        ROOT / "ALCHEMY-PIPELINE-DESIGN.md": (
+            "`test-strategy`",
+            "independently matched two-pass companion",
+            "TS1",
+            "TS2",
+            "H owns placement",
+        ),
+    }
+    for path, terms in contracts.items():
+        text = path.read_text(encoding="utf-8")
+        for term in terms:
+            if term not in text:
+                fail(
+                    f"{path.relative_to(ROOT)} missing test-strategy "
+                    f"ownership term '{term}'"
+                )
+
+    test_strategy_text = (skill / "SKILL.md").read_text(encoding="utf-8")
+    if "environment | trigger | oracle" in test_strategy_text:
+        fail(
+            ".agents/skills/test-strategy/SKILL.md uses ambiguous 'trigger' "
+            "for a test stimulus"
+        )
+
+    alchemy_text = (AGENT_SKILLS / "alchemy" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    ordered_terms = (
+        "Readiness — READY or bounded reversible PARTLY-READY before Architecture",
+        "Test strategy — Obligation pass before A",
+        "Gate 2 — Smallest correct design",
+        "Gate 5 — eslint.architecture.mjs in the SAME PR as the code",
+        "Test strategy — Portfolio pass after final A/L/C/E and before H",
+        "Gate 6 — Every error path mapped to earliest catchable stage",
+    )
+    positions = [alchemy_text.find(term) for term in ordered_terms]
+    if any(position < 0 for position in positions) or positions != sorted(positions):
+        fail(
+            ".agents/skills/alchemy/SKILL.md must preserve the Test Strategy "
+            "Obligation → A/L/C/E → Portfolio → H checklist order"
+        )
+
+
+def validate_outcome_hypothesis_contract() -> None:
+    skill_path = AGENT_SKILLS / "requirements-grounding" / "SKILL.md"
+    skill_text = skill_path.read_text(encoding="utf-8")
+    requirement_shape = re.search(
+        r"## Requirement Shape.*?```text\s+(.*?)```",
+        skill_text,
+        re.S,
+    )
+    if not requirement_shape:
+        fail(f"{skill_path.relative_to(ROOT)} missing requirement shape")
+    if "Outcome hypothesis:" in requirement_shape.group(1):
+        fail(
+            f"{skill_path.relative_to(ROOT)} must keep outcome hypotheses "
+            "outside the requirement record"
+        )
+
+    contracts = {
+        DOCS / "READ-requirements-grounding.md": (
+            "## Outcome hypotheses",
+            "working capability",
+            "authoritative obligation",
+            "functionality-complexity-tradeoff",
+        ),
+        ROOT / "CLAUDE.md": (
+            "problem outcome, requirement completion, and linked outcome",
+            "working capability, not downstream",
+            "authoritative obligation",
+        ),
+        AGENT_SKILLS / "alchemy" / "SKILL.md": (
+            "linked outcome hypotheses as value evidence",
+            "kept separate",
+            "acceptance passed is reported as outcome success",
+        ),
+        ROOT / "ALCHEMY-PIPELINE-DESIGN.md": (
+            "linked outcome hypotheses",
+            "completion criteria or worth verdicts",
+            "authoritative obligations",
+        ),
+        ROOT / "README.md": (
+            "decision-relevant outcome hypotheses",
+            "confusing impact with completion",
+        ),
+    }
+    for path, terms in contracts.items():
+        text = path.read_text(encoding="utf-8")
+        for term in terms:
+            if term not in text:
+                fail(
+                    f"{path.relative_to(ROOT)} missing outcome-hypothesis "
+                    f"contract term '{term}'"
+                )
+
+
+def validate_outcome_evidence_lifecycle() -> None:
+    trace_path = AGENT_SKILLS / "requirements-traceability" / "SKILL.md"
+    trace_text = trace_path.read_text(encoding="utf-8")
+    record = re.search(
+        r"## Outcome Evidence States.*?```text\s+(.*?)```",
+        trace_text,
+        re.S,
+    )
+    if not record:
+        fail(f"{trace_path.relative_to(ROOT)} missing outcome-evidence record")
+    for field in (
+        "Outcome evidence:",
+        "Hypothesis version:",
+        "Observation identity:",
+        "Cohort and exposure:",
+        "Measurement window:",
+        "Threshold evaluation:",
+        "Guardrail results:",
+        "Comparison or attribution:",
+        "Freshness:",
+        "Evidence state:",
+    ):
+        if field not in record.group(1):
+            fail(
+                f"{trace_path.relative_to(ROOT)} outcome-evidence record "
+                f"missing field '{field}'"
+            )
+    if "not-applicable" in record.group(1):
+        fail(
+            f"{trace_path.relative_to(ROOT)} must summarize authoritative "
+            "not-applicable reasons without creating an outcome-evidence record"
+        )
+
+    worth_path = AGENT_SKILLS / "functionality-complexity-tradeoff" / "SKILL.md"
+    worth_text = worth_path.read_text(encoding="utf-8")
+    worth_output = re.search(
+        r"## 9\. Output Contract.*?```(?:text)?\s+(.*?)```",
+        worth_text,
+        re.S,
+    )
+    if not worth_output or "Outcome evidence:" not in worth_output.group(1):
+        fail(
+            f"{worth_path.relative_to(ROOT)} worth output must cite "
+            "outcome evidence"
+        )
+
+    contracts = {
+        DOCS / "READ-requirements-traceability.md": (
+            "Outcome evidence uses a separate state model",
+            "Acceptance, deployment, adoption, and telemetry presence",
+            "without issuing a worth verdict",
+        ),
+        DOCS / "READ-functionality-complexity-tradeoff.md": (
+            "Outcome evidence closes the loop",
+            "M still decides",
+            "does not automatically dictate",
+        ),
+        ROOT / "CLAUDE.md": (
+            "Grounding owns meaning, Traceability owns measurement links",
+            "route only the bounded",
+            "do not restart the pipeline",
+        ),
+        AGENT_SKILLS / "alchemy" / "SKILL.md": (
+            "new worth decision",
+            "not a backward pipeline edge",
+            "rerun only M in Retrospective mode",
+        ),
+        ROOT / "ALCHEMY-PIPELINE-DESIGN.md": (
+            "outcome-evidence state",
+            "re-enters only M in Retrospective",
+            "Stale or inconclusive evidence cannot silently justify",
+        ),
+        ROOT / "README.md": (
+            "versioned outcome measurements and freshness",
+            "Revisiting value after release",
+        ),
+    }
+    for path, terms in contracts.items():
+        text = path.read_text(encoding="utf-8")
+        for term in terms:
+            if term not in text:
+                fail(
+                    f"{path.relative_to(ROOT)} missing outcome-evidence "
+                    f"lifecycle term '{term}'"
+                )
+
+
 def validate_generic_requirements() -> None:
     for name in GENERIC_REQUIREMENTS_SKILLS:
         path = AGENT_SKILLS / name / "SKILL.md"
@@ -1005,6 +1281,9 @@ def main() -> int:
     validate_primers()
     validate_readme_index()
     validate_overview_skill_count()
+    validate_test_strategy_contract()
+    validate_outcome_hypothesis_contract()
+    validate_outcome_evidence_lifecycle()
     validate_generic_requirements()
     validate_alchemy_pipeline()
     validate_alchemy_dispatch_contract()

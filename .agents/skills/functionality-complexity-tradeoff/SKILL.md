@@ -9,7 +9,7 @@ description: >-
     "is this worth it?", "should we remove this?", "is this defensive check
     necessary?", and cases involving impossible-state guards, redundant
     validation, cargo-culted patterns, phantom requirements, or unused
-    generality.
+    generality, and evidence-driven revisits of outcome hypotheses after release.
 ---
 
 # Functionality pruner
@@ -44,6 +44,10 @@ description: >-
 >    that finds negative worth — or that fails the necessity gate — prefers
 >    safe removal or deprecation to elaborate justification. Removal still
 >    follows migration, rollback, and compatibility constraints.
+> 7. **Outcome evidence informs worth; it is not the verdict.** Consume current
+>    linked outcome evidence when available. Completion, deployment, or adoption
+>    alone cannot prove downstream value, and no hypothesis state automatically
+>    dictates a worth decision.
 
 ---
 
@@ -213,7 +217,8 @@ implementation**. All inputs are estimates; record confidence explicitly.
 3. Score `V` axes with **evidence**: user interviews, request tickets,
    analytics of the workaround, competitor behavior. Opinions are not
    evidence. Unsupported opinions are not enough evidence for high-confidence
-   build decisions.
+   build decisions. Cite linked outcome hypotheses when present; before release
+   they express expected value, not observed impact.
 4. Score `C` axes against a **concrete implementation sketch**: files
    touched, new abstractions or dependencies introduced, tests required,
    failure modes created.
@@ -236,6 +241,11 @@ exist**. Inputs are observable; bias toward measurement over judgment.
       it?
     - **If `V` cannot be measured, that itself is a finding** — instrument,
       identify an external floor (§8c), or keep confidence Low.
+    - Consume current outcome-evidence records from
+      `requirements-traceability`. Preserve the canonical hypothesis version,
+      cohort, threshold, window, and guardrails. `stale` or `inconclusive`
+      evidence cannot support High value confidence; `rejected` evidence lowers
+      the supported value claim but does not by itself prove zero value.
 4. Score `C` from current observable state:
     - Structural: measure `D, K, P, n` per `structural-simplification`.
     - `M`: dedicated tests, doc pages, recent commit churn, dependency drift.
@@ -362,7 +372,9 @@ is a candidate for OBSOLETE / DROP-as-non-problem.
    (retrospective) or **DROP** with a necessity-failure rationale
    (prospective). Skip remaining steps.
 2. **Score `V` axes** (`U, F, R, I`) on a 0–3 scale with one-line evidence
-   per axis.
+   per axis. When outcome evidence exists, cite its hypothesis ID, state,
+   freshness, and observation identity; do not replace its threshold or
+   guardrails with a more favorable interpretation.
 3. **Score `C` axes**:
     - Delegate `D, K, P, n` to `structural-simplification` (deltas for
       prospective; absolute measured values for retrospective).
@@ -400,6 +412,12 @@ Do not commit to irreversible verdicts (BUILD, DELETE) on low-confidence
 estimates. **OBSOLETE is exempt from the confidence gate** when the
 necessity finding is itself High confidence — a structural impossibility
 does not become more or less impossible with more data.
+
+An `unmeasured`, `inconclusive`, or `stale` outcome assessment keeps the affected
+value claim Low unless independent current evidence supports it. `supported`
+may raise confidence only within the measured cohort, window, and guardrails.
+Authoritative floors in §8c remain source-driven and do not require an empirical
+outcome hypothesis.
 
 ---
 
@@ -512,6 +530,7 @@ C scores:       Component-kinds Δ=<±n>  Dependency-edges Δ=<±n>
                 M=<0-3>  X=<0-3>  E=<0-3>                 (1-line evidence each; OMIT if Necessity=Fail)
 Confidence V:   Low | Medium | High                       (OMIT if Necessity=Fail)
 Confidence C:   Low | Medium | High                       (OMIT if Necessity=Fail)
+Outcome evidence: <hypothesis IDs, states, freshness, observation links, or none / not applicable>
 Decision:       <BUILD | BUILD-minimal | NEGOTIATE | DEFER | DROP | KEEP | SIMPLIFY | QUARANTINE | DEPRECATE | DELETE | OBSOLETE>
 Rationale:      <2–4 sentences tying scores → decision, or necessity finding → OBSOLETE>
 Next action:    <build minimal slice, delete path, add telemetry, write test, update lint rule, or stop>
@@ -561,6 +580,12 @@ Revisit when:   <measurable trigger or calendar date>
 
 ## 11. Composition with Sibling Skills
 
+- **`requirements-grounding`** — owns outcome-hypothesis meaning, thresholds,
+  cohorts, guardrails, and revisit intent. This skill consumes that definition;
+  it does not rewrite it.
+- **`requirements-traceability`** — owns measurement links, evidence state, and
+  freshness for the exact hypothesis version. This skill consumes its current
+  assessment and alone issues the functionality-worth verdict.
 - **`structural-simplification`** — source of the complexity measurement
   (`D, K, P, n`). This skill **consumes** those deltas; it does not redefine
   them.

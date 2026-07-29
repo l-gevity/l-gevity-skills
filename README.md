@@ -374,10 +374,10 @@ needed unless you move things. Start with `/alchemy ?` in Claude Code or
 
 ## The full skill index
 
-Eighteen skills total: seven gate skills, one orchestrator, two stack
+Nineteen skills total: seven gate skills, one orchestrator, two stack
 implementations of **E**, one pipeline-reliability skill that extends **H**,
 two additional DevOps improvement-axis skills, four requirements-discipline
-skills, and one meta-layer. Every skill ships
+skills, one test-strategy companion, and one meta-layer. Every skill ships
 as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer in
 [`./.documentation/`](./.documentation/).
 
@@ -396,17 +396,23 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
 | [structural-simplification](./.claude/skills/structural-simplification/SKILL.md) | **C** | [READ](./.documentation/READ-structural-simplification.md) | Compare two designs along four independent axes — component-kinds, dependency-edges, max-chain-depth, module-count — so "this is simpler" becomes a measurable claim instead of a feeling. |
 | [defect-shift-left](./.claude/skills/defect-shift-left/SKILL.md) | **H** | [READ](./.documentation/READ-defect-shift-left.md) | For every error path, name the earliest stage (type system, lint, pre-commit, CI gate, …) that can catch it — and move the check there. |
 | [architecture-as-code](./.claude/skills/architecture-as-code/SKILL.md) | **E** | [READ](./.documentation/READ-architecture-as-code.md) | Stack-agnostic pattern: per-module config files merged into a single ruleset, lint-enforced. Schema, rule-placement discipline, assembler pipeline, and anti-patterns. |
-| [functionality-complexity-tradeoff](./.claude/skills/functionality-complexity-tradeoff/SKILL.md) | **M** | [READ](./.documentation/READ-functionality-complexity-tradeoff.md) | Decide whether to BUILD / DEFER / DROP a proposed feature, or KEEP / SIMPLIFY / DELETE / OBSOLETE existing code — via a necessity gate followed by a worth ledger. |
+| [functionality-complexity-tradeoff](./.claude/skills/functionality-complexity-tradeoff/SKILL.md) | **M** | [READ](./.documentation/READ-functionality-complexity-tradeoff.md) | Decide whether to BUILD / DEFER / DROP a proposed feature, or KEEP / SIMPLIFY / DELETE / OBSOLETE existing code—using current linked outcome evidence when revisiting value. |
 | [system-optimization](./.claude/skills/system-optimization/SKILL.md) | **Y** | [READ](./.documentation/READ-system-optimization.md) | Run optimization in the right order — question, delete, simplify, speed up, automate — instead of caching or parallelizing work that should have been deleted. |
 
 ### Requirements discipline
 
 | Skill | Discipline | Primer | Use it to |
 | :---- | :--------- | :----- | :-------- |
-| [requirements-grounding](./.claude/skills/requirements-grounding/SKILL.md) | Grounding | [READ](./.documentation/READ-requirements-grounding.md) | Ground proposed requirements in an actor-bound problem, or recover provisional candidates from code and project evidence without mistaking implementation for intent. |
+| [requirements-grounding](./.claude/skills/requirements-grounding/SKILL.md) | Grounding | [READ](./.documentation/READ-requirements-grounding.md) | Ground proposed requirements in an actor-bound problem, recover provisional candidates from project evidence, and define decision-relevant outcome hypotheses without confusing impact with completion. |
 | [requirements-topology](./.claude/skills/requirements-topology/SKILL.md) | Topology | [READ](./.documentation/READ-requirements-topology.md) | Structure validated requirements as a typed dependency graph; detect cycles, orphans, duplicates, conflicts, stale references, and missing verification. |
 | [implementation-readiness](./.claude/skills/implementation-readiness/SKILL.md) | Readiness | [READ](./.documentation/READ-implementation-readiness.md) | Decide what is ready, partly ready, or blocked, then derive the smallest traceable build-preparation package without inventing requirement meaning. |
-| [requirements-traceability](./.claude/skills/requirements-traceability/SKILL.md) | Traceability | [READ](./.documentation/READ-requirements-traceability.md) | Maintain bidirectional links from canonical IDs to implementation and executed evidence while keeping implemented and verified states distinct. |
+| [requirements-traceability](./.claude/skills/requirements-traceability/SKILL.md) | Traceability | [READ](./.documentation/READ-requirements-traceability.md) | Maintain bidirectional implementation and verification links, plus versioned outcome measurements and freshness, without confusing completion evidence with impact. |
+
+### Verification strategy
+
+| Skill | Role | Primer | Use it to |
+| :---- | :--- | :----- | :-------- |
+| [test-strategy](./.claude/skills/test-strategy/SKILL.md) | Alchemy companion | [READ](./.documentation/READ-test-strategy.md) | Use an obligation pass before architecture and a portfolio pass after accepted architecture to map risks to oracles, techniques, fidelity, dependencies, data, environments, stimuli, and visible residual risk. |
 
 ### Orchestration and implementations
 
@@ -446,7 +452,9 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
   same rigor, applied to existing code.
 - **Grounding a requirement set.** Use `requirements-grounding` to separate the
   real problem, scope, sources, evidence, assumptions, and atomic requirement
-  candidates before a backlog hardens around an assumed solution—or recover
+  candidates before a backlog hardens around an assumed solution; add linked,
+  measurable outcome hypotheses when downstream impact could change the worth
+  decision—or recover
   provisional candidates from an undocumented or drifted implementation.
 - **Finding requirement dependencies.** Use `requirements-topology` to expose
   prerequisites, constraints, cycles, duplicates, conflicts, and missing
@@ -456,8 +464,15 @@ as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer
   contracts, ADR questions, and test references.
 - **Tracing implementation and proof.** Use `requirements-traceability` after
   readiness to connect canonical IDs to implementation, passing test or
-  operational evidence, and reverse-trace gaps without treating anchors as
-  verification.
+  operational evidence, outcome-hypothesis measurements, freshness, and
+  reverse-trace gaps without treating anchors or adoption as proof of impact.
+- **Revisiting value after release.** Feed current Traceability outcome evidence
+  to `functionality-complexity-tradeoff`; M makes the bounded retrospective
+  worth decision without restarting the full ALCHEMY route.
+- **Designing test evidence.** Use `test-strategy` before architecture to
+  establish risks and oracles, then after accepted architecture to select the
+  smallest sufficient mix of focused, boundary, journey, generative, and human
+  evidence.
 - **Improving the skills themselves.** When a skill gives bad advice,
   `continuous-improvement` runs root-cause analysis on the skill's text
   and proposes an edit, so the same mistake does not recur.
@@ -478,9 +493,10 @@ contract.
 ## What this pack is *not*
 
 Scoped deliberately. These skills teach an agent how to *think* about
-architecture, requirements, and pipeline reliability. They do **not** cover coding
-standards (language conventions, naming), testing strategy (what to test,
-when to mock), security baseline (input sanitization, OWASP), PR / commit
+architecture, requirements, verification strategy, and pipeline reliability.
+They do **not** cover coding standards (language conventions, naming),
+framework-specific test implementation recipes, security baseline (input
+sanitization, OWASP), PR / commit
 hygiene, product release planning/versioning, ongoing production operations,
 UI / visual design, or your domain-specific
 knowledge. The requirements skills supply a method, not domain facts. Layer those

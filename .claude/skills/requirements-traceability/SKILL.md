@@ -2,12 +2,14 @@
 name: requirements-traceability
 description: >-
     Maintains bidirectional traceability between canonical requirements and
-    implementation, verification, decision, and operational evidence. Use when
-    planning, implementing, reviewing, or closing work that must prove which
-    requirement authorized a change, where it is implemented, which executed
-    evidence verifies it, what remains unmapped, or whether references have
-    gone stale. Do not use to invent requirement meaning, normalize the
-    requirement graph, or decide implementation readiness.
+    implementation, verification, decision, operational, and outcome evidence.
+    Use when planning, implementing, reviewing, or closing work that must prove
+    which requirement authorized a change, where it is implemented, which
+    executed evidence verifies it, whether a linked outcome hypothesis is
+    supported by current measurement, what remains unmapped, or whether
+    references have gone stale. Do not use to invent requirement or hypothesis
+    meaning, normalize the requirement graph, decide implementation readiness,
+    or issue a functionality-worth verdict.
 ---
 
 # Requirements Traceability
@@ -28,6 +30,9 @@ source.
 >    operations evidence, and issue closeout over a duplicate central registry.
 > 5. **Fail on stale references.** Unknown IDs, removed criteria, ambiguous
 >    aliases, and unverifiable success claims are blocking trace defects.
+> 6. **Completion is not outcome evidence.** Acceptance and implementation
+>    evidence may verify a capability; only a linked, representative measurement
+>    can assess its downstream outcome hypothesis.
 
 ## Boundary
 
@@ -40,14 +45,19 @@ generated views, and `implementation-readiness` to decide whether work may
 start. Apply the project's requirements profile for repository paths, ID
 formats, evidence stores, commands, and classifications.
 
-This skill owns live evidence relationships. It does not add another stage or
-letter to A.L.C.H.E.M.Y.
+This skill owns live evidence relationships and outcome-evidence state.
+`requirements-grounding` owns hypothesis meaning, thresholds, guardrails, and
+revisit intent. `functionality-complexity-tradeoff` owns the resulting
+functionality-worth verdict. This skill does not add another stage or letter to
+A.L.C.H.E.M.Y.
 
 ## Minimum Inputs
 
 Require:
 
-- canonical requirement and acceptance-criterion IDs;
+- canonical requirement and acceptance-criterion IDs for completion tracing;
+- canonical outcome-hypothesis IDs and versions when outcome evidence is in
+  scope;
 - the passing readiness decision and admitted slice;
 - the changed implementation, contract, decision, or operations artifacts;
 - the project's accepted anchor forms and executable verification sources;
@@ -58,7 +68,7 @@ If canonical IDs or criterion references are unstable, return to
 `requirements-topology`. If the admitted slice or acceptance conditions are
 unclear, return to `implementation-readiness`.
 
-## Evidence States
+## Completion Evidence States
 
 Classify every criterion independently:
 
@@ -75,6 +85,52 @@ definition without a result is implementation evidence only. Operational
 evidence without revision and run identity is an observation, not reproducible
 proof.
 
+## Outcome Evidence States
+
+Classify each linked empirical hypothesis independently for its exact version:
+
+| State | Required evidence | What it does not prove |
+| --- | --- | --- |
+| `unmeasured` | No accepted representative observation yet | That the expected impact is absent |
+| `supported` | Current evidence covers the defined cohort and window, meets the primary threshold, and satisfies the guardrails | That implementation remains complete or the causal explanation is universally true |
+| `rejected` | Current evidence misses the primary threshold or violates a required guardrail | That the underlying actor problem never existed |
+| `inconclusive` | Evidence exists but cannot support or reject the hypothesis because of power, exposure, attribution, quality, or guardrail gaps | That value is zero or that more measurement will resolve the ambiguity |
+| `stale` | Earlier evidence was invalidated by its freshness rule or a material change to the cohort, capability, measure, environment, or hypothesis | A current worth decision |
+
+Use the hypothesis's declared threshold, window, cohort, and guardrails. Never
+rewrite them to fit observed data. If a causal claim is material but the evidence
+cannot distinguish the capability's effect from confounders, classify it
+`inconclusive`, not `supported`.
+
+When Grounding records outcome hypotheses as `not applicable` for an
+authoritative obligation, carry its scope and reason into the trace summary but
+do not create an outcome-evidence record. Completion evidence remains required.
+
+Use this linked record:
+
+```text
+Outcome evidence: <hypothesis slug>
+Hypothesis version: <canonical source and version>
+Applies to requirements: <requirement slugs>
+Observation identity: <dataset, query, study, experiment, or run reference>
+Cohort and exposure: <who was measured and evidence they used the capability>
+Measurement window: <start/end or bounded period>
+Baseline: <value and source, or unavailable + limitation>
+Observed result: <primary measure result>
+Threshold evaluation: met | missed | not-evaluable
+Guardrail results: <each guardrail result or missing>
+Comparison or attribution: <method, or unavailable + limitation>
+Freshness: current | stale — <rule or invalidating change>
+Evidence state: unmeasured | supported | rejected | inconclusive | stale
+Confidence: low | medium | high
+Owner: <evidence owner>
+Next measurement or revisit: <trigger, date, or none + reason>
+```
+
+The evidence state is a projection over an immutable hypothesis version, not a
+rewrite of canonical meaning. A new threshold, cohort, measure, or causal claim
+creates a new hypothesis version and invalidates dependent assessments.
+
 ## Workflow
 
 1. Resolve the canonical requirement set, version, and admitted slice.
@@ -86,12 +142,15 @@ proof.
 4. Place the smallest useful anchor in the artifact a maintainer will inspect
    first.
 5. Map each criterion to implementation and verification evidence separately.
-6. Reverse-check each non-trivial changed artifact for a requirement ID or an
+6. When linked outcome hypotheses are in scope, map each hypothesis version to
+   its measurement plan and current observation; evaluate exposure, threshold,
+   guardrails, attribution limits, and freshness separately from completion.
+7. Reverse-check each non-trivial changed artifact for a requirement ID or an
    explicit `platform`, `operations`, `technical-debt`, `spike`, or
-   `product-gap` rationale.
-7. Classify gaps and stale references.
-8. Run the repository's blocking trace check and the closest behavior tests.
-9. Emit the trace decision and unresolved owners before closeout.
+   `product-gap` or `outcome-evidence` rationale.
+8. Classify gaps, stale references, and stale outcome assessments.
+9. Run the repository's blocking trace check and the closest behavior tests.
+10. Emit the trace decision and unresolved owners before closeout.
 
 ## Anchor Placement
 
@@ -119,6 +178,9 @@ contract or test already preserve the relationship.
 | `scope-deferred` | Work is intentionally later and cites an accepted deferral |
 | `decision-blocked` | An unresolved product, policy, platform, or ownership decision blocks proof |
 | `evidence-unreproducible` | Claimed evidence lacks revision, run, environment, or result identity |
+| `outcome-unmeasured` | A decision-relevant hypothesis has no accepted observation |
+| `outcome-stale` | Outcome evidence no longer satisfies its freshness rule |
+| `outcome-not-evaluable` | Threshold, exposure, window, guardrail, or attribution evidence is insufficient |
 
 ## CI Enforcement
 
@@ -129,11 +191,17 @@ Put deterministic trace checks in the earliest capable blocking gate:
 - require criterion-tagged tests to exist before accepting test-result tags;
 - ingest executed test results before promoting `implemented` to `verified`;
 - require operational evidence to carry revision and run identity;
+- reject unknown hypothesis IDs and outcome assessments that omit the hypothesis
+  version, observation identity, window, threshold evaluation, or freshness;
+- invalidate current outcome assessments when their hypothesis version or
+  declared freshness inputs change;
 - report coverage counts, but never convert a percentage target into invented
   requirement meaning.
 
 Keep fast local checks for feedback and a full-repository CI backstop for
-unbypassable coverage. Route gate placement through `defect-shift-left`.
+unbypassable coverage. Automation may validate links, record shape, and explicit
+freshness; it cannot manufacture causal validity from structurally complete
+fields. Route gate placement through `defect-shift-left`.
 
 ## Output Contract
 
@@ -144,6 +212,8 @@ Canonical source:    <requirement set and version>
 Requirement IDs:     <IDs covered>
 Implemented:         <criteria count and anchors>
 Verified:            <criteria count and executed evidence>
+Outcome hypotheses:  <IDs + unmeasured/supported/rejected/inconclusive/stale/not-applicable>
+Outcome evidence:    <current measurement links, or none>
 Reverse-trace gaps:  <changed artifacts without requirement/rationale>
 Stale references:    <none or exact references>
 Other gaps:          <gap taxonomy entries and owners>
@@ -159,6 +229,7 @@ Trace:
 - IDs: <requirement and criterion IDs>
 - Implementation: <stable artifacts>
 - Evidence: <executed tests or operational results>
+- Outcomes: <hypothesis IDs, evidence states, freshness, and observation links>
 - Gaps/deferred: <none or named gaps>
 ```
 
@@ -169,6 +240,12 @@ Trace:
 - Do not use issue text as canonical when it conflicts with requirements.
 - Do not hide unrelated work under a convenient requirement ID.
 - Do not duplicate every trace edge in a giant registry and nearby artifacts.
+- Do not use completion, deployment, adoption, or telemetry presence alone as
+  evidence that an outcome hypothesis is supported.
+- Do not change a hypothesis threshold, cohort, window, or guardrail in an
+  evidence record; return meaning changes to `requirements-grounding`.
+- Do not issue BUILD, KEEP, SIMPLIFY, DROP, or removal decisions; hand current
+  outcome evidence to `functionality-complexity-tradeoff`.
 - Do not recycle IDs; follow topology lineage after splits, merges, and
   replacements.
 - If grounding, topology, or readiness changes materially, invalidate or refresh
@@ -177,6 +254,7 @@ Trace:
 ## See also
 
 - `requirements-grounding` — requirement meaning, source authority, and evidence.
+- `functionality-complexity-tradeoff` — worth decisions using current outcome evidence.
 - `requirements-topology` — stable IDs, lineage, graph semantics, and repository gates.
 - `implementation-readiness` — admitted implementation slice and verification obligations.
 - `defect-shift-left` — earliest blocking placement for trace checks.
