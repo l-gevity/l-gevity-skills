@@ -118,13 +118,8 @@ Select a mode:
 - **Audit** — assess an existing portfolio against current requirements, risks,
   incidents, and architecture.
 
-In Design mode, also select the strategy pass:
-
-- **Obligation** — complete risk, failure-mode, oracle, and confidence
-  decisions; leave architecture-dependent portfolio fields provisional.
-- **Portfolio** — consume the final architecture and complete technique,
-  fidelity, dependency, data, environment, and stimulus decisions.
-- **Combined** — complete both only when architecture is stable and accepted.
+In Design mode, also select the strategy pass defined under Boundary:
+Obligation, Portfolio, or Combined.
 
 Define the subject as a requirement slice, component, contract, workflow,
 change, release risk, or bounded system. Do not strategize for “the whole
@@ -169,10 +164,6 @@ when the technique is not obvious, the subject has several failure modes, or
 property, model-based, contract, fuzz, exploratory, performance, resilience, or
 recovery testing may apply.
 
-During an Obligation pass, select only an architecture-independent technique
-family when useful; do not freeze a concrete harness or scope. Complete the
-selection during the Portfolio or Combined pass.
-
 Select the technique that attacks the risk directly:
 
 - examples for named business cases;
@@ -185,7 +176,9 @@ Select the technique that attacks the risk directly:
 - exploratory or user evaluation for unknown, subjective, or human-centered
   risks.
 
-Record why each rejected technique would add less confidence or more cost.
+Record why each rejected technique would add less confidence or more cost. In
+an Obligation pass, stop at the architecture-independent technique family; the
+Portfolio or Combined pass fixes the concrete harness and scope.
 
 ### 5. Select scope and fidelity
 
@@ -204,15 +197,9 @@ Only then apply labels such as unit, component, integration, contract, system,
 E2E, or production probe. Labels vary across teams; the five dimensions above
 must not.
 
-Choose among candidate scopes using:
-
-| Dimension | Question |
-| --- | --- |
-| **Speed** | Will feedback arrive before the next costly context switch? |
-| **Maintainability** | Will valid implementation change break the test? |
-| **Utilization** | Is compute, environment, and data cost proportional? |
-| **Reliability** | Does failure consistently indicate a real problem? |
-| **Fidelity** | Can this scope reproduce the semantics that create the risk? |
+Compare candidate scopes on speed, maintainability, utilization, reliability,
+and fidelity with the scorecard in
+[references/portfolio-governance.md](references/portfolio-governance.md).
 
 Prefer the smallest candidate whose fidelity can observe the failure. Keep a
 broader test only when it covers composition, environment, or behavior the
@@ -220,9 +207,9 @@ smaller test cannot.
 
 ### 6. Decide dependencies, data, and environment
 
-Read [references/portfolio-governance.md](references/portfolio-governance.md)
-when choosing test doubles, production-compatible dependencies, test data,
-environment isolation, quarantine policy, adequacy signals, or suite budgets.
+Read the same reference for test doubles, production-compatible dependencies,
+test data, environment isolation, quarantine policy, adequacy signals, and
+suite budgets.
 
 Apply these defaults:
 
@@ -317,10 +304,6 @@ Decision:             ADEQUATE | PARTIAL | NOT-ADEQUATE | DEFER
 Test basis:           <requirements, criteria, contracts, incidents, signals>
 Architecture basis:   <not yet fixed | accepted decision refs | stable existing>
 Quality risks:        <ranked risks or none found>
-Critical obligations:<criterion/risk → required evidence>
-Selected portfolio:   <techniques and scopes retained>
-Dependencies:         <real | fake | stub | mock | simulated + drift control>
-Test data/environment:<source, isolation, privacy, reset, fidelity>
 Manual evaluation:    <exploratory, usability, accessibility, acceptance, none>
 Adequacy signals:     <trace coverage, gaps, mutation, escaped defects, flakes>
 Handoffs:             <shift-left, CI/CD, traceability, optimization, companions>
@@ -337,22 +320,5 @@ Verification:         <portfolio/test review, commands, results, or Not run + re
 - Do not require every technique for every system.
 - Do not equate mocks with isolation or real dependencies with confidence.
 - Do not automate subjective evaluation merely to make it countable.
-- Do not move checks onto the pipeline ladder here; preserve the
-  `defect-shift-left` owner.
-- Do not use `stimulus` to specify when a pipeline runs; preserve the
-  `ci-cd-reliability-architecture` execution-trigger owner.
-- Do not mark a definition as executed evidence; preserve the
-  `requirements-traceability` owner.
 - Do not retain expensive tests because they were expensive to create.
-
-## See also
-
-- **`implementation-readiness`** — supplies admitted criteria and verification
-  obligations without claiming proof.
-- **`defect-shift-left`** — places selected checks at the earliest capable
-  stage.
-- **`ci-cd-reliability-architecture`** — runs and gates the selected portfolio.
-- **`requirements-traceability`** — separates implemented tests from passing
-  evidence.
-- **`system-optimization`** — improves portfolio flow after the confidence
-  baseline is stable.
+- Do not claim an ownership boundary listed under Boundary; hand it off.
