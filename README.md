@@ -1,509 +1,249 @@
-<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/2fb2f2c2-193b-4e50-a334-be6a72053ea4" />
+# L-GEVITY Skills
 
-### THE AI ARCHITECT By [Patrick Savalle](https://github.com/patricksavalle)
+<img width="1536" height="1024" alt="L-GEVITY A.L.C.H.E.M.Y." src="https://github.com/user-attachments/assets/2fb2f2c2-193b-4e50-a334-be6a72053ea4" />
 
-## Need advice or a review of any part of your DevOps project?
+**Architecture judgment for AI coding agents.**
 
-# 'DO SOME ALCHEMY'
+L-GEVITY is an open-source [Agent Skills](https://agentskills.io/) library for
+requirements, architecture, testing, CI/CD, and continuous improvement. It
+helps coding agents decide what should exist, where it belongs, and how to keep
+it simple—not just generate more code.
 
-    The Alechmey router will select the right skjill in the right intensity, automatic!
-    Super-efficient, no context bloating.
-    
-    Open-source, platform-agnostic, drop-in for any project and any compatible
-    agent that you activate with /alchemy (Claude) or $alchemy (Codex).
+## 1. Start here
 
-Most agent skills teach an AI *how* to do specific tasks — write tests,
-scaffold boilerplate, format code. L-GEVITY skills do something different.
-They teach an agent how to *think* about software at a structural level:
-the voice that asks whether a feature earns its complexity, whether a
-pipeline is truly idempotent, whether a structure can be simpler before
-it's optimized.
+### Install
+
+Prompt your coding agent:
+
+> Install [l-gevity/l-gevity-skills](https://github.com/l-gevity/l-gevity-skills) into this project.
+
+The agent can inspect the repository, choose its installer, and verify the
+result. Use the same prompt later to update.
+
+### Use
+
+Start with natural language:
+
+```text
+do some alchemy on this refactor
+```
+
+Or direct the router:
+
+```text
+/alchemy this auth refactor       # Claude Code
+$alchemy this auth refactor       # Codex
+/alchemy M should we build this?  # one focused gate
+/alchemy audit this PR            # expanded analysis
+/alchemy ?                        # help
+```
+
+Alchemy runs a lightweight preflight, skips routine work, and loads only the
+skills the task needs.
 
 ---
 
-## The command: alchemy
+## 2. Visual model
 
-After install, use one command as the entrypoint:
+### A.L.C.H.E.M.Y. pipeline
 
-```text
-/alchemy <subject>   # Claude Code
-$alchemy <subject>   # Codex
+The preflight keeps the default path cheap. A focused request runs one gate;
+adaptive work runs the smallest ordered subset; only explicit full language
+walks the complete route.
 
-or just:
+```mermaid
+flowchart TD
+    Request["Task or alchemy command"] --> Preflight["Dispatch preflight"]
+    Preflight --> Skip["SKIP<br/>No core gate"]
+    Preflight --> Direct["DIRECT<br/>One focused gate"]
+    Preflight --> Adaptive["ADAPTIVE<br/>Smallest ordered route"]
+    Preflight --> Full["FULL<br/>Complete route"]
+    Preflight -.-> Companions["Task-matched companion skills"]
 
-do some alchemy      # adaptive skill selection
+    Skip --> Verdict["Verdict + next action"]
+    Direct --> Verdict
+    Adaptive --> Qualification["Requirements qualification<br/>only when needed"]
+    Full --> Qualification
+
+    subgraph GateOrder["Gate order — run selected stages only"]
+        direction LR
+        M["M<br/>Minimum"] --> A["A<br/>Architecture"] --> L1["L<br/>candidate"] --> C["C<br/>measurement"] --> L2["L<br/>acceptance"] --> E["E<br/>Enforcement"] --> H["H<br/>Hermetic"] --> Y["Y<br/>Yield"]
+    end
+
+    Qualification --> M
+    Y --> Verdict
+    Companions -.-> Verdict
 ```
 
-Or say it naturally: `do some alchemy`, `run alchemy on this refactor`, or
-`give this an alchemy pass`. Natural language requests run the same lightweight
-dispatch preflight; they do not imply a full gate walk.
+### Three quality spaces
 
-Examples:
+Alchemy evaluates a change from three complementary directions instead of
+collapsing every concern into one score.
 
-```text
-do some alchemy
-/alchemy this auth refactor
-do some alchemy on this auth refactor
-/alchemy M this feature
-/alchemy E module boundaries
-/alchemy H the deploy pipeline
-/alchemy out repeated release handoffs
-/alchemy down our bespoke retry wrapper
-/alchemy ?
+```mermaid
+flowchart LR
+    Change["Software change"]
+    Topology["Topology<br/>Domain · tier · layer<br/>+ observed pressure"]
+    Structure["Structure<br/>D kinds · K edges<br/>P depth · n modules"]
+    Flow["Flow<br/>left · out · down"]
+    Evolution["Smallest evidence-backed evolution"]
+
+    Change --> Topology --> Evolution
+    Change --> Structure --> Evolution
+    Change --> Flow --> Evolution
 ```
 
-Codex uses the same grammar with `$alchemy` instead of `/alchemy`.
+### Living topology
 
-Default output is intentionally small:
+Morphogenetic architecture transfers mechanisms from living systems—not their
+silhouettes. A biological lens may propose a candidate or expose a risk;
+software evidence still decides.
+
+```mermaid
+flowchart LR
+    Scaffold["Genetic scaffold<br/>declared topology + invariants"]
+    Fields["Morphogen fields<br/>static · runtime · change · data · failure"]
+    Baseline["Lens-free candidate"]
+    Lens["Natural lens<br/>one mechanism + falsifier"]
+    Evolution["Differentiation or remodeling"]
+    Proof["Software proof<br/>reversibility + structural deltas"]
+    Decision["PLACE · KEEP · MOVE · SPLIT<br/>MERGE · INTRODUCE-BOUNDARY<br/>DECLARE-RUNTIME-CYCLE · DEFER"]
+    Homeostasis["Homeostasis<br/>enforcement + feedback"]
+
+    Scaffold --> Fields --> Baseline --> Evolution --> Proof --> Decision --> Homeostasis
+    Baseline -. "optional mechanism" .-> Lens
+    Lens -. "alternative or newly exposed risk" .-> Evolution
+    Homeostasis --> Fields
+```
+
+---
+
+## 3. Reference
+
+### The gates
+
+The mnemonic is **A.L.C.H.E.M.Y.**; the execution order is
+**M → A → L → C → E → H → Y** so value is tested before design is enforced or
+optimized.
+
+| Gate | Question |
+|---|---|
+| **M — Minimum** | Is the functionality worth its complexity? |
+| **A — Architecture** | Is the design minimal, modular, and purposeful? |
+| **L — Locality** | Is each component in the right boundary? |
+| **C — Complexity** | Does the change measurably simplify the system? |
+| **E — Enforcement** | Can architectural rules be encoded as checks? |
+| **H — Hermetic** | Is each defect caught at the earliest capable stage? |
+| **Y — Yield** | What constraint actually limits flow? |
+
+The DevOps improvement moves complement the gates:
+
+| Command | Move |
+|---|---|
+| `/alchemy left` | Detect defects earlier. |
+| `/alchemy out` | Move recurring toil into durable systems. |
+| `/alchemy down` | Replace bespoke code with reusable capability. |
+
+<details>
+<summary><strong>How routing works</strong></summary>
+
+The [`alchemy`](./.agents/skills/alchemy/SKILL.md) skill classifies work before
+loading deeper instructions:
+
+- `SKIP` — routine local work needs no structural analysis.
+- `DIRECT` — one concern maps to one skill.
+- `ADAPTIVE` — non-trivial work gets the smallest ordered route.
+- `FULL` — an explicit full audit traverses the complete pipeline.
+
+Its compact result reports the dispatch, route, companions, verdict, reason,
+and next action. Focused commands remain focused; use `full`, `all`, or `audit`
+when you want a broader trail.
 
 ```text
-Dispatch:   <SKIP | DIRECT | ADAPTIVE | FULL>
-Core route: <None | M | A | L | C | E | H | Y | left | out | down | ordered set>
-Companions: <None | task-matched skills>
+Dispatch:   SKIP | DIRECT | ADAPTIVE | FULL
+Core route: None | selected gates
+Companions: None | task-matched skills
 Verdict:    Proceed | Redesign | Drop | Defer
-Reason:     <one or two lines>
-Next:       <one concrete action>
+Next:       one concrete action
 ```
 
-Use `/alchemy <subject>` when you want the agent to pick the right gates. Use
-`/alchemy <letter> <subject>` when you already know the question you want
-answered. Use the DevOps improvement triad, `/alchemy left|out|down`, when the
-work is about earlier defect detection, operational toil, or reusable
-capability. Focused commands stay focused; ask for `full`, `all`, or `audit`
-when you want an expanded trail. `audit` starts at `C₀`; only `full` or `all`
-requests a full traversal.
+See [the pipeline design](./ALCHEMY-PIPELINE-DESIGN.md) for routing rules,
+requirements qualification, gate handshakes, and acceptance criteria.
 
-The preflight classifies the task before loading gate bodies. Routine local
-work returns `SKIP`, one clear concern returns `DIRECT`, structural work uses
-the smallest `ADAPTIVE` route, and only explicit full language selects `FULL`.
-Matching domain or stack skills remain independent companions even when the
-Alchemy core is skipped.
+Locality starts with a **Rapid placement/static-edge scan**. It escalates
+**Rapid → Full** for **restructure · non-static evidence · broad scope · ambiguity**.
+Rapid can return `PLACE`, `KEEP`, `DECLARE-RUNTIME-CYCLE`, or `DEFER`; Full can
+also return `MOVE`, `SPLIT`, `MERGE`, or `INTRODUCE-BOUNDARY`.
 
-## The seven gates of A.L.C.H.E.M.Y.
-
-A.L.C.H.E.M.Y. is the name of the gate discipline. The letters are memorable;
-the execution order is different: **M → A → L → C → E → H → Y**. Necessity runs
-first, optimization runs last, because enforcing or optimizing the wrong design
-locks in waste.
-
-| Command | Gate | The question it forces | Skill |
-|---|---|---|---|
-| `/alchemy M` | **Minimum** | *Does this functionality address a real problem worth its cost?* | [`functionality-complexity-tradeoff`](./.claude/skills/functionality-complexity-tradeoff/SKILL.md) |
-| `/alchemy A` | **Architecture** | *Is the design minimal, modular, named for its purpose?* | [`architecture-guidelines`](./.claude/skills/architecture-guidelines/SKILL.md) |
-| `/alchemy L` | **Locality** | *Where does this component live, and does observed coupling agree?* | [`morphogenetic-architecture`](./.claude/skills/morphogenetic-architecture/SKILL.md) |
-| `/alchemy C` | **Complexity** | *Does this restructuring actually simplify, on every axis?* | [`structural-simplification`](./.claude/skills/structural-simplification/SKILL.md) |
-| `/alchemy E` | **Enforcement** | *Are the architectural rules encoded as lint, not prose?* | [`architecture-as-code`](./.claude/skills/architecture-as-code/SKILL.md) |
-| `/alchemy H` | **Hermetic** | *Is each defect sealed at the earliest stage that can catch it?* | [`defect-shift-left`](./.claude/skills/defect-shift-left/SKILL.md) |
-| `/alchemy Y` | **Yield** | *What is the constraint that actually limits flow?* | [`system-optimization`](./.claude/skills/system-optimization/SKILL.md) |
-
-The [`alchemy`](./.claude/skills/alchemy/SKILL.md) skill is the orchestrator. It
-routes to the sibling skills, reads the selected sibling `SKILL.md`, and returns
-the smallest useful verdict. **H = Hermetic** in the literal sense (sealed
-against leakage at every stage) and in the alchemical-tradition sense (the
-Hermetic art).
-
-Structural topology changes use one bounded
-`L candidate → C measurement → L acceptance` handshake. Gate L first names the
-candidate, Gate C measures its four structural deltas, and Gate L re-enters once
-to accept or defer that unchanged candidate. Gate E cannot run before that
-final acceptance.
-
-For non-trivial work, Alchemy now uses an adaptive **Requirements Qualification
-Phase** around M: `requirements-grounding` when meaning or evidence is missing,
-optional `requirements-topology` when relationships are non-trivial, and
-`implementation-readiness` before A. Focused aliases stay focused, and every
-skipped stage records a rationale. `NOT-GROUNDED`, `BLOCKED`, and `NOT-READY`
-work cannot enter Architecture; `PARTLY-READY` work may enter only as a bounded,
-reversible slice.
-
-The implemented routing design and acceptance criteria are recorded in
-[ALCHEMY-PIPELINE-DESIGN.md](./ALCHEMY-PIPELINE-DESIGN.md).
-
-## DevOps improvement triad
-
-The core gates answer architecture and refactor questions. The DevOps
-improvement triad moves recurring operational problems into better places:
-
-| Command | Move | Use when | Skill |
-|---|---|---|---|
-| `/alchemy left` | Shift left | Defects are detected too late. | [`defect-shift-left`](./.claude/skills/defect-shift-left/SKILL.md) |
-| `/alchemy out` | Push out | Recurring toil lives in human memory, tickets, or local practice. | [`push-out`](./.claude/skills/push-out/SKILL.md) |
-| `/alchemy down` | Bring down | Bespoke or duplicated code should become reusable capability. | [`bring-down`](./.claude/skills/bring-down/SKILL.md) |
-
-`/alchemy Y` may recommend `out` or `down` when the bottleneck is toil or
-bespoke implementation, but the triad does not run as part of the seven-gate
-sequence unless you ask for it.
-
-The result: an agent that doesn't just *write* your code, but argues with you
-about whether the code should exist, where it belongs, how complex it makes the
-system, and which quality space it should improve.
-
----
-
-## Example output
-
-<img width="631" height="473" alt="image" src="https://github.com/user-attachments/assets/ad431fd7-d298-4d9c-9051-05223a82183a" />
-
----
-
-## Three quality spaces
-
-### Morphogenetic architecture
-
-Architecture quality combines declared placement with observed pressure. A
-component should sit in the right domain, at the right abstraction tier, and in
-the right layer; its imports, traffic, co-change, data, and failure
-relationships should support that boundary. `morphogenetic-architecture`
-starts with a Rapid placement/static-edge scan, escalates deterministically to
-Full for restructuring, multi-field evidence, broad scope, or ambiguity, and
-uses a fitting natural-system mechanism to generate Full-analysis candidates.
-It records a lens-free baseline, permits one routed operational lens only when
-it adds a distinct contribution falsifiable by an unused independent field or
-held-out window, requires predeclared evidence thresholds and reproducible graph
-output, and compares every candidate with software evidence. Reversibility is
-reported as high, medium, low, or Unknown with the Low bar applied;
-`architecture-as-code` enforces the static edges. Reports expose the selected
-path as Rapid, Full, or Rapid → Full.
-
-```mermaid
-flowchart LR
-    Selector["Mode selector<br/>Rapid by default"]
-    Rapid["Rapid<br/>bounded placement + static checks"]
-    Full["Full<br/>evidence-driven topology"]
-    Declared["Declared topology<br/>Domain / tier / layer"]
-    Static["Static dependencies"]
-    Runtime["Runtime flow"]
-    Change["Co-change"]
-    Data["Shared data"]
-    Failure["Failure propagation"]
-    Decision["PLACE / KEEP / MOVE / SPLIT<br/>MERGE / INTRODUCE-BOUNDARY / DECLARE-RUNTIME-CYCLE / DEFER"]
-    Enforcement["Static rules encoded by architecture-as-code"]
-
-    Selector --> Rapid
-    Declared --> Rapid
-    Static --> Rapid
-    Rapid -->|"PLACE · KEEP · DECLARE-RUNTIME-CYCLE · DEFER"| Decision
-    Rapid -->|"restructure · non-static evidence · broad scope · ambiguity"| Full
-    Declared --> Full
-    Static --> Full
-    Runtime --> Full
-    Change --> Full
-    Data --> Full
-    Failure --> Full
-    Full --> Decision
-    Decision --> Enforcement
-```
-
-### Structural simplification
-
-Structural quality is a vector problem: a change is simpler only if it improves
-the shape of the system across component kinds, dependency edges, chain depth,
-and module count. `structural-simplification` makes that claim measurable.
-
-```mermaid
-flowchart LR
-    Origin["Structural quality space"]
-    D["D axis: Component kinds"]
-    K["K axis: Dependency edges"]
-    P["P axis: Max chain depth"]
-    N["n axis: Module count"]
-    Vector["Structural quality vector: (D, K, P, n)"]
-    Verdict["Simpler only if the vector improves without hidden offsetting cost"]
-
-    Origin --> D
-    Origin --> K
-    Origin --> P
-    Origin --> N
-    D --> Vector
-    K --> Vector
-    P --> Vector
-    N --> Vector
-    Vector --> Verdict
-```
-
-### DevOps improvement triad
-
-DevOps quality is also a coordinate problem. The DevOps improvement triad moves
-work along three axes: detect defects earlier, push recurring toil outward, and
-bring bespoke implementation down into reusable capability.
-
-```mermaid
-flowchart LR
-    Origin["DevOps quality space"]
-    X["X axis: defect-shift-left, late detection -> earlier gate"]
-    Y["Y axis: push-out, manual toil -> durable system"]
-    Z["Z axis: bring-down, bespoke code -> reusable capability"]
-    Quality["DevOps quality address: (x, y, z)"]
-
-    Origin --> X
-    Origin --> Y
-    Origin --> Z
-    X --> Quality
-    Y --> Quality
-    Z --> Quality
-```
-
----
-
-## Compatible with the open Agent Skills standard
-
-These skills follow the [Agent Skills standard](https://agentskills.io/) —
-a lightweight open format originally developed by Anthropic, now adopted
-across the agent ecosystem. They work natively with [Claude Code](https://claude.ai/claude-code),
-[Google Antigravity](https://antigravity.google), [OpenCode](https://opencode.ai),
-and [any other tool](https://agentskills.io/clients) that loads `SKILL.md`
-files (Cursor, Codex CLI, Gemini CLI, Kimi CLI, …).
-
----
-
-## Quick Start
-
-You are already using an AI coding agent. Let it do the install. Open
-your project in Claude Code, OpenCode, Antigravity, Cursor, Codex CLI,
-Gemini CLI, Grok CLI, Kimi CLI, or any other agent that can run shell
-commands and write files, and paste:
-
-> **Install the L-GEVITY A.L.C.H.E.M.Y. skill library into this project
-> from `https://github.com/l-gevity/l-gevity-skills`. Use the install
-> script in `.install/` that matches the agent you are (e.g.
-> `install-claude.sh` / `.ps1` for Claude Code, `install-codex.*` for
-> Codex CLI, `install-gemini.*` for Gemini CLI, `install-grok.*` for
-> Grok CLI; pick the OS variant for this machine). The script places
-> skills under `.claude/skills/` and the strategic-directives memory
-> file (`CLAUDE.md` / `AGENTS.md` / `GEMINI.md` / `GROK.md`) in the
-> project root. If a memory file already exists, the upstream version
-> is written beside it as `<name>.l-gevity` for me to merge manually.
-> Re-running this prompt later refreshes upstream skills without
-> touching anything in `.claude/skills/` that I added myself. Each run
-> records provenance in `.claude/skills/l-gevity-skills.lock.json`
-> (ref, commit, upstream skill list) so refreshes show up as reviewable
-> diffs; set `L_GEVITY_SKILLS_REF` to pin a branch, tag, or commit. If
-> no script matches the agent I am, install generically: copy
-> `.claude/skills/` from the repo into the project, derive my root
-> memory file from `CLAUDE.md`, and use a skill by reading
-> `.claude/skills/<name>/SKILL.md` whenever its frontmatter description
-> matches the task. Finally, prove the install with the dispatch
-> self-test: "do some alchemy on this: fixing a typo in one HTML page"
-> must yield `Dispatch: SKIP` with `Core route: None`, and "/alchemy M
-> should we keep an unused export?" must load exactly one skill
-> (`functionality-complexity-tradeoff`). Report both results; on a
-> miss, diagnose the wiring — never adjust the expected output.**
-
-The agent will fetch, inspect, and run the appropriate script — no need
-to remember `curl` flags or PowerShell syntax. Re-paste the prompt later
-to refresh upstream.
-
-<details>
-<summary><b>Prefer to run it yourself?</b> One-liners (no <code>git</code> required)</summary>
-
-**Linux / macOS:**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-claude.sh | bash
-```
-
-**Windows (PowerShell):**
-
-```powershell
-iwr -useb https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-claude.ps1 | iex
-```
-
-Swap `install-claude` for `install-codex` / `install-gemini` /
-`install-grok` to target another agent's memory file. Re-run any time
-to refresh upstream.
-
-Pin a version with `L_GEVITY_SKILLS_REF` (branch, tag, or commit):
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-claude.sh | L_GEVITY_SKILLS_REF=<ref> bash
-```
-
-```powershell
-$env:L_GEVITY_SKILLS_REF = '<ref>'; iwr -useb https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-claude.ps1 | iex
-```
-
-Every run writes `.claude/skills/l-gevity-skills.lock.json` recording
-the installed ref, resolved commit, and upstream skill list — so a
-refresh is a reviewable diff, not a silent overwrite.
+Topology changes use one bounded **L candidate → C measurement → L acceptance**
+handshake. L re-enters once; **Gate E cannot run before** that acceptance.
 
 </details>
 
 <details>
-<summary><b>Advanced</b> — subrepo or vendored copy</summary>
+<summary><strong>What is included</strong></summary>
 
-**Subrepo (track upstream via git).**
+The library contains 19 composable skills. Each has an operational `SKILL.md`
+and a human-oriented primer.
 
-```bash
-git submodule add https://github.com/l-gevity/l-gevity-skills .claude/skills-src
-ln -s skills-src/.claude/skills .claude/skills
-cp .claude/skills-src/CLAUDE.md ./CLAUDE.md
-```
+| Skill | Primer |
+|---|---|
+| [`alchemy`](./.claude/skills/alchemy/SKILL.md) | [Read](./.documentation/READ-alchemy.md) |
+| [`functionality-complexity-tradeoff`](./.claude/skills/functionality-complexity-tradeoff/SKILL.md) | [Read](./.documentation/READ-functionality-complexity-tradeoff.md) |
+| [`architecture-guidelines`](./.claude/skills/architecture-guidelines/SKILL.md) | [Read](./.documentation/READ-architecture-guidelines.md) |
+| [`morphogenetic-architecture`](./.claude/skills/morphogenetic-architecture/SKILL.md) | [Read](./.documentation/READ-morphogenetic-architecture.md) |
+| [`structural-simplification`](./.claude/skills/structural-simplification/SKILL.md) | [Read](./.documentation/READ-structural-simplification.md) |
+| [`architecture-as-code`](./.claude/skills/architecture-as-code/SKILL.md) | [Read](./.documentation/READ-architecture-as-code.md) |
+| [`architecture-as-code-javascript`](./.claude/skills/architecture-as-code-javascript/SKILL.md) | [Read](./.documentation/READ-architecture-as-code-javascript.md) |
+| [`architecture-as-code-python`](./.claude/skills/architecture-as-code-python/SKILL.md) | [Read](./.documentation/READ-architecture-as-code-python.md) |
+| [`defect-shift-left`](./.claude/skills/defect-shift-left/SKILL.md) | [Read](./.documentation/READ-defect-shift-left.md) |
+| [`ci-cd-reliability-architecture`](./.claude/skills/ci-cd-reliability-architecture/SKILL.md) | [Read](./.documentation/READ-ci-cd-reliability-architecture.md) |
+| [`system-optimization`](./.claude/skills/system-optimization/SKILL.md) | [Read](./.documentation/READ-system-optimization.md) |
+| [`push-out`](./.claude/skills/push-out/SKILL.md) | [Read](./.documentation/READ-push-out.md) |
+| [`bring-down`](./.claude/skills/bring-down/SKILL.md) | [Read](./.documentation/READ-bring-down.md) |
+| [`requirements-grounding`](./.claude/skills/requirements-grounding/SKILL.md) | [Read](./.documentation/READ-requirements-grounding.md) |
+| [`requirements-topology`](./.claude/skills/requirements-topology/SKILL.md) | [Read](./.documentation/READ-requirements-topology.md) |
+| [`implementation-readiness`](./.claude/skills/implementation-readiness/SKILL.md) | [Read](./.documentation/READ-implementation-readiness.md) |
+| [`requirements-traceability`](./.claude/skills/requirements-traceability/SKILL.md) | [Read](./.documentation/READ-requirements-traceability.md) |
+| [`test-strategy`](./.claude/skills/test-strategy/SKILL.md) | [Read](./.documentation/READ-test-strategy.md) |
+| [`continuous-improvement`](./.claude/skills/continuous-improvement/SKILL.md) | [Read](./.documentation/READ-continuous-improvement.md) |
 
-Update later: `git submodule update --remote .claude/skills-src`.
-
-**Vendored copy (frozen snapshot, edit freely).**
-
-```bash
-git clone --depth 1 https://github.com/l-gevity/l-gevity-skills .tmp-skills
-rm -rf .claude/skills && mkdir -p .claude && mv .tmp-skills/.claude/skills .claude/skills && mv -f .tmp-skills/CLAUDE.md . && rm -rf .tmp-skills
-```
-
-Re-run to update (overwrites `.claude/skills/` and `CLAUDE.md` — back
-up first if customized).
+Grounding keeps **decision-relevant outcome hypotheses** separate from
+acceptance criteria, avoiding **confusing impact with completion**. Traceability
+maintains **versioned outcome measurements and freshness**. **Revisiting value after release**
+routes current evidence back to the Minimum gate for a bounded worth decision.
 
 </details>
 
-After install:
+<details>
+<summary><strong>Installation details</strong></summary>
 
-```
-your-project/
-├── CLAUDE.md                    ← strategic directives
-└── .claude/skills/
-    ├── l-gevity-skills.lock.json ← installed ref + commit provenance
-    ├── alchemy/
-    ├── architecture-guidelines/
-    ├── structural-simplification/
-    └── ...
-```
+Installers are provided for Claude Code, Codex, Gemini CLI, and Grok CLI on
+Windows, Linux, and macOS. They install the shared skills under
+`.claude/skills/`, add the agent's root instruction file, and record provenance
+in `l-gevity-skills.lock.json`.
 
-`CLAUDE.md` already references skills by `./.claude/skills/<name>/` — no edits
-needed unless you move things. Start with `/alchemy ?` in Claude Code or
-`$alchemy ?` in Codex.
+An existing root instruction file is preserved; the L-GEVITY version is written
+beside it with a `.l-gevity` suffix for manual merging. Locally added skills are
+not removed during updates. Set `L_GEVITY_SKILLS_REF` to pin a branch, tag, or
+commit.
 
----
+[Inspect the installer scripts](./.install/).
 
-## The full skill index
+</details>
 
-Nineteen skills total: seven gate skills, one orchestrator, two stack
-implementations of **E**, one pipeline-reliability skill that extends **H**,
-two additional DevOps improvement-axis skills, four requirements-discipline
-skills, one test-strategy companion, and one meta-layer. Every skill ships
-as a `SKILL.md` (operational reference) with a matching `READ-<skill>.md` primer in
-[`./.documentation/`](./.documentation/).
+<details>
+<summary><strong>Scope</strong></summary>
 
-### Prime directives
+These skills cover structural reasoning: requirements, architecture,
+verification strategy, delivery reliability, and improvement. They do not
+replace project-specific domain knowledge, coding conventions, security rules,
+framework recipes, or release policy. Layer those on with your own skills and
+instructions.
 
-| | Use it to |
-| :----- | :-------- |
-| [CLAUDE.md](./CLAUDE.md) | Strategic attitude an agent brings to *any* task in *any* codebase using this library — when to ask, when to surface conflicts, how to fail loud, how to walk the gates in order. |
+</details>
 
-### The seven gates of A.L.C.H.E.M.Y.
+## Contributing
 
-| Skill | Letter | Primer | Use it to |
-| :---- | :----- | :----- | :-------- |
-| [architecture-guidelines](./.claude/skills/architecture-guidelines/SKILL.md) | **A** | [READ](./.documentation/READ-architecture-guidelines.md) | Test every module decision — minimalism, modularity, functional core, resilience, naming, concurrency — against a first-principles checklist before code is written. |
-| [morphogenetic-architecture](./.claude/skills/morphogenetic-architecture/SKILL.md) | **L** | [READ](./.documentation/READ-morphogenetic-architecture.md) | Start with a Rapid Domain / Tier / Layer scan, then escalate to Full evidence-driven topology analysis when restructuring, broader evidence, scope, or ambiguity requires it. |
-| [structural-simplification](./.claude/skills/structural-simplification/SKILL.md) | **C** | [READ](./.documentation/READ-structural-simplification.md) | Compare two designs along four independent axes — component-kinds, dependency-edges, max-chain-depth, module-count — so "this is simpler" becomes a measurable claim instead of a feeling. |
-| [defect-shift-left](./.claude/skills/defect-shift-left/SKILL.md) | **H** | [READ](./.documentation/READ-defect-shift-left.md) | For every error path, name the earliest stage (type system, lint, pre-commit, CI gate, …) that can catch it — and move the check there. |
-| [architecture-as-code](./.claude/skills/architecture-as-code/SKILL.md) | **E** | [READ](./.documentation/READ-architecture-as-code.md) | Stack-agnostic pattern: per-module config files merged into a single ruleset, lint-enforced. Schema, rule-placement discipline, assembler pipeline, and anti-patterns. |
-| [functionality-complexity-tradeoff](./.claude/skills/functionality-complexity-tradeoff/SKILL.md) | **M** | [READ](./.documentation/READ-functionality-complexity-tradeoff.md) | Decide whether to BUILD / DEFER / DROP a proposed feature, or KEEP / SIMPLIFY / DELETE / OBSOLETE existing code—using current linked outcome evidence when revisiting value. |
-| [system-optimization](./.claude/skills/system-optimization/SKILL.md) | **Y** | [READ](./.documentation/READ-system-optimization.md) | Run optimization in the right order — question, delete, simplify, speed up, automate — instead of caching or parallelizing work that should have been deleted. |
-
-### Requirements discipline
-
-| Skill | Discipline | Primer | Use it to |
-| :---- | :--------- | :----- | :-------- |
-| [requirements-grounding](./.claude/skills/requirements-grounding/SKILL.md) | Grounding | [READ](./.documentation/READ-requirements-grounding.md) | Ground proposed requirements in an actor-bound problem, recover provisional candidates from project evidence, and define decision-relevant outcome hypotheses without confusing impact with completion. |
-| [requirements-topology](./.claude/skills/requirements-topology/SKILL.md) | Topology | [READ](./.documentation/READ-requirements-topology.md) | Structure validated requirements as a typed dependency graph; detect cycles, orphans, duplicates, conflicts, stale references, and missing verification. |
-| [implementation-readiness](./.claude/skills/implementation-readiness/SKILL.md) | Readiness | [READ](./.documentation/READ-implementation-readiness.md) | Decide what is ready, partly ready, or blocked, then derive the smallest traceable build-preparation package without inventing requirement meaning. |
-| [requirements-traceability](./.claude/skills/requirements-traceability/SKILL.md) | Traceability | [READ](./.documentation/READ-requirements-traceability.md) | Maintain bidirectional implementation and verification links, plus versioned outcome measurements and freshness, without confusing completion evidence with impact. |
-
-### Verification strategy
-
-| Skill | Role | Primer | Use it to |
-| :---- | :--- | :----- | :-------- |
-| [test-strategy](./.claude/skills/test-strategy/SKILL.md) | Alchemy companion | [READ](./.documentation/READ-test-strategy.md) | Use an obligation pass before architecture and a portfolio pass after accepted architecture to map risks to oracles, techniques, fidelity, dependencies, data, environments, stimuli, and visible residual risk. |
-
-### Orchestration and implementations
-
-| Skill | Role | Primer | Use it to |
-| :---- | :--- | :----- | :-------- |
-| [alchemy](./.claude/skills/alchemy/SKILL.md) | Orchestrator | [READ](./.documentation/READ-alchemy.md) | Dispatch commands or natural-language requests cheaply, qualify requirements conditionally, and route only the needed gates while preserving task-matched companion skills. |
-| [architecture-as-code-javascript](./.claude/skills/architecture-as-code-javascript/SKILL.md) | **E** impl | [READ](./.documentation/READ-architecture-as-code-javascript.md) | JavaScript / TypeScript implementation — `eslint.architecture.mjs` files merged into one ESLint flat-config via `eslint-plugin-boundaries`. |
-| [architecture-as-code-python](./.claude/skills/architecture-as-code-python/SKILL.md) | **E** impl | [READ](./.documentation/READ-architecture-as-code-python.md) | Python implementation — per-package `architecture.toml` files merged into an `import-linter` config and enforced via `lint-imports`. |
-| [ci-cd-reliability-architecture](./.claude/skills/ci-cd-reliability-architecture/SKILL.md) | Extends **H** | [READ](./.documentation/READ-ci-cd-reliability-architecture.md) | Design or audit reliable CI/CD, evidence-gated release, production promotion, rollback, and operational handoff. |
-| [push-out](./.claude/skills/push-out/SKILL.md) | Improvement | [READ](./.documentation/READ-push-out.md) | Move recurring DevOps work out of individual memory, manual execution, ticket queues, and local practice into standards, platforms, self-service controls, and feedback loops. |
-| [bring-down](./.claude/skills/bring-down/SKILL.md) | Improvement | [READ](./.documentation/READ-bring-down.md) | Move bespoke, duplicated, or over-local code down into approved libraries, external standards, platform products, or managed services. |
-| [continuous-improvement](./.claude/skills/continuous-improvement/SKILL.md) | Meta-layer | [READ](./.documentation/READ-continuous-improvement.md) | Decide whether a correction becomes a test, a linter rule, or a SKILL edit — and which SKILL owns it — without letting the library bloat. |
-
----
-
-## Use cases at a glance
-
-- **Before adding a feature.** Run `/alchemy M this feature` — weighs value against
-  complexity cost, proposes a smaller version, or pushes back entirely.
-- **Reviewing a pull request.** Run `/alchemy audit this PR` — checks the diff
-  against first-principles, declared topology, and observed boundary pressure.
-- **Cleaning up a tangled module.** Run `/alchemy C this module` — measures complexity
-  on four axes; surfaces hot-spots before any optimization work begins.
-- **Hardening a CI/CD pipeline.** Run `/alchemy H the deploy pipeline`
-  — sealing defects at the earliest stage and the pipeline against
-  non-idempotent steps, mutable artifacts, hidden state, and unverified promotion.
-- **Pushing out operational toil.** Run `/alchemy out release handoffs` — locates where
-  recurring work lives, then moves it into standards, platforms, self-service
-  controls, or feedback loops.
-- **Bringing down bespoke code.** Run `/alchemy down retry wrapper` — moves repeated
-  one-off implementations into approved libraries, external standards, platform
-  products, or managed services when maintenance-burden and owner-change
-  evidence justify it.
-- **Speeding up a slow system.** Run `/alchemy Y this slow system` — finds the real
-  constraint instead of optimizing whatever is most visible.
-- **Deciding what to delete.** Run `/alchemy M this old code` — same gate,
-  same rigor, applied to existing code.
-- **Grounding a requirement set.** Use `requirements-grounding` to separate the
-  real problem, scope, sources, evidence, assumptions, and atomic requirement
-  candidates before a backlog hardens around an assumed solution; add linked,
-  measurable outcome hypotheses when downstream impact could change the worth
-  decision—or recover
-  provisional candidates from an undocumented or drifted implementation.
-- **Finding requirement dependencies.** Use `requirements-topology` to expose
-  prerequisites, constraints, cycles, duplicates, conflicts, and missing
-  verification, then derive a trustworthy dependency order.
-- **Preparing implementation.** Use `implementation-readiness` to distinguish
-  ready, partly ready, and blocked work and derive the smallest coherent slice,
-  contracts, ADR questions, and test references.
-- **Tracing implementation and proof.** Use `requirements-traceability` after
-  readiness to connect canonical IDs to implementation, passing test or
-  operational evidence, outcome-hypothesis measurements, freshness, and
-  reverse-trace gaps without treating anchors or adoption as proof of impact.
-- **Revisiting value after release.** Feed current Traceability outcome evidence
-  to `functionality-complexity-tradeoff`; M makes the bounded retrospective
-  worth decision without restarting the full ALCHEMY route.
-- **Designing test evidence.** Use `test-strategy` before architecture to
-  establish risks and oracles, then after accepted architecture to select the
-  smallest sufficient mix of focused, boundary, journey, generative, and human
-  evidence.
-- **Improving the skills themselves.** When a skill gives bad advice,
-  `continuous-improvement` runs root-cause analysis on the skill's text
-  and proposes an edit, so the same mistake does not recur.
-
----
-
-## Project-to-library learning loop
-
-Consumer projects are evidence sources, not owners of generic method. Promote a
-reusable correction into this repository first, keep `.agents` and `.claude`
-mirrors plus primers/validation aligned, publish the reviewed revision, and only
-then repin the consumer. Project names, paths, schemas, taxonomies, commands,
-roles, and domain policy stay in a project profile or local skill.
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the complete promotion and genericity
-contract.
-
-## What this pack is *not*
-
-Scoped deliberately. These skills teach an agent how to *think* about
-architecture, requirements, verification strategy, and pipeline reliability.
-They do **not** cover coding standards (language conventions, naming),
-framework-specific test implementation recipes, security baseline (input
-sanitization, OWASP), PR / commit
-hygiene, product release planning/versioning, ongoing production operations,
-UI / visual design, or your domain-specific
-knowledge. The requirements skills supply a method, not domain facts. Layer those
-on top with your own SKILLs.
-
----
-
-## License
-
-[MIT](./LICENSE)
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the genericity and promotion
+contract. Licensed under [MIT](./LICENSE).
