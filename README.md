@@ -1,13 +1,25 @@
-# L-GEVITY Skills
+### THE AI ARCHITECT By [Patrick Savalle](https://github.com/patricksavalle)
+
+## Need advice or a review of any part of your DevOps project?
+
+# 'DO SOME ALCHEMY'
+
+    Open-source, platform-agnostic, drop-in for any project and any compatible
+    agent that you activate with /alchemy (Claude) or $alchemy (Codex).
+
+    Or just 'do some alchemy' in any context
+
+    The Alchmey router will select the right skill in the right intensity, automatica!ly
+    Super-efficient, no context bloating.
+    
+Most agent skills teach an AI *how* to do specific tasks — write tests,
+scaffold boilerplate, format code. L-GEVITY skills do something different.
+They teach an agent how to *think* about software at a structural level:
+the voice that asks whether a feature earns its complexity, whether a
+pipeline is truly idempotent, whether a structure can be simpler before
+it's optimized.
 
 <img width="1536" height="1024" alt="L-GEVITY A.L.C.H.E.M.Y." src="https://github.com/user-attachments/assets/2fb2f2c2-193b-4e50-a334-be6a72053ea4" />
-
-**Architecture judgment for AI coding agents.**
-
-L-GEVITY is an open-source [Agent Skills](https://agentskills.io/) library for
-requirements, architecture, testing, CI/CD, and continuous improvement. It
-helps coding agents decide what should exist, where it belongs, and how to keep
-it simple—not just generate more code.
 
 ## 1. Start here
 
