@@ -75,6 +75,20 @@ The project's requirements profile supplies repository paths, ID syntax,
 evidence stores, commands, and local classifications. The generic skill supplies
 the trace method.
 
+## Formal completion
+
+Finalize a bounded capability in the project's natural issue or change record;
+do not change canonical requirement meaning, approval, or readiness merely to
+signal delivery completion. Record the requirement and criterion IDs, completion
+boundary, exact revision or artifact, environment and executed runs, evidence
+freshness, implementation anchors, and every named gap or deferral.
+
+An immutable checkpoint or tag is optional when the repository already uses that
+convention and the exact source snapshot matters.
+A milestone groups multiple work items toward a shared objective; it is not
+required for a single closeout. Neither marker proves release, production
+completion, or outcome impact beyond the cited evidence.
+
 ## CI enforcement
 
 Use editor validation where possible and a blocking full-repository CI backstop.

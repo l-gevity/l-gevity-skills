@@ -263,6 +263,8 @@ SKILL_REQUIRED_TERMS = {
         "Freshness: current | stale",
         "Do not issue BUILD, KEEP, SIMPLIFY, DROP",
         "do not create an outcome-evidence record",
+        "Formal Completion Records",
+        "Completion record:",
         "CI Enforcement",
         "TRACEABLE",
         "Stale references:",
@@ -1046,6 +1048,8 @@ def validate_outcome_evidence_lifecycle() -> None:
             "Outcome evidence uses a separate state model",
             "Acceptance, deployment, adoption, and telemetry presence",
             "without issuing a worth verdict",
+            "Formal completion",
+            "A milestone groups multiple work items",
         ),
         DOCS / "READ-functionality-complexity-tradeoff.md": (
             "Outcome evidence closes the loop",
