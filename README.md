@@ -83,11 +83,11 @@ it works.
 
 ### A.L.C.H.E.M.Y. pipeline
 
-You don't need to know the ALCHEMY internals, but here they are. 
+You don't need to know the ALCHEMY internals, you alos don't have to use all stages or steps, but here they are. 
 
 This is truly more an architectural brain than just a skill set. 
 
-The adaptive preflight keeps the execution cheap. A focused request runs one gate;
+The adaptive preflight keeps the execution cheap, automatically. A focused request runs one gate;
 adaptive work runs the smallest ordered subset; only explicit full language
 walks the complete route.
 
