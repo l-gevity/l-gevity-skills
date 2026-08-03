@@ -55,7 +55,31 @@ skills the task needs.
 
 ---
 
-## 2. Visual model
+## 2. Where can this skill set help?
+
+Use L-GEVITY when a coding agent needs to decide not only how to implement a
+change, but whether it should exist, where it belongs, and what evidence proves
+it works.
+
+| I need help with… | Skills |
+|---|---|
+| Routing a design, refactor, or architecture audit through the smallest useful process | [`alchemy`](./.agents/skills/alchemy/SKILL.md) |
+| Turning requests, evidence, obligations, or existing behavior into grounded requirements | [`requirements-grounding`](./.agents/skills/requirements-grounding/SKILL.md) |
+| Structuring requirements, resolving dependencies and conflicts, and finding a coherent delivery slice | [`requirements-topology`](./.agents/skills/requirements-topology/SKILL.md), [`implementation-readiness`](./.agents/skills/implementation-readiness/SKILL.md) |
+| Deciding whether proposed or existing functionality is worth its complexity | [`functionality-complexity-tradeoff`](./.agents/skills/functionality-complexity-tradeoff/SKILL.md) |
+| Designing modules and services, placing responsibilities, and untangling dependency topology | [`architecture-guidelines`](./.agents/skills/architecture-guidelines/SKILL.md), [`morphogenetic-architecture`](./.agents/skills/morphogenetic-architecture/SKILL.md) |
+| Measuring whether a refactor or restructuring actually simplifies the system | [`structural-simplification`](./.agents/skills/structural-simplification/SKILL.md) |
+| Encoding and enforcing architectural boundaries in JavaScript, TypeScript, or Python | [`architecture-as-code`](./.agents/skills/architecture-as-code/SKILL.md), [`architecture-as-code-javascript`](./.agents/skills/architecture-as-code-javascript/SKILL.md), [`architecture-as-code-python`](./.agents/skills/architecture-as-code-python/SKILL.md) |
+| Designing a risk-driven test strategy and moving defect detection to the earliest capable stage | [`test-strategy`](./.agents/skills/test-strategy/SKILL.md), [`defect-shift-left`](./.agents/skills/defect-shift-left/SKILL.md) |
+| Designing or auditing reliable build, release, and deployment pipelines | [`ci-cd-reliability-architecture`](./.agents/skills/ci-cd-reliability-architecture/SKILL.md) |
+| Linking requirements to implementation, executed verification, operations, and outcome evidence | [`requirements-traceability`](./.agents/skills/requirements-traceability/SKILL.md) |
+| Moving recurring toil out of human memory and replacing bespoke code with reusable capabilities | [`push-out`](./.agents/skills/push-out/SKILL.md), [`bring-down`](./.agents/skills/bring-down/SKILL.md) |
+| Finding bottlenecks, waste, and flow improvements across the software value stream | [`system-optimization`](./.agents/skills/system-optimization/SKILL.md) |
+| Improving the skill library itself when recurring agent mistakes expose a systemic gap | [`continuous-improvement`](./.agents/skills/continuous-improvement/SKILL.md) |
+
+---
+
+## 3. Visual model
 
 ### A.L.C.H.E.M.Y. pipeline
 
@@ -65,26 +89,43 @@ walks the complete route.
 
 ```mermaid
 flowchart TD
-    Request["Task or alchemy command"] --> Preflight["Dispatch preflight"]
-    Preflight --> Skip["SKIP<br/>No core gate"]
-    Preflight --> Direct["DIRECT<br/>One focused gate"]
-    Preflight --> Adaptive["ADAPTIVE<br/>Smallest ordered route"]
-    Preflight --> Full["FULL<br/>Complete route"]
-    Preflight -.-> Companions["Task-matched companion skills"]
+    Input(["External request or evidence<br/>(not a persisted artifact)"])
 
-    Skip --> Verdict["Verdict + next action"]
-    Direct --> Verdict
-    Adaptive --> Qualification["Requirements qualification<br/>only when needed"]
-    Full --> Qualification
+    Req0["Document — grounded requirement"]
+    Req1["Document — approved requirement"]
+    Graph["Document — requirement dependency graph"]
+    Slice["Document — delivery slice"]
 
-    subgraph GateOrder["Gate order — run selected stages only"]
-        direction LR
-        M["M<br/>Minimum"] --> A["A<br/>Architecture"] --> L1["L<br/>candidate"] --> C["C<br/>measurement"] --> L2["L<br/>acceptance"] --> E["E<br/>Enforcement"] --> H["H<br/>Hermetic"] --> Y["Y<br/>Yield"]
-    end
+    Design["Document — architecture/design"]
+    Topology["Document — topology and complexity record"]
+    Rules["Configuration — architecture boundary rules"]
 
-    Qualification --> M
-    Y --> Verdict
-    Companions -.-> Verdict
+    Test["Code — acceptance test"]
+    Source["Code — production source"]
+    TestRun["Evidence — focused test result"]
+    CIRun["Evidence — CI run report"]
+    Trace["Document — traceability record"]
+    Outcome["Evidence — outcome measurement"]
+
+    Input -->|"requirements-grounding"| Req0
+    Req0 -->|"functionality-complexity-tradeoff"| Req1
+    Req1 -->|"requirements-topology (when needed)"| Graph
+    Graph -->|"implementation-readiness"| Slice
+    Req1 -.->|"implementation-readiness (independent requirement)"| Slice
+
+    Slice -->|"architecture-guidelines"| Design
+    Design -->|"morphogenetic-architecture + structural-simplification"| Topology
+    Topology -->|"architecture-as-code"| Rules
+
+    Rules -->|"test-drive-implementation"| Test
+    Test -->|"test-drive-implementation"| Source
+    Source -->|"run focused check"| TestRun
+
+    TestRun -->|"defect-shift-left and CI/CD"| CIRun
+    CIRun -->|"requirements-traceability"| Trace
+    Trace -->|"collect outcome evidence"| Outcome
+
+    Outcome -.->|"retrospective Minimum"| Req1
 ```
 
 ### Three quality spaces
@@ -130,7 +171,7 @@ flowchart LR
 
 ---
 
-## 3. Reference
+## 4. Reference
 
 ### The gates
 
