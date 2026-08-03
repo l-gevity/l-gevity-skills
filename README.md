@@ -83,7 +83,11 @@ it works.
 
 ### A.L.C.H.E.M.Y. pipeline
 
-The preflight keeps the default path cheap. A focused request runs one gate;
+You don't need to know the ALCHEMY internals, but here they are. 
+
+This is truly more an architectural brain than just a skill set. 
+
+The adaptive preflight keeps the execution cheap. A focused request runs one gate;
 adaptive work runs the smallest ordered subset; only explicit full language
 walks the complete route.
 
