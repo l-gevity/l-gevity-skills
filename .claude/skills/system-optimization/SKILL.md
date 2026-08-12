@@ -40,7 +40,14 @@ work to undo later.
 
 1. **Question the requirement.** The requirement is the most upstream waste.
    Strip it to first principles before touching the implementation; the cheapest
-   step is the one that no longer needs to exist.
+   step is the one that no longer needs to exist. Separate each requirement's
+   *obligation* (the outcome, evidence, or restriction that must exist) from its
+   *mechanism* (the specific rights, routes, roles, record types, or protocols
+   it names). Obligations are floors; pinned mechanism is negotiable — audit
+   within the current requirements first to establish the floor, then propose
+   careful requirement edits scored like any change, and gate edits with real
+   external trade-offs as explicit product decisions (see
+   `functionality-complexity-tradeoff` §1e).
 2. **Probe deletion.** Try removing the step, file, stage, or component behind
    a reversible branch, feature flag, dry run, or narrow rollout. Restore
    anything proven load-bearing; keep only deletions backed by evidence.
@@ -57,6 +64,7 @@ work to undo later.
 | **CI/CD & Automation**     | Sequential stages that could parallelize, manual steps, flaky gates |
 | **Developer Workflow**     | Large PRs, long-lived branches, slow feedback loops                 |
 | **Code Structure**         | Dead code, duplication, divergent patterns                          |
+| **Public Surface**         | One route per view of the same aggregate, same data at multiple addresses, rights/roles vocabulary larger than the behavior it guards, one-user wrappers around an existing primitive |
 | **Testing Strategy**       | Coverage gaps, flaky tests, defects caught late                     |
 | **Tooling & Dependencies** | Unused packages, outdated tooling, manual steps                     |
 | **Documentation**          | Stale docs, missing ADRs, over-documentation                        |

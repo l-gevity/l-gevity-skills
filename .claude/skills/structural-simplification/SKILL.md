@@ -109,6 +109,7 @@ Fast proxies — not substitutes for measurement.
 | **Chain**        | Fewer hops source-to-sink                               | P↓            |
 | **Count**        | Fewer parts                                             | n↓            |
 | **Ripple**       | Typical change in this area touches many parts          | K             |
+| **Consistency points** | Each public unit (route, right, config key) drags N hand-maintained artifacts — handler, guard, contract entry, registry row, tests; removing the unit deletes them all | n, K |
 
 ---
 
@@ -126,6 +127,15 @@ Fast proxies — not substitutes for measurement.
 | **Deduplication**  | Eliminate redundant copies                                                 |
 | **Patternization** | Apply a recurring structure — differences become instances, not exceptions |
 | **Cohesion**       | Group what changes together; the unit expresses one concept                |
+
+> [!WARNING] **Unification guardrail — referencing-list uniformity.** Merging
+> vocabulary items (rights, routes, types, statuses, config keys) is safe only
+> when every member is uniform with respect to every *other* list that
+> references them — ban/allow lists, separation-of-duties pairs, fixed scopes,
+> party or tenant restrictions, protocol mappings. A merged item cannot be
+> half-banned or half-granted: one non-uniform member blocks the merge or must
+> stay separate. Enumerate the referencing lists and check uniformity before
+> claiming a D↓ or n↓ from Unification, Generalization, or Merging.
 
 ### K↓ — Reduce Coupling
 
