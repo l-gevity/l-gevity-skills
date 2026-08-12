@@ -15,6 +15,7 @@ A first-principles SKILL for deciding whether a piece of functionality is worth 
 - **Necessity findings beat usage data.** You don't need telemetry to prove product value for a code path that's structurally unreachable; you still check whether it documents an invariant or needs a migration path.
 - **Outcome evidence closes the loop.** Current, linked measurements can revisit
   expected value without treating acceptance, deployment, or adoption as impact.
+- **Requirement text gets audited too.** When a requirement prescribes mechanism (a dedicated right, role, or endpoint) where its obligation demands only an outcome, the surplus grain is negotiable — scored like any change instead of obeyed by default.
 
 ## Fundamental principles
 
@@ -64,6 +65,8 @@ Before scoring value or cost, walk the categories. A high-confidence positive fi
 | **Logically dead branch**             | Unreachable given upstream contracts                                    | `if (!user.id)` after auth middleware that guarantees it              |
 
 > The invariant audit is the highest-yield necessity check. List the invariants the architecture, type system, deployment topology, and trust boundary maintain. Then walk the branches with the list in hand.
+
+Passing the gate does not settle the *grain*. Restate each requirement behind the subject as **obligation** (the record, gate, or restriction that must exist) versus **mechanism** (the rights, roles, endpoints, record types, or protocols chosen to satisfy it). Mechanism the obligation does not force is a SIMPLIFY candidate even when the functionality is KEEP — and when the requirement text itself pins the mechanism, a careful requirement edit is a scoreable candidate, with real external trade-offs gated as explicit product decisions. Legal obligations, separation-of-duties controls, and external protocol surfaces stay non-negotiable.
 
 ## The worth ledger
 

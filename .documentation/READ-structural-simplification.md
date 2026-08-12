@@ -122,6 +122,14 @@ unused abstraction. Deletions can improve every structural axis simultaneously
 when the removed part is not load-bearing and the migration path is safe, which
 is why "remove over mitigate" is a powerful directive in the SKILL.
 
+Merges carry one more bound that the axis-vector alone does not show:
+**referencing-list uniformity**. Vocabulary items — rights, routes, types,
+statuses, config keys — are often referenced by other lists (ban/allow lists,
+separation-of-duties pairs, fixed scopes). A merged item cannot be half-banned
+or half-granted, so a merge is only safe when every member is uniform with
+respect to every list that references it; one non-uniform member forces it to
+stay separate.
+
 ---
 
 ## 5. Asymmetric trades: why local cost can be a global win

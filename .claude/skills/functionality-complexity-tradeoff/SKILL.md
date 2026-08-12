@@ -8,7 +8,8 @@ description: >-
     backlog grooming, PR scope review, dead-code audits, tech-debt reviews,
     "is this worth it?", "should we remove this?", "is this defensive check
     necessary?", and cases involving impossible-state guards, redundant
-    validation, cargo-culted patterns, phantom requirements, or unused
+    validation, cargo-culted patterns, phantom requirements, requirement-pinned
+    mechanism, or unused
     generality, and evidence-driven revisits of outcome hypotheses after release.
 ---
 
@@ -132,6 +133,33 @@ under new conditions. "We removed the client version check because it cost
 more than it returned" invites debate about thresholds; "we removed it
 because client/server version skew cannot occur in a single-artifact deploy"
 closes the question.
+
+### 1e. Obligation vs. mechanism
+
+A subject can pass the necessity gate — the problem is real — while its
+*grain* is still inflated by mechanism nobody demanded. Before scoring worth,
+restate each requirement behind the subject in two parts:
+
+- **Obligation** — the outcome, evidence, or restriction that must exist
+  (a record with actor/time, a gate before a step, an actor limitation).
+- **Mechanism** — the specific rights, roles, endpoints, record types, or
+  protocols the requirement text or the implementation chose to satisfy it.
+
+Mechanism the obligation does not force is a SIMPLIFY candidate even when the
+functionality itself is KEEP. Audit in two passes: first within the current
+requirements to establish the floor, then treat careful requirement edits as
+prospective candidates scored on this same ledger. Flag edits with real
+external trade-offs (consent models, public intake, protocol surfaces) as
+explicit product decisions rather than deciding them silently, and route
+changes of requirement *meaning* through `requirements-grounding`. Three
+floors are never negotiable: legal/regulatory obligations, separation-of-duties
+(second-person) controls, and external protocol surfaces others depend on.
+
+Typical yields: an actor condition encoded as a dedicated right or role where
+a membership attribute or workflow-state gate satisfies the same acceptance
+criterion; a person-split where the obligation only demands recorded evidence
+before the next step; one endpoint per read projection of an aggregate the
+caller already fetches.
 
 ---
 
@@ -569,6 +597,7 @@ Revisit when:   <measurable trigger or calendar date>
 | Duplicate of library or framework feature                                     | OBSOLETE if the framework already runs it for the same scope; DROP / DELETE if `I` is ~0 by choice |
 | Legacy integration, usage unknown                                             | QUARANTINE — instrument first, then decide (unless §1 already returns OBSOLETE)       |
 | Extension point with one implementation                                       | OBSOLETE if no second implementation is named and probable; SIMPLIFY otherwise        |
+| Actor/role condition encoded as a separate right, role, or endpoint           | SIMPLIFY — an attribute or workflow-state gate satisfies the obligation (§1e), unless a second person is explicitly required |
 | "We'll need this for feature X"                                               | DEFER — build when X is real, not before                                              |
 | Stable feature that still produces bugs                                       | SIMPLIFY (churn × complexity hotspot), then re-evaluate                               |
 | Feature with no docs, no tests, no telemetry                                  | QUARANTINE + add all three, or DEPRECATE — but check §1 first; it may be unreachable  |

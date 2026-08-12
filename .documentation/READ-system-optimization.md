@@ -67,6 +67,14 @@ itself, every step that produces it, every step that consumes it, every test
 that validates it, every document that describes it, and every monitor that
 watches it. One question can collapse a column of the value stream.
 
+Questioning a requirement rarely means discarding it wholesale. Separate its
+**obligation** — the outcome, evidence, or restriction that must exist — from
+its **mechanism** — the specific rights, routes, roles, record types, or
+protocols it names. Obligations are floors. Pinned mechanism is negotiable
+waste: establish the floor within the current requirements first, then propose
+careful requirement edits scored like any change, and gate the ones with real
+external trade-offs as explicit product decisions.
+
 The skill places this step first because **it is the only step that gets less
 likely the longer you wait**. Once optimization or automation has been invested
 in a workflow, the workflow becomes harder to delete — not because the
