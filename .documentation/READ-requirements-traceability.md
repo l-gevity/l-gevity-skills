@@ -1,124 +1,138 @@
-# Requirements Traceability
+# Traceability: Where Is It, and How Do We Know It Works?
 
-Requirements Traceability keeps a requirement connected to implementation and
-executed evidence after readiness has admitted work into architecture and build.
-It prevents two common false claims: that a code anchor means the behavior was
-tested, and that a test definition means the test passed for this revision.
-It also follows decision-relevant outcome hypotheses into representative use
-without confusing capability completion with downstream impact.
+A new tech lead joins and asks two innocent questions about a contractual
+requirement: *"Where is report approval implemented, and what proves it
+works?"* The team's answers, reconstructed over two days: the
+implementation is "mostly in the workflow module, probably," the proof is
+"the tests pass" (which tests? for which criteria?), and along the way
+someone discovers that one acceptance criterion was never implemented at
+all — it fell out during a refactor eight months ago, and nothing noticed.
 
-## Why use this
+Traceability is the discipline that makes those two questions answerable
+in minutes instead of days: maintained, checkable links between what was
+promised, where it's built, and what evidence proves it. This document
+explains the concept — and the two or three distinctions that separate
+real traceability from its decorative imitation.
 
-- Check requirement-to-evidence and artifact-to-requirement coverage.
-- Preserve canonical requirement meaning while implementation evolves.
-- Distinguish `implemented` from `verified` per acceptance criterion.
-- Catch unknown IDs, removed criteria, ambiguous aliases, and stale anchors.
-- Classify legitimate non-requirement work without hiding orphaned product work.
-- Make operational evidence reproducible through revision and run identity.
-- Link hypothesis versions to measurements, classify freshness, and distinguish
-  `supported`, `rejected`, `inconclusive`, `unmeasured`, and `stale` outcomes.
+## The ladder of proof
 
-## Fundamental principle
+The core of the concept is refusing to let "done" be one blurry state.
+For each acceptance criterion of each requirement, the honest question is
+*which rung of this ladder are we on?*
 
-Trace links are evidence, not authority. Canonical requirements define what is
-needed; implementation and executed checks show how much of that need is covered
-and proven now.
+| State | What it means | What it does **not** mean |
+| ----- | ------------- | ------------------------- |
+| **Unmapped** | No known implementation or verification | — |
+| **Implemented** | A stable anchor points at code or a test *definition* | That it passes, or ever ran |
+| **Verified** | An **executed, passing** result exists for this revision | That it still passes after later changes |
+| **Blocked** | A named missing dependency or decision, with an owner | That it can be quietly skipped |
+| **Not applicable** | An explicit, scoped, owner-approved rationale | A general waiver |
 
-Grounding owns outcome-hypothesis meaning. Traceability owns measurement links
-and evidence state for the exact hypothesis version. M
-(`functionality-complexity-tradeoff`) alone turns current outcome evidence into
-a functionality-worth decision.
+The rung that gets faked most is the middle one. **Implementation is not
+verification.** A test *definition* proves someone wrote a check; only an
+*executed run* of that check, passing, against an identified revision,
+proves the behavior. Related: claimed evidence must be **reproducible** —
+"it worked in staging" without the revision, environment, and run identity
+attached is an anecdote. Evidence you can't trace to *what ran, where,
+when, with what result* isn't evidence; it's a memory.
 
-The skill uses five evidence states:
+And verification is perishable: "verified" attaches to a revision, not to
+the requirement forever. The refactor that silently dropped a criterion is
+what happens when a past green run is treated as a permanent state.
 
-| State | Meaning |
-| --- | --- |
-| `unmapped` | No accepted implementation or verification anchor |
-| `implemented` | Code/contract anchor or executable test definition exists |
-| `verified` | Implementation exists and accepted evidence passed for this revision |
-| `blocked` | A named dependency, decision, environment, or evidence owner blocks proof |
-| `not-applicable` | A scoped, owner-approved rationale excludes this slice |
+## Both directions, or it's half a system
 
-Outcome evidence uses a separate state model:
+Traceability that only points one way answers only half the audit.
 
-| State | Meaning |
-| --- | --- |
-| `unmeasured` | No accepted representative observation exists yet |
-| `supported` | Current evidence meets the declared threshold and guardrails for the defined cohort and window |
-| `rejected` | Current evidence misses the declared threshold or violates a required guardrail |
-| `inconclusive` | Exposure, attribution, power, quality, or guardrail gaps prevent a decision |
-| `stale` | A freshness rule or material change invalidated the earlier assessment |
+**Forward** (requirement → code → evidence) answers: *is everything we
+promised implemented and proven?* This is the direction people usually
+mean, and it catches the dropped criterion.
 
-Acceptance, deployment, adoption, and telemetry presence are not outcome proof.
-An evidence record preserves the hypothesis version, cohort and exposure,
-measurement window, baseline, observed result, threshold evaluation, guardrails,
-attribution limits, freshness, confidence, owner, and revisit trigger.
-When Grounding records an authoritative obligation as `not applicable`, carry
-the reason into the trace summary without creating an outcome-evidence record;
-completion evidence remains required.
+**Reverse** (change → requirement) asks, of every non-trivial change:
+*what authorized this?* The answer is either a requirement ID or an
+explicit named rationale — platform work, operations, technical debt, a
+spike. What reverse tracing catches is different and just as important:
+scope creep entering as unlabeled diffs, speculative features nobody asked
+for, and the quiet accumulation of behavior that no requirement covers —
+which is precisely the code that, years later, nobody dares delete because
+nobody knows why it exists. The rationale tags aren't bureaucracy; they're
+the difference between "unjustified" and "justified as maintenance,
+deliberately."
 
-## How to use
+One rule keeps the links themselves trustworthy: **a stale reference is a
+defect, not noise.** An anchor pointing at a renamed requirement, a
+removed criterion, an ID that no longer resolves — each is a broken link
+in the chain of proof, and tolerated broken links teach everyone to stop
+trusting the links at all. Validity is mechanically checkable (does every
+referenced ID exist? does every claimed test result have a matching test?),
+which makes it exactly the kind of thing a build gate should enforce.
 
-Apply it after a passing `implementation-readiness` decision:
+## Anchors live where the work lives
 
-> “Trace this implementation slice bidirectionally. Separate implementation
-> anchors from executed verification, reject stale IDs, and classify every gap.”
+The tempting implementation of all this is The Spreadsheet — a central
+matrix mapping every requirement to every file and test. It's also the
+implementation that guarantees decay: the matrix lives far from the code,
+gets updated on a different rhythm by different people, and within months
+is a well-organized fiction.
 
-> “Review this change for reverse-trace gaps: which changed artifacts have no
-> canonical requirement or accepted platform/operations rationale?”
+The durable alternative: put small, stable **anchors in the artifacts
+themselves**, in the place a maintainer would look first. The requirement
+ID in the contract's metadata and the contract test. The criterion tag on
+the behavior test that checks it. The requirement IDs in the decision
+record's context. The runbook check that carries revision and run identity
+in its output. Registries and matrices can then be *generated* from the
+anchors — derived views, rebuildable at any time — instead of being a
+second, hand-maintained source of truth that drifts from the first.
+(Restraint applies here too: an ID next to a well-named test is an anchor;
+three paragraphs of duplicated requirement prose in a source comment is a
+fork of the requirement, and forks drift.)
 
-> “Trace the current measurements for these outcome hypotheses. Preserve their
-> thresholds and guardrails, classify freshness, and hand the evidence to M
-> without issuing a worth verdict.”
+## Links carry proof, never meaning
 
-The project's requirements profile supplies repository paths, ID syntax,
-evidence stores, commands, and local classifications. The generic skill supplies
-the trace method.
+A boundary that keeps the whole system honest: trace links are
+**evidence**, not **authority**. The canonical requirements own what
+should be true; the links only record where it's built and what proves it.
+Two corruptions follow from crossing that line. A trace entry can't
+*authorize* behavior — "the code does X and we linked it to requirement Y"
+doesn't make X required; if X is right, the requirement gets updated
+through its own process, and if the code and requirement disagree, that's
+a finding, not a link. And an evidence record can't *edit* a claim to fit
+the data — if the measured result misses the declared threshold, the state
+is "missed," not a quietly relaxed threshold. Traceability is the
+bookkeeping of promises; bookkeeping that adjusts the promise to match
+the ledger isn't bookkeeping.
 
-## Formal completion
+The same discipline separates **completion from impact**. Executed tests
+can prove the capability works as specified. Whether it produced the
+hoped-for downstream outcome — faster closes, fewer support tickets — is a
+different claim, provable only by real measurement of real use, tracked
+separately with its own freshness ("supported *as of* that cohort and
+window", going stale when the world changes). Deployment, adoption, even
+glowing anecdotes are not outcome evidence, and a traceability system
+that lets "we shipped it and people log in" stand in for "it worked" has
+laundered the distinction the whole system exists to keep.
 
-Finalize a bounded capability in the project's natural issue or change record;
-do not change canonical requirement meaning, approval, or readiness merely to
-signal delivery completion. Record the requirement and criterion IDs, completion
-boundary, exact revision or artifact, environment and executed runs, evidence
-freshness, implementation anchors, and every named gap or deferral.
+## The habit
 
-An immutable checkpoint or tag is optional when the repository already uses that
-convention and the exact source snapshot matters.
-A milestone groups multiple work items toward a shared objective; it is not
-required for a single closeout. Neither marker proves release, production
-completion, or outcome impact beyond the cited evidence.
+The concept compresses into the two questions from the opening, asked
+continuously rather than during audits: for any requirement, *where is it,
+and what executed evidence proves it — at which revision?* For any change,
+*what authorized this?* When both are answerable from anchors and
+generated views in minutes, you have traceability. When answering takes a
+two-day archaeology project, you have a codebase and a requirements
+document waving at each other from a distance — and the gap between them
+is where the dropped criterion, the scope creep, and the "verified"
+feature nobody can prove are all quietly living.
 
-## CI enforcement
+---
 
-Use editor validation where possible and a blocking full-repository CI backstop.
-Static checks reject unknown requirements, criteria, aliases, and stale
-references. Test result ingestion may promote an implemented criterion to
-verified only when a matching executable test definition exists and passed.
-Operational evidence must include revision, environment, run, and outcome.
-Outcome assessments must cite the exact hypothesis version and observation,
-window, threshold evaluation, guardrails, and freshness. Static checks can
-validate those links and fields; they cannot manufacture causal validity.
-
-Coverage percentages are diagnostic; they do not invent missing requirement
-meaning or silently waive intentionally deferred work.
-
-## Output
-
-Every use returns `TRACEABLE`, `PARTIAL`, or `BLOCKED`, along with canonical
-source/version, requirement IDs, implemented and verified counts, reverse-trace
-gaps, stale references, outcome-hypothesis states and evidence links, owners, the
-next action, and checks performed.
-
-## When to skip
-
-Use `requirements-grounding` when meaning or source authority is unresolved,
-`requirements-topology` when IDs/lineage/relationships are unstable, and
-`implementation-readiness` when no slice has been admitted into build yet.
-
-## Next steps
-
-- Read the operational [`requirements-traceability` SKILL.md](../.claude/skills/requirements-traceability/SKILL.md).
-- Repair unstable IDs and graph lineage with [`requirements-topology`](../.claude/skills/requirements-topology/SKILL.md).
-- Place deterministic trace checks with [`defect-shift-left`](../.claude/skills/defect-shift-left/SKILL.md).
-- Revisit functionality worth with [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/SKILL.md) once current outcome evidence is available.
+*Traceability is the follow-through stage of a requirements discipline:
+[grounding](READ-requirements-grounding.md) owns what requirements mean,
+[topology](READ-requirements-topology.md) owns their IDs and lineage,
+[implementation readiness](READ-implementation-readiness.md) defines the
+evidence obligations that traceability then tracks, and
+[worth evaluation](READ-functionality-complexity-tradeoff.md) consumes
+outcome evidence to decide what stays. The full operational reference —
+evidence states, anchor placement, gap taxonomy, and build-gate checks —
+lives in
+[SKILL.md](../.claude/skills/requirements-traceability/SKILL.md).*

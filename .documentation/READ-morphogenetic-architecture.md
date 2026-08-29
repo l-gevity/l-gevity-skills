@@ -1,264 +1,187 @@
-# Morphogenetic Architecture
+# Architecture as a Living Structure
+
+Every team has the diagram: boxes, arrows, clean layers, drawn eighteen
+months ago. And every team has the codebase, which has since grown opinions
+of its own. Two modules that the diagram says are strangers change together
+in every third commit. A "shared utilities" box has quietly become the most
+depended-upon component in the system. An import cycle connects three
+services the diagram shows as a tidy one-way chain.
+
+The usual responses are denial (update nothing), or surrender (declare the
+diagram dead and navigate by folklore). There is a third option: treat the
+declared architecture as a **hypothesis** and the system's observed behavior
+as **evidence** — and evolve the structure deliberately, the way living
+forms grow: not from a fixed blueprint, but from simple local rules
+responding to measured pressure. That's the idea this document explains,
+and the reason for the name: *morphogenesis* is how organisms develop
+shape.
 
 ![Morphogenetic Architecture](morphogenetic_architecture.svg)
 
-Design software topology as a declared structure that can be tested and evolved.
-Start with a bounded Rapid scan, place each component at a
-**Domain / abstraction tier / layer** position, and escalate to Full when the
-decision requires restructuring, multi-field evidence, broad scope, or
-resolution of ambiguity. Full analysis uses discovery evidence to declare a
-lens-free baseline, may use one indexed natural mechanism to add a distinct
-candidate or risk, and then tests both against an unused independent field or
-held-out evidence window. Nature may propose; software evidence decides.
+## The skeleton: every component gets an address
 
-The operational source is
-[`morphogenetic-architecture` SKILL.md](../.claude/skills/morphogenetic-architecture/SKILL.md).
+Structure starts with a declaration. Every component gets a position along
+three independent coordinates:
 
-## Why use this
+- **Domain** — which part of the business it serves: `billing`,
+  `identity`, `commerce/payments`. Domains nest, and each is a boundary of
+  *meaning*: inside it, words like "account" have one definition.
+- **Abstraction tier** — its scale of responsibility: an *orchestrator*
+  composes a workflow from capabilities; a *capability* does one
+  meaningful job; a *primitive* is a small reliable building block. Tiers
+  give a direction of service: primitives serve capabilities serve
+  orchestrators — a primitive that starts directing its callers has
+  inverted the hierarchy.
+- **Layer** — its distance from the outside world: consumer-facing code,
+  application/domain logic, infrastructure. Crossing more than one layer
+  in a single step (a UI component reaching straight into the database) is
+  a *layer skip* — legitimate only through a named adapter that owns the
+  transition.
 
-- Preserve the original locality guarantees: explicit interfaces, bounded
-  neighbor sets, no forbidden static cycles, and no unowned layer jumps.
-- Keep simple placement and static-edge checks fast, while escalating
-  automatically before any restructuring decision.
-- Detect architecture that looks clean in imports but is coupled through event
-  buses, registries, shared schemas, coordinated changes, or cascading failures.
-- Discover candidate boundaries from evidence without letting an algorithm
-  redefine domain meaning.
-- Distinguish static dependencies, which remain directed and acyclic, from
-  legitimate runtime feedback loops, which must be named and bounded.
-- Scale the required proof to how expensive the change would be to undo, so a
-  cheap internal move is not treated like an irreversible published contract.
-- Place or evolve a component through an explicit PLACE, KEEP, MOVE, SPLIT, MERGE,
-  INTRODUCE-BOUNDARY, DECLARE-RUNTIME-CYCLE, or DEFER decision.
+The coordinates are deliberately independent: "payments / capability /
+domain-layer" says what a thing is, what scale it works at, and how far
+from the edge it sits — and a component whose address you *cannot* state is
+itself a finding, usually the first symptom of a module doing several jobs.
 
-## The model
+Around the address go local rules: each component exposes one **inbound
+interface** (the contract callers use — everything else is private),
+declares its **outbound** dependencies, and talks to a small, *named* set
+of neighbors. Cross-domain access goes through the target domain's public
+contract, never around it. Local rules are the whole trick — no one
+component needs the global picture, yet a coherent global shape emerges
+from every component keeping its own neighborhood honest. That is how
+organisms manage it, too.
 
-```text
-Mode selector
-  Rapid by default for bounded placement and static checks
-  Full for restructuring · multi-field evidence · broad scope · ambiguity
-             ↓
-Declared topology
-  Domain / abstraction tier / layer
-  Inbound and outbound interfaces
-  Allowed static neighbors
-             ↓ discover
-Observed fields
-  Static imports and package edges
-  Runtime calls and messages
-  Co-change history
-  Shared-data ownership
-  Failure propagation
-             ↓ declare + compute
-Decision policy + reproducible graph analysis
-  baseline · threshold · window · sensitivity · input/result hashes
-             ↓ record lens-free candidate
-Operational natural pattern atlas
-  one routed lens · distinct contribution · falsifier in unused/held-out evidence
-             ↓ validate
-Independent field or held-out window
-             ↓ grade reversal cost
-Reversibility
-  high · medium · low · unknown → how much agreeing evidence the change must carry
-             ↓ evidence decides
-PLACE / KEEP / MOVE / SPLIT / MERGE / INTRODUCE-BOUNDARY /
-DECLARE-RUNTIME-CYCLE / DEFER
-```
+## Many graphs, not one
 
-Keep the observed fields separate. Traffic counts, shared commits, schema
-ownership, and incident impact have different meanings and units; combining
-them without a declared weighting policy creates false precision.
+The most common source of architectural confusion is talking about "the
+dependency graph" as if there were one. There are at least five, and they
+answer different questions:
 
-## How to use
+| Graph | Edge means | Question it answers |
+| ----- | ---------- | ------------------- |
+| **Static** | A imports B | What can be built, tested, understood alone? |
+| **Runtime** | A calls B in production | Where do latency and load actually flow? |
+| **Change** | A and B change in the same commits | What is *really* coupled, whatever the imports say? |
+| **Data** | A and B share a schema or store | Who else breaks when this table changes? |
+| **Failure** | When B dies, A dies | Where does an incident spread? |
 
-The selector starts in Rapid unless the request already requires Full. Use a
-bounded design request for a new component:
+Two disciplines follow. First, **different graphs, different laws**: the
+static graph must be a one-way, cycle-free hierarchy — a static cycle is a
+hard fault, always. The runtime graph may legitimately contain loops
+(retries, feedback, event flows), provided each is *declared*: named, given
+a termination bound, an owner, and monitoring. Never let an acceptable
+runtime loop excuse a forbidden import cycle — they live in different
+graphs.
 
-> Place `OrderShipmentNotifier`. Declare its Domain / abstraction tier / layer,
-> inbound and outbound interfaces, allowed static dependencies, and any runtime
-> feedback loop.
+Second, **indirection can hide edges but not remove them**: routing a call
+through an event bus, a registry, or a callback makes the arrow invisible
+to import analysis while the coupling remains fully real at runtime.
+Undeclared edges are the ones that hurt, precisely because nobody is
+watching them.
 
-This can finish in Rapid with PLACE, KEEP, DECLARE-RUNTIME-CYCLE, or DEFER.
-Rapid escalates to Full when MOVE, SPLIT, MERGE, or INTRODUCE-BOUNDARY becomes
-a candidate; when non-static evidence affects the decision; when scope crosses
-several components or a material boundary; or when placement remains
-ambiguous.
+## Pressure: when the map and the territory disagree
 
-Use a Full audit when declared structure may have drifted:
+Now the interesting part. Overlay the observed graphs on the declared
+skeleton and look for **boundary pressure** — evidence repeatedly straining
+against a declared line:
 
-> Audit `src/checkout`. Compare imports, traces, six months of co-change, shared
-> schemas, and incident propagation with the declared domain boundaries.
+- Two components in *different* declared domains that change together
+  constantly, share data, and fail together — the boundary between them
+  may be drawn through the middle of one real thing.
+- One component whose edges fan out to several unrelated clusters, with
+  several independent reasons to change — a god component, two or three
+  real things wearing one name.
+- A declared boundary that *no* evidence ever crosses — possibly a false
+  boundary, ceremony separating things that belong together.
 
-An explicit `rapid` or `quick` request selects only the starting mode; it cannot
-waive an escalation. Once Full begins, missing evidence is reported as
-**Not measured** and produces DEFER when required proof is unavailable.
+Pressure is information, not instruction. A single noisy signal — one
+co-change burst from a cross-cutting rename, one traffic spike — is a
+prompt to look, nothing more. The standard for actually moving a boundary
+is deliberately conjunctive: **a domain-meaning reason and independent
+observed evidence, agreeing on the same change.** Evidence without meaning
+over-fits history; meaning without evidence is opinion with a diagram.
 
-Every result also exposes:
+And the required weight of evidence scales with **reversibility**. Renaming
+a module one team owns, with no published contract? Cheap to undo — decide
+on light evidence. Splitting a service with external consumers, a
+versioned API, and a data migration? Expensive to undo — demand multiple
+independent lines of evidence, a staged path, and an explicit reversal
+step. Grading a change's undo-cost *before* arguing about it is the
+discipline; when in doubt, take the smallest reversible step first —
+introduce the boundary and its contract, live with it, and move things
+behind it only once it holds.
 
-```text
-Analysis mode:    <Rapid | Full | Rapid → Full>
-Selection reason: <bounded static check | explicit Full request | escalation condition>
-Decision policy: <field + baseline + threshold + window + sensitivity>
-Graph analysis:  <script/tool + version + input/result hash | Not measured>
-Candidate baseline: <lens-free candidate | none>
-Natural lens:       <pattern | none | explanation only | inspiration only>
-Lens contribution:  <distinct alternative or risk | none>
-Lens falsifier:     <rejection condition + unused field or held-out window | none>
-Transfer:           <mechanism → contribution; break point; evidence result>
-Reversibility:      <high | medium | low + driver |
-                     Unknown — Low bar applies + missing facts |
-                     Not required + reason>
-```
+## Evolution: the smallest sufficient change
 
-## Reversibility sets the evidence bar
+When declared structure and observed evidence disagree, the resolution is
+one move from a small vocabulary — deliberately small, so that every
+structural decision is *nameable* and *recorded*:
 
-Not every topology change costs the same to undo, so not every one deserves the
-same proof. The grade is read from declared facts — consumer count, published
-contracts, data migration, deployment coupling — so it costs no extra analysis.
+| Move | When |
+| ---- | ---- |
+| **Keep** | Declaration and evidence agree — record that, too; it's what makes the next audit cheap |
+| **Place** | A new component gets its address, interface, and neighbor set — the everyday case |
+| **Move** | A component's evidence says it lives in the wrong domain, tier, or layer |
+| **Split** | Independent change/failure clusters share one component |
+| **Merge** | A boundary separates one purpose without buying any decoupling |
+| **Introduce a boundary** | Cross-domain access needs one explicit contract instead of ad-hoc reaches |
+| **Declare a runtime cycle** | A real feedback loop exists; give it bounds, an owner, observability |
+| **Defer** | Evidence is missing or contradictory — say so, and name what's needed |
 
-It applies only where a boundary actually moves: MOVE, SPLIT, MERGE,
-INTRODUCE-BOUNDARY, and a DEFER that withholds one of them. PLACE, KEEP, and
-DECLARE-RUNTIME-CYCLE report it as **Not required**.
+Prefer the smallest move that relieves the pressure, and prefer one
+explicit boundary over a scatter of peer-to-peer exceptions. *Defer* is a
+first-class outcome, not a failure: moving a boundary on insufficient
+evidence is how systems get restructured annually, in a different wrong
+direction each time. And before any restructuring move is accepted, it
+faces the same test as any refactor — measure the before-and-after
+complexity rather than trusting the story; a move that worsens every axis
+while chasing a tidy narrative is still a bad move.
 
-| Grade | Typical situation | What the change must carry |
-| --- | --- | --- |
-| **High** | Internal callers only, no published contract, no data move | Domain reason plus one independent field; a shorter evidence window is acceptable when the reversal path is named |
-| **Medium** | Several internal consumers, shared contract, coordinated deploy | Domain reason plus one independent field meeting its policy, plus the sensitivity check |
-| **Low** | External or cross-team consumers, a published or versioned contract, irreversible data migration, or a separate deployment/ownership boundary | Domain reason plus two independent applicable fields that each meet their declared policy and support the same boundary; at least one field must have authority over the dominant reversal-cost driver. Also require a passing sensitivity check for any generated candidate and a staged path whose reversal step is explicit. If only one field is available, emit DEFER for the Low-reversibility end state; a separately specified precursor may proceed only after it is graded independently and meets its own evidence bar. |
+One more caution, inherited from the biology metaphor itself: analogies
+generate candidates, not verdicts. A structure is never right because it
+resembles a tree, a honeycomb, or anything else elegant. If an analogy
+suggests a design, the design still stands or falls on the software
+evidence — and if the analogy can't be tested against something, it's
+decoration.
 
-Grade from the least-reversible known signal. When the facts needed to exclude a
-Low signal cannot be stated, report **Reversibility: Unknown — Low bar applies**,
-name the missing consumer, contract, data, deployment, or ownership facts in
-**Next action**, and do not accept the Low-reversibility end state until they
-are resolved. Grade any separately specified precursor independently.
+## Homeostasis: making the shape self-maintaining
 
-Reversibility only moves the evidence bar: it never waives a hard invariant,
-never lets Rapid accept a restructuring, and never replaces the
-`structural-simplification` measurement.
+A structural decision that lives only in a diagram will drift again —
+that's how the wall diagram got eighteen months stale in the first place.
+The end of every evolution is therefore enforcement: encode each decided
+static constraint ("domain code may not import infrastructure"; "only the
+orchestrator may call this facade") as an automated import-graph check that
+fails the build. New rules start as warnings until existing violations
+clear, then become errors. Constraints that automation can't see — runtime
+patterns, data ownership, failure isolation — get monitoring and review
+checklists instead, explicitly, so nobody believes the linter covers what
+it doesn't. A living structure needs an immune system, or every boundary
+decision is a suggestion with an expiry date.
 
-## Important distinctions
+## The habit
 
-- **Requirements topology** structures requirements and their prerequisites.
-  Morphogenetic Architecture places implementation components.
-- **Architecture guidelines** decide what belongs inside a component.
-  Morphogenetic Architecture decides where it belongs and what may connect.
-- **Structural simplification** measures complexity deltas for a proposed
-  topology change.
-- **Architecture as code** encodes deterministic static dependency constraints.
+The mindset compresses to this: an architecture is a claim, and the system
+continuously files evidence for and against it. Declare positions and
+allowed directions explicitly — you can't detect drift from an undeclared
+design. Keep the five graphs distinct, and be suspicious of invisible
+edges. When evidence strains a boundary, require meaning *and* measurement
+before moving it, with proof proportional to the cost of being wrong. Make
+the smallest change that relieves the pressure, then encode it so it
+holds. And re-examine whenever the ground shifts by an order of magnitude
+— team count, traffic, data, components — because a shape that fit the old
+scale is under no obligation to fit the new one.
 
-## Reproducible graph analysis
+---
 
-Weighted evidence cannot be narrated into existence. Before generating a cut,
-declare a per-field baseline, metric, threshold, evidence window, minimum group
-size, and sensitivity rule. Then run the bundled deterministic analyzer:
-
-```text
-python scripts/analyze_evidence_graph.py graph.json --pretty
-```
-
-It computes directed SCCs, spectral/Fiedler candidate cuts, normalized cut,
-conductance, and deterministic perturbation sensitivity. Its hashes bind the
-result to the exact input. The output deliberately reports
-`architecture_decision: NOT_EVALUATED`: an eligible cut still needs domain
-meaning and an independent observed field.
-
-If no executable output exists, graph analysis is **Not measured**. If a policy
-is missing, fitted after inspecting a preferred cut, or unstable under its
-declared sensitivity rule, the architecture decision is **DEFER**.
-
-## Natural pattern atlas
-
-The operational atlas contains twelve candidate-generating mechanisms. Enter
-through a one-to-one **operational lens index** keyed by the question or finding
-name — `god component`, `hidden runtime coupling`, `topology drift` — rather
-than browsing. Use at most one operational lens; a hard invariant such as a
-forbidden import cycle needs none.
-
-Before using the atlas, record the lens-free baseline candidate and the
-discovery observations that produced it. The routed lens must add one distinct
-alternative or expose one missed risk, then name its observable falsifier in an
-unused independent field or predeclared held-out window. Test the baseline and
-contribution under the same policy on that validation surface. Discovery
-observations cannot be reused as prospective validation. When the lens adds
-nothing, report `Natural lens: none`; when no unused or held-out validation
-surface remains, mark it `explanation only`. Never cite the lens or mechanism
-in **Boundary evidence**.
-
-**Pattern and differentiation** — what should this component become, and where
-is the seam?
-
-| Natural architecture | Software question it helps ask |
-| --- | --- |
-| **Cell differentiation** | Should one component specialize or split because its position and signals imply different responsibilities? |
-| **Segmentation** and compartments | Should these siblings stay symmetric around one varying parameter, and which peer-to-peer crossings are forbidden? |
-| **Convergent evolution** | Two components independently grew the same solution — is that a missing shared capability or justified duplication? |
-
-**Transport and connection** — how should components reach each other?
-
-| Natural architecture | Software question it helps ask |
-| --- | --- |
-| **Hierarchical branching** | Which named trunks or adapters should distribute access into local twigs? |
-| **Physarum** transport | Which valuable paths should strengthen, and which demonstrably unused edges can be pruned? |
-| **Leaf venation** | Where is a runtime loop worth its cost because it provides measured resilience? |
-| **Stigmergy** | Is coordination happening through shared state, a queue, or a registry rather than through a declared interface — and who owns that medium? |
-| **Endosymbiosis** | Should this external capability be absorbed behind an owned adapter, or stay external with its own lifecycle? |
-
-**Persistence and renewal** — what keeps this form, what should change it, and
-what should leave?
-
-| Natural architecture | Software question it helps ask |
-| --- | --- |
-| **Homeostasis** | Does a feedback cycle have a setpoint, bound, owner, exit, and observability? |
-| **Bone remodeling** | Is pressure persistent enough to justify changing the structure? |
-| **Quorum sensing** | Do these independent peers still need no coordinator, or does measured contention justify one control point? |
-| **Apoptosis** | Is this component being retired through an explicit signal, owner, and cleanup path, or just left to rot? |
-
-Each operational entry carries a concrete **Reject when** condition rather than
-a general “do not infer” warning. The natural mechanism may change what the
-agent tests, but it cannot count as boundary evidence.
-
-### Rationale and exploratory material
-
-**Canalization** remains the rationale for scaling proof to reversal cost, but
-it is not a topology-candidate lens. Grade reversibility only from software
-facts: consumers, contracts, data, deployment, ownership, and the reversal
-path.
-
-Reaction–diffusion, Phyllotaxis/Fibonacci, and Cymatics remain in an exploratory
-appendix. They may prompt questions or visualizations, but they cannot populate
-`Lens contribution` and are always `inspiration only`.
-
-Keep the beauty. Use circles to discuss ownership, overlaps to expose shared
-concerns, spirals to show iterative growth, branches to show distribution,
-lattices to show peer symmetry, and nodal lines to visualize quiet candidate
-boundaries.
-
-Keep the epistemic boundary too. Golden ratios, Fibonacci counts, fractal depth,
-and sacred figures are `inspiration only` unless the software shares the
-natural system's measurable mechanism, objective, and constraints. A beautiful
-shape never supplies the domain reason or independent observed field required
-for a topology change.
-
-## Next steps
-
-- Read the
-  [Rapid topology scan](../.claude/skills/morphogenetic-architecture/references/rapid-topology-scan.md)
-  whenever the selector starts in Rapid; preserve its completed checks if the
-  task escalates to Full.
-- Read
-  [evidence-fields.md](../.claude/skills/morphogenetic-architecture/references/evidence-fields.md)
-  before using telemetry, history, weighting, or graph partitioning.
-- Read
-  [graph-analysis.md](../.claude/skills/morphogenetic-architecture/references/graph-analysis.md)
-  and use the bundled analyzer before reporting SCCs, spectral cuts, cut
-  metrics, or sensitivity.
-- Use the
-  [natural pattern atlas](../.claude/skills/morphogenetic-architecture/references/natural-pattern-atlas.md)
-  through its operational index; record the baseline, one distinct
-  contribution, its falsifier in unused or held-out evidence, the break point,
-  and the software-evidence result.
-- Use
-  [`structural-simplification`](../.claude/skills/structural-simplification/)
-  before accepting MOVE, SPLIT, MERGE, or INTRODUCE-BOUNDARY.
-- Hand static dependency constraints to
-  [`architecture-as-code`](../.claude/skills/architecture-as-code/).
+*Related concepts:
+[architecture guidelines](READ-architecture-guidelines.md) governs what
+happens *inside* a component — this concept governs where components sit
+and how boundaries between them evolve;
+[structural simplification](READ-structural-simplification.md) provides the
+four-axis measurement every restructuring move must pass; and
+[architecture-as-code](READ-architecture-as-code.md) is the enforcement
+mechanism that keeps decided boundaries from drifting. The full operational
+reference — analysis modes, evidence fields, finding taxonomy, and the
+decision record — lives in
+[SKILL.md](../.claude/skills/morphogenetic-architecture/SKILL.md).*

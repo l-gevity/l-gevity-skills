@@ -1,264 +1,171 @@
-# Alchemy
+# Alchemy: The Right Questions, in the Right Order, at the Right Size
+
+Two ways to ruin an engineering discipline. The first is having none: every
+change, from a typo fix to a new service, gets whatever thought the moment
+allows, and the architecture becomes the sum of a thousand unexamined
+decisions. The second is having too much: every change, from a typo fix to
+a new service, must pass the same heavyweight checklist — so the checklist
+gets pencil-whipped within a month, and you're back to the first way with
+extra paperwork.
+
+Alchemy is a design for avoiding both: a fixed sequence of design
+questions — each one a concept in its own right, with its own explainer in
+this collection — plus a dispatcher that decides *how much of the sequence
+a given change deserves*. The questions provide the rigor; the dispatcher
+provides the proportionality; and the ordering rule makes each question's
+answer trustworthy. This document explains all three.
 
 ![Design and Refactor](design_and_refactor.svg)
 
-An adaptive routing skill that qualifies requirements when needed, then
-sequences the seven architecture gates into a deterministic flow. A lightweight
-preflight returns `SKIP`, `DIRECT`, `ADAPTIVE`, or `FULL` before gate bodies are
-loaded. It preserves short focused routes while preventing ungrounded, blocked,
-or unready work from entering Architecture.
+## The questions, and why their order is fixed
 
-> **Reporting vocabulary.** Gate-output phrases below (e.g. "Domain / tier / layer", "Observed fields", and "Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ") match the coder-facing fields defined by [`morphogenetic-architecture`](../.claude/skills/morphogenetic-architecture/SKILL.md) and [`structural-simplification`](../.claude/skills/structural-simplification/SKILL.md).
+Structural work — new modules, cross-boundary refactors, consolidations —
+walks a sequence of gates. Each gate is a question, and the sequence is
+arranged so that **every question is meaningless until the one before it
+has passed**:
 
-## Why use this
+1. **Is it worth building at all?** — the
+   [worth question](READ-functionality-complexity-tradeoff.md): does the
+   problem exist here, and does the value justify the lifetime cost? A
+   "no" here makes every following question moot — which is precisely why
+   it goes first: the most expensive design work is elegant design of
+   something that shouldn't exist.
+2. **What is the smallest correct design?** — the
+   [first-principles question](READ-architecture-guidelines.md): one
+   concern per module, pure core, minimal abstraction.
+3. **Where does it belong?** — the
+   [placement question](READ-morphogenetic-architecture.md): which domain,
+   tier, and layer, with which allowed neighbors — declared structure
+   tested against observed evidence.
+4. **Is the result actually simpler?** — the
+   [measurement question](READ-structural-simplification.md): before/after
+   deltas on the four complexity axes, replacing "it feels cleaner."
+   Placement and measurement work as a handshake: a proposed restructuring
+   isn't accepted on narrative — the move is named, measured, and only
+   then confirmed.
+5. **What enforces it?** — the
+   [enforcement question](READ-architecture-as-code.md): decided
+   boundaries become build-failing rules, in the *same change* as the code
+   they govern — enforcement bolted on later arrives to find the erosion
+   already started.
+6. **Where are defects caught?** — the
+   [shift-left question](READ-defect-shift-left.md): every error path
+   mapped to the earliest stage that can catch it.
+7. **Where does the flow bottleneck?** — the
+   [optimization question](READ-system-optimization.md), deliberately
+   deferred to the *second* iteration: optimizing before a design is
+   stable tunes what's about to change, and stabilization beats
+   optimization every time they compete.
 
-- **Routing becomes deterministic.** The same evidence state selects the same
-  qualification stages and gate order instead of relying on ad hoc judgment.
-- **Natural language stays cheap.** "Do some alchemy" uses the active task and
-  never implies a full gate walk.
-- **Dispatch is the first checkpoint.** The agent selects and reports the route
-  before repository discovery, then inspects only what that route requires.
-- **Companion skills survive core skips.** Matching project, domain, stack, UX,
-  security, accessibility, API, release, or evidence skills still apply.
-- **Requirements are qualified without bloating every route.** Grounding,
-  topology, and readiness run only when evidence, relationships, or build
-  preparation require them.
-- **Speculative generality is caught at Gate 1, not after a rewrite.** Every abstraction has to name a second concrete instance before it lives.
-- **Enforcement never precedes design.** Architecture-as-code rules are written *with* the code, not after — drift between PRs becomes structurally impossible.
-- **Audits recover intent safely.** Existing-code reviews start from an observed
-  structural baseline and only reconstruct requirements when trustworthy intent
-  is absent.
-- **Failure modes are nameable.** Symptom → skipped stage → recovery is an
-  explicit diagnostic table, not a vibe.
+The macro-structure is the part worth internalizing: **questions 1–4 shape
+the design, 5–6 enforce it, 7 tunes it** — and running them out of order
+produces recognizable pathologies. Enforcing before shaping locks in
+accidents. Optimizing before enforcing tunes a structure that's still
+leaking. Designing before asking "worth it?" produces beautiful
+unnecessary things.
 
-## Fundamental principles
+Upstream of gate 1, the same ordering logic extends into requirements:
+before "is it worth building?" can be answered honestly, the problem must
+be [grounded](READ-requirements-grounding.md) (real actor, real evidence),
+non-trivial requirement sets get a
+[dependency structure](READ-requirements-topology.md), and only work that
+passes a [readiness check](READ-implementation-readiness.md) may enter
+design at all — with
+[traceability](READ-requirements-traceability.md) as the follow-through
+once building starts, and a
+[test-strategy](READ-test-strategy.md) pass on either side of design:
+evidence obligations defined before architecture, the concrete test
+portfolio finalized after it. These aren't extra gates so much as the same
+principle — *don't answer a question whose prerequisite is unanswered* —
+applied before the pipeline as well as inside it.
 
-Most over-engineering is timing, not capability. Run enforcement before necessity and the architecture freezes whatever the design got wrong on the first pass. The gates exist because the failure modes are systematic.
+## The dispatcher: process proportional to structural risk
 
-- **Order matters.** Gates 1–4 shape *what* gets built. Gates 5–6 enforce *what was decided*. Run 5 before 1 and you machine-check a speculative design.
-- **Name the second instance.** Rule of 3 is the null hypothesis; an abstraction without a named second concrete user is YAGNI.
-- **Same PR, same gates.** `eslint.architecture.mjs` ships with the code it governs. Follow-up PRs to "add the rules" are drift.
-- **Defer optimization.** `system-optimization` requires a stable baseline; running it on iteration 1 optimizes a system that has not yet faced real change.
-- **Audit starts at `C₀`.** The read-only structural baseline exposes hot-spots
-  and bounds any conditional requirements-recovery work before remediation.
-- **Resume from evidence.** Re-entry starts at the latest trustworthy decision
-  artifact and returns to the earliest failed stage instead of replaying the
-  whole pipeline.
+Here's the part that keeps the sequence alive in practice. The full walk
+is *earned by the change, not owed by the process*. Before anything else,
+a change is classified by one question: **how much structure could this
+alter?**
 
-## How to use
+- **Skip** — copy edits, CSS tweaks, routine dependency bumps, an isolated
+  bug fix inside one governed boundary. Structural risk: none. Process:
+  none. Fix the thing.
+- **Direct** — the change poses exactly one clear question. "Should this
+  dead code exist?" is the worth question alone. "Could this have been
+  caught earlier?" is the shift-left question alone. One question, one
+  gate, done.
+- **Adaptive** — structure genuinely moves: responsibilities shift,
+  boundaries change, a new module appears. Walk the *smallest set of gates
+  the change actually implicates*, in order.
+- **Full** — the complete traversal, reserved for when someone explicitly
+  asks for it, typically a deep audit. Uncertainty is *not* a reason to go
+  full: the answer to "not sure how big this is" is the smallest plausible
+  route plus honesty about the uncertainty, not maximum ceremony.
 
-The skill is a command entrypoint. Use it for **designing** a new module,
-**auditing** existing code for over-engineering, or running one focused gate.
+The classification happens *before* any deep investigation — from the
+request and readily available context — because a dispatcher that must
+study everything before deciding what to skip has already not skipped it.
 
-```
-/alchemy <subject>   | $alchemy <subject>   route through the needed gates
-/alchemy audit <subject> | $alchemy audit <subject> start at the C₀ baseline
-/alchemy full <subject>  | $alchemy full <subject>  traverse all justified stages
-/alchemy M <subject> | $alchemy M <subject> Minimum: worth it?
-/alchemy A <subject> | $alchemy A <subject> Architecture: sound design?
-/alchemy L <subject> | $alchemy L <subject> Locality: where belongs?
-/alchemy C <subject> | $alchemy C <subject> Complexity: simpler?
-/alchemy E <subject> | $alchemy E <subject> Enforcement: rules as code?
-/alchemy H <subject> | $alchemy H <subject> Hermetic: catch earlier?
-/alchemy Y <subject> | $alchemy Y <subject> Yield: optimize flow?
-/alchemy left <subject> | $alchemy left <subject> detect defects earlier
-/alchemy out <subject>  | $alchemy out <subject> move toil out of humans
-/alchemy down <subject> | $alchemy down <subject> move bespoke code down
-```
+Why the proportionality matters more than it looks: a discipline that
+costs too much on small changes doesn't merely waste time — it trains
+everyone to route around the discipline, and then the *large* changes
+escape too. The skip lane isn't a concession to laziness. It's what makes
+the full lane credible.
 
-Use `/alchemy ?` or `$alchemy ?` to print the grammar without running a gate.
-Natural equivalents such as `do some alchemy`, `run alchemy on this`, and `give
-this an alchemy pass` run adaptive dispatch over the active task.
+Two rules keep the dispatcher honest. **Skips are recorded, with a
+one-line reason** — "topology skipped: single bounded requirement, no
+dependencies" costs ten seconds, and the difference between a *decided*
+skip and a *forgotten* question is the entire difference between
+proportionality and negligence; a recorded skip can be audited, a
+forgotten question can't even be found. And **narrow questions get narrow
+answers**: asking the placement question alone doesn't license a full
+traversal — scope creep in process is still scope creep.
 
-1. **Identify the trigger.** Introducing a new module / service / library, refactoring across module boundaries, designing a new abstraction, extracting a sub-component into a package, or auditing existing code for over-engineering.
-2. **Prompt the AI.**
+## Resume; don't relitigate
 
-   > *Design:* "/alchemy I'm extracting the import logic into its own module so it can ship to npm."
-   >
-   > *Audit:* "/alchemy audit `packages/shared-ui/js/biomarker-import/`. Flag any speculative generality."
-   >
-   > *Shorthand:* "/alchemy this auth refactor."
-   >
-   > *Natural:* "Do some alchemy on this auth refactor."
-   >
-   > *Focused gate:* "/alchemy E the new module boundaries."
-   >
-   > *DevOps improvement triad:* "/alchemy out release handoffs."
+The third idea, easily overlooked: the gates produce **decision records**
+— a worth verdict with its evidence, a placement with its rationale, a
+measured delta. When work continues, it *resumes from the latest
+trustworthy record* rather than starting over.
 
-3. **Read the verdict.** The default response is terse: dispatch, core route,
-   companions, verdict, reason, and next action. Full gate tables appear only
-   for multi-gate runs, non-trivial design/refactor passes, audits, or explicit
-   requests for detail.
-4. **Apply the fix.** For focused gates, apply only that gate's next action. For
-   full passes, qualify uncertain requirements, stop at the first non-passing
-   decision, drop everything M rejects, place each surviving component at its
-   Domain / Tier / Layer position, run the bounded
-   `L candidate → C measurement → L acceptance` handshake for a structural
-   topology change, write the architecture file only after final L acceptance,
-   and move every error path to its earliest catchable stage.
+This has two consequences. Decisions don't get relitigated for free — the
+worth question, once answered with evidence, stays answered until new
+evidence arrives; process that re-asks settled questions teaches people
+that its questions don't stay answered, which is another road to
+pencil-whipping. And failure has an address: when a gate fails, work
+returns *to the specific failed question* — a complexity measurement that
+rejects a design returns to the design question, not to square one; a
+readiness blocker returns to the decision that's actually missing.
+"Start over" is almost never the right granularity, in code or in
+process.
 
-## Requirements Qualification Phase
+Auditing existing code runs the same machinery from the other end: start
+by *measuring* the structure as it stands (read-only — where is the
+complexity concentrated?), recover the original intent only where it's
+genuinely missing or disputed, then re-ask the worth question of what's
+found and walk only the gates the remediation itself requires. Old code
+gets judged by the same standard as new proposals — a feature that would
+be rejected as a proposal today should not survive as code today merely
+because it exists.
 
-The three requirements skills span **M — Minimum** without becoming new letters
-in A.L.C.H.E.M.Y.:
+## The habit
 
-```text
-requirements-grounding, when meaning or evidence is absent or stale
-→ M — Minimum
-→ requirements-topology, when relationships are non-trivial
-→ implementation-readiness
-→ A — Architecture
-```
+The three ideas compress cleanly. *Fixed questions, fixed order* — worth,
+design, placement, measurement, enforcement, detection, flow; each
+meaningless until its predecessor passes. *Proportional entry* — the
+change's structural risk, not habit or anxiety, decides how many of them
+run; most changes deserve none, and that's the feature that keeps the rest
+honest. *Resume from decisions* — answers are artifacts; work continues
+from the last trustworthy one and returns to the exact question that
+failed. Any team can run this with a wiki page and discipline; the value
+isn't in tooling, it's in never designing what shouldn't exist, never
+enforcing what isn't designed, and never optimizing what isn't stable.
 
-- `GROUNDED` work may enter M; `PROVISIONAL` and `NOT-GROUNDED` return to
-  grounding.
-- M alone owns `BUILD`, `KEEP`, `SIMPLIFY`, `DEFER`, `DROP`, and `OBSOLETE`.
-- Grounding may supply linked outcome hypotheses as value evidence, but keeps
-  downstream impact separate from requirement completion and never issues M's
-  worth verdict.
-- `STABLE` topology may enter readiness; `NEEDS-REFACTOR` and `BLOCKED` return
-  upstream.
-- `READY` may enter A. `PARTLY-READY` may enter only as a bounded reversible
-  slice whose unresolved requirements cannot change its meaning or
-  verification. `NOT-READY` stops.
-- A single bounded independent requirement may skip topology when the decision
-  trail records why.
+---
 
-Focused aliases remain focused. If `/alchemy A` lacks a trustworthy readiness
-decision, it reports that prerequisite instead of silently running the full
-phase.
-
-After readiness admits a slice, `requirements-traceability` follows work through
-implementation, verification, review, and closeout. It is not another
-qualification stage or gate: readiness defines what evidence will be needed;
-traceability records implementation separately from executed proof and follows
-linked outcome hypotheses into representative use.
-
-When a hypothesis revisit trigger fires, Traceability supplies the exact
-hypothesis version, evidence state, freshness, and observation links to M. M
-runs a bounded Retrospective worth decision. This does not create a backward
-pipeline edge, restart qualification, or let Traceability issue a worth verdict.
-
-When verification design is material, `test-strategy` joins as a two-pass
-task-matched companion:
-
-```text
-Readiness
-→ Obligation pass: risks, failure modes, oracles, confidence
-→ A/L/C/E
-→ Portfolio pass: technique, scope, fidelity, dependencies, data,
-  environment, stimulus
-→ H
-```
-
-Use a Combined pass only for stable accepted architecture. Defect Shift-Left
-places checks, CI/CD owns pipeline execution triggers and gates them, and
-traceability records proof state. Test Strategy does not add an A.L.C.H.E.M.Y.
-letter or gate.
-
-## The seven gates at a glance
-
-| #   | Gate                          | Skill                                                                                | Output                                       |
-|-----|-------------------------------|--------------------------------------------------------------------------------------|----------------------------------------------|
-| **1** | Necessity check               | [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/)                      | BUILD / KEEP / SIMPLIFY or stop per candidate |
-| **2** | First principles              | [`architecture-guidelines`](../.claude/skills/architecture-guidelines/)                             | Smallest correct design                      |
-| **3** | Morphogenetic topology        | [`morphogenetic-architecture`](../.claude/skills/morphogenetic-architecture/)                       | Rapid/Full mode plus a final topology decision, or one candidate requiring Gate 4 measurement |
-| **4** | Complexity measurement        | [`structural-simplification`](../.claude/skills/structural-simplification/)                         | Four structural deltas, then Gate 3 acceptance when restructuring |
-| **5** | Architecture as code          | [`architecture-as-code`](../.claude/skills/architecture-as-code/) (pattern); [`-javascript`](../.claude/skills/architecture-as-code-javascript/) / [`-python`](../.claude/skills/architecture-as-code-python/) (impl) | Per-module architecture config        |
-| **6** | Shift defect detection left   | [`defect-shift-left`](../.claude/skills/defect-shift-left/)                                         | Each error path → earliest catchable stage   |
-| **7** | Optimize the value stream     | [`system-optimization`](../.claude/skills/system-optimization/)                                     | Constraint analysis (deferred to iter 2)     |
-
-The skill does not duplicate sibling content. Each gate is one row in this table; running a gate means invoking its sibling skill.
-
-Gate 3 starts in Rapid for bounded placement and static-edge checks, then
-escalates to Full for restructuring, multi-field evidence, broad scope,
-ambiguity, or an explicit deep audit. The trail records `Analysis mode` and
-`Selection reason`; a `rapid` or `quick` request cannot bypass a required
-`Rapid → Full` escalation. Gate 3 `Full` is local to topology analysis;
-Alchemy `FULL` still means full gate traversal and does not override the Gate 3
-selector.
-
-For `MOVE`, `SPLIT`, `MERGE`, or `INTRODUCE-BOUNDARY`, Gate 3 first emits
-`DEFER` with one candidate and its measurement request. Gate 4 reports the four
-deltas, then Gate 3 re-enters once for that unchanged candidate and emits the
-final decision. Gate E remains blocked until this
-`L candidate → C measurement → L acceptance` handshake completes.
-
-## DevOps improvement triad
-
-The triad is separate from the core seven-gate sequence:
-
-| Command | Skill | Use when |
-|---------|-------|----------|
-| `/alchemy left` | [`defect-shift-left`](../.claude/skills/defect-shift-left/) | Defects are found too late; move detection to the earliest capable stage. |
-| `/alchemy out` | [`push-out`](../.claude/skills/push-out/) | Recurring operational work lives in human memory, tickets, or local team practice. |
-| `/alchemy down` | [`bring-down`](../.claude/skills/bring-down/) | Bespoke, duplicated, or over-local code should move into reusable capability. |
-
-Run triad commands directly when the user names the move. `/alchemy Y` can
-recommend `out` or `down` when a bottleneck is toil or bespoke implementation,
-but the triad does not run by default inside the seven-gate sequence.
-
-## The retrospective entry
-
-When auditing existing code, begin with `C₀`, a read-only structural baseline.
-Recover provisional requirements only when current intent is missing, stale,
-contradictory, or disputed:
-
-| Step | Skill                                                          | Action                                                                              |
-|------|----------------------------------------------------------------|-------------------------------------------------------------------------------------|
-| **1 — C₀** | [`structural-simplification`](../.claude/skills/structural-simplification/) | Establish the current structural baseline and bound the hotspot. |
-| **2 — conditional** | [`requirements-grounding`](../.claude/skills/requirements-grounding/) | Recover evidence-linked intent when no trustworthy current requirement exists. |
-| **3** | [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/) | Decide whether bounded existing functionality remains necessary and worthwhile. |
-| **4 — conditional** | [`requirements-topology`](../.claude/skills/requirements-topology/) and [`implementation-readiness`](../.claude/skills/implementation-readiness/) | Structure non-trivial remediation dependencies and admit the smallest coherent slice. |
-| **5** | Remaining A.L.C.H.E.M.Y. gates | Redesign, enforce, and shift defects left as the remediation requires. |
-
-Implementation remains evidence rather than product intent: code-derived
-requirements stay provisional until supported by an authoritative artifact or
-independent confirmation.
-
-## The failure-mode diagnostic
-
-When a design ships overbuilt or under-qualified, the symptom usually points at
-one skipped stage. The diagnostic table now also catches assumed or stale
-problems, cyclic or contradictory requirement ordering, invented implementation
-meaning, and unsafe `PARTLY-READY` slices.
-
-- Interface added "for the second implementation" but the second never lands → Gate 1, Rule of 3.
-- Generic registry / plugin system with one entry → Gate 1, generality without instantiation.
-- Empty config / config with one value across all envs → Gate 1, one-value config.
-- `if (impossible_state)` runtime guards → Gate 1, impossible-state guard.
-- Cross-domain imports bypass the declared boundary → Gate 3, topology violated.
-- Refactor "felt simpler" but no measurement → Gates 3–4, topology candidate not accepted.
-- Eslint rules added in follow-up PR → Gate 5, same-PR discipline broken.
-- Architecture file disagrees with code → Gate 5, drift.
-- Defects caught at runtime that types could express → Gate 6, left-shift not applied.
-
-Each row points back to the gate that would have caught it prospectively.
-
-## Dispatch behavior
-
-- `SKIP`: in-boundary bug fix, content/copy, CSS, routine dependency bump, or
-  trivial rename; load no core gate, but retain matching companion skills.
-- `DIRECT`: one focused alias or one unambiguous M/H/triad concern.
-- `ADAPTIVE`: structure, responsibility, data flow, abstraction, requirements,
-  or boundaries may change.
-- `FULL`: only explicit `full`, `all`, `walk the gates`, or `complete alchemy`.
-
-## Next steps
-
-- See [SKILL.md](../.claude/skills/alchemy/SKILL.md) for the full pre-flight checklist, gate sequence, and failure-mode diagnostic table.
-- For the necessity gate (Gate 1) and what it catches in detail, see [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/).
-- For the adaptive qualification phase, see
-  [`requirements-grounding`](../.claude/skills/requirements-grounding/),
-  [`requirements-topology`](../.claude/skills/requirements-topology/), and
-  [`implementation-readiness`](../.claude/skills/implementation-readiness/).
-- For post-readiness evidence, see [`requirements-traceability`](../.claude/skills/requirements-traceability/).
-- For risk-driven verification design, see [`test-strategy`](../.claude/skills/test-strategy/).
-- For first-principles rules driving Gate 2, see [`architecture-guidelines`](../.claude/skills/architecture-guidelines/).
-- For declared placement, observed coupling fields, and topology evolution at Gate 3, see [`morphogenetic-architecture`](../.claude/skills/morphogenetic-architecture/).
-- For the per-axis complexity scoring used at Gate 4, see [`structural-simplification`](../.claude/skills/structural-simplification/).
-- For the enforcement files produced at Gate 5, see [`architecture-as-code`](../.claude/skills/architecture-as-code/) (the pattern), with [`-javascript`](../.claude/skills/architecture-as-code-javascript/) and [`-python`](../.claude/skills/architecture-as-code-python/) as concrete implementations.
-- For the shift-left hierarchy applied at Gate 6, see [`defect-shift-left`](../.claude/skills/defect-shift-left/).
-- For the constraint analysis applied at Gate 7, see [`system-optimization`](../.claude/skills/system-optimization/).
-- For the DevOps improvement triad, see [`defect-shift-left`](../.claude/skills/defect-shift-left/), [`push-out`](../.claude/skills/push-out/), and [`bring-down`](../.claude/skills/bring-down/).
-- For the meta-loop that updates this skill when a gate is repeatedly skipped, see [`continuous-improvement`](../.claude/skills/continuous-improvement/).
+*Each gate's underlying concept has its own explainer, linked above; the
+[shift-left](READ-defect-shift-left.md) / [push-out](READ-push-out.md) /
+[bring-down](READ-bring-down.md) improvement trio runs alongside the
+pipeline for detection timing, operational toil, and code altitude. The
+full operational reference — command grammar, dispatch rules, gate
+handshakes, and the decision-trail format — lives in
+[SKILL.md](../.claude/skills/alchemy/SKILL.md).*

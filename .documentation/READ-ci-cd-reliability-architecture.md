@@ -1,83 +1,169 @@
-# CI/CD Reliability Architecture
+# Reliable Pipelines: Deploys You Can Run Twice
+
+The deploy fails halfway. The new version is on three servers out of six,
+the database migration ran, the cache config didn't, and the person who
+understands this pipeline is on a plane. Someone asks the question that
+defines the next four hours: *"can we just run it again?"*
+
+If the honest answer is "nobody knows" — re-running might fix everything,
+double-apply the migration, or take the site down — then the pipeline isn't
+automation. It's a loaded script. The difference between the two is not
+luck or tooling; it's a small set of architectural properties that can be
+designed in, checked for, and enforced. This document explains them.
 
 ![CI/CD Reliability](cicd_reliability.svg)
 
-A pipeline-design SKILL for builds and deployments that converge safely when retried, build artifacts once, promote with evidence, deploy without downtime, and authenticate without standing cloud credentials.
+## Idempotency: safe to run twice
 
-## Why use this
+The foundational property is **idempotency**: a step converges to the same
+desired state whether it runs once, twice, or is retried after a partial
+failure. `mkdir -p` is idempotent; `mkdir` is not. "Create the new
+credential, then remove the old one if present" is idempotent; "delete the
+old credential, then create the new one" is not — and the gap between its
+two steps is a window where nothing works.
 
-- **Pipelines become safe to retry.** Idempotent jobs converge to the same desired state whether skipped, run once, or retried — no partial state, no clean-up rituals.
-- **"Works in staging, broken in prod" stops happening.** One immutable artifact moves through environments; config is injected at deploy time, not baked at build time.
-- **Deploys don't drop traffic.** Preview environments per PR, atomic promotion, post-deploy health checks, automatic rollback.
-- **Stored cloud credentials disappear.** OIDC federation issues short-lived tokens; the pipeline proves identity instead of presenting a secret.
-- **Platform-builder surprises stop shipping stale code.** Every build runs in a dedicated fail-fast CI step; the deploy action receives a pre-built artifact.
-- **A successful deploy is not mistaken for a healthy release.** Promotion records artifact provenance, passes preflight, observes a bounded production-verification window, and hands off to a named operational owner.
+Idempotency is what makes the 2am question boring. When every step is
+idempotent, "can we just run it again?" is always answered *yes* — the
+pipeline picks up where reality actually is and converges to where it
+should be. Writing steps this way costs a little more thought up front
+(check-then-act, conditional writes like `WHERE version = X`,
+create-before-delete) and pays for itself the first time anything fails
+midway — which, over enough deploys, is a certainty, not a risk.
 
-## Fundamental principles
+The same property scales up to infrastructure: declarative tools (Terraform,
+Bicep, Pulumi) are, at bottom, idempotency engines — you state the desired
+state and the tool computes the difference from what exists. Imperative
+scripts can be made idempotent by hand; at scale, the declarative form does
+it by construction.
 
-CI/CD reliability is mostly the application of six rules. When pipelines fail in surprising ways — duplicated work, environment skew, dropped requests, leaked credentials — it is almost always because one of these six was assumed instead of designed.
+## Self-contained steps: no invisible handoffs
 
-- **Idempotent.** Safe to run 0, 1, or N times. Same result every time.
-- **Self-contained.** Each job declares its inputs, outputs, and failure mode; never assumes upstream state.
-- **Immutable artifacts.** Build once, promote everywhere. Tag with the commit SHA; inject config at deploy time.
-- **Self-healing.** Transient failures auto-retry with backoff; permanent failures fail fast.
-- **Zero-downtime.** Preview environments, atomic promotion, never touch production directly.
-- **Zero-knowledge.** No standing cloud secrets; dynamic tokens via OIDC/STS; unavoidable application secrets stay in a managed secrets store.
-- **Evidence-gated promotion.** The six rules culminate in `BUILD-VERIFIED → RELEASE-READY → DEPLOYING → PRODUCTION-VERIFYING → DEPLOYED-HEALTHY`; failure blocks or rolls back.
+A pipeline step that "just knows" things — that the previous job left files
+in a certain directory, that the runner has a tool installed, that some
+environment variable is set — works until the day the assumption breaks,
+and then fails in a way that points nowhere near the cause.
 
-## Release and production promotion
+The fix is a contract: every job explicitly declares its **inputs** (which
+upstream jobs it needs, which artifacts it downloads — never assumes are
+present), its **outputs** (named, namespaced by commit SHA so parallel runs
+can't collide), and its **failure mode** (fail fast by default, with an
+explicit timeout so a hung step can't silently absorb an hour). A pipeline
+built from self-contained steps can be reordered, parallelized, retried,
+and debugged step by step. One built on ambient assumptions can only be run
+end-to-end and prayed over.
 
-Before production mutation, validate configuration, contracts, migration
-reversibility, secrets, IAM, and capacity. Promote the verified artifact digest
-with an atomic, blue/green, or canary strategy. A bounded production-verification
-window checks health, errors, latency, and availability; threshold breaches roll
-back automatically. Record the evidence and hand off only to a named owner.
+## Immutable artifacts: build once, promote
 
-## How to use
+Here's a quiet source of production surprises: the code that was tested in
+staging and the code that reached production were *never the same bytes*.
+The pipeline rebuilt between environments, and the second build pulled a
+slightly newer dependency, or ran with different flags, or embedded a
+different config. All the testing validated an artifact that was then
+thrown away.
 
-The skill has two modes: **design** a new pipeline, or **audit** an existing one.
+The principle that eliminates this class of failure entirely:
 
-1. **Identify the workflow or deploy target.** A new GitHub Actions pipeline, an existing flaky deploy, or a single job that keeps producing partial state.
-2. **Prompt the AI.**
+> **Build once. Promote the same artifact through every environment.**
 
-   > *Design:* "Design the CI/CD pipeline for a Node service deploying to Azure App Service with preview environments per PR."
-   >
-   > *Audit:* "Audit `.github/workflows/deploy.yml` against ci-cd-reliability-architecture. Flag idempotency gaps, missing health checks, and any standing cloud credentials."
+The build step produces one versioned, immutable artifact — an image, a
+bundle, an archive — tagged with the commit SHA (branch names move; SHAs
+don't). Everything environment-specific (API URLs, feature flags, secrets)
+is injected at *deploy* time, never baked in at build time — same artifact,
+different config. "Promote to production" then means *deploy the exact
+bytes that passed staging*, and — the underrated payoff — **rollback**
+means *redeploy yesterday's known-good artifact from the registry*: a
+two-minute operation, instead of reverting code, rebuilding, and hoping the
+new build behaves like the old one did.
 
-3. **Read the verdict.** The skill names the violated rule (idempotency / self-containment / immutability / self-healing / zero-downtime / zero-knowledge) and gives the standard fix.
-4. **Apply the fix.** Replace `npm install` with `npm ci`; tag artifacts by SHA; switch from standing cloud credentials to OIDC; add the post-deploy health check and rollback step.
+One trap deserves its own warning: deploy platforms that helpfully rebuild
+your app for you. Implicit platform builders are notorious for reporting
+success while a sub-build quietly failed, shipping stale output. The build
+belongs in your CI, as an explicit fail-fast step; the deploy step should
+receive a finished artifact, not source code and optimism.
 
-## Common anti-patterns and their fixes
+## Self-healing: retry the transient, refuse the permanent
 
-| Anti-pattern                                      | Fix                                                          | Rule violated      |
-|---------------------------------------------------|--------------------------------------------------------------|--------------------|
-| `npm install` in CI                               | `npm ci` (lock-file exact match)                             | Idempotency        |
-| Rebuild per environment                           | Build once; promote the same artifact                        | Immutable artifacts|
-| URLs/secrets baked into build output              | Inject config at deploy time                                 | Immutable artifacts|
-| Delegate build to platform (Oryx, Buildpacks, …)  | Build in dedicated CI step; deploy receives pre-built output | Immutable artifacts|
-| Stored cloud password / long-lived deploy key     | OIDC federated identity -> short-lived token                  | Zero-knowledge     |
-| Deploy without post-deploy validation             | Health check + automatic rollback on failure                 | Self-healing       |
-| No timeout on long-running steps                  | Explicit `timeout:` on every step                            | Self-healing       |
-| Stomping on shared paths between jobs             | Namespace artifacts by SHA/run ID; explicit artifact fetch   | Self-contained     |
-| Leaving in-progress runs to fight each other      | `cancel-in-progress: true` on the same branch                | Zero-downtime      |
+Failures come in two kinds, and treating them identically is wrong in both
+directions:
 
-## Delivery checklist (critical items)
+- **Transient** — a timeout, a connection refused, an HTTP 503. The world
+  hiccupped; the same request may succeed in ten seconds. These deserve a
+  bounded retry with exponential backoff.
+- **Permanent** — a 404, a missing file, a syntax error, a failed
+  assertion. The same input will fail the same way forever. Retrying is
+  noise at best; at worst it masks the error until it's expensive. These
+  deserve an immediate, loud failure.
 
-- [ ] Idempotent: converges to the same desired state if skipped, run once, or retried.
-- [ ] Timeouts on every long-running step.
-- [ ] Build once in a dedicated fail-fast CI step; deploy receives the pre-built artifact.
-- [ ] OIDC / federated identity for cloud auth; no standing cloud credentials.
-- [ ] Post-deploy health check present; rollback on failure.
-- [ ] Preview environment per PR; atomic promotion to production on merge.
-- [ ] `cancel-in-progress` enabled; only the latest commit deploys.
-- [ ] Artifact provenance, preflight results, rollout thresholds, verification outcome, and operational owner recorded.
+Retrying permanent failures wastes minutes and buries the signal; failing
+fast on transient ones makes the pipeline flaky and teaches people to
+click "re-run" reflexively — which then hides *real* failures too. And
+after every deploy, one non-negotiable check closes the loop: a health
+probe against the deployed service, with automatic rollback on failure. A
+deploy that ends at "the script exited 0" has verified that the *script*
+worked, not that the *service* does.
 
-## When to skip
+## Zero-downtime: never operate on the live patient
 
-One-off scripts, throwaway prototypes, scratch repos with no deploy target. The framework earns its keep the first time a flaky deploy drops traffic — which is to say, immediately.
+The pattern behind every zero-downtime strategy is the same three-step
+shape: **prepare the new thing next to the old thing → verify it → switch
+atomically.** Deploy to a staging slot or preview environment, health-check
+it there, then swap traffic — letting in-flight requests drain rather than
+force-killing instances mid-request. Its inverse is the anti-pattern behind
+most self-inflicted outages: modify the live thing in place and verify
+afterward, with users as the test harness.
 
-## Next steps
+The same "old and new must coexist" logic governs contracts. During any
+rollout, some clients still speak yesterday's API against today's server —
+so changes must be additive, with breaking changes versioned and deprecated
+on a schedule, and database schema changes made in *expand/contract* style:
+add the new column, migrate readers and writers, and only then drop the old
+one, so every intermediate state works with both versions.
 
-- See [SKILL.md](../.claude/skills/ci-cd-reliability-architecture/SKILL.md) for the full reference (per-section anti-pattern tables, OIDC pseudocode, secret rotation procedure, IaC delete-and-recreate pattern, full pre-merge checklist).
-- For shifting reliability checks earlier in the pipeline, see [`defect-shift-left`](../.claude/skills/defect-shift-left/).
-- For build-time architectural enforcement (the dependency graph itself), see [`architecture-as-code`](../.claude/skills/architecture-as-code/) (the pattern), with [`-javascript`](../.claude/skills/architecture-as-code-javascript/) and [`-python`](../.claude/skills/architecture-as-code-python/) as concrete implementations.
+## Zero-knowledge secrets: the best credential is none
+
+Every long-lived credential stored in CI is a standing liability: it can
+leak in a log, be exfiltrated from a compromised runner, or simply be
+forgotten and never rotated. The modern posture minimizes what exists to
+steal. For cloud auth, federated identity (OIDC) lets the pipeline *prove
+who it is* per run and receive a short-lived token — no stored password at
+all, nothing to leak that's still valid an hour later. Secrets that must
+exist live in a managed store with audit logging and rotation, and rotation
+follows the idempotent order: **create the new, apply it everywhere,
+verify, then delete the old** — never delete-first, whose gap is downtime.
+
+## Promotion is evidence, not a command
+
+The final principle ties the rest together: reaching production is not "the
+deploy command exited 0." It's a sequence of gates, each demanding evidence
+before the next state is allowed — the artifact is the same digest that
+passed testing; pre-deploy checks (config, migrations, secrets,
+permissions, rollback artifact on hand) all passed *before anything was
+mutated*, while aborting was still free; the rollout strategy had explicit
+health thresholds; and a bounded verification window watched error rates
+and latency after the switch, with breach triggering automatic rollback.
+Only then is the release *done* — recorded, and handed to a named owner.
+
+Each gate is a place where a bad release stops cheaply instead of
+expensively. A pipeline without them doesn't ship faster; it just finds
+out later.
+
+## The habit
+
+The properties compress into one interrogation you can run against any
+pipeline — yours or one you've inherited: *If this fails halfway, can I run
+it again safely? Are the bytes in production the bytes that were tested?
+Does each step declare what it needs, or assume it? What happens
+automatically when the health check fails? What is standing still,
+credential-wise, that could be short-lived instead? And what evidence, not
+optimism, gates the promotion?* Every "I don't know" is a 2am call that
+hasn't happened yet.
+
+---
+
+*Related concepts: [shift-left](READ-defect-shift-left.md) governs where
+each verification gate belongs — at the earliest stage able to catch its
+defect; [flow](READ-system-optimization.md) optimizes the value stream that
+runs *on top of* a reliable pipeline (stability first, then speed). The
+full operational reference for this concept — checklists, gate tables, and
+the promotion state machine — lives in
+[SKILL.md](../.claude/skills/ci-cd-reliability-architecture/SKILL.md).*

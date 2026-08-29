@@ -32,111 +32,12 @@ OUTPUT_MARKERS = (
     "Emit a coder-facing",
 )
 PYTHON_CACHE_SUFFIXES = {".pyc", ".pyo"}
-PRIMER_REQUIRED_TERMS = {
-    "alchemy": (
-        "Requirements Qualification Phase",
-        "Dispatch behavior",
-        "do some alchemy",
-        "companion skills",
-        "requirements-grounding",
-        "requirements-topology",
-        "implementation-readiness",
-        "requirements-traceability",
-        "PARTLY-READY",
-        "C₀",
-        "L candidate → C measurement → L acceptance",
-        "Retrospective",
-    ),
-    "architecture-as-code": (
-        "`architecture-guidelines` or `morphogenetic-architecture`",
-    ),
-    "bring-down": (
-        "L4 CODE",
-        "L3 LIB",
-        "L2 STD",
-        "L1 PLP",
-        "L0 SRVC",
-        "same-team",
-    ),
-    "ci-cd-reliability-architecture": (
-        "Release and production promotion",
-        "BUILD-VERIFIED",
-        "PRODUCTION-VERIFYING",
-        "DEPLOYED-HEALTHY",
-    ),
-    "continuous-improvement": (
-        "consumer project",
-        "canonical library",
-        "repinning the consumer",
-    ),
-    "requirements-grounding": (
-        "project profile",
-        "canonical editable source",
-        "generated registers",
-        "Outcome hypotheses",
-        "working capability",
-        "authoritative obligation",
-        "functionality-complexity-tradeoff",
-        "requirements-traceability",
-        "freshness",
-    ),
-    "requirements-topology": (
-        "Repository enforcement",
-        "Semantic checks",
-        "blocking CI backstop",
-    ),
-    "implementation-readiness": (
-        "Post-readiness traceability",
-        "requirements-traceability",
-        "independent",
-    ),
-    "morphogenetic-architecture": (
-        "Declared topology",
-        "Observed fields",
-        "Rapid topology scan",
-        "Rapid → Full",
-        "Analysis mode:",
-        "Selection reason:",
-        "runtime feedback loops",
-        "Reproducible graph analysis",
-        "Decision policy:",
-        "Graph analysis:",
-        "Natural pattern atlas",
-        "Nature may propose",
-        "Reversibility:",
-        "operational lens index",
-        "Candidate baseline:",
-        "held-out evidence window",
-    ),
-    "requirements-traceability": (
-        "bidirectional",
-        "implemented",
-        "verified",
-        "CI enforcement",
-        "Outcome evidence",
-        "freshness",
-        "functionality-complexity-tradeoff",
-    ),
-    "functionality-complexity-tradeoff": (
-        "Outcome evidence closes the loop",
-        "requirements-grounding",
-        "requirements-traceability",
-        "freshness",
-        "M still decides",
-    ),
-    "test-strategy": (
-        "risk-driven",
-        "oracle",
-        "smallest sufficient",
-        "Alchemy companion",
-        "Obligation pass",
-        "Portfolio pass",
-        "stimulus",
-        "defect-shift-left",
-        "ci-cd-reliability-architecture",
-        "requirements-traceability",
-    ),
-}
+# Primers (.documentation/READ-*.md) are concept explainers for non-architect
+# developers, not mirrors of skill operational contracts. Operational-contract
+# terms are validated in SKILL.md, README.md, CLAUDE.md, and
+# ALCHEMY-PIPELINE-DESIGN.md only; primers are checked structurally
+# (existence, canonical backlink, README index links, forbidden legacy
+# vocabulary) in validate_primers() and PUBLIC_DOC_FORBIDDEN.
 SKILL_REQUIRED_TERMS = {
     "alchemy": (
         "Adaptive Requirements Qualification",
@@ -676,17 +577,6 @@ def validate_morphogenetic_mode_selection() -> None:
             "cannot bypass `Rapid → Full`",
             "`Analysis mode` plus `Selection reason`",
         ),
-        DOCS / "READ-alchemy.md": (
-            "starts in Rapid",
-            "`Rapid → Full` escalation",
-            "`Selection reason`",
-        ),
-        DOCS / "READ-morphogenetic-architecture.md": (
-            "Rapid topology scan",
-            "Rapid → Full",
-            "Analysis mode:",
-            "Selection reason:",
-        ),
         DOCS / "morphogenetic_architecture.svg": (
             "RAPID BY DEFAULT",
             "FULL FOR RESTRUCTURING",
@@ -768,8 +658,6 @@ def validate_morphogenetic_pattern_atlas() -> None:
         if family not in atlas_text:
             fail(f"{atlas.relative_to(ROOT)} missing lens family '{family}'")
 
-    primer = DOCS / "READ-morphogenetic-architecture.md"
-    primer_text = primer.read_text(encoding="utf-8")
     index_start = atlas_text.index("## Operational Lens Index")
     index_end = atlas_text.find("\n## ", index_start + 3)
     index_text = atlas_text[index_start:index_end]
@@ -788,16 +676,12 @@ def validate_morphogenetic_pattern_atlas() -> None:
     for lens in NATURAL_PATTERN_OPERATIONAL_LENSES:
         if lens not in atlas_text:
             fail(f"{atlas.relative_to(ROOT)} missing lens '{lens}'")
-        if lens not in primer_text:
-            fail(f"{primer.relative_to(ROOT)} missing lens '{lens}'")
         if lens not in index_text:
             fail(f"{atlas.relative_to(ROOT)} operational index missing '{lens}'")
 
     for lens in NATURAL_PATTERN_NON_OPERATIONAL:
         if lens not in atlas_text:
             fail(f"{atlas.relative_to(ROOT)} missing non-operational lens '{lens}'")
-        if lens not in primer_text:
-            fail(f"{primer.relative_to(ROOT)} missing non-operational lens '{lens}'")
         if lens in index_text:
             fail(
                 f"{atlas.relative_to(ROOT)} operational index must not route "
@@ -818,12 +702,6 @@ def validate_morphogenetic_reversibility() -> None:
             "Reversal cost",
             "dominant reversal-cost driver",
             "Use this authority mapping for the dominant driver",
-        ),
-        DOCS / "READ-morphogenetic-architecture.md": (
-            "Reversibility sets the evidence bar",
-            "It applies only where a boundary actually moves",
-            "Reversibility: Unknown — Low bar applies",
-            "separately specified precursor",
         ),
     }
     for path, terms in contracts.items():
@@ -851,9 +729,6 @@ def validate_primers() -> None:
         expected_link = f"../.claude/skills/{name}"
         if expected_link not in text:
             fail(f"{primer.relative_to(ROOT)} missing canonical skill backlink")
-        for term in PRIMER_REQUIRED_TERMS.get(name, ()):
-            if term not in text:
-                fail(f"{primer.relative_to(ROOT)} missing required term '{term}'")
 
 
 def validate_readme_index() -> None:
@@ -961,12 +836,6 @@ def validate_outcome_hypothesis_contract() -> None:
         )
 
     contracts = {
-        DOCS / "READ-requirements-grounding.md": (
-            "## Outcome hypotheses",
-            "working capability",
-            "authoritative obligation",
-            "functionality-complexity-tradeoff",
-        ),
         ROOT / "CLAUDE.md": (
             "problem outcome, requirement completion, and linked outcome",
             "working capability, not downstream",
@@ -1044,18 +913,6 @@ def validate_outcome_evidence_lifecycle() -> None:
         )
 
     contracts = {
-        DOCS / "READ-requirements-traceability.md": (
-            "Outcome evidence uses a separate state model",
-            "Acceptance, deployment, adoption, and telemetry presence",
-            "without issuing a worth verdict",
-            "Formal completion",
-            "A milestone groups multiple work items",
-        ),
-        DOCS / "READ-functionality-complexity-tradeoff.md": (
-            "Outcome evidence closes the loop",
-            "M still decides",
-            "does not automatically dictate",
-        ),
         ROOT / "CLAUDE.md": (
             "Grounding owns meaning, Traceability owns measurement links",
             "route only the bounded",
@@ -1149,7 +1006,6 @@ def validate_alchemy_dispatch_contract() -> None:
             "do some alchemy",
             "companion skills",
         ),
-        DOCS / "READ-alchemy.md": ("Dispatch behavior", "do some alchemy", "companion skills"),
     }
     for contract_path, terms in public_contracts.items():
         contract = contract_path.read_text(encoding="utf-8")
@@ -1167,7 +1023,6 @@ def validate_alchemy_topology_handshake() -> None:
         ROOT / "README.md": "Gate E cannot run before",
         ROOT / "CLAUDE.md": "E remains blocked until",
         ROOT / "ALCHEMY-PIPELINE-DESIGN.md": "blocks E until",
-        DOCS / "READ-alchemy.md": "Gate E remains blocked until",
     }
     for path, blocking_term in contracts.items():
         text = path.read_text(encoding="utf-8")

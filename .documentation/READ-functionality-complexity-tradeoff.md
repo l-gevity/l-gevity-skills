@@ -1,96 +1,179 @@
-# Functionality Pruner
+# Is This Worth Building? Is It Worth Keeping?
+
+Two code reviews, same week.
+
+In the first, someone proposes a configuration system so future teams can
+swap the PDF engine — "we might need it." In the second, you find a retry
+loop wrapped around a function call *in the same process* — it can't fail
+transiently; there's nothing to retry. Both pieces of code are well-written.
+Both pass tests. And both fail a question that code review rarely asks:
+
+> **Does this functionality solve a real problem, and is it worth what it
+> costs?**
+
+Every feature, guard, abstraction, and flag is a purchase. Something is
+bought (a capability) and something is paid (complexity, maintenance, risk
+— forever). This document explains how to evaluate that purchase honestly —
+before building, and retroactively, for everything already in the codebase.
 
 ![Functionality Pruner](functionality_pruner.svg)
 
-A first-principles SKILL for deciding whether a piece of functionality is worth keeping or building. Two stages: a **necessity gate** ("does the problem this code addresses actually occur in this stack?") followed by a **worth ledger** ("does the value justify the cost?").
+## First question: can the problem even occur here?
 
-> **Reporting vocabulary.** Cost-side phrases below (e.g. "Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ") match the coder-facing fields defined in the **Reporting Vocabulary** section of [`structural-simplification`](../.claude/skills/structural-simplification/SKILL.md). The aggregate-cost formula below uses the internal symbols (`ΔD, ΔK, ΔP, Δn`) because it is math, not narrative.
+Before asking whether functionality is worth its cost, ask something more
+basic: **does the problem it solves actually exist in this system?** A
+surprising amount of code fails this test — it guards against things that
+*cannot happen*, and it clusters into recognizable species:
 
-## Why use this
+- **Impossible-state guards.** A null check on a value the type system
+  guarantees is never null. A client/server version-mismatch check in an
+  app deployed as a single artifact — client and server *can't* be at
+  different versions. A mutex in a single-threaded runtime.
+- **Already defended elsewhere.** Hand-rolled XSS escaping on top of a
+  template engine that already escapes everything. A CSRF token on a
+  read-only GET. The concern is real — but another layer owns it, and this
+  copy is a rumor of a defense, not a defense.
+- **Cargo-culted patterns.** A connection pool in a CLI that exits in 200
+  milliseconds. A singleton in a stateless function. The pattern is fine
+  where its prerequisites hold; here, they don't.
+- **Phantom requirements.** The feature flag for a launch that completed
+  two years ago. The migration shim after every record has provably
+  migrated. The requirement was real once; the world moved on.
+- **Generality nobody asked for.** The plugin interface with one plugin.
+  The strategy pattern with one strategy. The config key that has held the
+  same value in every environment since it was born.
 
-- **"Just in case" code stops being inarguable.** Defensive checks against impossible states get a name (OBSOLETE) and a structural reason for safe removal or deprecation — not a budget debate.
-- **Speculative features die before implementation.** YAGNI becomes the null hypothesis; high-cost work needs evidence, not enthusiasm.
-- **Build and audit share a model.** A feature that would fail as a proposal today fails as existing code today.
-- **Verdicts resist re-litigation.** "Removed because the problem cannot occur in this stack" closes the question; "removed because cost > value" reopens it whenever priorities shift.
-- **Necessity findings beat usage data.** You don't need telemetry to prove product value for a code path that's structurally unreachable; you still check whether it documents an invariant or needs a migration path.
-- **Outcome evidence closes the loop.** Current, linked measurements can revisit
-  expected value without treating acceptance, deployment, or adoption as impact.
-- **Requirement text gets audited too.** When a requirement prescribes mechanism (a dedicated right, role, or endpoint) where its obligation demands only an outcome, the surplus grain is negotiable — scored like any change instead of obeyed by default.
+The highest-yield way to find these is the **invariant audit**: list what
+the architecture already guarantees — the type system's promises, the
+deployment topology, what the framework enforces, what upstream middleware
+ensures — then walk the code's branches with that list in hand. Any branch
+that contradicts a guarantee is dead. A useful companion test: *construct
+one concrete, real-world sequence of events that reaches this code.* If
+you genuinely can't, you've found something.
 
-## Fundamental principles
+The verdict for such code isn't "low value" — it's **obsolete**, and the
+distinction matters for how permanently the question closes. "We removed
+it because it wasn't worth the cost" invites relitigation whenever
+priorities shift. "We removed it because client/server skew cannot occur
+in a single-artifact deploy" closes the case until the architecture itself
+changes.
 
-Most code review collapses value and cost into a vibe ("this seems useful", "this seems heavy"). This skill separates them, and adds a gate before scoring even starts: **does the problem this code addresses actually exist in this stack?**
+Two honest caveats before deleting. Some "impossible-state" code is
+*documenting* an invariant rather than enforcing one — an assertion whose
+job is to fail loudly if a future contributor changes the topology. That
+has real (small) value; convert it to a comment, a build-time check, or a
+test rather than silently deleting the only record of the invariant. And
+some code that *looks* cargo-culted is load-bearing — the complex version
+exists because the simple one was measured too slow or too fragile. Read
+the original commit or decision record before concluding; the difference
+between "obsolete" and "load-bearing but quiet" is whether the original
+rationale's premises still hold.
 
-- **Necessity precedes worth.** Code guarding against architecturally impossible states has no product value for that failure mode. Skip the worth ledger; emit OBSOLETE unless it is the canonical executable invariant.
-- **Separate the ledger.** Value and cost are distinct axes. Score independently; never collapse into one number.
-- **Cost compounds, value decays.** Value is realized per use; cost accrues on every future change, test run, review, and incident.
-- **The default is No.** If worth isn't clearly positive, reject or minimize. **YAGNI is the null hypothesis.**
-- **Remove over refactor, refactor over rewrite.** A retrospective audit with negative or failing-necessity worth prefers safe removal or deprecation to elaborate justification.
-- **Outcome evidence informs worth; M still decides.** Grounding owns hypothesis
-  meaning, Traceability owns measurement state and freshness, and this skill owns
-  the worth verdict.
+## Second question: the two-sided ledger
 
-## How to use
+For functionality that passes the necessity test, the evaluation becomes a
+ledger with two sides — scored separately, never collapsed into one number,
+because a real trade-off is only visible while both sides are visible.
 
-The skill has two modes: **prospective** (should we build this?) or **retrospective** (should we keep this?).
+**Value** is what the functionality delivers, and it has four honest
+components: how *severe* the need is (what actually breaks without it), how
+*often* it arises, how *many* users or flows encounter it, and how *costly
+the alternative* is (a decent workaround slashes value; no alternative
+multiplies it). These multiply rather than add — which is the sharp edge: a
+feature loved by 2% of users, needed yearly, with a one-line workaround,
+has near-zero value *no matter how elegantly it's built*. The
+most-inflated inputs in any proposal are reach and frequency; demand
+evidence — tickets, telemetry, observed workarounds — not adjectives.
 
-1. **Identify the subject.** A proposed feature, a defensive check that looks redundant, a feature flag that may have outlived its launch, an abstraction with one user.
-2. **Prompt the AI.**
+**Cost** is what the functionality imposes, and almost all of it is
+invisible in the initial diff: the structural footprint (new concepts, new
+dependencies, longer chains — the codebase is now harder to hold in one's
+head), the maintenance tax (tests, docs, reviews, dependency updates,
+every future refactor touching this too), the risk surface (more code, more
+bugs, more blast radius), and — the most underestimated — the **evolution
+tax**: the degree to which this constrains future change. It surfaces
+later, as the PR that "should have been small but touched twelve files."
 
-   > *Prospective:* "Apply functionality-complexity-tradeoff to this PRD: 'Add a client-version-check that warns users their tab is stale.' We deploy as a single SPA artifact."
-   >
-   > *Retrospective:* "Audit `src/auth/legacyTokenShim.ts` against functionality-complexity-tradeoff. We migrated to OAuth six months ago."
+And the two sides age differently: **value is realized per use, but cost
+accrues on every future change whether the feature is used or not.** A
+feature used daily amortizes beautifully; one used quarterly is paying rent
+on every sprint. Most production code is long-lived — evaluate over the
+lifetime, not the demo.
 
-3. **Read the verdict.** The skill names the verdict (BUILD / BUILD-minimal / NEGOTIATE / DEFER / DROP for prospective; KEEP / SIMPLIFY / QUARANTINE / DEPRECATE / DELETE / OBSOLETE for retrospective) and the rationale.
-4. **Apply the verdict.** Remove or deprecate the OBSOLETE check safely; ship the BUILD-minimal slice; instrument the QUARANTINE candidate; document the structural reason so a later audit doesn't reintroduce the same code.
+## The default is no
 
-For a post-release revisit, provide the canonical outcome hypothesis and its
-current `requirements-traceability` record. `unmeasured`, `inconclusive`, or
-`stale` evidence keeps the affected value claim Low unless independent current
-evidence supports it. `supported` is bounded to its cohort, window, and
-guardrails; `rejected` lowers the value claim but does not automatically dictate
-DROP or DELETE.
+With the ledger in view, the decision rule is deliberately asymmetric: **if
+worth is not clearly positive, don't build it** — or build the smallest
+slice that captures most of the value. This is YAGNI, but with its
+reasoning attached: it isn't pessimism about ideas; it's arithmetic about
+asymmetry. Not building costs almost nothing and is reversible the moment
+real evidence arrives. Building speculatively costs the full ledger,
+forever, on a guess — and speculative generality usually guesses the *wrong*
+flexibility anyway, so when the real requirement lands you pay to remove
+the old abstraction first.
 
-## The necessity gate
+The bar rises further for **one-way doors**: public APIs, persisted
+schemas, wire formats — anything hard to remove once shipped. Reversible
+choices can be made quickly on thin evidence; irreversible ones demand
+stronger value and higher confidence.
 
-Before scoring value or cost, walk the categories. A high-confidence positive finding routes the verdict to OBSOLETE (retrospective) or DROP-as-non-problem (prospective), subject to invariant-documentation and load-bearing exceptions.
+The same asymmetry, run backwards, applies to existing code: **a feature
+that would be rejected as a proposal today should not survive as code
+today** merely because it exists. Sunk cost is not value. The most
+empirically damning signal in a retrospective audit is **churn ×
+complexity**: files that change *often* and are *complicated* are where
+maintenance money actually goes, and they're disproportionately where the
+bugs live. High churn dominated by fixes rather than improvements is a
+ledger running in the red.
 
-| Category                              | Definition                                                              | Typical example                                                       |
-|---------------------------------------|-------------------------------------------------------------------------|-----------------------------------------------------------------------|
-| **Impossible-state guard**            | Defends against a state ruled out by topology, types, or runtime        | Client/server skew check in a single-artifact SPA                     |
-| **Already-defended-elsewhere**        | Concern fully owned by another layer                                    | XSS-escape on top of an auto-escaping templating engine               |
-| **Cargo-culted pattern**              | Pattern's prerequisites don't hold here                                 | Connection pool in a 200ms CLI; singleton in a stateless lambda       |
-| **Phantom requirement**               | Solves a requirement that lapsed or never existed                       | Feature flag for a launch that completed                              |
-| **Generality without instantiation**  | Abstraction whose anticipated variation never materialized              | Strategy pattern with one strategy                                    |
-| **Logically dead branch**             | Unreachable given upstream contracts                                    | `if (!user.id)` after auth middleware that guarantees it              |
+One caution in the deletion direction: "no telemetry hits" can mean
+*unused* — or it can mean *you aren't measuring*. Deleting a feature
+because you can't see it being used is survivorship bias in reverse.
+Instrument first, decide later; structural impossibility (the necessity
+test) is the only finding that licenses removal without usage data.
 
-> The invariant audit is the highest-yield necessity check. List the invariants the architecture, type system, deployment topology, and trust boundary maintain. Then walk the branches with the list in hand.
+## The legitimate exceptions
 
-Passing the gate does not settle the *grain*. Restate each requirement behind the subject as **obligation** (the record, gate, or restriction that must exist) versus **mechanism** (the rights, roles, endpoints, record types, or protocols chosen to satisfy it). Mechanism the obligation does not force is a SIMPLIFY candidate even when the functionality is KEEP — and when the requirement text itself pins the mechanism, a careful requirement edit is a scoreable candidate, with real external trade-offs gated as explicit product decisions. Legal obligations, separation-of-duties controls, and external protocol surfaces stay non-negotiable.
+Four cases where the raw ledger misleads, worth knowing by name:
 
-## The worth ledger
+- **Compliance, accessibility, and safety floors.** Audit logs, legal
+  holds, accessible paths — their value doesn't show up in usage metrics
+  and isn't optional. Priced by the obligation, not the click-through
+  rate; kept even when "unused," provided the actual obligation is
+  identified rather than assumed.
+- **Named optionality.** Keeping something because it makes a *specific,
+  probable* next feature cheap is a real argument. "Might be useful
+  someday" is not — that's the plugin-with-one-plugin again.
+- **Keystone cost.** Some locally-expensive code is the seam holding a
+  correct abstraction together; deleting it makes the *system* more
+  complex. Measure globally before celebrating a local win.
+- **Measured performance and safety.** Complexity backed by a benchmark or
+  an incident is load-bearing. The tell is a rationale whose premises still
+  hold.
 
-Once necessity passes, score both sides independently. **Don't collapse to one number.**
+## The habit
 
-- **Value (V):** `U × F × R × I` — utility, frequency, reach, irreplaceability. Any axis at zero means ordinary product value is zero; regulatory, safety, keystone, and invariant-documentation exceptions are handled separately.
-- **Cost (C):** structural deltas (Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ — delegated to `structural-simplification`) plus ongoing axes — maintenance (`M`), risk (`X`), evolution tax (`E`).
-- **Worth > 0 ⇔ V × L > C_structural + (M + X + E) × L.** Most production features are long-lived; plan for the ongoing term.
+The discipline compresses into a short interrogation, applicable to a
+ticket, a PR, or a ten-year-old module: *Can the problem this solves
+actually occur here — can I construct the sequence that triggers it? Who
+specifically needs it, and what do they do today without it? What's the
+smallest slice that captures most of the value? What does this cost per
+future change, not per demo? And if it vanished in twelve months, what's
+the realistic worst outcome?*
 
-Score 0–3 on each axis with one-line evidence. Record confidence (Low / Medium / High) per side. Low confidence → DEFER (prospective) or QUARANTINE (retrospective). OBSOLETE is exempt only when the necessity finding itself is high confidence.
+Beware, finally, of the three words that end more of these conversations
+than they should: *clever*, *elegant*, and *defensive*. Cleverness is a
+cost wearing a compliment; "defensive, just in case" is the necessity test
+being waved off. The kindest thing you can say about code is not that it's
+interesting — it's that it earns its keep.
 
-When outcome evidence exists, the decision record cites hypothesis IDs, states,
-freshness, and observation links. Authoritative legal, contractual,
-accessibility, and safety floors remain source-driven and do not require a
-product-value experiment.
+---
 
-## When to skip
-
-Routine bug fixes inside a working module, content/copy edits, dependency bumps. The framework earns its keep on triage decisions, dead-code audits, "is this defensive check necessary?" reviews, and PR scope pushback.
-
-## Next steps
-
-- See [SKILL.md](../.claude/skills/functionality-complexity-tradeoff/SKILL.md) for the full reference (necessity-gate detection heuristics, worth axes, decision protocol, asymmetric trade-offs, output contract).
-- For the structural complexity measurement consumed on the cost side — Component-kinds, Dependency-edges, Max-chain-depth, Module-count (internal symbols `D, K, P, n`) — see [`structural-simplification`](../.claude/skills/structural-simplification/).
-- For the upstream principles (YAGNI, scope control, proportionality), see [`architecture-guidelines`](../.claude/skills/architecture-guidelines/).
-- For hypothesis meaning, see [`requirements-grounding`](../.claude/skills/requirements-grounding/SKILL.md); for measurement links and freshness, see [`requirements-traceability`](../.claude/skills/requirements-traceability/SKILL.md).
-- Run a retrospective audit on the next "just in case" check that lands in code review — the necessity gate often closes the question on the first pass.
+*Related concepts:
+[structural simplification](READ-structural-simplification.md) supplies the
+complexity measurement for the cost side of the ledger;
+[bring-down](READ-bring-down.md) asks the follow-up question for code that
+passes — even if it's worth having, should *you* be the one maintaining it?
+The full operational reference for this concept — detection heuristics,
+scoring axes, the worth matrix, and verdicts — lives in
+[SKILL.md](../.claude/skills/functionality-complexity-tradeoff/SKILL.md).*

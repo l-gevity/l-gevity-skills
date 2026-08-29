@@ -1,91 +1,148 @@
-# Requirements Topology
+# Requirements Are a Graph, Not a List
 
-A requirements document is a list; delivery depends on a graph. Requirements
-Topology makes prerequisites, constraints, evidence, conflicts, and shared
-foundations explicit without turning them prematurely into software architecture.
+Sprint planning, Tuesday. The team picks ticket #34, "approval
+notifications." Wednesday, someone discovers notifications need the
+approval workflow — #29, not started. The workflow needs role definitions
+— #12, "in discussion." By Thursday, #34 is back in the backlog wearing a
+`blocked` label, and two days are gone.
 
-## Why use this
+The dependencies were real all along. The *backlog format* hid them: a
+flat, ordered list can express "this is above that" and nothing else,
+while the actual structure of any non-trivial requirement set is a web —
+this needs that, this constrains that, these two secretly contradict each
+other. This document explains requirements topology: treating requirements
+as a typed dependency graph, making that structure explicit and
+mechanically checkable instead of discovering it mid-sprint.
 
-- Normalize compound or inconsistent requirements into atomic nodes.
-- Preserve readable IDs and source lineage through splits and merges.
-- Replace prose-only dependencies with typed, evidenced edges.
-- Detect cycles, orphans, duplicates, conflicts, stale references, and missing
-  verification.
-- Derive dependency order from the graph instead of document order or intuition.
+## Nodes: one requirement, one obligation
 
-## Fundamental principle
+A graph is only as good as its nodes, and the entry condition is
+**atomicity**: each node states exactly one outcome or obligation.
+Compound requirements — "users can upload documents and administrators
+can review them" — must split before any edges are drawn, for a concrete
+reason: the two halves have different actors, different dependencies, and
+different completion evidence, and a single node forces every one of those
+statements to be about the *pair*. You can't truthfully say what a
+compound node depends on.
 
-The graph is a derived view of grounded requirements. It may expose defects in the
-source, but it does not become a competing requirements source and it does not
-change meaning to produce a neater diagram.
+Each node keeps a **stable, readable identity** — a slug like
+`report-approval` rather than `R-047` — that survives every re-numbering,
+re-grouping, and document reshuffle, because everything downstream (edges,
+build order, tests, code annotations) will refer to it. When a requirement
+genuinely splits or merges, the lineage is recorded — old name, new names,
+why — so no reference anywhere silently dangles.
 
-Default graph direction is explicit:
+One more separation keeps the vocabulary honest: a node's *structural
+role* (is it a foundation others build on? a constraint that limits
+others? a workflow step?) is independent of its *subject matter*
+(security, data, integration). A security requirement can be a foundation;
+a data requirement can be a constraint. Conflating the two axes produces
+categories that fight each other.
 
-```text
-A -> B means A depends_on B
-```
+## Edges: name the relationship, don't just draw the line
 
-Other edge types express `enables`, `constrains`, `verifies`, `produces`,
-`duplicates`, `conflicts_with`, and `refines`. Inferred edges remain labeled as
-inferences.
+The heart of the model. "Related to" is useless; a typed edge says *how*
+two requirements relate, and each type carries different consequences:
 
-## How to use
+| Edge | Meaning | What it implies |
+| ---- | ------- | --------------- |
+| **depends on** | A cannot be satisfied unless B exists | Build order — the load-bearing type |
+| **enables** | A makes B easier or possible, not mandatory | Sequencing preference, not a blocker |
+| **constrains** | A limits the valid ways to satisfy B | B's implementers must read A first |
+| **verifies** | A proves or checks B | Evidence planning |
+| **produces** | A creates output B consumes | Data flow between capabilities |
+| **duplicates** | A and B likely overlap | A consolidation decision is pending |
+| **conflicts with** | A and B cannot both hold | A human decision is *required* — the graph won't pick |
+| **refines** | A is a more specific form of B | Abstraction levels stay linked |
 
-Ask the agent to analyze or package a grounded requirement set:
+Notice the last three don't describe the domain so much as *flag pending
+decisions*. That's deliberate: a duplicate or conflict recorded as an edge
+is a decision made visible and assignable; the same duplicate left in
+prose is a surprise scheduled for integration week.
 
-> “Build a typed requirements topology from these validated requirements. Find
-> cycles, hidden constraints, duplicates, conflicts, and missing verification.”
+Two rules of hygiene. **Every edge carries evidence** — the source
+sentence, the data-flow fact, or an explicit "inferred, because…" marker;
+an edge someone once drew and no one can justify is exactly as dangerous
+as a dependency no one noticed. And **direction is explicit** — "A depends
+on B" and "B depends on A" schedule the work in opposite orders, so
+ambiguity here isn't stylistic.
 
-> “Derive the dependency order for this requirement scope without inventing
-> service or API boundaries.”
+## What the graph gives you for free
 
-Use analysis mode for diagnosis, hybrid mode for small safe source corrections,
-patch mode only when meaning is settled, and graph-package mode for implementation
-readiness.
+Once the structure is explicit, questions that were meeting-length become
+mechanical:
 
-## One place per fact
+**Build order is computed, not authored.** Topologically sorting the
+depends-on edges yields an order in which nothing is started before its
+prerequisites — for free, and *only* from real edges. Document order,
+ticket number, and priority rank are all illusions of order; priority says
+what matters most, dependency says what's *possible* first, and confusing
+them is how the most important ticket ends up blocked.
 
-- Requirement meaning and complete-when conditions remain in grounding.
-- Relationship evidence lives in the edge list.
-- Dependency order is a lean derived view.
-- A diagram is included only when it faithfully represents the edge list.
-- Issues, decisions, and watch items share one typed attention list.
+**Structural defects become findable.** Each has a mechanical signature
+and a distinct meaning:
 
-This prevents three nearly identical representations from drifting apart.
+- **Cycles** — A needs B needs C needs A. Nothing in the loop can be
+  finished first; usually a compound requirement hiding inside the nodes
+  or a mislabeled edge type. Either way, a modeling error to fix, not a
+  fact to schedule around.
+- **Orphans** — a node with no connections. Either genuinely independent
+  (fine, and now *stated*), or its dependencies were never mapped
+  (dangerous, and now visible).
+- **Duplicates and conflicts** — surfaced as pending decisions with names
+  attached, per above.
+- **Missing verification** — a requirement that nothing checks: unprovable
+  as written.
+- **Stale references** — edges pointing at renamed or split nodes; the
+  graph rots exactly like code does, and the same discipline (validation
+  on every change) keeps it alive.
 
-## Repository enforcement
+**Natural groupings emerge.** Clusters that share data ownership, decision
+owners, lifecycle, and test surface are candidates for being planned and
+owned together. The restraint that keeps this honest: promote something to
+a "shared foundation" only when *multiple* real clusters depend on it
+today — a foundation with one consumer is a speculative abstraction in
+requirements clothing.
 
-When requirements live in a repository, one canonical model should drive four
-separate checks: file schema, cross-record semantic validation, deterministic
-generated views, and generated-drift detection. Semantic checks cover unique
-IDs, stable criterion references, aliases and lineage, unresolved edges,
-dependency cycles, ownership, and other invariants a single-file schema cannot
-prove.
+## Two lines the graph must not cross
 
-Run the aggregate requirements check at the earliest project validation stage
-and as a blocking CI backstop. Generated registers, diagrams, dependency order,
-and code constants are read-only views. During migrations, freeze the imported
-source, retain an old-to-new map, prove equivalence, and retire temporary import
-code after the canonical source is durable.
+**The graph is a derived view, not a second source of truth.** The
+grounded requirements — actors, wording, completion conditions — remain
+canonical; topology adds structure *around* meaning and never edits
+meaning to make the picture tidier. Normalizing a statement into atomic
+form is fine; rewriting a contractual obligation because the diagram would
+look cleaner is falsification. Same discipline as generated code: generate
+views (registers, diagrams, orderings) from the one canonical model, mark
+them read-only, and check them for drift — the moment a hand edit lands in
+a derived view, there are two truths, and they will diverge.
 
-## Output
+**A requirements edge is not a software edge.** "Notifications depend on
+approval workflow" says nothing about services, APIs, events, or
+deployment units — it constrains the order of *understanding and
+delivery*, not the shape of the *system*. Requirements structure is one
+input to architecture; treating the requirements graph as a system diagram
+skips the entire discipline of designing boundaries, and produces
+architectures that mirror the org's paperwork instead of the domain.
 
-The full package contains reader context, source lineage, genuine transformations,
-graph vocabulary, normalized records, an evidenced edge list, dependency order,
-an optional faithful diagram, and one attention list. Every use starts with a
-`STABLE`, `NEEDS-REFACTOR`, or `BLOCKED` decision record containing graph size,
-cycle status (`Pass`, `Fail`, or `Not evaluated`), blocking issues, the next
-action, and verification performed. Unknown graph state is not a cycle failure.
+## The habit
 
-## When to skip
+The concept compresses to a reflex for whenever requirements are being
+written, groomed, or planned: for each one, ask *what must exist before
+this can be satisfied — and is that written down as an edge, with
+evidence, or is it in someone's head?* The head is where #34's blockers
+were on Tuesday. Every relationship moved from prose and memory into a
+typed, evidenced edge is one integration-week surprise converted into a
+planning-time fact — and the graph checks (cycles, orphans, conflicts,
+verification gaps) become something you can run before committing a
+sprint to it, rather than a lesson the sprint teaches you.
 
-Skip when the problem, actors, source basis, or completion conditions are still
-unclear; use `requirements-grounding`. Skip when the topology is stable and the
-task is to prepare developers and architects; use `implementation-readiness`.
+---
 
-## Next steps
-
-- Read the operational [`requirements-topology` SKILL.md](../.claude/skills/requirements-topology/SKILL.md).
-- Ground uncertain inputs with [`requirements-grounding`](../.claude/skills/requirements-grounding/SKILL.md).
-- Maintain implementation evidence with [`requirements-traceability`](../.claude/skills/requirements-traceability/SKILL.md).
-- Measure proposed regrouping with [`structural-simplification`](../.claude/skills/structural-simplification/SKILL.md).
+*Topology is the middle stage of a requirements discipline:
+[grounding](READ-requirements-grounding.md) validates the nodes before
+they enter the graph, and
+[implementation readiness](READ-implementation-readiness.md) consumes the
+graph to decide what is actually buildable. The full operational reference
+— record and edge schemas, graph checks, repository gates, and output
+modes — lives in
+[SKILL.md](../.claude/skills/requirements-topology/SKILL.md).*

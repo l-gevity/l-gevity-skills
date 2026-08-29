@@ -241,7 +241,8 @@ handshake. L re-enters once; **Gate E cannot run before** that acceptance.
 <summary><strong>What is included</strong></summary>
 
 The library contains 19 composable skills. Each has an operational `SKILL.md`
-and a human-oriented primer.
+and a primer: a standalone concept explainer that teaches the underlying
+engineering idea to developers, independent of the skill machinery.
 
 | Skill | Primer |
 |---|---|

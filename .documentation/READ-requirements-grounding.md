@@ -1,154 +1,149 @@
-# Requirements Grounding
+# Grounding: The Problem Behind the Ticket
 
-Requirements fail early when they are detached from the problem, actor, source,
-or evidence that justifies them. Requirements Grounding forces those foundations
-to become explicit before a backlog or specification hardens around an assumed
-solution. It can also recover provisional requirements from an existing project
-without confusing as-built behavior with intended behavior.
+The ticket says: *"Add a CSV export button to the reports page."* It gets
+estimated, built, tested, shipped. Three months later, telemetry shows
+eleven clicks — nine of them from the team demoing it. Meanwhile the
+person who asked is still doing, by hand, the thing they actually needed:
+getting monthly figures into their finance tool, which speaks a format the
+export never produced.
 
-## Why use this
+Nothing in the delivery failed. The failure happened before the ticket was
+written: a *solution* was recorded and the *problem* never was — so
+everyone downstream faithfully built the wrong thing. This document
+explains grounding: the discipline of tracing every requirement back to a
+real problem, a real actor, and honest evidence, before any of the
+machinery of building gets to run.
 
-- Separate authoritative obligations from interpretations, evidence, and
-  hypotheses.
-- Frame one actor-bound, situation-bound problem before deriving requirements.
-- Keep adjacent ideas visible without silently expanding scope.
-- Give every requirement a readable stable ID and observable completion
-  conditions.
-- Separate a working capability from a decision-relevant outcome hypothesis about
-  the impact expected after representative use.
-- Make weak evidence and expensive-to-reverse assumptions visible before build
-  planning.
-- Recover evidence-linked candidates from code, tests, schemas, configuration,
-  public interfaces, documentation, and history.
+## Requirements describe problems, not features
 
-## Fundamental principle
+A grounded requirement starts from a problem statement that is deliberately
+**solution-free**: it names an *actor* (who experiences this — a specific
+role, not "users"), a *situation* (when it arises), an *outcome* (what must
+become possible), and an *obstacle* (why it isn't possible today). Notice
+what's absent: no button, no screen, no service, no format. "The finance
+lead, at month-end close, must get report figures into the accounting
+system without manual re-entry; today that takes four error-prone hours."
 
-A requirement is grounded only when another reader can answer:
+Why this shape matters practically, not just philosophically: it keeps the
+solution space open (an API, a scheduled sync, or a different report layout
+might all solve it — the CSV button happened to solve none of it), and it
+makes the requirement *checkable* — you can go ask the finance lead whether
+that's really their situation. "Add an export button" can't be wrong; that
+is exactly what's wrong with it.
 
-1. Who needs or is obliged to achieve the outcome?
-2. In what situation?
-3. What outcome must become possible?
-4. What prevents it today?
-5. Which source, evidence, interpretation, or hypothesis supports it?
-6. How will we know the capability is complete?
-7. If downstream impact matters to the decision, what measurable change do we
-   expect after use?
+Two boundary statements complete the frame: **done-when** (what observable
+state ends the problem) and **not-problem** (what this explicitly does not
+cover). The second one looks like bureaucracy and is actually the scope
+argument you'd otherwise have during the sprint, held early and cheaply
+instead.
 
-Priority does not answer those questions. A must-have can still be weakly
-grounded, and that mismatch is itself a risk finding.
+## Not all "requirements" carry the same weight
 
-## How to use
+Every requirement rests on some basis, and the four kinds justify very
+different confidence:
 
-Ask the agent to frame or review requirements before graphing or implementation:
+| Basis | It rests on | Honest attitude |
+| ----- | ----------- | --------------- |
+| **Authoritative** | A law, contract, standard, or binding decision | Verify the source really says this, applies here, and is current |
+| **Interpreted** | Someone's reading of an ambiguous source | Record the reading *and the rejected alternatives*; revisitable |
+| **Evidenced** | Observed behavior, measurements, user research | Weigh strength, reach, recency; prefer small commitments |
+| **Hypothesized** | Someone's belief that a need exists | Test before building anything expensive on it |
 
-> “Ground these stakeholder requests. Separate the real problem, adjacent scope,
-> evidence, assumptions, and requirement candidates.”
+The failure mode this taxonomy prevents is *basis laundering*: a guess gets
+written in requirement grammar ("the system shall…"), survives two
+meetings, and hardens into fact. Six months later nobody can distinguish
+"legal made us" from "someone in a workshop thought so" — yet one of those
+is negotiable and the other isn't. Keeping the basis attached keeps the
+negotiability visible. A related trap: **priority is not certainty**.
+"Must-have" says how much it matters *if real*; it is not evidence that it
+is real. A must-have resting on a hypothesis is a risk to surface, not an
+urgency to obey.
 
-> “Review this specification for solution-shaped problems, compound requirements,
-> actor ambiguity, and missing complete-when conditions.”
+How much validation a requirement deserves before you act on it follows a
+simple rule: **cost of being wrong × difficulty of reversal.** A reversible
+UI tweak on a hypothesis? Ship it and watch. An irreversible schema
+commitment on an interpreted clause? Validate the reading first.
 
-Choose conversational mode for exploration, batch mode for an existing source
-set, and interactive deepening when the cost of a wrong assumption is high.
+## Three questions that must not blur
 
-For an undocumented or drifted project, use recovery mode:
+The single most clarifying distinction in this discipline is between three
+questions that casual language mashes together:
 
-> “Reverse-engineer provisional requirement candidates from this project. Treat
-> implementation as evidence, not authoritative intent. Cite file and line
-> evidence, classify each reference, surface contradictions and obsolete
-> behavior, and list the confirmations needed before grounding.”
+1. **Is the problem real?** — settled by grounding: actors, sources,
+   evidence.
+2. **Is the capability complete?** — settled by *complete-when*
+   conditions: two to four observable checks a reviewer can verify
+   ("finance-compatible file downloads containing the displayed figures").
+   Observable, but not implementation-prescribing.
+3. **Did it have the hoped-for impact?** — settled only by measurement
+   *after* real use: did month-end close actually get faster?
 
-## Recovery evidence
+Confusing 2 and 3 causes damage in both directions. Put impact into
+completion criteria ("done when close time drops 50%") and the team can't
+finish — impact isn't in their control and isn't observable at ship time.
+Treat completion as impact ("we shipped it, so it worked") and the export
+button's eleven clicks count as success. The clean arrangement: completion
+criteria stay observable and shippable, while the expected impact becomes
+an explicit, separate **outcome hypothesis** — *we believe finance leads
+will use this, cutting close time by half; measured by X against baseline
+Y within window Z* — with the humility of the word "hypothesis" and its
+own follow-up date. And one honest asymmetry: obligations don't need
+hypotheses. A legal retention requirement doesn't wait for an experiment
+proving users "engage with" retention.
 
-Recovery mode distinguishes documented intent, executable contracts, enforced
-behavior, observed public surfaces, and uncorroborated inference. It inspects
-public boundaries and representative end-to-end paths before internal structure.
-Code-only candidates remain `PROVISIONAL` unless project policy makes an artifact
-authoritative or the actor, problem, outcome, basis, and completion conditions are
-independently confirmed.
+## Reading requirements out of code
 
-Dead code, defects, disabled experiments, and compatibility shims become findings,
-not requirements. Documentation/code and test/code disagreements remain explicit
-contradictions for a decision owner.
+Often there is no requirements document — there's a codebase, and someone
+asking "what is this supposed to do?" Requirements can be *recovered* from
+code, but under one governing principle:
 
-## Basis model
+> **Code is evidence of what the system does — never proof of what it
+> should do.**
 
-The default model distinguishes four kinds of grounding:
+The inspected version demonstrably exhibits its behaviors; whether each
+behavior is intended, a defect nobody caught, a dead experiment, or a
+workaround that outlived its reason — the code cannot say. So recovery
+reads layers of evidence with different weights: *stated intent* (docs,
+decision records — may be stale), *executable contracts* (tests, schemas —
+strong on behavior, silent on why, and a test can faithfully preserve a
+bug), *enforced behavior* (validation, permissions — actively imposed, but
+possibly legacy), and *inference from names and structure* (weakest; keep
+confidence low without corroboration).
 
-| Basis | Meaning |
-| --- | --- |
-| Authoritative | An applicable law, contract, standard, policy, or accepted decision requires it |
-| Interpreted | It follows from a defensible reading that still admits alternatives |
-| Evidenced | User, customer, operational, or market evidence supports it |
-| Hypothesized | The need or value remains to be tested |
+Everything recovered this way is **provisional** until a human who owns
+the domain confirms it — the deliverable is candidate requirements *plus a
+confirmation queue*, not a retroactive specification. The discipline this
+enforces: writing "the system must reject uploads over 10MB" because a
+config file says `10485760` is transcription, not requirements work. The
+requirement question is whether anyone *wants* that limit — and the code
+has no opinion.
 
-Projects may supply a different taxonomy. The skill preserves project policy
-instead of pretending one domain's categories are universal.
+## Honesty as a formal property
 
-## Outcome hypotheses
+The thread through all of it: a grounding artifact is valuable in
+proportion to how visibly it carries its own uncertainty. Every requirement
+states its basis, source, and confidence. Every consequential choice gets a
+decision log entry — what was decided, on what, by whom, and what would
+reopen it. Interpretations are marked as interpretations; unverifiable
+sources make their requirements provisional; open questions are listed as
+open rather than smoothed into confident prose.
 
-Requirements Grounding separates three ideas that are often collapsed:
+This inverts a common instinct — that requirement documents should look
+authoritative. A document that *looks* certain and isn't will be trusted
+exactly until it's expensive. The best one tells you precisely how far to
+trust each line: *these three are contractual, verified against the signed
+version; these five are our reading of an ambiguous clause, alternatives
+noted; these two are hypotheses with experiments attached.* That document
+you can build on — because when something turns out wrong, you know
+immediately which kind of wrong it is and which decision to reopen.
 
-- The problem outcome says what must become possible for the actor.
-- Requirement completion says how reviewers know the capability works.
-- An outcome hypothesis says what measurable downstream change is expected after
-  representative use, why, by when, and without which guardrail regressions.
+---
 
-Outcome hypotheses are linked records, not acceptance criteria. They name the
-affected requirements, actor or cohort, causal rationale, primary measure,
-baseline, decision threshold, evaluation window, guardrails, evidence plan,
-hypothesis confidence, projected evidence state and reference, owner, and revisit
-trigger. New hypotheses start `unmeasured`; later states come from
-`requirements-traceability`. Unknown values stay explicit; the skill does not
-invent a baseline or target.
-
-An authoritative obligation can mark an outcome hypothesis `not applicable`.
-Compliance with an applicable law, contract, policy, or safety rule must not wait
-for a product-value experiment. Conversely, a working capability does not prove
-that its intended impact occurred.
-
-Measured outcome evidence feeds `functionality-complexity-tradeoff`, which retains
-ownership of build, defer, drop, keep, simplify, and removal decisions.
-After representative use, `requirements-traceability` links the exact hypothesis
-version to observations and classifies evidence state and freshness before M
-revisits worth.
-
-## Project profiles and canonical source
-
-Compose generic grounding with a project profile instead of forking the method.
-The profile owns source hierarchy, repository paths, schemas, roles, taxonomies,
-commands, and domain conventions. Grounding owns the reusable problem, evidence,
-and validation method.
-
-Before authoring, identify the canonical editable source and distinguish it from
-generated registers, diagrams, code constants, reports, and implementation
-evidence. Derived views may expose drift but never become a second authority.
-
-## Output
-
-The core result is a confirmed problem boundary plus atomic requirement candidates
-with readable slugs, actors, complete-when conditions, basis, priority, validation
-decision, confidence, and traceability. When impact is decision-relevant, it also
-contains linked outcome hypotheses or an explicit not-applicable reason.
-Standalone artifacts also carry source currency, a decision log, and watch items.
-Every use starts with a compact
-`GROUNDED`, `PROVISIONAL`, or `NOT-GROUNDED` decision record naming blockers,
-the next action, and verification performed. Recovery output additionally includes
-an implementation evidence map, contradictions, obsolete-behavior findings, and a
-confirmation queue.
-
-This validation decision is not a feature-worth verdict. Use
-`functionality-complexity-tradeoff` when deciding whether functionality should be
-built, minimized, deferred, or dropped.
-
-## When to skip
-
-Skip when requirements are already grounded and the task is only dependency
-modeling; use `requirements-topology`. Skip when a stable topology already exists
-and the task is implementation preparation; use `implementation-readiness`.
-
-## Next steps
-
-- Read the operational [`requirements-grounding` SKILL.md](../.claude/skills/requirements-grounding/SKILL.md).
-- Structure validated requirements with [`requirements-topology`](../.claude/skills/requirements-topology/SKILL.md).
-- Trace post-readiness implementation and executed evidence with [`requirements-traceability`](../.claude/skills/requirements-traceability/SKILL.md).
-- Apply [`functionality-complexity-tradeoff`](../.claude/skills/functionality-complexity-tradeoff/SKILL.md) when a proposed capability still needs a worth decision.
+*Grounding is the first stage of a requirements discipline: it feeds
+[requirements topology](READ-requirements-topology.md), which structures
+grounded requirements into a dependency graph, and
+[worth evaluation](READ-functionality-complexity-tradeoff.md), which
+decides whether a grounded capability justifies its cost. The full
+operational reference — modes, recovery protocol, record shapes, and the
+validation gate — lives in
+[SKILL.md](../.claude/skills/requirements-grounding/SKILL.md).*

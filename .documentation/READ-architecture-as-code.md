@@ -1,132 +1,161 @@
-# Architecture-as-Code (Pattern)
+# Architecture-as-Code: Rules the Build Can Refuse
+
+The team agrees, in a well-attended meeting, that domain logic must not
+import infrastructure code. It goes in the architecture decision record.
+Everyone nods.
+
+Four months later, a grep finds eleven violations. Nobody rebelled — the
+rule was simply invisible at the moment it mattered: 4:45pm, a deadline, an
+autocompleted import that worked. Each violation made the next one look
+normal. The decision record was never wrong; it was just *unenforced*, and
+an unenforced architectural rule is a suggestion with a half-life.
+
+This document explains architecture-as-code: the idea that a system's
+dependency rules should live in version-controlled files that a linter
+enforces on every commit — so the architecture *is* checked, the way types
+and tests are, rather than remembered.
 
 ![Architecture as Code](architecture_as_code.svg)
 
-A stack-agnostic pattern: declare each module's allowed dependencies in a
-small config file that lives next to the code. A small assembler discovers
-those files, merges them recursively, and emits a single ruleset for your
-language's import-graph linter. Violations fail the build with a
-plain-English `why`.
+## The enforceable slice of architecture
 
-## Why use this
+Not everything called "architecture" can be automated. What *can* be —
+completely, cheaply, deterministically — is the **import graph**: which
+modules are allowed to depend on which. That slice is worth automating
+because most architectural erosion is exactly this: dependency arrows
+appearing where the design says none should exist. Layer skips, domain
+logic reaching into infrastructure, two sibling features quietly importing
+each other's internals — every one of them is just an edge in the import
+graph, and machines are excellent at checking edges.
 
-- **Architectural violations are caught at build time**, not days later in
-  review.
-- **Refactors follow the architecture automatically.** Change a rule; lint
-  flags every file that must update.
-- **Rules document themselves.** Every violation reports a plain-English
-  reason.
-- **New developers learn the architecture from the rules**, not from
-  mistakes.
-- **Architectural drift becomes impossible.** Year-five stays as clean as
-  year-one.
-- **Architecture decisions get a mechanical handoff.**
-  `architecture-guidelines` or `morphogenetic-architecture` decides the
-  constraint; this pattern encodes only the enforceable import/dependency rule.
+The recipe has three ingredients:
 
-## Fundamental principles
+1. **Name the components.** Declare that files under `billing/` are the
+   `billing` module, that `core/facade.ts` is the `core-facade`, and so
+   on — patterns mapping the directory tree onto named parts.
+2. **Declare the forbidden edges.** `domain` may not import
+   `infrastructure`. Nobody but the `orchestrator` may import
+   `core-facade`. Sibling feature modules may not import each other.
+3. **Check every commit.** An import-graph linter (they exist for every
+   major ecosystem) evaluates the actual imports against the declared
+   rules and fails the build on violation.
 
-Architecture is largely the art of managing dependencies. Most rot in
-long-lived codebases isn't bad logic — it's tangled imports nobody dares
-touch.
+The 4:45pm import now fails *in the editor*, seconds after being typed,
+with a message explaining the rule — which is why every rule carries a
+**why**: the violation message is the architecture teaching itself to
+whoever bumps into it, precisely at the moment they're making the mistake.
+No meeting, no memory, no code-review vigilance required.
 
-- **Dependencies flow one way.** Cycles couple modules; changes ripple
-  unpredictably.
-- **Stable things sit at the bottom.** Volatile code depends on stable code,
-  never the reverse.
-- **Boundaries enable local reasoning.** Constrained imports let you change
-  a module without holding the whole system in your head.
-- **Fewer dependents = cheaper change.** Encapsulation isn't aesthetic; it's
-  leverage.
+## The design discipline: who is allowed to know what
 
-Architecture-as-code makes these principles *enforceable* instead of
-aspirational.
+The naive version of this idea is one giant rules file at the repo root —
+and it rots just like any other centralized registry: every module change
+edits the same file, the file grows into an unreadable tangle, and after a
+while nobody knows which rules still reflect intent. The pattern that
+scales rests on a principle worth knowing beyond this context, because
+it's the same principle that makes modules themselves work:
 
-## How it combines with architecture decisions
+> **A module may know itself. It may not know its context.**
 
-Use `architecture-guidelines` to decide an internal design constraint or
-`morphogenetic-architecture` to decide a placement, interface-direction, or
-static-topology constraint. Either skill emits an `Enforcement` handoff. Use
-this pattern second to translate that handoff into components, forbidden edges,
-config placement, and lint verification.
+Concretely, every module (directory) may carry its own small architecture
+file, and that file may declare only two kinds of things:
 
-Example:
+- **Its internals** — the module's own sub-parts and layering: "my tier-3
+  code may not reach directly into my tier-1 code."
+- **Its outbound rules** — what *it* imports: "core imports nothing outside
+  core."
 
-```text
-Guideline:    Domain logic depends on abstractions, never infrastructure.
-Enforcement: add architecture rule: forbid payments-domain -> payments-infra
-As-code:     add the component patterns and forbidden edge in the relevant config.
-```
+What a module's own file may *never* declare is anything requiring
+knowledge of the wider world: who is allowed to import it, how it relates
+to siblings, its place in the system. Those are **composition** concerns,
+and they live one level up — in the architecture file of the directory
+that composes the modules together. "Only the orchestrator may import the
+core facade" is knowledge about how the composer arranged its parts, so
+the composer's file says it.
 
-## How the pattern works
+The mechanical tell is memorable: *a module's own architecture file never
+contains another module's name.* The moment it does, knowledge is leaking
+across a boundary — the same smell as a class hardcoding its callers'
+names, appearing one level up.
 
-1. **Module = directory** (or single-file unit for a facade). A module's
-   identity is its path.
-2. **One optional config file per module**, declaring the module's
-   components and forbidden dependency edges. Repo root has one too.
-3. **A module knows itself, not its context.** Its own file may name only
-   its own-prefix components and the anonymous `*`. Inbound rules
-   ("who may import me?") live higher up, where the module is composed
-   with peers.
-4. **An assembler walks the tree** — deeper-first — concatenates the
-   declarations, expands wildcards against the live component registry, and
-   emits a single config for the language's lint tool.
-5. **The lint tool runs in pre-commit and CI.** Violations print the `why`
-   and fail the build.
+An assembler script walks the tree, gathers every architecture file, and
+merges them into one configuration for the linter. Two conventions do
+disproportionate work here. **Wildcards over enumerations**: writing "any
+module except the orchestrator" as `* except orchestrator` rather than
+listing modules means new modules are governed the moment they're created,
+instead of silently ungoverned until someone remembers the list. And a
+**catch-all pattern last in every governed module**: any file matching no
+declared component is *invisible* to the linter, and invisible files bypass
+every rule — the catch-all closes the gap that would otherwise make the
+whole system quietly optional. The merged linter config itself is a build
+artifact — generated, git-ignored, never hand-edited; the per-module files
+are the single source of truth.
 
-## Where each rule lives
+## Rules before code
 
-| Rule type                       | Lives in                  |
-| ------------------------------- | ------------------------- |
-| Afferent ("who may import me?") | Higher level (composer).  |
-| Efferent ("what may I import?") | Own file.                 |
-| Cross-module sibling-isolation  | Higher level (composer).  |
-| Internal layering               | Own file.                 |
-| Sub-tier sibling-isolation      | Own file.                 |
+A timing rule with an outsized effect: when creating a new module, write
+its architecture file **before** its implementation, in the same change.
 
-Higher-level rules accumulate. Place each rule where the composition it
-expresses lives — sub-tier sibling-isolation in the module's own file (it
-composes its sub-tiers); encapsulation between the module and its peers
-higher up.
+The reasoning is about what each ordering produces. Rules-first means the
+very first wrong import fails immediately — the boundary is real from day
+one, and the module grows inside it. Rules-later means the rules are
+written to describe whatever dependencies have already accumulated — and
+retrofitted rules face an ugly pair of options: rubber-stamp the accidents
+(making the "architecture" a photograph of the mess) or declare war on
+them (an unbounded refactor nobody scheduled). Ten minutes of declaration
+before the first line of code buys years of a boundary that was never
+crossed.
 
-## The classic prefab: UI → Business → Storage
+Honest exception: genuine throwaway spikes may skip rules — exploration
+shouldn't fight scaffolding. The condition is that spike code never
+crosses into the main branch ungoverned; it gets deleted, or rewritten
+rules-first. "We'll add the rules later" is how permanent modules end up
+permanently ungoverned.
 
-Four modules; two business modules that must stay independent. Allowed:
-`ui → { orders, billing } → storage`. No upward imports. No lateral imports
-between `orders` and `billing`.
+## What this pattern is not
 
-This pattern appears in every layered system. Once you've expressed it
-once for a stack, every new module either fits in or surfaces a real
-architectural question.
+Three boundaries keep the idea honest:
 
-## Implementations
+- **It doesn't decide what the architecture should be.** Which boundaries
+  exist, which direction dependencies flow — those decisions come from
+  design principles and evidence, elsewhere. This pattern is the
+  *enforcement layer*: it takes a decided constraint and makes it
+  physically checkable. Encoding a bad architecture enforces a bad
+  architecture, very reliably.
+- **It sees only static imports.** Coupling that flows through runtime
+  indirection — event buses, registries, dynamically-computed imports — is
+  invisible to import analysis. That's a reason to prefer static, resolvable
+  imports where possible, and to know explicitly which couplings the
+  linter does *not* see, so nobody mistakes "the architecture lint passes"
+  for "the architecture holds."
+- **It replaces prose ADRs' enforcement, not their rationale.** The
+  decision record still explains *why* the boundary exists; the rule makes
+  it *hold*. One is for humans deciding whether to change the rule; the
+  other is for the build refusing to let it erode by accident.
 
-The pattern skill defines the schema, the rule-placement discipline, the
-assembler pipeline, and the anti-patterns. Concrete implementations live in
-per-stack sibling skills:
+## The habit
 
-| Stack      | Config file               | Lint tool                              | Primer |
-| ---------- | ------------------------- | -------------------------------------- | ------ |
-| JavaScript | `eslint.architecture.mjs` | ESLint + `eslint-plugin-boundaries`    | [READ-architecture-as-code-javascript](./READ-architecture-as-code-javascript.md) |
-| Python     | `architecture.toml`       | `import-linter` (over Grimp)           | [READ-architecture-as-code-python](./READ-architecture-as-code-python.md) |
+The concept compresses into a question to ask about any architectural
+agreement your team makes: *"what enforces this?"* If the answer is
+"review vigilance and the wiki," you have a suggestion, and its half-life
+started at the meeting. If a dependency rule can be stated as "X may not
+import Y" — and most can — it can be a build failure instead. Declared
+where the knowledge belongs, worded with its reason, checked on every
+commit: that is an architecture that stays the way it was designed, not
+because everyone remembers, but because nothing that violates it can
+merge.
 
-Adapting to a new stack: pick an import-graph linter that supports forbidden
-edges between named module sets, then write a small assembler that emits its
-native config. The schema, discovery, wildcard expansion, and rule-placement
-discipline all transfer; only the emit and invoke steps are stack-specific.
+---
 
-## When to skip
-
-Tiny projects, prototypes, throwaway scripts. Otherwise the cost is one
-config file plus a pre-commit hook, and it pays off the first time someone
-tries to import your storage layer from a UI handler.
-
-## Next steps
-
-- See [SKILL.md](../.claude/skills/architecture-as-code/SKILL.md) for the
-  full pattern reference (schema, components, forbidden edges, rule
-  placement, anti-patterns, pre-merge audit).
-- For first principles on what goes inside a module, see
-  [`architecture-guidelines`](../.claude/skills/architecture-guidelines/).
-- For the placement and static-topology rationale behind layered/sibling rules,
-  see [`morphogenetic-architecture`](../.claude/skills/morphogenetic-architecture/).
+*Related concepts:
+[architecture guidelines](READ-architecture-guidelines.md) and
+[morphogenetic architecture](READ-morphogenetic-architecture.md) decide
+which boundaries and directions the rules should encode;
+[shift-left](READ-defect-shift-left.md) explains why enforcement belongs in
+the editor and the build rather than in review — this pattern is its
+"decision record → executable rule" move made systematic. Stack-specific
+implementations exist for
+[JavaScript/TypeScript](READ-architecture-as-code-javascript.md) and
+[Python](READ-architecture-as-code-python.md). The full operational
+reference — file schema, rule placement, assembler, and audit checklist —
+lives in [SKILL.md](../.claude/skills/architecture-as-code/SKILL.md).*
