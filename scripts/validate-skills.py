@@ -169,6 +169,11 @@ SKILL_REQUIRED_TERMS = {
         "CI Enforcement",
         "TRACEABLE",
         "Stale references:",
+        "Every representation gap names its expiry condition",
+        "`representation-aggregated`",
+        "`representation-derived`",
+        "`representation-projected`",
+        "reject a representation gap that names no expiry condition",
     ),
     "functionality-complexity-tradeoff": (
         "Outcome evidence informs worth; it is not the verdict",
