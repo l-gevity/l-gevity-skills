@@ -2,7 +2,8 @@
 
 How an agent thinks about tasks in any codebase using this skill library.
 Skills in `.claude/skills/` define **what** good code looks like; this file
-defines the **attitude**. Bias: caution over speed on non-trivial work; don't
+defines the **attitude**. Any skill is invocable by name — `/<skill>` in Claude
+Code, `$<skill>` in Codex — or by a request matching its description. Bias: caution over speed on non-trivial work; don't
 bureaucratize one-liners.
 
 ## 1. Think before coding

@@ -53,6 +53,15 @@ $alchemy this auth refactor       # Codex
 Alchemy runs a lightweight preflight, skips routine work, and loads only the
 skills the task needs.
 
+Every other skill is invoked the same way. For example:
+
+```text
+/standup                          # Claude Code
+$standup                          # Codex
+```
+
+`standup` composes the daily standup from verified repository state only.
+
 ---
 
 ## 2. Where can this skill set help?
@@ -75,6 +84,7 @@ it works.
 | Linking requirements to implementation, executed verification, operations, and outcome evidence | [`requirements-traceability`](./.agents/skills/requirements-traceability/SKILL.md) |
 | Moving recurring toil out of human memory and replacing bespoke code with reusable capabilities | [`push-out`](./.agents/skills/push-out/SKILL.md), [`bring-down`](./.agents/skills/bring-down/SKILL.md) |
 | Finding bottlenecks, waste, and flow improvements across the software value stream | [`system-optimization`](./.agents/skills/system-optimization/SKILL.md) |
+| Reporting daily state — landed work, real blockers, deadline risk, debt trend, requirements drift — from verified evidence only | [`standup`](./.agents/skills/standup/SKILL.md) |
 | Improving the skill library itself when recurring agent mistakes expose a systemic gap | [`continuous-improvement`](./.agents/skills/continuous-improvement/SKILL.md) |
 
 ---
@@ -240,7 +250,7 @@ handshake. L re-enters once; **Gate E cannot run before** that acceptance.
 <details>
 <summary><strong>What is included</strong></summary>
 
-The library contains 19 composable skills. Each has an operational `SKILL.md`
+The library contains 20 composable skills. Each has an operational `SKILL.md`
 and a primer: a standalone concept explainer that teaches the underlying
 engineering idea to developers, independent of the skill machinery.
 
@@ -264,6 +274,7 @@ engineering idea to developers, independent of the skill machinery.
 | [`implementation-readiness`](./.claude/skills/implementation-readiness/SKILL.md) | [Read](./.documentation/READ-implementation-readiness.md) |
 | [`requirements-traceability`](./.claude/skills/requirements-traceability/SKILL.md) | [Read](./.documentation/READ-requirements-traceability.md) |
 | [`test-strategy`](./.claude/skills/test-strategy/SKILL.md) | [Read](./.documentation/READ-test-strategy.md) |
+| [`standup`](./.claude/skills/standup/SKILL.md) | [Read](./.documentation/READ-standup.md) |
 | [`continuous-improvement`](./.claude/skills/continuous-improvement/SKILL.md) | [Read](./.documentation/READ-continuous-improvement.md) |
 
 Grounding keeps **decision-relevant outcome hypotheses** separate from

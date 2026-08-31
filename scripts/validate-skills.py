@@ -196,6 +196,18 @@ SKILL_REQUIRED_TERMS = {
         "pipeline execution triggers",
         "quarantined test cannot count as verified evidence",
     ),
+    "standup": (
+        "Verified only",
+        "Delta only",
+        "Method is generic, parameters are local",
+        "standup.profile.md",
+        "Never copy a value out of the profile into this skill",
+        "Never infer its result and never omit it silently.",
+        "Standup — <YYYY-MM-DD>",
+        "no deadlines configured",
+        "drift unmeasured",
+        "Not run: <check + reason | none>",
+    ),
 }
 STRUCTURAL_REPORT_FIELDS = (
     "Subject",
