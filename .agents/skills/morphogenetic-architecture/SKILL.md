@@ -172,9 +172,11 @@ abstraction even when runtime control flows toward infrastructure.
 ### Position Legality
 
 Every declared static edge satisfies one clause per axis. This check needs no
-observed field, runs before §3, and is computable from declared positions
-and the static graph, so hand it to `architecture-as-code` as rules rather
-than re-arguing it per review.
+observed field and runs before §3, so hand it to `architecture-as-code` as
+rules rather than re-arguing it per review. Layer and tier are computable
+from declared positions and the static graph alone; the domain clause needs a
+third input, each component's declared inbound interface, and cannot run
+without it.
 
 | Axis | Kind | Legal edge | Violation |
 | --- | --- | --- | --- |
@@ -197,7 +199,12 @@ Two whole-graph clauses complete the check:
 
 When domain, tier, or layer cannot be stated independently for a component,
 the check cannot run: report **placement ambiguity** and resolve the position
-before continuing. Legality is necessary, never sufficient — a legal edge
+before continuing. The domain clause blocks the same way when a target domain
+publishes no inbound interface — declare the interface rather than reading
+every cross-domain edge as a violation, which is what an undeclared boundary
+makes them all look like. When an axis does not apply to the system at hand,
+record it as **Not applicable** with the reason; do not invent an ordering to
+fill it. Legality is necessary, never sufficient — a legal edge
 can still be wrong for reasons only §3's fields expose.
 
 ## 2. Separate Static and Runtime Topology
@@ -206,7 +213,8 @@ Define the projection before judging a cycle:
 
 | Projection | Required shape | Typical evidence |
 | --- | --- | --- |
-| Static dependency / ownership / authority | Directed, acyclic, shallow | Imports, package edges, build references |
+| Static dependency | Directed, acyclic per component, shallow | Imports, package edges, build references |
+| Ownership / authority | Directed, acyclic per concern | Declared owners, handoffs, decision records |
 | Runtime request flow | Directed; cycles allowed only when named and bounded | Traces, RPC calls, message routes |
 | State transition / feedback | Cycles allowed with explicit semantics | State machines, retries, event loops |
 | Change affinity | Undirected weighted evidence | Co-change history |
@@ -216,6 +224,13 @@ Define the projection before judging a cycle:
 Reject every forbidden static cycle. For an intentional runtime cycle, name its
 termination condition, retry/iteration bound, owner, and observability. Do not
 use a queue, registry, callback, or event bus to conceal static ownership.
+
+Authority is acyclic **per concern**, not per component. Two components may
+each defer to the other on a different concern — one owning meaning while
+the other owns measurement, say — and that is a clean partition, not a
+cycle. Name the concern on every authority edge; a cycle exists only when two
+components claim authority over the same one. Import cycles have no such
+escape: a build cannot order them however the concerns are split.
 
 ## 3. Observe Pressure
 
