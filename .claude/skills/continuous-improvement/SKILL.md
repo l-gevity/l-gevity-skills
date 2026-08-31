@@ -16,8 +16,10 @@ systemic, root-cause adjustments, without growing bloated.
 >
 > 1. **Automation Before Prose**: Before adding a manual instruction to a SKILL
 >    document, check whether the lesson can be encoded as a test, linter,
->    schema, type, build gate, or template. If automation is infeasible or too
->    costly, record why and add the smallest useful prose rule.
+>    schema, type, build gate, or template. Observe a new check failing without
+>    the rule before calling it enforced; a check never seen to fail is a
+>    hypothesis, not a safeguard. If automation is infeasible or too costly,
+>    record why and add the smallest useful prose rule.
 > 2. **Density Over Volume**: Prefer replacing, merging, or tightening existing
 >    rules before adding new ones. Prune only rules proven obsolete,
 >    contradicted, or owned elsewhere.
@@ -157,7 +159,7 @@ Root cause:     <missing/ambiguous | conflict | ignored rule | technical constra
 Owner:          <skill/test/linter/schema/template that should own the fix>
 Automation:     <implemented | infeasible | deferred> - <reason>
 Decision:       <replace | add | delete | cross-reference | no change>
-Verification:   <test/lint/audit/search performed>
+Verification:   <checks performed, and the observed failure without the rule>
 Next action:    <edit made, check added, follow-up owner, or stop>
 Residual risk:  <what still depends on judgment or future enforcement>
 ```

@@ -82,6 +82,8 @@ SKILL_REQUIRED_TERMS = {
         "Consumer-to-Library Promotion",
         "Promote Before Repinning",
         "consumer project",
+        "a hypothesis, not a safeguard",
+        "the observed failure without the rule",
     ),
     "requirements-grounding": (
         "requirements-topology",
@@ -325,9 +327,11 @@ PUBLIC_DOC_FORBIDDEN = {
 def flatten(value: str) -> str:
     """Collapse line wrapping so a pinned phrase is not hostage to reflowing.
 
-    Whitespace runs inside a block become one space; blank-line boundaries are
-    preserved so a phrase cannot match across two unrelated blocks.
+    Blockquote continuation markers are dropped, whitespace runs inside a block
+    become one space, and blank-line boundaries are preserved so a phrase cannot
+    match across two unrelated blocks.
     """
+    value = re.sub(r"(?m)^[ \t]*>[ \t]?", "", value)
     blocks = re.split(r"\n\s*\n", value)
     return "\n\n".join(re.sub(r"\s+", " ", block).strip() for block in blocks)
 
@@ -347,6 +351,7 @@ MATCHER_SELF_TEST = (
     # contract check below, so a regression there would silently pass them all.
     ("alpha beta\n   gamma delta", "beta gamma", True),
     ("one\n\ttwo", "one two", True),
+    ("> quoted line\n>    wrapped on", "line wrapped", True),
     ("alpha beta gamma", "beta omega", False),
     ("ends here\n\nstarts there", "here starts", False),
     ("| A | B |\n| C | D |", "| A | B |", True),
