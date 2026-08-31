@@ -157,6 +157,23 @@ Failure handling is an architectural decision that gets made *implicitly*
   run twice, and a service that remembers nothing between requests, are
   the two properties that make retries, crashes, and scaling boring.
 
+## Layers do not inherit guarantees
+
+A control belongs to a layer, and it either holds there or it doesn't. The
+standing temptation is to let something underneath carry it: the service is
+only reachable from inside the network, so the authorization check can stay
+loose. That reasoning holds exactly as long as the network keeps that shape —
+and its shape is decided elsewhere, by people changing infrastructure, in a
+change that touches none of the code depending on it. The guarantee
+disappears silently; the code that assumed it is unchanged and still passing
+its tests.
+
+So design each control as if the layer below were absent: every
+authentication and authorization decision must survive the endpoint being
+publicly reachable. Isolation, private links, and firewalls stay valuable —
+as *additional* layers. The moment one of them is counted as the control
+itself, there is only one layer, and nobody wrote it down.
+
 ## Naming: the structure should confess
 
 A name is the cheapest documentation that can never go stale, and the
@@ -176,7 +193,8 @@ several? Could its internals be rewritten without any caller noticing?
 Which way do the arrows point, and is there a cycle? Can the business logic
 be tested without mocks? Is this abstraction paying rent today, or is it a
 bet on a future that may never come? What happens when each external call
-fails — and did anyone decide that, or did it just happen?*
+fails — and did anyone decide that, or did it just happen? Would every
+control still hold if the layer beneath it vanished?*
 
 None of these require seniority to ask. They require only the central fact:
 code is a thing people change, and structure is how you make change cheap.

@@ -70,6 +70,12 @@ SKILL_REQUIRED_TERMS = {
         "ImportExpression",
         "Production code must not import test-only code.",
     ),
+    "architecture-guidelines": (
+        "## 8. Layer Self-Sufficiency",
+        "must hold with the endpoint publicly reachable",
+        "are additional layers, never the control",
+        "does this still hold when the layer below it disappears?",
+    ),
     "ci-cd-reliability-architecture": (
         "Release and Production Promotion",
         "BUILD-VERIFIED",

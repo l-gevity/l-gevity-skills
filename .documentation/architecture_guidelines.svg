@@ -1,8 +1,8 @@
-<svg width="680" height="1180" viewBox="0 0 680 1180" role="img" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif">
+<svg width="680" height="1230" viewBox="0 0 680 1230" role="img" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif">
 <title>Architecture guidelines infographic</title>
-<desc>Infographic explaining the architecture guidelines skill: a first-principles ruleset for module design covering minimalism, modularity, functional core, resilience, naming, and concurrency. Shows seven numbered sections as a ladder, five principles, and five benefits.</desc>
+<desc>Infographic explaining the architecture guidelines skill: a first-principles ruleset for module design covering minimalism, modularity, functional core, resilience, layer self-sufficiency, naming, and concurrency. Shows eight numbered sections as a ladder, five principles, and five benefits.</desc>
 
-<rect width="680" height="1180" fill="#FFFFFF"/>
+<rect width="680" height="1230" fill="#FFFFFF"/>
 
 <!-- ============ HERO ============ -->
 <rect x="40" y="40" width="40" height="3" fill="#534AB7" rx="1.5"/>
@@ -10,9 +10,9 @@
 <text x="40" y="100" font-size="14" fill="#5F5E5A">A first-principles checklist for module design. Each principle is a yes/no question, not a vibe.</text>
 <text x="40" y="120" font-size="12" fill="#888780">The inverses produce the same failures in every codebase: speculative abstractions, tangled deps, untestable logic.</text>
 
-<!-- ============ THE SEVEN SECTIONS (LADDER) ============ -->
+<!-- ============ THE EIGHT SECTIONS (LADDER) ============ -->
 <line x1="40" y1="148" x2="640" y2="148" stroke="#E5E4DC" stroke-width="0.5"/>
-<text x="40" y="178" font-size="16" font-weight="500" fill="#2C2C2A">The seven sections</text>
+<text x="40" y="178" font-size="16" font-weight="500" fill="#2C2C2A">The eight sections</text>
 
 <!-- Legend -->
 <rect x="40" y="198" width="12" height="12" fill="#CECBF6" rx="2"/>
@@ -67,95 +67,102 @@
 <text x="54" y="542" font-size="13" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">§7</text>
 <text x="80" y="536" font-size="13" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Concurrency and shared state</text>
 <text x="80" y="552" font-size="12" fill="#5F5E5A" dominant-baseline="central">Is the concurrency model declared? Per-instance, per-tab, or global?</text>
+<line x1="40" y1="568" x2="640" y2="568" stroke="#F1EFE8" stroke-width="0.5"/>
+
+<!-- Row 8: Layer self-sufficiency -->
+<rect x="40" y="578" width="28" height="28" rx="6" fill="#CECBF6"/>
+<text x="54" y="592" font-size="13" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">§8</text>
+<text x="80" y="586" font-size="13" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Layer self-sufficiency</text>
+<text x="80" y="602" font-size="12" fill="#5F5E5A" dominant-baseline="central">Does each control hold with the layer below absent?</text>
 
 <!-- Callout: complexity warning -->
-<rect x="40" y="578" width="600" height="38" rx="8" fill="#F1EFE8"/>
-<text x="60" y="597" font-size="13" fill="#5F5E5A" dominant-baseline="central">When violated: <tspan font-weight="500" fill="#2C2C2A">"Complexity Warning: introduces X. A simpler alternative is Y."</tspan></text>
+<rect x="40" y="628" width="600" height="38" rx="8" fill="#F1EFE8"/>
+<text x="60" y="647" font-size="13" fill="#5F5E5A" dominant-baseline="central">When violated: <tspan font-weight="500" fill="#2C2C2A">"Complexity Warning: introduces X. A simpler alternative is Y."</tspan></text>
 
 <!-- ============ FIVE PRINCIPLES ============ -->
-<line x1="40" y1="640" x2="640" y2="640" stroke="#E5E4DC" stroke-width="0.5"/>
-<text x="40" y="670" font-size="16" font-weight="500" fill="#2C2C2A">Five principles</text>
+<line x1="40" y1="690" x2="640" y2="690" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="720" font-size="16" font-weight="500" fill="#2C2C2A">Five principles</text>
 
 <!-- Principle 1 -->
-<rect x="40" y="690" width="290" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
-<text x="56" y="716" font-size="14" font-weight="500" fill="#2C2C2A">Patternization beats local</text>
-<text x="56" y="738" font-size="12" fill="#5F5E5A">A unified, simpler whole beats a</text>
-<text x="56" y="754" font-size="12" fill="#5F5E5A">fragmented system of locally</text>
-<text x="56" y="770" font-size="12" fill="#5F5E5A">perfect solutions.</text>
+<rect x="40" y="740" width="290" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="766" font-size="14" font-weight="500" fill="#2C2C2A">Patternization beats local</text>
+<text x="56" y="788" font-size="12" fill="#5F5E5A">A unified, simpler whole beats a</text>
+<text x="56" y="804" font-size="12" fill="#5F5E5A">fragmented system of locally</text>
+<text x="56" y="820" font-size="12" fill="#5F5E5A">perfect solutions.</text>
 
 <!-- Principle 2 -->
-<rect x="350" y="690" width="290" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
-<text x="366" y="716" font-size="14" font-weight="500" fill="#2C2C2A">Minimalism is the default</text>
-<text x="366" y="738" font-size="12" fill="#5F5E5A">Smallest viable solution. Zero</text>
-<text x="366" y="754" font-size="12" fill="#5F5E5A">speculative extensibility. YAGNI</text>
-<text x="366" y="770" font-size="12" fill="#5F5E5A">until the third instance.</text>
+<rect x="350" y="740" width="290" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="366" y="766" font-size="14" font-weight="500" fill="#2C2C2A">Minimalism is the default</text>
+<text x="366" y="788" font-size="12" fill="#5F5E5A">Smallest viable solution. Zero</text>
+<text x="366" y="804" font-size="12" fill="#5F5E5A">speculative extensibility. YAGNI</text>
+<text x="366" y="820" font-size="12" fill="#5F5E5A">until the third instance.</text>
 
 <!-- Principle 3 -->
-<rect x="40" y="800" width="190" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
-<text x="56" y="826" font-size="14" font-weight="500" fill="#2C2C2A">Directed, acyclic,</text>
-<text x="56" y="844" font-size="14" font-weight="500" fill="#2C2C2A">shallow</text>
-<text x="56" y="866" font-size="12" fill="#5F5E5A">Cycles are forbidden.</text>
-<text x="56" y="882" font-size="12" fill="#5F5E5A">Depth is cost.</text>
+<rect x="40" y="850" width="190" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="56" y="876" font-size="14" font-weight="500" fill="#2C2C2A">Directed, acyclic,</text>
+<text x="56" y="894" font-size="14" font-weight="500" fill="#2C2C2A">shallow</text>
+<text x="56" y="916" font-size="12" fill="#5F5E5A">Cycles are forbidden.</text>
+<text x="56" y="932" font-size="12" fill="#5F5E5A">Depth is cost.</text>
 
 <!-- Principle 4 -->
-<rect x="245" y="800" width="190" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
-<text x="261" y="826" font-size="14" font-weight="500" fill="#2C2C2A">Pure core,</text>
-<text x="261" y="844" font-size="14" font-weight="500" fill="#2C2C2A">I/O at the edges</text>
-<text x="261" y="866" font-size="12" fill="#5F5E5A">If domain logic needs</text>
-<text x="261" y="882" font-size="12" fill="#5F5E5A">mocks, purity is violated.</text>
+<rect x="245" y="850" width="190" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="261" y="876" font-size="14" font-weight="500" fill="#2C2C2A">Pure core,</text>
+<text x="261" y="894" font-size="14" font-weight="500" fill="#2C2C2A">I/O at the edges</text>
+<text x="261" y="916" font-size="12" fill="#5F5E5A">If domain logic needs</text>
+<text x="261" y="932" font-size="12" fill="#5F5E5A">mocks, purity is violated.</text>
 
 <!-- Principle 5 -->
-<rect x="450" y="800" width="190" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
-<text x="466" y="826" font-size="14" font-weight="500" fill="#2C2C2A">Fail fast at</text>
-<text x="466" y="844" font-size="14" font-weight="500" fill="#2C2C2A">boundaries</text>
-<text x="466" y="866" font-size="12" fill="#5F5E5A">Validate at system edges.</text>
-<text x="466" y="882" font-size="12" fill="#5F5E5A">Hard or best-effort?</text>
+<rect x="450" y="850" width="190" height="100" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
+<text x="466" y="876" font-size="14" font-weight="500" fill="#2C2C2A">Fail fast at</text>
+<text x="466" y="894" font-size="14" font-weight="500" fill="#2C2C2A">boundaries</text>
+<text x="466" y="916" font-size="12" fill="#5F5E5A">Validate at system edges.</text>
+<text x="466" y="932" font-size="12" fill="#5F5E5A">Hard or best-effort?</text>
 
 <!-- ============ WHAT IT CATCHES ============ -->
-<line x1="40" y1="928" x2="640" y2="928" stroke="#E5E4DC" stroke-width="0.5"/>
-<text x="40" y="958" font-size="16" font-weight="500" fill="#2C2C2A">What the guidelines catch</text>
+<line x1="40" y1="978" x2="640" y2="978" stroke="#E5E4DC" stroke-width="0.5"/>
+<text x="40" y="1008" font-size="16" font-weight="500" fill="#2C2C2A">What the guidelines catch</text>
 
 <!-- Row 1 -->
-<rect x="40" y="978" width="150" height="24" rx="12" fill="#F5C4B3"/>
-<text x="115" y="990" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Speculative abstraction</text>
-<text x="200" y="990" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
-<rect x="212" y="978" width="150" height="24" rx="12" fill="#9FE1CB"/>
-<text x="287" y="990" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Rule of 3</text>
-<text x="380" y="990" font-size="12" fill="#5F5E5A" dominant-baseline="central">Wait for the third instance.</text>
+<rect x="40" y="1028" width="150" height="24" rx="12" fill="#F5C4B3"/>
+<text x="115" y="1040" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Speculative abstraction</text>
+<text x="200" y="1040" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="212" y="1028" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="287" y="1040" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Rule of 3</text>
+<text x="380" y="1040" font-size="12" fill="#5F5E5A" dominant-baseline="central">Wait for the third instance.</text>
 
 <!-- Row 2 -->
-<rect x="40" y="1012" width="150" height="24" rx="12" fill="#F5C4B3"/>
-<text x="115" y="1024" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Tangled dependencies</text>
-<text x="200" y="1024" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
-<rect x="212" y="1012" width="150" height="24" rx="12" fill="#9FE1CB"/>
-<text x="287" y="1024" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Acyclic, shallow graph</text>
-<text x="380" y="1024" font-size="12" fill="#5F5E5A" dominant-baseline="central">Direct deps, no cycles.</text>
+<rect x="40" y="1062" width="150" height="24" rx="12" fill="#F5C4B3"/>
+<text x="115" y="1074" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Tangled dependencies</text>
+<text x="200" y="1074" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="212" y="1062" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="287" y="1074" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Acyclic, shallow graph</text>
+<text x="380" y="1074" font-size="12" fill="#5F5E5A" dominant-baseline="central">Direct deps, no cycles.</text>
 
 <!-- Row 3 -->
-<rect x="40" y="1046" width="150" height="24" rx="12" fill="#F5C4B3"/>
-<text x="115" y="1058" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Untestable logic</text>
-<text x="200" y="1058" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
-<rect x="212" y="1046" width="150" height="24" rx="12" fill="#9FE1CB"/>
-<text x="287" y="1058" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Pure functional core</text>
-<text x="380" y="1058" font-size="12" fill="#5F5E5A" dominant-baseline="central">I/O at edges, no mocks.</text>
+<rect x="40" y="1096" width="150" height="24" rx="12" fill="#F5C4B3"/>
+<text x="115" y="1108" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Untestable logic</text>
+<text x="200" y="1108" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="212" y="1096" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="287" y="1108" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Pure functional core</text>
+<text x="380" y="1108" font-size="12" fill="#5F5E5A" dominant-baseline="central">I/O at edges, no mocks.</text>
 
 <!-- Row 4 -->
-<rect x="40" y="1080" width="150" height="24" rx="12" fill="#F5C4B3"/>
-<text x="115" y="1092" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Vague names</text>
-<text x="200" y="1092" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
-<rect x="212" y="1080" width="150" height="24" rx="12" fill="#9FE1CB"/>
-<text x="287" y="1092" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Layer + domain + role</text>
-<text x="380" y="1092" font-size="12" fill="#5F5E5A" dominant-baseline="central">No utils, no helpers.</text>
+<rect x="40" y="1130" width="150" height="24" rx="12" fill="#F5C4B3"/>
+<text x="115" y="1142" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Vague names</text>
+<text x="200" y="1142" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="212" y="1130" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="287" y="1142" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Layer + domain + role</text>
+<text x="380" y="1142" font-size="12" fill="#5F5E5A" dominant-baseline="central">No utils, no helpers.</text>
 
 <!-- Row 5 -->
-<rect x="40" y="1114" width="150" height="24" rx="12" fill="#F5C4B3"/>
-<text x="115" y="1126" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Undeclared concurrency</text>
-<text x="200" y="1126" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
-<rect x="212" y="1114" width="150" height="24" rx="12" fill="#9FE1CB"/>
-<text x="287" y="1126" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Explicit model</text>
-<text x="380" y="1126" font-size="12" fill="#5F5E5A" dominant-baseline="central">Per-instance / tab / global.</text>
+<rect x="40" y="1164" width="150" height="24" rx="12" fill="#F5C4B3"/>
+<text x="115" y="1176" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">Undeclared concurrency</text>
+<text x="200" y="1176" font-size="14" fill="#888780" text-anchor="middle" dominant-baseline="central">→</text>
+<rect x="212" y="1164" width="150" height="24" rx="12" fill="#9FE1CB"/>
+<text x="287" y="1176" font-size="12" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Explicit model</text>
+<text x="380" y="1176" font-size="12" fill="#5F5E5A" dominant-baseline="central">Per-instance / tab / global.</text>
 
 <!-- Closing line -->
-<text x="340" y="1168" font-size="12" fill="#888780" text-anchor="middle">Module boundaries are where architecture lives. The guidelines keep them honest.</text>
+<text x="340" y="1218" font-size="12" fill="#888780" text-anchor="middle">Module boundaries are where architecture lives. The guidelines keep them honest.</text>
 
 </svg>

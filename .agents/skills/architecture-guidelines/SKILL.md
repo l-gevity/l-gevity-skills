@@ -2,13 +2,15 @@
 name: architecture-guidelines
 description: >-
     First-principles architectural rules for module/service/abstraction design:
-    minimalism, modularity, functional core, resilience, naming, and concurrency.
-    TRIGGER when introducing a module/service/abstraction, refactoring across
-    module boundaries, applying SOLID, or reviewing architectural concerns
-    (purity, idempotency, naming, fail-fast). SKIP for bug fixes within an
-    existing module, content/copy edits, CSS-only changes, dependency bumps, and
-    trivial renames. Emits an `Enforcement` handoff to `architecture-as-code`
-    when a design decision yields an enforceable dependency constraint.
+    minimalism, modularity, functional core, resilience, layer self-sufficiency,
+    naming, and concurrency. TRIGGER when introducing a
+    module/service/abstraction, refactoring across module boundaries, applying
+    SOLID, deciding whether a control may rely on the layer beneath it, or
+    reviewing architectural concerns (purity, idempotency, naming, fail-fast).
+    SKIP for bug fixes within an existing module, content/copy edits, CSS-only
+    changes, dependency bumps, and trivial renames. Emits an `Enforcement`
+    handoff to `architecture-as-code` when a design decision yields an
+    enforceable dependency constraint.
 ---
 
 # Architectural Discipline (First Principles)
@@ -114,12 +116,33 @@ Every shared mutable state must declare its concurrency model:
 **Review check:** if state is modified after an `await`, ask: _"is this guarded
 against concurrent mutation?"_
 
+## 8. Layer Self-Sufficiency
+
+- **Controls complete at their own layer**: a control a layer owns must hold on
+  that layer alone. One that works only because a lower layer limits who can
+  reach it is inherited, not implemented.
+- **Assume the layer below is absent**: every authentication and authorization
+  decision must hold with the endpoint publicly reachable. Network isolation,
+  private connectivity, and firewall placement are additional layers, never the
+  control.
+- **Ambient guarantees are invisible dependencies**: the assumption lives
+  outside the codebase, so the deployment or infrastructure change that
+  invalidates it never appears in a diff, review, or test of the code relying
+  on it.
+- **Name the reason for every gap**: when a control is weakened, deferred, or
+  dropped, state why. A reason that cites a property of a lower layer or the
+  deployment environment means the control is missing, not satisfied.
+
+**Review check:** for each control, ask _"does this still hold when the layer
+below it disappears?"_ A "no" is a defect in the layer under review, never a
+requirement on the layer below.
+
 > [!IMPORTANT] **Complexity Warning**: If a solution violates any guideline
 > above, state: _"Complexity Warning: introduces [X]. A simpler alternative is
 > [Y]."_ If the violation is non-trivial, see `structural-simplification` §8
 > Decision Protocol for a per-axis comparison before accepting it.
 
-## 8. Enforcement Handoff
+## 9. Enforcement Handoff
 
 Use `architecture-as-code` only for constraints that can be enforced as import
 or dependency rules. Do not duplicate this skill's principles there; hand off
@@ -139,7 +162,17 @@ Constraint:  external callers use the facade only
 Enforcement: add architecture rule: forbid * -> <module-internal-*>, except <module-*>
 ```
 
-## 9. Output Contract
+A principle can also settle as no handoff. Record that outcome rather than
+omitting it:
+
+```
+Principle:   layer self-sufficiency
+Constraint:  the control holds with the layer below absent
+Enforcement: none - not an import or dependency edge; verify by exercising the
+             component without that layer (`defect-shift-left`)
+```
+
+## 10. Output Contract
 
 When this skill changes or rejects a design, emit a coder-facing decision
 record:
@@ -147,7 +180,7 @@ record:
 ```
 Subject:        <module / service / abstraction / PR / code path>
 Decision:       Proceed | Simplify | Split | Inline | Reject | Defer
-Principle:      <YAGNI | Rule of 3 | DRY | SoC | SRP | capability-boundary | DI | fail-fast | idempotency | atomicity | naming | concurrency>
+Principle:      <YAGNI | Rule of 3 | DRY | SoC | SRP | capability-boundary | DI | fail-fast | idempotency | atomicity | layer-self-sufficiency | naming | concurrency>
 Evidence:       <callers, imports, tests, runtime invariant, or file paths checked>
 Enforcement:    <none | add architecture rule: constraint | update architecture rule: constraint>
 Next action:    <edit, delete, extract, add test, add lint rule, or ask user>
