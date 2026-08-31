@@ -33,6 +33,8 @@ source.
 > 6. **Completion is not outcome evidence.** Acceptance and implementation
 >    evidence may verify a capability; only a linked, representative measurement
 >    can assess its downstream outcome hypothesis.
+> 7. **Every representation gap names its expiry condition.** A declared
+>    asymmetry without the condition that ends it becomes permanent by accident.
 
 ## Boundary
 
@@ -222,6 +224,9 @@ Completion record:
 | `outcome-unmeasured` | A decision-relevant hypothesis has no accepted observation |
 | `outcome-stale` | Outcome evidence no longer satisfies its freshness rule |
 | `outcome-not-evaluable` | Threshold, exposure, window, guardrail, or attribution evidence is insufficient |
+| `representation-aggregated` | One artifact carries several canonical concepts because they share a write or release unit |
+| `representation-derived` | A concept exists only as a computation; the computation's source is named |
+| `representation-projected` | A concept is rebuilt from another artifact's records rather than stored |
 
 ## CI Enforcement
 
@@ -229,6 +234,7 @@ Put deterministic trace checks in the earliest capable blocking gate:
 
 - validate anchor syntax while authoring when editor tooling can do so;
 - reject unknown IDs, criteria, aliases, and stale references in static CI;
+- reject a representation gap that names no expiry condition;
 - require criterion-tagged tests to exist before accepting test-result tags;
 - ingest executed test results before promoting `implemented` to `verified`;
 - require operational evidence to carry revision and run identity;
