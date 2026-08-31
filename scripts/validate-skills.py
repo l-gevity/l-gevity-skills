@@ -326,6 +326,21 @@ PUBLIC_DOC_FORBIDDEN = {
 }
 
 
+def flatten(value: str) -> str:
+    """Collapse line wrapping so a pinned phrase is not hostage to reflowing.
+
+    Whitespace runs inside a block become one space; blank-line boundaries are
+    preserved so a phrase cannot match across two unrelated blocks.
+    """
+    blocks = re.split(r"\n\s*\n", value)
+    return "\n\n".join(re.sub(r"\s+", " ", block).strip() for block in blocks)
+
+
+def contains(text: str, phrase: str) -> bool:
+    """True when `phrase` appears in `text`, ignoring how either is wrapped."""
+    return flatten(phrase) in flatten(text)
+
+
 def fail(message: str) -> None:
     print(f"ERROR: {message}")
     raise SystemExit(1)
@@ -385,10 +400,10 @@ def validate_skill(path: Path) -> None:
         )
     if not re.search(r"^#\s+\S", text, re.M):
         fail(f"{skill_file.relative_to(ROOT)} missing top-level heading")
-    if not any(marker in text for marker in OUTPUT_MARKERS):
+    if not any(contains(text, marker) for marker in OUTPUT_MARKERS):
         fail(f"{skill_file.relative_to(ROOT)} missing coder-facing output marker")
     for term in SKILL_REQUIRED_TERMS.get(name, ()):
-        if term not in text:
+        if not contains(text, term):
             fail(f"{skill_file.relative_to(ROOT)} missing required term '{term}'")
 
 
@@ -459,7 +474,7 @@ def validate_retired_skill_references() -> None:
     for path in paths:
         text = path.read_text(encoding="utf-8").casefold()
         for retired in retired_terms:
-            if retired.casefold() in text:
+            if contains(text, retired.casefold()):
                 fail(f"{path.relative_to(ROOT)} references retired term '{retired}'")
 
 
@@ -525,7 +540,7 @@ def validate_morphogenetic_public_vocabulary() -> None:
     for path in contracts:
         text = path.read_text(encoding="utf-8")
         for decision in MORPHOGENETIC_DECISIONS:
-            if decision not in text:
+            if not contains(text, decision):
                 fail(
                     f"{path.relative_to(ROOT)} missing morphogenetic decision "
                     f"'{decision}'"
@@ -564,7 +579,7 @@ def validate_morphogenetic_mode_selection() -> None:
     )
     skill_text = skill.read_text(encoding="utf-8")
     for term in required_skill_terms:
-        if term not in skill_text:
+        if not contains(skill_text, term):
             fail(f"{skill.relative_to(ROOT)} missing mode-selection term '{term}'")
 
     required_rapid_terms = (
@@ -576,12 +591,12 @@ def validate_morphogenetic_mode_selection() -> None:
     )
     rapid_text = rapid.read_text(encoding="utf-8")
     for term in required_rapid_terms:
-        if term not in rapid_text:
+        if not contains(rapid_text, term):
             fail(f"{rapid.relative_to(ROOT)} missing Rapid guard '{term}'")
 
     metadata_text = metadata.read_text(encoding="utf-8")
     for term in ("Rapid placement", "escalate to full evidence-driven analysis"):
-        if term not in metadata_text:
+        if not contains(metadata_text, term):
             fail(f"{metadata.relative_to(ROOT)} missing mode metadata '{term}'")
 
     public_contracts = {
@@ -610,7 +625,7 @@ def validate_morphogenetic_mode_selection() -> None:
     for path, terms in public_contracts.items():
         text = path.read_text(encoding="utf-8")
         for term in terms:
-            if term not in text:
+            if not contains(text, term):
                 fail(
                     f"{path.relative_to(ROOT)} missing morphogenetic mode "
                     f"contract '{term}'"
@@ -619,7 +634,7 @@ def validate_morphogenetic_mode_selection() -> None:
     samples = DOCS / "sample-reports-verification.md"
     sample_text = samples.read_text(encoding="utf-8")
     for term in ("Analysis mode:       Rapid", "Analysis mode:       Rapid → Full"):
-        if term not in sample_text:
+        if not contains(sample_text, term):
             fail(f"{samples.relative_to(ROOT)} missing mode sample '{term}'")
 
 
@@ -641,7 +656,7 @@ def validate_morphogenetic_graph_analyzer() -> None:
         "Never reconstruct SCCs",
     )
     for term in required:
-        if term not in reference_text:
+        if not contains(reference_text, term):
             fail(f"{reference.relative_to(ROOT)} missing required term '{term}'")
 
     try:
@@ -671,10 +686,10 @@ def validate_morphogenetic_pattern_atlas() -> None:
         fail(f"{atlas.relative_to(ROOT)} is missing")
 
     atlas_text = atlas.read_text(encoding="utf-8")
-    if "## Operational Lens Index" not in atlas_text:
+    if not contains(atlas_text, "## Operational Lens Index"):
         fail(f"{atlas.relative_to(ROOT)} missing '## Operational Lens Index'")
     for family in NATURAL_PATTERN_FAMILIES:
-        if family not in atlas_text:
+        if not contains(atlas_text, family):
             fail(f"{atlas.relative_to(ROOT)} missing lens family '{family}'")
 
     index_start = atlas_text.index("## Operational Lens Index")
@@ -689,17 +704,17 @@ def validate_morphogenetic_pattern_atlas() -> None:
         "reused as prospective validation",
         "| Natural architecture | Transferable mechanism | Software use | Required evidence | Reject when |",
     ):
-        if term not in atlas_text:
+        if not contains(atlas_text, term):
             fail(f"{atlas.relative_to(ROOT)} missing contribution guard '{term}'")
 
     for lens in NATURAL_PATTERN_OPERATIONAL_LENSES:
-        if lens not in atlas_text:
+        if not contains(atlas_text, lens):
             fail(f"{atlas.relative_to(ROOT)} missing lens '{lens}'")
-        if lens not in index_text:
+        if not contains(index_text, lens):
             fail(f"{atlas.relative_to(ROOT)} operational index missing '{lens}'")
 
     for lens in NATURAL_PATTERN_NON_OPERATIONAL:
-        if lens not in atlas_text:
+        if not contains(atlas_text, lens):
             fail(f"{atlas.relative_to(ROOT)} missing non-operational lens '{lens}'")
         if lens in index_text:
             fail(
@@ -726,7 +741,7 @@ def validate_morphogenetic_reversibility() -> None:
     for path, terms in contracts.items():
         text = path.read_text(encoding="utf-8")
         for term in terms:
-            if term not in text:
+            if not contains(text, term):
                 fail(
                     f"{path.relative_to(ROOT)} missing reversibility contract "
                     f"'{term}'"
@@ -746,7 +761,7 @@ def validate_primers() -> None:
         primer = DOCS / f"READ-{name}.md"
         text = primer.read_text(encoding="utf-8")
         expected_link = f"../.claude/skills/{name}"
-        if expected_link not in text:
+        if not contains(text, expected_link):
             fail(f"{primer.relative_to(ROOT)} missing canonical skill backlink")
 
 
@@ -756,9 +771,9 @@ def validate_readme_index() -> None:
         name = path.name
         skill_link = f"./.claude/skills/{name}/SKILL.md"
         primer_link = f"./.documentation/READ-{name}.md"
-        if skill_link not in text:
+        if not contains(text, skill_link):
             fail(f"README.md missing skill link for {name}")
-        if primer_link not in text:
+        if not contains(text, primer_link):
             fail(f"README.md missing primer link for {name}")
 
 
@@ -766,7 +781,7 @@ def validate_overview_skill_count() -> None:
     path = ROOT / "alchemy-overview.svg"
     text = path.read_text(encoding="utf-8")
     expected = f"{len(skill_dirs(CLAUDE_SKILLS))} SKILLS"
-    if expected not in text:
+    if not contains(text, expected):
         fail(f"{path.relative_to(ROOT)} must report '{expected}'")
 
 
@@ -806,7 +821,7 @@ def validate_test_strategy_contract() -> None:
     for path, terms in contracts.items():
         text = path.read_text(encoding="utf-8")
         for term in terms:
-            if term not in text:
+            if not contains(text, term):
                 fail(
                     f"{path.relative_to(ROOT)} missing test-strategy "
                     f"ownership term '{term}'"
@@ -848,7 +863,7 @@ def validate_outcome_hypothesis_contract() -> None:
     )
     if not requirement_shape:
         fail(f"{skill_path.relative_to(ROOT)} missing requirement shape")
-    if "Outcome hypothesis:" in requirement_shape.group(1):
+    if contains(requirement_shape.group(1), "Outcome hypothesis:"):
         fail(
             f"{skill_path.relative_to(ROOT)} must keep outcome hypotheses "
             "outside the requirement record"
@@ -878,7 +893,7 @@ def validate_outcome_hypothesis_contract() -> None:
     for path, terms in contracts.items():
         text = path.read_text(encoding="utf-8")
         for term in terms:
-            if term not in text:
+            if not contains(text, term):
                 fail(
                     f"{path.relative_to(ROOT)} missing outcome-hypothesis "
                     f"contract term '{term}'"
@@ -907,12 +922,12 @@ def validate_outcome_evidence_lifecycle() -> None:
         "Freshness:",
         "Evidence state:",
     ):
-        if field not in record.group(1):
+        if not contains(record.group(1), field):
             fail(
                 f"{trace_path.relative_to(ROOT)} outcome-evidence record "
                 f"missing field '{field}'"
             )
-    if "not-applicable" in record.group(1):
+    if contains(record.group(1), "not-applicable"):
         fail(
             f"{trace_path.relative_to(ROOT)} must summarize authoritative "
             "not-applicable reasons without creating an outcome-evidence record"
@@ -925,7 +940,9 @@ def validate_outcome_evidence_lifecycle() -> None:
         worth_text,
         re.S,
     )
-    if not worth_output or "Outcome evidence:" not in worth_output.group(1):
+    if not worth_output or not contains(
+        worth_output.group(1), "Outcome evidence:"
+    ):
         fail(
             f"{worth_path.relative_to(ROOT)} worth output must cite "
             "outcome evidence"
@@ -955,7 +972,7 @@ def validate_outcome_evidence_lifecycle() -> None:
     for path, terms in contracts.items():
         text = path.read_text(encoding="utf-8")
         for term in terms:
-            if term not in text:
+            if not contains(text, term):
                 fail(
                     f"{path.relative_to(ROOT)} missing outcome-evidence "
                     f"lifecycle term '{term}'"
@@ -967,7 +984,7 @@ def validate_generic_requirements() -> None:
         path = AGENT_SKILLS / name / "SKILL.md"
         text = path.read_text(encoding="utf-8")
         for term in GENERIC_REQUIREMENTS_FORBIDDEN:
-            if term in text:
+            if contains(text, term):
                 fail(f"{path.relative_to(ROOT)} contains project-specific term '{term}'")
 
 
@@ -1001,7 +1018,7 @@ def validate_alchemy_dispatch_contract() -> None:
         fail(f"{path.relative_to(ROOT)} must dispatch before qualification")
 
     for state in ALCHEMY_DISPATCH_STATES:
-        if f"`{state}`" not in text:
+        if not contains(text, f"`{state}`"):
             fail(f"{path.relative_to(ROOT)} missing dispatch state '{state}'")
 
     required = (
@@ -1014,7 +1031,7 @@ def validate_alchemy_dispatch_contract() -> None:
         "only explicit full language selects `FULL`",
     )
     for term in required:
-        if term not in text:
+        if not contains(text, term):
             fail(f"{path.relative_to(ROOT)} missing dispatch rule '{term}'")
 
     public_contracts = {
@@ -1029,7 +1046,7 @@ def validate_alchemy_dispatch_contract() -> None:
     for contract_path, terms in public_contracts.items():
         contract = contract_path.read_text(encoding="utf-8")
         for term in terms:
-            if term not in contract:
+            if not contains(contract, term):
                 fail(
                     f"{contract_path.relative_to(ROOT)} missing Alchemy dispatch term '{term}'"
                 )
@@ -1045,17 +1062,17 @@ def validate_alchemy_topology_handshake() -> None:
     }
     for path, blocking_term in contracts.items():
         text = path.read_text(encoding="utf-8")
-        if handshake not in text:
+        if not contains(text, handshake):
             fail(
                 f"{path.relative_to(ROOT)} missing bounded topology handshake "
                 f"'{handshake}'"
             )
-        if blocking_term not in text:
+        if not contains(text, blocking_term):
             fail(
                 f"{path.relative_to(ROOT)} missing topology enforcement block "
                 f"'{blocking_term}'"
             )
-        if "once" not in text and "one L re-entry" not in text:
+        if not contains(text, "once") and not contains(text, "one L re-entry"):
             fail(
                 f"{path.relative_to(ROOT)} must bound topology acceptance "
                 "to one L re-entry"
@@ -1090,12 +1107,12 @@ def validate_alchemy_root_guidance() -> None:
         "BUILD / KEEP / SIMPLIFY or stop",
     )
     for term in required:
-        if term not in guidance:
+        if not contains(guidance, term):
             fail(f"{path.relative_to(ROOT)} missing Alchemy guidance term '{term}'")
 
     forbidden = ("Audits reverse", "PASS / DROP")
     for term in forbidden:
-        if term in guidance:
+        if contains(guidance, term):
             fail(f"{path.relative_to(ROOT)} contains stale Alchemy guidance '{term}'")
 
 
@@ -1104,7 +1121,7 @@ def validate_design_and_release_contracts() -> None:
     text = design.read_text(encoding="utf-8")
     required = ("Status: Implemented", "Blocking stage: None", "## Acceptance Criteria")
     for term in required:
-        if term not in text:
+        if not contains(text, term):
             fail(f"{design.relative_to(ROOT)} missing finalization term '{term}'")
 
     package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
@@ -1125,7 +1142,7 @@ def validate_contribution_contract() -> None:
     path = ROOT / "CONTRIBUTING.md"
     text = path.read_text(encoding="utf-8")
     for term in CONTRIBUTION_REQUIRED_TERMS:
-        if term not in text:
+        if not contains(text, term):
             fail(f"{path.relative_to(ROOT)} missing promotion term '{term}'")
 
     package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
@@ -1138,7 +1155,7 @@ def validate_public_doc_drift() -> None:
         for path in config["files"]:
             text = path.read_text(encoding="utf-8")
             for pattern in config["patterns"]:
-                if pattern in text:
+                if contains(text, pattern):
                     fail(
                         f"{path.relative_to(ROOT)} contains stale public-doc "
                         f"pattern for {rule}: {pattern!r}"
