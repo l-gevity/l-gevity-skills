@@ -174,6 +174,8 @@ SKILL_REQUIRED_TERMS = {
         "`representation-derived`",
         "`representation-projected`",
         "reject a representation gap that names no expiry condition",
+        "domain and data model views",
+        "| Domain or data model view |",
     ),
     "functionality-complexity-tradeoff": (
         "Outcome evidence informs worth; it is not the verdict",

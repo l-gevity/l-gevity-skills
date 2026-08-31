@@ -137,8 +137,8 @@ creates a new hypothesis version and invalidates dependent assessments.
 
 1. Resolve the canonical requirement set, version, and admitted slice.
 2. Inventory changed or planned artifacts at public boundaries: contracts,
-   commands, events, exports, routes, domain rules, migrations, tests, ADRs,
-   runbooks, and deployment evidence.
+   commands, events, exports, routes, domain rules, migrations,
+   domain and data model views, tests, ADRs, runbooks, and deployment evidence.
 3. Reuse stable requirement and criterion IDs; resolve aliases only through the
    canonical lineage model.
 4. Place the smallest useful anchor in the artifact a maintainer will inspect
@@ -162,6 +162,7 @@ creates a new hypothesis version and invalidates dependent assessments.
 | Domain behavior | Named rule/function plus a criterion-tagged behavior test |
 | UI or workflow | Stable route/action/state identifier plus acceptance test |
 | Data or migration | Schema/migration identifier plus compatibility or migration test |
+| Domain or data model view | Stable entity/node identifier plus the requirement IDs that authorise it |
 | ADR or architecture record | Requirement IDs in the decision context |
 | Operations | Runbook/check identifier plus revision, environment, run, and outcome |
 | Issue or change record | Canonical IDs, admitted slice, evidence links, and named gaps |
