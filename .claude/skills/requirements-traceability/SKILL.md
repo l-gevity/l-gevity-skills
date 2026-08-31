@@ -162,7 +162,7 @@ creates a new hypothesis version and invalidates dependent assessments.
 | Domain behavior | Named rule/function plus a criterion-tagged behavior test |
 | UI or workflow | Stable route/action/state identifier plus acceptance test |
 | Data or migration | Schema/migration identifier plus compatibility or migration test |
-| Domain or data model view | Stable entity/node identifier plus the requirement IDs that authorise it |
+| Domain or data model view | Stable entity/node identifier plus the requirement IDs that authorize it |
 | ADR or architecture record | Requirement IDs in the decision context |
 | Operations | Runbook/check identifier plus revision, environment, run, and outcome |
 | Issue or change record | Canonical IDs, admitted slice, evidence links, and named gaps |

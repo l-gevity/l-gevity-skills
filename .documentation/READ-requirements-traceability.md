@@ -87,6 +87,45 @@ second, hand-maintained source of truth that drifts from the first.
 three paragraphs of duplicated requirement prose in a source comment is a
 fork of the requirement, and forks drift.)
 
+## Prose about another artifact is a claim
+
+A data-model document says a threshold field is "derived." It isn't: the
+field sits on the stored state object, and the storage codec validates it
+on the way in. Nobody lied — someone wrote a sentence describing a
+*different* artifact's behavior, and a sentence has nothing to fail
+against. The same shape appears as a mapping row crediting a schema with
+carrying two concepts it does not carry, and as a temporary deviation
+written down as settled design. Each is a small fiction that survives
+precisely because no check can contradict a caption.
+
+The tempting response is to forbid the mismatch, which is wrong: most
+structural asymmetry between representations is legitimate. One artifact
+often carries several concepts because they share a write or release
+unit. A concept can exist only as a computation. A concept can be rebuilt
+from another artifact's records rather than stored. What separates a
+legitimate asymmetry from a silent defect is that the legitimate one
+**belongs to a named class** and names what it depends on — the
+computation's source, the records it is projected from — which is
+something a reader, and a check, can go and verify.
+
+And every declared asymmetry names **the condition that ends it**.
+"Derived per read, not stored" is a sound decision right up until a
+three-state lifecycle whose end state is immutable, plus an operator-set
+retention period, make a stored document unavoidable. Recorded without
+its expiry condition, that deviation becomes permanent by accident — and
+the day the requirement lands, the "temporary" shape is a breaking change
+to a contract somebody already depends on.
+
+This bites hardest on artifacts carrying neither stable IDs nor a
+generator: the hand-drawn domain model sitting between a canonical
+requirement set and a generated API contract. Every check above resolves
+IDs, so an artifact carrying none is invisible to all of them — nothing
+can report it stale, because there is nothing to resolve. It needs an
+anchor for the same reason everything else does: a stable entity
+identifier plus the requirement IDs that authorize it. Otherwise it stays
+the one picture in the chain that can be wrong indefinitely — and being a
+picture, it is the one everybody trusts.
+
 ## Links carry proof, never meaning
 
 A boundary that keeps the whole system honest: trace links are
