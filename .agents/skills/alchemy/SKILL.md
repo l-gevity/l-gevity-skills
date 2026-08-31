@@ -233,7 +233,7 @@ or independent confirmation supports them.
 |:--|:--|:--|:--|
 | 1 | Necessity check | `functionality-complexity-tradeoff` | BUILD / KEEP / SIMPLIFY or stop per candidate |
 | 2 | First principles | `architecture-guidelines` | Smallest correct design |
-| 3 | Morphogenetic topology | `morphogenetic-architecture` | Rapid/Full mode + declared Domain / tier / layer + final decision, or one restructuring candidate requiring measurement |
+| 3 | Morphogenetic topology | `morphogenetic-architecture` | Rapid/Full mode + declared Domain / tier / layer + final decision, or one restructuring candidate requiring measurement; probation expiry, instrumentation task, and prediction recheck ride the decision trail to Gate 6 |
 | 4 | Complexity measurement | `structural-simplification` | Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ; then Gate 3 acceptance when restructuring |
 | 5 | Architecture as code | `architecture-as-code` (pattern); `-javascript` / `-python` (impl) | Per-module architecture config |
 | 6 | Shift defect detection left | `defect-shift-left` | Each error path → earliest catchable stage |
@@ -266,7 +266,11 @@ Gate E remains blocked until Gate 3 records final acceptance. If Gate 4 rejects
 or redesigns the candidate, return to Gate A; a changed candidate starts a new
 bounded handshake. The Alchemy orchestrator owns the re-entry, the combined
 decision trail records both passes, and one candidate may re-enter Gate 3 only
-once.
+once. That single re-entry bounds the measurement handshake alone: a
+Close-the-Loop revisit after a prediction window or probation expiry closes
+re-enters Gate 3 as a new bounded audit, and a probationary acceptance's
+expiry, instrumentation task, and prediction recheck travel in the combined
+decision trail to Gate 6, which places the standing check.
 
 DevOps improvement triad:
 

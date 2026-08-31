@@ -163,22 +163,24 @@ flowchart LR
 ### Living topology
 
 Morphogenetic architecture transfers mechanisms from living systems—not their
-silhouettes. A biological lens may propose a candidate or expose a risk;
-software evidence still decides.
+silhouettes. A second candidate — from a graph cut, a biological lens, or a
+manual alternative — may challenge the baseline; software evidence still
+decides, and every accepted restructuring records a prediction that is
+re-measured when its window closes.
 
 ```mermaid
 flowchart LR
     Scaffold["Genetic scaffold<br/>declared topology + invariants"]
     Fields["Morphogen fields<br/>static · runtime · change · data · failure"]
     Baseline["Lens-free candidate"]
-    Lens["Natural lens<br/>one mechanism + falsifier"]
+    Lens["Second candidate<br/>graph cut · natural lens · manual"]
     Evolution["Differentiation or remodeling"]
     Proof["Software proof<br/>reversibility + structural deltas"]
     Decision["PLACE · KEEP · MOVE · SPLIT<br/>MERGE · INTRODUCE-BOUNDARY<br/>DECLARE-RUNTIME-CYCLE · DEFER"]
-    Homeostasis["Homeostasis<br/>enforcement + feedback"]
+    Homeostasis["Homeostasis<br/>enforcement + prediction recheck"]
 
     Scaffold --> Fields --> Baseline --> Evolution --> Proof --> Decision --> Homeostasis
-    Baseline -. "optional mechanism" .-> Lens
+    Baseline -. "generator, reversibility-scaled" .-> Lens
     Lens -. "alternative or newly exposed risk" .-> Evolution
     Homeostasis --> Fields
 ```

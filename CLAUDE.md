@@ -86,7 +86,7 @@ the only exception, and must not cross the merge boundary without rules.
 |---|---|---|---|
 | 1 | Necessity | [`functionality-complexity-tradeoff`](.../functionality-complexity-tradeoff) | BUILD / KEEP / SIMPLIFY or stop |
 | 2 | First principles | [`architecture-guidelines`](.../architecture-guidelines) | Smallest correct design |
-| 3 | Topology | [`morphogenetic-architecture`](.../morphogenetic-architecture) | Rapid/Full mode selection plus a final topology decision, or one candidate requiring Gate 4 measurement |
+| 3 | Topology | [`morphogenetic-architecture`](.../morphogenetic-architecture) | Rapid/Full mode selection plus a final topology decision, or one candidate requiring Gate 4 measurement; a probationary acceptance carries its expiry, instrumentation, and prediction recheck into the trail, placed at Gate 6 |
 | 4 | Complexity | [`structural-simplification`](.../structural-simplification) | Structural deltas, then Gate 3 acceptance when restructuring |
 | 5 | Enforcement | [`architecture-as-code`](.../architecture-as-code) + [`-javascript`](.../architecture-as-code-javascript) / [`-python`](.../architecture-as-code-python) | Per-module config |
 | 6 | Shift-left | [`defect-shift-left`](.../defect-shift-left) | Each error path → earliest stage |

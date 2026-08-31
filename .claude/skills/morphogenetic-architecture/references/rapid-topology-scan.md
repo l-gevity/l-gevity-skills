@@ -72,7 +72,8 @@ Set `Analysis mode: Rapid → Full` and preserve completed checks when:
 - the user changes the request to a deep or subsystem/service-graph audit.
 
 Once escalated, remain in Full. Missing evidence produces DEFER plus an
-instrumentation or measurement action; it never sends the task back to Rapid.
+instrumentation or measurement action, or a probationary acceptance when
+SKILL.md §5 permits one; it never sends the task back to Rapid.
 
 ## Examples
 

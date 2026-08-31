@@ -10,7 +10,8 @@ description: >-
     a boundary. TRIGGER when placing a module/service/layer, refactoring
     dependency topology, discovering bounded contexts, diagnosing cycles,
     god-components, cross-domain tangles, or hidden runtime coupling, or
-    comparing observed behavior with declared architecture. SKIP for routine
+    comparing observed behavior with declared architecture, or revisiting a
+    closed prediction window. SKIP for routine
     in-boundary logic, isolated bug fixes, content/CSS edits, dependency bumps,
     and trivial renames. Use `architecture-guidelines` for component internals,
     `structural-simplification` for complexity deltas, and
@@ -42,11 +43,14 @@ that software is literally alive.
 4. **Evolve from evidence.** Move, split, or merge only when domain meaning and
    observed pressure support the same change. Treat algorithms as candidate-cut
    generators, never as domain authority. Accept computed graph evidence only
-   from retained executable output, never from a narrated calculation.
-5. **Transfer mechanisms, not silhouettes.** When selecting a natural lens,
-   record the lens-free baseline first, use one indexed mechanism to generate a
-   distinct alternative or expose a missed risk, and predeclare what would
-   reject it. Then let software evidence accept or reject both candidates.
+   from retained executable output, never from a narrated calculation. When
+   pressure cannot yet be measured, the probationary path in §5 may apply;
+   measured contradiction always blocks.
+5. **Transfer mechanisms, not silhouettes.** When a natural mechanism supplies
+   a second candidate, record the generator-free baseline first, use one
+   indexed mechanism to generate a distinct alternative or expose a missed
+   risk, and predeclare what would reject it. Then let software evidence
+   accept or reject both candidates.
    Never choose a topology because it resembles a spiral, tree, honeycomb, or
    sacred figure.
 6. **Preserve one owner per rule.** Hand complexity measurement to
@@ -59,6 +63,10 @@ that software is literally alive.
    undo, then require evidence proportional to that cost. A cheap-to-reverse
    change still obeys every hard invariant; a hard-to-reverse change is never
    accepted on one field.
+9. **Close the loop.** Every accepted restructuring is a hypothesis: record
+   the field it should improve, the window, and the recheck trigger, then
+   re-enter Audit when the window closes. Route a systematic prediction miss
+   to `continuous-improvement`.
 
 ## Select the Analysis Mode
 
@@ -122,10 +130,9 @@ and **position** (where it belongs) separate.
 
 ## Living-System Translation
 
-In Full mode, keep the natural analogy visible throughout the workflow. In
-Rapid mode, use `Natural lens: none` unless the user explicitly asks for a
-candidate-generating analogy; an analogy request that affects the decision
-escalates to Full.
+In Full mode, keep the natural analogy visible throughout the workflow. It is
+a way of thinking about the workflow, not a report field. An analogy request
+that could affect the decision escalates to Full.
 
 | Morphogenetic role | Software meaning |
 | --- | --- |
@@ -135,14 +142,13 @@ escalates to Full.
 | **Remodeling / pruning** | MERGE, remove an edge, or retire an obsolete component |
 | **Homeostasis** | Bounded feedback, observability, verification, and enforcement |
 
-When Full uses a natural lens, choose it after declaring the skeleton and
-recording the evidence that produced the question, finding, and lens-free
-baseline, but before selecting a topology decision. Read
-[references/natural-pattern-atlas.md](references/natural-pattern-atlas.md) to
-select and transfer a mechanism. Use `none` when no analogy preserves the
-natural system's relevant objective and constraints or when it adds nothing to
-the lens-free baseline. A lens contribution is operational only when an unused
-independent field or held-out evidence window can still falsify it.
+A natural mechanism reaches the report only as a §4 **second candidate** with
+generator `natural lens`, and only after it satisfies the atlas's
+Candidate-Contribution Test. Read
+[references/natural-pattern-atlas.md](references/natural-pattern-atlas.md)
+before using one. A mechanism that adds nothing to the generator-free
+baseline, or that no unused independent field or held-out window can falsify,
+contributes nothing and is not reported.
 
 ## 1. Declare the Skeleton
 
@@ -158,16 +164,41 @@ Apply these placement rules:
 - Model subdomains as nested domain paths; do not force a naturally nested
   capability into a flat domain list.
 - Connect an outbound interface only to an allowed inbound interface.
-- Route cross-domain access through a named boundary component or public
-  contract.
-- Treat a layer jump greater than one as a **layer-skip violation** unless a
-  named adapter owns the transition.
-- Let lower abstraction tiers serve higher tiers; forbid lower tiers from
-  orchestrating their callers.
 - Expose internals only through the component's inbound interface.
 
 Preserve dependency inversion: source-code imports may point toward an
 abstraction even when runtime control flows toward infrastructure.
+
+### Position Legality
+
+Every declared static edge satisfies one clause per axis. This check needs no
+observed field, runs before §3, and is computable from declared positions
+and the static graph, so hand it to `architecture-as-code` as rules rather
+than re-arguing it per review.
+
+| Axis | Kind | Legal edge | Violation |
+| --- | --- | --- | --- |
+| **Layer** | ordinal | Same layer, or one step toward infrastructure | **layer-skip violation** — more than one step without a named adapter owning the transition |
+| **Abstraction tier** | ordinal | A higher tier calls a lower tier | **tier inversion** — a lower tier statically orchestrates its caller |
+| **Domain** | categorical | The same domain path, or the target domain's declared inbound interface | **cross-domain coupling** — a caller bypasses that inbound interface |
+
+Layer and abstraction tier are ordinal, so "one step" is meaningful on them.
+Domain is categorical: two domain paths are the same or they are not. Never
+treat domain paths as distances, and never infer nearness from a shared
+prefix — `commerce/payments` is not closer to `commerce/shipping` than to
+`identity` in any sense this skill recognizes.
+
+Two whole-graph clauses complete the check:
+
+- The static dependency projection must be acyclic; report the result in
+  **Static cycle**.
+- Code reaches an external SDK only inside its owning adapter; an escape is
+  an **external SDK bypass**.
+
+When domain, tier, or layer cannot be stated independently for a component,
+the check cannot run: report **placement ambiguity** and resolve the position
+before continuing. Legality is necessary, never sufficient — a legal edge
+can still be wrong for reasons only §3's fields expose.
 
 ## 2. Separate Static and Runtime Topology
 
@@ -194,6 +225,17 @@ field triggers escalation.
 
 Use only evidence available for the system. Mark missing fields **Not measured**;
 never replace absent telemetry with intuition.
+
+A greenfield or young system legitimately reports **Not measured** on every
+historical and runtime field; that is absence of history, not a defect.
+§1's position legality still runs at full strength there — it needs no
+field — and it is this skill's whole contribution until the first field
+becomes measurable. Decide placement from domain meaning, declared topology,
+and position legality, and
+for a placement that establishes a new cross-domain or cross-layer edge,
+predeclare in **Prediction** the future validating field, its expected
+direction, the evidence window, and the recheck trigger. A restructuring in
+an evidence-poor system follows the probationary path in §5.
 
 Collect:
 
@@ -222,63 +264,65 @@ conductance, or sensitivity. If no executable output is available, mark graph
 analysis **Not measured** and do not report an algorithmic candidate.
 
 Record which field values and windows produced the question, finding, and
-lens-free baseline. Discovery evidence may generate that baseline, but the same
-observations cannot later count as prospective falsification of a natural-lens
-contribution.
+generator-free baseline. Discovery evidence may generate that baseline, but
+the same observations cannot later count as prospective falsification of a
+second candidate.
 
-## 4. Select a Natural Lens
+## 4. Generate a Second Candidate
 
 In Full mode, first record the candidate suggested by declared topology, domain
 meaning, hard-invariant checks, and the discovery evidence already inspected;
-`none` is a valid baseline. Rapid skips this section and reports
-`Natural lens: none` unless the analysis has already escalated.
+`none` is a valid baseline. Rapid skips this section.
 
-Enter the atlas through its **Operational Lens Index**, keyed by the question or
-the §5 finding name, rather than by browsing the mechanism families. Select at
-most one operational lens. A hard invariant such as a forbidden import cycle
-needs no lens.
+Before accepting a Medium- or Low-reversibility restructuring, generate one
+independent second candidate or record `Second candidate: none` with the
+reason no generator produced a distinct viable alternative. Any generator
+qualifies, each under its own discipline:
 
-Freeze this candidate-contribution record before inspecting its validation
-surface:
+- an **algorithmic cut** from §3 — declared policy, sensitivity check, and
+  retained executable output;
+- a **natural lens** from
+  [references/natural-pattern-atlas.md](references/natural-pattern-atlas.md)
+  — enter through its Operational Lens Index, select at most one lens,
+  and satisfy its Candidate-Contribution Test before the candidate counts;
+- a **manual alternative decomposition** along a different axis (domain,
+  abstraction tier, or layer) — its rejection condition named before its
+  validation surface is inspected.
 
-```text
-Candidate baseline:  <lens-free candidate | none>
-Natural system:      <system and pattern>
-Mechanism:           <what produces or preserves the natural form>
-Software match:      <shared objective, pressure, and constraint>
-Lens contribution:   <one distinct alternative or newly exposed risk>
-Lens falsifier:      <observable rejection condition + unused field or held-out window>
-Break point:         <where the analogy stops>
-```
+A High-reversibility change may mark the field
+`Not required — high reversibility`. PLACE, KEEP, and
+DECLARE-RUNTIME-CYCLE omit the field with the rest of the §8 restructuring
+set, and Rapid never emits it; a DEFER that withholds a restructuring marks
+it **Not required** with a short reason. A second candidate widens the option set;
+it never lowers the evidence bar, and baseline and second candidate face the
+same software-evidence policy. `Second candidate: none` must name which
+generators were attempted and why each produced nothing distinct; a second
+candidate that is produced and rejected records its rejection under the same
+evidence policy as the baseline.
 
-The lens earns an operational role only when `Lens contribution` differs from
-the baseline and `Lens falsifier` names an unused independent field or a
-predeclared held-out evidence window. Otherwise report the lens
-`explanation only`; it may clarify the result but cannot claim candidate
-contribution. Report `Natural lens: none` when the lens adds nothing to the
-baseline or has no concrete falsifier. Symbolic geometry and the atlas's
-exploratory material are always `inspiration only`.
-
-After freezing the record, inspect the named validation surface and test the
-baseline and lens contribution under the same software-evidence policy. Use a
-retained contribution to extend the candidate set or expose risk, not to
-replace evidence. The lens name, mechanism, and analogy may never appear in
+Whatever the generator, name the rejection condition and its validation
+surface before inspecting that surface, then test baseline and second
+candidate under the same software-evidence policy. Use a retained
+contribution to extend the candidate set or expose risk, not to replace
+evidence. A hard invariant such as a forbidden import cycle needs no second
+candidate. The generator's name, mechanism, or analogy may never appear in
 **Boundary evidence**.
 
 ## 5. Diagnose Mismatches
 
-Use these finding names and tests:
+§1's position legality already decides six findings without any observed
+field: **layer-skip violation**, **tier inversion**, **cross-domain
+coupling**, **forbidden import cycle**, **external SDK bypass**, and
+**placement ambiguity** when the check cannot run. Those are enforced by
+`architecture-as-code`; report the violation and fix it, and do not re-argue
+them from evidence here.
+
+The findings below need observed evidence. Use these names and tests:
 
 | Finding | Test |
 | --- | --- |
-| **layer-skip violation** | A static edge crosses more than one layer without a named adapter |
-| **tier inversion** | A primitive statically orchestrates a higher abstraction tier |
-| **cross-domain coupling** | A caller bypasses the target domain's inbound interface |
-| **forbidden import cycle** | The static dependency projection contains a cycle |
 | **god component** | One component owns unrelated edge clusters or multiple independent change reasons |
 | **hidden runtime coupling** | A bus, registry, callback, global, or shared state creates an undeclared edge |
-| **external SDK bypass** | Code reaches an external SDK outside its owning adapter |
-| **placement ambiguity** | Domain, tier, or layer cannot be stated independently |
 | **boundary-pressure mismatch** | Multiple observed fields repeatedly cross a declared boundary |
 | **false boundary** | Components share purpose, lifecycle, and strong affinity but are separated without an independent reason |
 | **resilience bottleneck** | One component or edge carries disproportionate failure impact without an explicit recovery path |
@@ -286,19 +330,20 @@ Use these finding names and tests:
 
 Treat a single noisy signal as a review prompt. Require a domain reason plus an
 independent observed field whose predeclared policy is met before changing a
-boundary, unless a hard invariant such as an import cycle or ownership
-violation already decides the case. That is the floor; the reversibility grade
-below decides how much field agreement and evidence window it takes to clear
-it. Return DEFER when a threshold or sensitivity rule is missing, retrofitted,
-or unstable.
+boundary, unless §1's position legality already decides the case or the
+probationary path below substitutes
+its expiry, instrumentation, and reversal record for an absent field. That is
+the floor; the reversibility grade below decides how much field agreement and
+evidence window it takes to clear it. Return DEFER when a threshold or
+sensitivity rule is missing, retrofitted, or unstable.
 
 ### Scale Proof to Reversibility
 
 Grade the cost of undoing the proposed change before setting its evidence bar.
 Grade only when a boundary actually moves: before accepting MOVE, SPLIT, MERGE,
 or INTRODUCE-BOUNDARY, and when DEFER withholds one of them. PLACE, KEEP, and
-DECLARE-RUNTIME-CYCLE mark the field **Not required** with a short reason —
-they fill or bound an existing position rather than change one.
+DECLARE-RUNTIME-CYCLE omit the restructuring set entirely — they fill or
+bound an existing position rather than change one.
 
 The grade uses declared facts — consumers, published contracts, data, and
 deployment coupling — so it needs no weighted evidence and no extra analysis
@@ -319,6 +364,32 @@ are resolved. Grade any separately specified precursor independently.
 Reversibility never lowers a hard invariant, never authorizes a Rapid
 restructuring decision, and never substitutes for the §7 structural
 measurement.
+
+### Probationary Acceptance
+
+When every hard invariant passes, the §7 structural measurement is met, and
+the only missing proof is a required observed field that cannot be measured
+within the decision window — no history yet, no instrumentation in place, or
+an infeasible measurement cost — accept the restructuring probationarily
+instead of holding an indefinite DEFER:
+
+- Reversibility must be High, or Medium with a named reversal path. Low or
+  Unknown reversibility never accepts probationarily.
+- Probation covers absent evidence only. A measured field that contradicts
+  the change, a failed declared policy, or a defective policy on a measured
+  field still blocks; probation never overrides disagreement.
+- Absent means unobtainable, not unfetched. A field derivable from the
+  repository or VCS history already present — co-change and schema/data
+  ownership above all — is never eligible for probation; measure it first.
+- Record in **Boundary evidence**: `probationary — <domain reason> + <why
+  the field cannot be measured> + expiry or revisit trigger + instrumentation
+  task + reversal path`.
+- Record in **Prediction** the field the instrumentation will measure, the
+  expected direction, and the evidence window.
+- At expiry, re-enter this skill in Audit mode on the bounded scope. A
+  confirmed prediction upgrades the acceptance to measured; a miss triggers
+  the reversal path or an explicit re-decision — never silent retention.
+- The path exists only in Full; Rapid still finishes with its four decisions.
 
 ## 6. Choose the Smallest Evolution
 
@@ -353,6 +424,9 @@ Apply these growth rules:
 - Retire a component through an explicit removal signal — deprecation marker,
   reachability proof, owner, and cleanup path — never by leaving it unreferenced.
 - Prefer one explicit boundary over multiple peer-to-peer exceptions.
+- Prefer a probationary acceptance with instrumentation over an indefinite
+  DEFER when evidence is absent and reversibility permits; when measured
+  evidence contradicts the change, DEFER stands.
 - At Low reversibility, take the smallest reversible step first: introduce the
   boundary or adapter, then move behind it once the contract holds.
 - When reversibility is Unknown, DEFER the end state but independently grade
@@ -368,11 +442,16 @@ Before accepting MOVE, SPLIT, MERGE, or INTRODUCE-BOUNDARY:
 1. Use `structural-simplification` to report Component-kinds Δ,
    Dependency-edges Δ, Max-chain-depth Δ, and Module-count Δ.
 2. Reject a forbidden cycle even when another complexity axis improves.
-3. Hand every static dependency constraint to `architecture-as-code`.
+3. Hand every static dependency constraint to `architecture-as-code`, §1's
+   position-legality clauses first — they are rules, not report rows.
 4. Keep runtime, co-change, data, and failure findings as review, telemetry, or
    runtime-policy checks unless a deterministic repository rule can encode them.
 5. For a Low-reversibility change, record the staged path and its explicit
    reversal step in **Next action** before the change is accepted.
+6. Record **Prediction** for every accepted MOVE, SPLIT, MERGE, or
+   INTRODUCE-BOUNDARY: the observed field expected to improve, its direction,
+   the evidence window, and the recheck trigger. Hand executed-evidence state
+   and freshness to `requirements-traceability`.
 
 In standalone use, do not emit MOVE, SPLIT, MERGE, or INTRODUCE-BOUNDARY while
 that measurement is unavailable. Emit DEFER, name the candidate evolution in
@@ -389,6 +468,36 @@ Enforcement: add/update architecture rule: <exact constraint>
 
 Introduce new lint rules at `warn`; promote each rule to `error` after its
 violations clear.
+
+### Close the Loop
+
+Acceptance is not validation. When a prediction window or probationary expiry
+closes, re-enter this skill in Audit mode scoped to the affected boundary and
+compare the prediction with the new measurement. A confirmed prediction ends
+the probation; a miss triggers the named reversal path or an explicit
+re-decision. Route a systematic prediction miss — the same rule predicting
+wrongly across decisions — to `continuous-improvement` as a skill defect.
+
+Every probationary acceptance goes into a durable register that the standing
+check reads, one row per open probation: subject, decision, expiry or revisit
+trigger, instrumentation task, reversal path, and owner. Name the register's
+location in **Next action**; `defect-shift-left` places the check that reads
+it. A probation missing from the register has no trigger surface and is
+silent retention by another name.
+
+Keep drift detection standing rather than event-driven:
+
+- Static drift fails the build once its `architecture-as-code` rule reaches
+  `error`; until promotion, the rule's violations are carried by the
+  scheduled comparison in the next bullet, and the promotion step is recorded
+  in the accepted change's **Next action**.
+- Everything the build does not fail on — new cross-boundary runtime edges,
+  co-change outliers, expired predictions, and static rules still at `warn` —
+  gets a scheduled declared-vs-observed comparison with a named owner; place
+  it with `defect-shift-left` and leave pipeline execution to CI/CD.
+- The §6 reassessment triggers (order-of-magnitude changes in components,
+  teams, traffic, or data) feed that standing check; they are not prose to
+  remember.
 
 ## 8. Audit Output
 
@@ -408,29 +517,41 @@ Selection reason:    <bounded static check | explicit Full request | exact escal
 Decision:            PLACE | KEEP | MOVE | SPLIT | MERGE | INTRODUCE-BOUNDARY |
                      DECLARE-RUNTIME-CYCLE | DEFER
 Declared topology:   <Domain / abstraction tier / layer + allowed interfaces>
+Position legality:   Pass | Fail: <violation + edge> | Not evaluated
 Observed fields:     <static | runtime | change | data | failure | Not measured>
 Decision policy:     <field: baseline + metric/operator/threshold + window + sensitivity | hard invariant | Not declared>
 Graph analysis:      <script/tool + version + input/result hash | Not measured | Not required>
-Candidate baseline:  <lens-free candidate | none>
-Natural lens:        <pattern | none | pattern — explanation only | inspiration only>
-Lens contribution:   <distinct alternative or risk | none>
-Lens falsifier:      <rejection condition + unused field or held-out window | none>
-Transfer:            <mechanism → contribution; break point; evidence accepted/rejected it>
+Candidate baseline:  <generator-free candidate | none>
+Second candidate:    <candidate or exposed risk + generator | none + generators
+                     attempted + why each produced nothing | Not required + reason>
 Static cycle:        Pass | Fail | Not evaluated
 Runtime cycles:      <none | named cycle + bound/owner/observability>
-Boundary evidence:   <domain reason + independent field, or insufficient>
+Boundary evidence:   <domain reason + independent field | probationary —
+                     reason + why unmeasurable + expiry + instrumentation +
+                     reversal path | insufficient>
 Reversibility:       <high | medium | low + dominant reversal-cost driver |
                      Unknown — Low bar applies + missing facts | Not required + reason>
+Prediction:          <field + direction + window + recheck trigger |
+                     Not required + reason>
 Enforcement:         <none | add/update architecture rule: exact constraint>
 Measurement:         <structural-simplification result | Not required + reason>
 Next action:         <move, split, merge, add interface, instrument, or stop>
 Verification:        <graph/lint/test/telemetry check>
 ```
 
+Seven fields form the **restructuring set**: `Decision policy`, `Graph
+analysis`, `Candidate baseline`, `Second candidate`, `Reversibility`,
+`Prediction`, and `Measurement`. Emit them on the same trigger as the §5
+reversibility grade — before accepting MOVE, SPLIT, MERGE, or
+INTRODUCE-BOUNDARY, and when DEFER withholds one of them. PLACE, KEEP, and
+DECLARE-RUNTIME-CYCLE omit all seven; Rapid never emits them. Every other
+field appears in every report.
+
 Always emit the summary block in Design and Audit mode. Keep values terse when
-the user asks for a concise answer; do not omit fields. Make the natural
-mechanism, contribution, falsifier, and break point understandable to a coder;
-do not let any of them count as an observed field or appear in **Boundary
+the user asks for a concise answer; do not omit a field your decision
+requires. Make the second
+candidate and its generator understandable to a coder; never let a generator's
+name, mechanism, or analogy count as an observed field or appear in **Boundary
 evidence**. Emit exactly one decision from the vocabulary above and put
 qualifications in **Boundary evidence** or **Next action**.
 
@@ -443,3 +564,4 @@ evidence window and residual judgment.
 - **`structural-simplification`** — measure whether an evolution is simpler.
 - **`architecture-as-code`** — enforce static dependency constraints.
 - **`defect-shift-left`** — move each topology defect to its earliest reliable check.
+- **`continuous-improvement`** — route a systematic prediction miss to its rule.

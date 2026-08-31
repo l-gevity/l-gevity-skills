@@ -1,6 +1,6 @@
 # Sample reports — verification artifact
 
-Four reports produced using the rewritten emit templates. Each must be
+Five reports produced using the rewritten emit templates. Each must be
 readable without consulting the internal structural axis symbols or
 morphogenetic mechanism-transfer model. Used to satisfy Verification gate 1
 from the reporting-vocabulary translation plan.
@@ -76,30 +76,16 @@ Decision:            PLACE
 Declared topology:   identity / primitive / infrastructure
                      Inbound: identity/request-middleware, identity/admin-gateway
                      Outbound: identity/key-store, identity/clock
-Observed fields:     Static = proposed edges checked
-                     Runtime / change / data / failure = Not measured
-Decision policy:     Hard invariant — proposed static edges must follow the
-                     declared interfaces and remain acyclic.
-Graph analysis:      Not required — PLACE fills an existing position and no
-                     graph algorithm generated the candidate.
-Candidate baseline:  Place token validation in identity / primitive /
-                     infrastructure from domain meaning and declared edges.
-Natural lens:        none
-Lens contribution:   none — the declared position already supplies the
-                     complete candidate.
-Lens falsifier:      none — no lens contribution is being tested.
-Transfer:            none — domain placement and proposed static edges decide
-                     the position without a natural-system analogy.
+Position legality:   Pass — every edge stays inside the identity domain;
+                     layer and tier steps are within one.
 Static cycle:        Pass — all static edges point toward declared callees
 Runtime cycles:      none
+Observed fields:     Static = proposed edges checked
+                     Runtime / change / data / failure = Not measured
 Boundary evidence:   Token verification belongs to identity; proposed callers
                      and callees remain within the identity boundary.
-Reversibility:       Not required — PLACE fills an existing position and moves
-                     no boundary.
 Enforcement:         add architecture rule: forbid auth-token-validator ->
                      billing/*, orders/*, and undeclared infrastructure
-Measurement:         Not required — PLACE fills an existing position and does
-                     not restructure an existing graph.
 Next action:         Add the component and its inbound interface at
                      identity / primitive / infrastructure.
 Verification:        Run architecture lint and focused identity tests.
@@ -124,9 +110,12 @@ Decision:            SPLIT
 Declared topology:   commerce/checkout / orchestrator / application
                      Inbound: checkout/submit-order
                      Outbound: payments/authorize, shipping/reserve
+Position legality:   Pass — both outbound edges use the target domains'
+                     declared inbound interfaces; no layer or tier step
+                     exceeds one.
 Observed fields:     Static = two edge clusters through separate domain APIs
                      Change = held-out 20-merge window inspected after the
-                     lens record; 18/20 edits touched only one cluster
+                     second-candidate record; 18/20 edits touched one cluster
                      Runtime / data / failure = Not measured
 Decision policy:     Change affinity — baseline = 20 merged changes;
                      accept independent cluster when >= 80% of edits remain
@@ -134,14 +123,16 @@ Decision policy:     Change affinity — baseline = 20 merged changes;
 Graph analysis:      Not required — no algorithmic cut generated the candidate.
 Candidate baseline:  Split the orchestrator into payment and shipment
                      coordinators along the declared domain responsibilities.
-Natural lens:        segmentation
-Lens contribution:   Preserve one symmetric checkout entry contract and forbid
-                     direct payment-to-shipment peer crossings.
-Lens falsifier:      Reject that contribution if more than 20% of the declared
-                     held-out 20-merge window requires both clusters to change.
-Transfer:            Compartment lineage suggests sibling interfaces without
-                     peer crossing; the analogy stops at transaction semantics,
-                     and the predeclared change policy accepted the contribution.
+Second candidate:    Exposed risk (natural lens — segmentation): a split
+                     without one symmetric checkout entry contract permits
+                     direct payment-to-shipment peer crossings. Rejection
+                     condition, named before the held-out window was opened:
+                     more than 20% of the 20-merge window needing both
+                     clusters. Observed 2/20, so the contribution is retained
+                     and shapes the enforcement rule. A manual layer cut was
+                     also attempted and produced nothing distinct: edits
+                     inside each cluster cross the application/infrastructure
+                     line, so it leaves both change reasons in one component.
 Static cycle:        Pass
 Runtime cycles:      none observed
 Boundary evidence:   Payment authorization and shipment reservation have
@@ -149,6 +140,9 @@ Boundary evidence:   Payment authorization and shipment reservation have
                      the predeclared 80% threshold.
 Reversibility:       medium — several internal callers share the checkout
                      contract; the retained facade is the reversal path.
+Prediction:          Cluster-local change stays >= 80% over the next 20
+                     merges after the split; window close re-enters Audit on
+                     commerce/checkout.
 Enforcement:         add architecture rule: checkout entry may depend on the
                      two new inbound interfaces, not their internals
 Measurement:         Proceed — Component-kinds Δ=0; Dependency-edges Δ=-2;
@@ -162,17 +156,89 @@ Verification:        Run architecture lint, checkout contract tests, and
 
 ---
 
+## (e) Probationary acceptance report — evidence-poor young service
+
+**Scenario.** A six-week-old `notifications` service routes dispatch directly
+at its schedule store. INTRODUCE-BOUNDARY becomes a candidate, so the analysis
+escalates to Full. The service has not yet accumulated the declared 20-merge
+window and carries no tracing, so the deciding change-affinity field cannot be
+measured within the decision window.
+
+```
+Subject:             notifications/scheduling-contract
+Mode:                Design
+Analysis mode:       Rapid → Full
+Selection reason:    INTRODUCE-BOUNDARY became a candidate, which Rapid may
+                     not finalize.
+Decision:            INTRODUCE-BOUNDARY
+Declared topology:   notifications / capability / application
+                     Inbound: notifications/dispatcher
+                     Outbound: notifications/schedule-store, platform/clock
+Position legality:   Fail: cross-domain coupling — notifications/dispatcher
+                     reaches notifications/schedule-store outside any
+                     declared contract. The proposed boundary resolves it.
+Observed fields:     Static = full import graph checked; dispatcher reaches
+                     the schedule store directly
+                     Change = Not measured — the service has 7 merges
+                     against a declared 20-merge window, and no earlier
+                     history exists to derive one from
+                     Runtime / data / failure = Not measured — no tracing
+                     and no schema telemetry are deployed
+Decision policy:     Hard invariant — dispatcher must reach the schedule
+                     store only through a declared contract. Change affinity —
+                     baseline = 20 merged changes; accept independent clusters
+                     when >= 80% of edits remain cluster-local; window = 20
+                     merges; sensitivity = threshold ± 10%.
+Graph analysis:      Not required — no algorithmic cut generated the candidate.
+Candidate baseline:  Put one scheduling contract between dispatcher and
+                     schedule-store and keep both behind it.
+Second candidate:    none — algorithmic cut: attempted, no weighted graph
+                     exists at this history depth and the analyzer returns
+                     NOT_EVALUATED; natural lens: attempted, the Operational
+                     Lens Index returns no mechanism for a two-node contract
+                     placement; manual alternative decomposition: attempted,
+                     a layer cut falls on the same edge as the baseline, so
+                     it is not distinct.
+Static cycle:        Pass — dispatcher → scheduling contract → schedule-store
+Runtime cycles:      none
+Boundary evidence:   probationary — scheduling and dispatch have separate
+                     owners and separate retry semantics; change affinity
+                     cannot be measured because the service has 7 of the
+                     declared 20 merges and no earlier history exists to
+                     derive; expiry at merge 20; instrumentation: enable the
+                     co-change report on notifications/*; reversal path: the
+                     contract is internal to notifications and collapses
+                     back into the dispatcher.
+Reversibility:       medium — three internal dispatcher call sites share the
+                     new contract; collapsing it is the named reversal path.
+Prediction:          Cluster-local change reaches >= 80% over merges 1–20 after
+                     the contract lands; window close re-enters Audit on
+                     notifications/*.
+Enforcement:         add architecture rule: forbid notifications/dispatcher ->
+                     notifications/schedule-store
+Measurement:         Proceed — Component-kinds Δ=+1; Dependency-edges Δ=0;
+                     Max-chain-depth Δ=+1; Module-count Δ=0; non-structural
+                     gates pass.
+Next action:         Add the scheduling contract, enable the co-change report,
+                     and promote the new architecture rule from warn to error
+                     once its violations clear.
+Verification:        Run architecture lint, dispatcher contract tests, and the
+                     scheduled declared-vs-observed comparison at expiry.
+```
+
+---
+
 ## Coder read — pass criterion
 
 A reader who has never opened the internal model (`structural-simplification`
 §§1–7 or `morphogenetic-architecture` §§1–3) should be able to, for each of
-the four reports:
+the five reports:
 
 1. State what each labelled field means (e.g. "Component-kinds Δ = how
    many new component types were added; positive means more diversity").
 2. Decide whether the decision follows from the deltas.
 
 If any field requires consulting §1 of either skill to interpret, that
-field name fails and gets rewritten. The four reports above are the
+field name fails and gets rewritten. The five reports above are the
 canonical artifacts for that test — any future edit to the emit
-templates should produce the same four reports and re-pass the test.
+templates should produce the same five reports and re-pass the test.

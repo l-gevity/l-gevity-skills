@@ -33,7 +33,9 @@ authority, however strong its numbers are.
 
 When two fields disagree, do not average them. Name the disagreement, prefer
 the field with authority over the question being asked, and return **DEFER**
-when the deciding field is the one that is **Not measured**.
+when the deciding field is the one that is **Not measured**. A probationary
+acceptance under SKILL.md §5 is unavailable here: a disagreement between
+measured fields is measured contradiction, which always blocks probation.
 
 At Low reversibility, two fields count as agreement only when both meet their
 declared policy and support the same boundary, and at least one has authority
@@ -105,16 +107,17 @@ result.
 
 ## Natural-Lens Boundary
 
-Record which evidence produced the lens-free baseline, then add at most one
-indexed contribution and name its observable falsifier in an unused independent
-field or held-out window, as required by
+Record which evidence produced the generator-free baseline, then add at most
+one indexed contribution and name its observable falsifier in an unused
+independent field or held-out window, as required by
 [natural-pattern-atlas.md](natural-pattern-atlas.md). Test the baseline and
 contribution under the same policy on that validation surface. Discovery
 observations cannot be reused as prospective validation. A natural analogy is
 neither an observed field nor independent boundary evidence, and its name or
-mechanism may not appear in **Boundary evidence**. A lens that adds nothing is
-`none`; one with no unused or held-out validation surface is `explanation
-only`. Fibonacci, sacred geometry, and cymatics remain `inspiration only`.
+mechanism may not appear in **Boundary evidence**. A lens that adds nothing,
+or that has no unused or held-out validation surface, supplies no second
+candidate and is not reported. Fibonacci, sacred geometry, and cymatics never
+supply one.
 
 ## Confidence
 
@@ -128,5 +131,11 @@ Report confidence as:
 
 Permit hard static invariant findings at High confidence without runtime data.
 Require instrumentation before moving a boundary on Low-confidence pressure.
+Low confidence is measured evidence: re-measure a stale field inside the
+declared window, widen coverage for a sampled one, add a second field for
+single-field evidence, and DEFER a contradictory one under **Field Authority**
+above. Low confidence is never eligible for probation. Only a field that is
+**Not measured** and cannot be measured within the decision window may carry
+its instrumentation into a probationary acceptance under SKILL.md §5.
 One-field evidence cannot accept a Low-reversibility end state; DEFER that end
 state and independently grade any separately specified precursor.

@@ -2,7 +2,9 @@
 
 Use this atlas after declaring topology and recording the discovery evidence
 that produced the question, finding, and lens-free baseline, but before choosing
-a topology decision. The analogy may add one candidate or expose one missed
+a topology decision. The atlas is one of SKILL.md §4's second-candidate
+generators; an algorithmic cut or a manual alternative decomposition may serve
+instead. The analogy may add one candidate or expose one missed
 risk; an unused independent field or held-out evidence window must be able to
 reject it.
 
@@ -22,6 +24,23 @@ For every operational lens:
 6. State where the analogy breaks.
 7. Test the baseline and contribution under the same independent software
    evidence policy on that validation surface.
+
+Freeze this record before inspecting the validation surface:
+
+```text
+Baseline:            <generator-free candidate | none>
+Natural system:      <system and pattern>
+Mechanism:           <what produces or preserves the natural form>
+Software match:      <shared objective, pressure, and constraint>
+Contribution:        <one distinct alternative or newly exposed risk>
+Falsifier:           <observable rejection condition + unused field or window>
+Break point:         <where the analogy stops>
+```
+
+The record stays in the working notes. A lens that passes this test supplies
+one `Second candidate` entry in the SKILL.md §8 report, tagged with the
+`natural lens` generator; nothing else about the analogy is reported. A lens
+that fails supplies no second candidate.
 
 Return `none` when the lens adds nothing to the baseline or lacks a concrete
 falsifier. When no unused independent field or held-out window remains, mark
@@ -97,14 +116,14 @@ time.
 divergence costs more. It motivates grading reversal cost, but it does not
 generate a topology candidate and is not an operational lens. Derive the grade
 only from software facts: consumers, contracts, data migration, ownership,
-deployment coupling, and the reversal path. Do not populate `Natural lens`
+deployment coupling, and the reversal path. Do not claim a lens contribution
 merely because reversibility was graded.
 
 ## Exploratory Appendix
 
 These mechanisms may prompt research questions or diagrams, but they are not
-available through the Operational Lens Index and cannot populate `Lens
-contribution`. Mark them `inspiration only`.
+available through the Operational Lens Index and can never supply a second
+candidate. Mark them `inspiration only`.
 
 | Natural architecture | Exploratory use | Why non-operational |
 | --- | --- | --- |

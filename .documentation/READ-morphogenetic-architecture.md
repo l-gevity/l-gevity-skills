@@ -52,6 +52,26 @@ component needs the global picture, yet a coherent global shape emerges
 from every component keeping its own neighborhood honest. That is how
 organisms manage it, too.
 
+Those local rules are worth stating as one check rather than three habits,
+because together they are **decidable**. Given every component's address and
+the import graph, you can compute whether an edge is legal: layer and
+abstraction tier are ordered, so "more than one step without a named adapter"
+means something precise; domain is not ordered, so the only question there is
+whether the edge goes through the target's public contract. Two whole-graph
+clauses finish it — the static graph is acyclic, and an external SDK is
+touched only inside its adapter.
+
+That decidability is the point. It needs no telemetry, no history, and no
+judgement, so it runs on day one of a greenfield system and it belongs in the
+build rather than in a review comment. Resist the temptation to read more into
+the coordinates than that: they are an address, not a space. `commerce/
+payments` is not *nearer* to `commerce/shipping` than to `identity`; domains
+are the same or they are different, and any distance you think you see between
+them is a semantic judgement wearing a costume.
+
+Legality is necessary, never sufficient. A legal edge can still be a bad one
+for reasons only evidence exposes — which is the rest of the method.
+
 ## Many graphs, not one
 
 The most common source of architectural confusion is talking about "the
@@ -112,6 +132,18 @@ discipline; when in doubt, take the smallest reversible step first —
 introduce the boundary and its contract, live with it, and move things
 behind it only once it holds.
 
+One escape valve keeps the discipline from becoming paralysis: when the
+evidence simply doesn't exist yet — a young system with no history, a
+boundary nobody instrumented — and the change is cheap to reverse, decide
+*on probation*: make the move, but attach an expiry, the instrumentation
+that will produce the missing evidence, and a named way back. Probation
+covers absent evidence only; measured evidence that contradicts the change
+always blocks it, and evidence sitting unfetched in version control doesn't
+count as absent — probation is for evidence that cannot exist yet, not
+evidence nobody ran the command for. The alternative — deferring everything
+until telemetry appears — just moves the decision to whoever feels least
+bound by the process.
+
 ## Evolution: the smallest sufficient change
 
 When declared structure and observed evidence disagree, the resolution is
@@ -138,12 +170,15 @@ faces the same test as any refactor — measure the before-and-after
 complexity rather than trusting the story; a move that worsens every axis
 while chasing a tidy narrative is still a bad move.
 
-One more caution, inherited from the biology metaphor itself: analogies
-generate candidates, not verdicts. A structure is never right because it
-resembles a tree, a honeycomb, or anything else elegant. If an analogy
-suggests a design, the design still stands or falls on the software
-evidence — and if the analogy can't be tested against something, it's
-decoration.
+One more discipline before an expensive move: force a *second candidate*
+— one genuinely different alternative, with its rejection condition named
+in advance. Where it comes from is free: a graph algorithm's proposed cut,
+a biological analogy, a colleague's competing decomposition. Analogies in
+particular generate candidates, not verdicts — a structure is never right
+because it resembles a tree or a honeycomb; if an analogy can't be tested
+against something, it's decoration. Baseline and challenger then face the
+same evidence, which is the cheapest known cure for falling in love with
+your first idea.
 
 ## Homeostasis: making the shape self-maintaining
 
@@ -158,6 +193,27 @@ patterns, data ownership, failure isolation — get monitoring and review
 checklists instead, explicitly, so nobody believes the linter covers what
 it doesn't. A living structure needs an immune system, or every boundary
 decision is a suggestion with an expiry date.
+
+Enforcement guards the lines you drew; two more habits guard the drawing
+itself. First, every restructuring ships with a **prediction** — the split
+was made because these clusters change independently, so cluster-local
+change should stay high; when the window closes, measure it. A confirmed
+prediction retires the debate; a miss triggers the named way back — and a
+rule that predicts wrongly across several decisions is itself the bug.
+Second, make drift detection *standing* rather than heroic: the static
+rules fail the build, and a scheduled declared-vs-observed comparison
+watches what the linter can't see — new cross-boundary runtime edges,
+co-change outliers, expired probations — so re-examination is triggered by
+the system, not by whoever happens to remember the diagram exists. (A
+freshly decided boundary rule still starts life as a warning; the standing
+comparison carries it until it is promoted to a build-failing error.)
+
+Probation only works if something remembers it. Every probationary decision
+goes into a register — subject, expiry, the instrumentation that will settle
+it, the way back, and an owner — and that register is what the scheduled
+check reads. Skip it and you have not granted a probation, you have granted
+an exemption; expiry dates nobody holds are the most reliably broken promise
+in engineering.
 
 ## The habit
 

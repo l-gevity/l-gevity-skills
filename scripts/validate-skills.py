@@ -148,18 +148,36 @@ SKILL_REQUIRED_TERMS = {
         "Graph analysis:",
         "Analysis mode:",
         "Selection reason:",
-        "Natural lens:",
         "Candidate baseline:",
-        "Lens contribution:",
-        "Lens falsifier:",
-        "unused independent field or a",
-        "Transfer:",
+        "generator's name, mechanism, or analogy may never appear in",
+        "satisfy its Candidate-Contribution Test before the candidate counts",
         "Emit DEFER",
         "Scale proof to reversibility",
         "### Scale Proof to Reversibility",
         "Grade only when a boundary actually moves",
         "Reversibility:       <high | medium | low",
         "Unknown — Low bar applies",
+        "Generate a Second Candidate",
+        "Second candidate:",
+        "### Probationary Acceptance",
+        "Prediction:",
+        "### Close the Loop",
+        "declared-vs-observed",
+        "cannot be measured within the decision window",
+        "Unknown reversibility never accepts probationarily",
+        "Probation covers absent evidence only",
+        "Absent means unobtainable, not unfetched",
+        "### Position Legality",
+        "position-legality clauses first",
+        "Domain is categorical",
+        "Position legality:   Pass | Fail",
+        "durable register that the standing",
+        "Seven fields form the **restructuring set**",
+        "is never eligible for probation; measure it first",
+        "The path exists only in Full",
+        "Record **Prediction** for every accepted MOVE, SPLIT, MERGE, or",
+        "Before accepting a Medium- or Low-reversibility restructuring",
+        "must name which generators were attempted",
     ),
     "requirements-traceability": (
         "Trace both directions",
@@ -240,29 +258,31 @@ STRUCTURAL_REPORT_FIELDS = (
     "Next action",
     "Verification",
 )
-MORPHOGENETIC_REPORT_FIELDS = (
+MORPHOGENETIC_CORE_FIELDS = (
     "Subject",
     "Mode",
     "Analysis mode",
     "Selection reason",
     "Decision",
     "Declared topology",
+    "Position legality",
+    "Static cycle",
+    "Runtime cycles",
     "Observed fields",
+    "Boundary evidence",
+    "Enforcement",
+    "Next action",
+    "Verification",
+)
+# Emitted only when a boundary actually moves or a DEFER withholds one.
+MORPHOGENETIC_RESTRUCTURING_FIELDS = (
     "Decision policy",
     "Graph analysis",
     "Candidate baseline",
-    "Natural lens",
-    "Lens contribution",
-    "Lens falsifier",
-    "Transfer",
-    "Static cycle",
-    "Runtime cycles",
-    "Boundary evidence",
+    "Second candidate",
     "Reversibility",
-    "Enforcement",
+    "Prediction",
     "Measurement",
-    "Next action",
-    "Verification",
 )
 NATURAL_PATTERN_FAMILIES = (
     "### Pattern and Differentiation",
@@ -507,6 +527,10 @@ def validate_retired_skill_references() -> None:
                 fail(f"{path.relative_to(ROOT)} references retired term '{retired}'")
 
 
+# Fenced report block inside a sample section, tolerant of CRLF checkouts.
+REPORT_BLOCK_RE = re.compile(r"```(?:text)?\s*\r?\n(.*?)```", re.S)
+
+
 def markdown_section(path: Path, heading: str) -> str:
     text = path.read_text(encoding="utf-8")
     start = text.find(heading)
@@ -525,7 +549,7 @@ def validate_report_fields(
     path: Path, heading: str, required_fields: tuple[str, ...]
 ) -> None:
     section = markdown_section(path, heading)
-    match = re.search(r"```(?:text)?\s*\r?\n(.*?)```", section, re.S)
+    match = REPORT_BLOCK_RE.search(section)
     if not match:
         fail(f"{path.relative_to(ROOT)} section '{heading}' missing report block")
     report = match.group(1)
@@ -534,6 +558,23 @@ def validate_report_fields(
             fail(
                 f"{path.relative_to(ROOT)} section '{heading}' "
                 f"missing report field '{field}:'"
+            )
+
+
+def validate_absent_report_fields(
+    path: Path, heading: str, forbidden_fields: tuple[str, ...]
+) -> None:
+    """A non-restructuring report must not carry the restructuring set."""
+    section = markdown_section(path, heading)
+    match = REPORT_BLOCK_RE.search(section)
+    if not match:
+        fail(f"{path.relative_to(ROOT)} section '{heading}' missing report block")
+    report = match.group(1)
+    for field in forbidden_fields:
+        if re.search(rf"^{re.escape(field)}:\s*", report, re.M):
+            fail(
+                f"{path.relative_to(ROOT)} section '{heading}' "
+                f"must omit restructuring field '{field}:'"
             )
 
 
@@ -552,12 +593,22 @@ def validate_sample_reports() -> None:
     validate_report_fields(
         path,
         "## (c) Placement report",
-        MORPHOGENETIC_REPORT_FIELDS,
+        MORPHOGENETIC_CORE_FIELDS,
+    )
+    validate_absent_report_fields(
+        path,
+        "## (c) Placement report",
+        MORPHOGENETIC_RESTRUCTURING_FIELDS,
     )
     validate_report_fields(
         path,
         "## (d) Escalated topology report",
-        MORPHOGENETIC_REPORT_FIELDS,
+        MORPHOGENETIC_CORE_FIELDS + MORPHOGENETIC_RESTRUCTURING_FIELDS,
+    )
+    validate_report_fields(
+        path,
+        "## (e) Probationary acceptance report",
+        MORPHOGENETIC_CORE_FIELDS + MORPHOGENETIC_RESTRUCTURING_FIELDS,
     )
 
 
@@ -727,6 +778,8 @@ def validate_morphogenetic_pattern_atlas() -> None:
 
     for term in (
         "## Candidate-Contribution Test",
+        "Freeze this record before inspecting the validation surface",
+        "supplies no second candidate",
         "lens-free baseline candidate",
         "observable condition",
         "`explanation only`",
@@ -775,6 +828,55 @@ def validate_morphogenetic_reversibility() -> None:
                     f"{path.relative_to(ROOT)} missing reversibility contract "
                     f"'{term}'"
                 )
+
+
+def validate_morphogenetic_probation() -> None:
+    """Probation guards also live in evidence-fields.md, outside SKILL.md terms."""
+    evidence = (
+        AGENT_SKILLS
+        / "morphogenetic-architecture"
+        / "references"
+        / "evidence-fields.md"
+    )
+    text = evidence.read_text(encoding="utf-8")
+    for term in (
+        "is measured contradiction, which always blocks probation",
+        "Low confidence is never eligible for probation",
+    ):
+        if not contains(text, term):
+            fail(
+                f"{evidence.relative_to(ROOT)} missing probation guard "
+                f"'{term}'"
+            )
+
+
+def validate_topology_report_checker() -> None:
+    """The report checker proves emitted reports obey SKILL.md, not just that
+    SKILL.md states the rule. Its self-test guards the rules themselves; the
+    sample sweep guards the samples against the rules."""
+    checker = ROOT / "scripts" / "check_topology_report.py"
+    if not checker.is_file():
+        fail(f"{checker.relative_to(ROOT)} is missing")
+
+    samples = DOCS / "sample-reports-verification.md"
+    for args, description in (
+        (["--self-test"], "self-test"),
+        (["--samples", str(samples)], "sample sweep"),
+    ):
+        try:
+            completed = subprocess.run(
+                [sys.executable, str(checker), *args],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+        except subprocess.TimeoutExpired:
+            fail(f"{checker.relative_to(ROOT)} {description} timed out")
+        if completed.returncode != 0:
+            detail = (completed.stdout or completed.stderr).strip()
+            fail(f"{checker.relative_to(ROOT)} {description} failed: {detail}")
 
 
 def validate_primers() -> None:
@@ -1207,7 +1309,9 @@ def main() -> int:
     validate_morphogenetic_graph_analyzer()
     validate_morphogenetic_pattern_atlas()
     validate_morphogenetic_reversibility()
+    validate_morphogenetic_probation()
     validate_sample_reports()
+    validate_topology_report_checker()
     validate_morphogenetic_public_vocabulary()
     validate_primers()
     validate_readme_index()

@@ -194,7 +194,7 @@ confirmation.
 | Requirements Topology | `STABLE` | `NEEDS-REFACTOR`, `BLOCKED` | Atomic typed graph, stable IDs, dependencies, conflicts, dependency order |
 | Implementation Readiness | `READY`, bounded `PARTLY-READY` | `NOT-READY` | Smallest coherent slice, verification obligations, unresolved blockers |
 | A — Architecture | Gate-specific pass | Redesign, reject, or defer | First-principles design record |
-| L — Morphogenetic topology | Final `PLACE`, `KEEP`, `DECLARE-RUNTIME-CYCLE`, or measured restructuring decision | `DEFER`, including an unmeasured restructuring candidate | Rapid/Full selection plus final topology report, or one candidate plus Gate C measurement request |
+| L — Morphogenetic topology | Final `PLACE`, `KEEP`, `DECLARE-RUNTIME-CYCLE`, or measured restructuring decision | `DEFER`, including an unmeasured restructuring candidate | Rapid/Full selection plus final topology report, or one candidate plus Gate C measurement request; a probationary acceptance adds its expiry, instrumentation task, and prediction recheck, placed at Gate H |
 | C — Complexity | `Proceed` | `Redesign`, `Reject` | Four structural deltas; re-enter L once when measuring its unchanged candidate |
 | E through H | Gate-specific pass | Reject, defer, or blocked | Enforcement and shift-left records |
 | Y — Yield | Improvement decision | Defer until a measured constraint exists | Constraint and value-stream analysis |
