@@ -61,13 +61,20 @@ whether the edge goes through the target's public contract. Two whole-graph
 clauses finish it — the static graph is acyclic, and an external SDK is
 touched only inside its adapter.
 
-That decidability is the point. It needs no telemetry, no history, and no
-judgement, so it runs on day one of a greenfield system and it belongs in the
-build rather than in a review comment. Resist the temptation to read more into
-the coordinates than that: they are an address, not a space. `commerce/
-payments` is not *nearer* to `commerce/shipping` than to `identity`; domains
-are the same or they are different, and any distance you think you see between
-them is a semantic judgement wearing a costume.
+That decidability is the point, with one honest limit on it. It needs no
+telemetry and no history, so it works on day one of a greenfield system — but
+it is not judgement-free, because *assigning* the addresses is judgement, and
+on real code a stubborn fraction of modules resist a single one. So use it
+where the judgement is already happening: on the handful of edges belonging to
+a component you are placing right now. Run it across a whole existing
+codebase and you get a flood of flags for edges the axes were never told how
+to classify. What belongs in the build is the *output* — named edges, each
+with a written reason — not the derivation.
+
+Resist the temptation to read more into the coordinates than they hold: they
+are an address, not a space. `commerce/payments` sits inside `commerce`, but
+it is not *nearer* to `commerce/shipping` than to `identity`. Containment is
+real; distance is a semantic judgement wearing a costume.
 
 Legality is necessary, never sufficient. A legal edge can still be a bad one
 for reasons only evidence exposes — which is the rest of the method.

@@ -171,24 +171,45 @@ abstraction even when runtime control flows toward infrastructure.
 
 ### Position Legality
 
-Every declared static edge satisfies one clause per axis. This check needs no
-observed field and runs before §3, so hand it to `architecture-as-code` as
-rules rather than re-arguing it per review. Layer and tier are computable
-from declared positions and the static graph alone; the domain clause needs a
-third input, each component's declared inbound interface, and cannot run
-without it.
+Check the edges of the component being placed, not every edge in the
+repository. This is a **design-time check on a proposed or changed
+position** — its inbound and outbound edges, a handful at a time. Auditing a
+whole codebase from three axes is an explicit non-goal: a derived rule loses
+to one that states intent, so turn the result into `architecture-as-code`
+rules that name each edge and its reason, and let those carry the standing
+check. Positions belong in the repository as a reviewed artefact that fails
+the build when a component arrives unpositioned; never re-derive them per
+audit.
+
+Each proposed edge satisfies one clause per axis. The clauses need no observed
+field and run before §3. Layer and tier read from declared positions and the
+static graph; the domain clause needs a third input, the target's declared
+inbound interface, and cannot run without it.
 
 | Axis | Kind | Legal edge | Violation |
 | --- | --- | --- | --- |
-| **Layer** | ordinal | Same layer, or one step toward infrastructure | **layer-skip violation** — more than one step without a named adapter owning the transition |
-| **Abstraction tier** | ordinal | A higher tier calls a lower tier | **tier inversion** — a lower tier statically orchestrates its caller |
-| **Domain** | categorical | The same domain path, or the target domain's declared inbound interface | **cross-domain coupling** — a caller bypasses that inbound interface |
+| **Layer** | ordinal | Same layer; one step toward infrastructure; or toward the consumer when it points at an abstraction the target layer owns (dependency inversion) | **layer-skip violation** — more than one step, unless either endpoint is the declared adapter owning that transition. **layer inversion** — toward the consumer with no dependency inversion |
+| **Abstraction tier** | ordinal | Same tier, or a higher tier calling a lower tier | **tier inversion** — a lower tier statically orchestrates its caller. A type-only edge is erased before runtime and can never orchestrate, so it cannot violate this clause |
+| **Domain** | categorical | The same domain path; a path nested inside it; or the target domain's declared inbound interface | **cross-domain coupling** — a caller bypasses that inbound interface |
 
 Layer and abstraction tier are ordinal, so "one step" is meaningful on them.
-Domain is categorical: two domain paths are the same or they are not. Never
-treat domain paths as distances, and never infer nearness from a shared
-prefix — `commerce/payments` is not closer to `commerce/shipping` than to
-`identity` in any sense this skill recognizes.
+Domain is categorical: two paths are the same, one contains the other, or they
+are unrelated. Containment is not distance — `commerce/payments` sits inside
+`commerce`, but it is no closer to `commerce/shipping` than to `identity`, and
+sibling paths never inherit permission from a shared prefix.
+
+Three definitions the clauses stand on:
+
+- **Inbound interface** — the contract a domain publishes for callers: a package
+  entry point, an exported public surface, or a declared allowlist. Where it is
+  a hand-maintained allowlist, the domain clause is a configuration file rather
+  than a derived rule. Say so, and keep the list under review; the clause is
+  never better than that list.
+- **Re-export module** — a module that only re-exports. It takes no position of
+  its own; resolve each edge through it to what it re-exports.
+- **External SDK** — a third-party runtime dependency, not a language or runtime
+  builtin. The clause is about reaching one at value granularity; importing its
+  types is not a bypass.
 
 Two whole-graph clauses complete the check:
 
@@ -196,6 +217,16 @@ Two whole-graph clauses complete the check:
   **Static cycle**.
 - Code reaches an external SDK only inside its owning adapter; an escape is
   an **external SDK bypass**.
+
+None of this is sliceable. Each per-axis clause needs a position for both
+endpoints of every edge it judges, and acyclicity needs the whole dependency
+closure, so placing one component still means positioning what it touches.
+
+A **composition root** — a module whose whole job is wiring everything together
+— is exempt from the domain and tier clauses by declaration. "One cohesive
+capability at one primary position" has no answer for a module built to be
+incohesive; name it as the composition root and move on rather than forcing a
+position it cannot have.
 
 When domain, tier, or layer cannot be stated independently for a component,
 the check cannot run: report **placement ambiguity** and resolve the position
@@ -325,12 +356,12 @@ candidate. The generator's name, mechanism, or analogy may never appear in
 
 ## 5. Diagnose Mismatches
 
-§1's position legality already decides six findings without any observed
-field: **layer-skip violation**, **tier inversion**, **cross-domain
-coupling**, **forbidden import cycle**, **external SDK bypass**, and
-**placement ambiguity** when the check cannot run. Those are enforced by
-`architecture-as-code`; report the violation and fix it, and do not re-argue
-them from evidence here.
+§1's position legality already decides seven findings without any observed
+field: **layer-skip violation**, **layer inversion**, **tier inversion**,
+**cross-domain coupling**, **forbidden import cycle**, **external SDK
+bypass**, and **placement ambiguity** when the check cannot run. Those are
+enforced by `architecture-as-code` as named edges; report the violation and
+fix it, and do not re-argue them from evidence here.
 
 The findings below need observed evidence. Use these names and tests:
 
