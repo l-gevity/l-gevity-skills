@@ -264,6 +264,7 @@ Outcome hypotheses:  <IDs + unmeasured/supported/rejected/inconclusive/stale/not
 Outcome evidence:    <current measurement links, or none>
 Reverse-trace gaps:  <changed artifacts without requirement/rationale>
 Stale references:    <none or exact references>
+Representation gaps: <class, artifact, and expiry condition, or none>
 Other gaps:          <gap taxonomy entries and owners>
 Next action:         <implement, test, decide, repair reference, or close>
 Verification:        <trace check and tests run, or Not run + reason>
@@ -278,7 +279,7 @@ Trace:
 - Implementation: <stable artifacts>
 - Evidence: <executed tests or operational results>
 - Outcomes: <hypothesis IDs, evidence states, freshness, and observation links>
-- Gaps/deferred: <none or named gaps>
+- Gaps/deferred: <none or named gaps; representation gaps carry expiry>
 ```
 
 ## Guardrails

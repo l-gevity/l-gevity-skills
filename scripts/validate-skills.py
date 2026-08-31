@@ -176,6 +176,8 @@ SKILL_REQUIRED_TERMS = {
         "reject a representation gap that names no expiry condition",
         "domain and data model views",
         "| Domain or data model view |",
+        "Representation gaps: <class, artifact, and expiry condition, or none>",
+        "representation gaps carry expiry",
     ),
     "functionality-complexity-tradeoff": (
         "Outcome evidence informs worth; it is not the verdict",
@@ -289,13 +291,7 @@ MORPHOGENETIC_DECISIONS = (
     "DECLARE-RUNTIME-CYCLE",
     "DEFER",
 )
-GENERIC_REQUIREMENTS_SKILLS = (
-    "requirements-grounding",
-    "requirements-topology",
-    "implementation-readiness",
-    "requirements-traceability",
-)
-GENERIC_REQUIREMENTS_FORBIDDEN = (
+CONSUMER_FORBIDDEN = (
     "PayQuality",
     "PayLens",
     "docs/requirements",
@@ -1001,11 +997,17 @@ def validate_outcome_evidence_lifecycle() -> None:
                 )
 
 
-def validate_generic_requirements() -> None:
-    for name in GENERIC_REQUIREMENTS_SKILLS:
-        path = AGENT_SKILLS / name / "SKILL.md"
+def validate_generic_library() -> None:
+    """No consumer name, path, or command may appear in the published library."""
+    paths = [
+        *ROOT.glob("*.md"),
+        *DOCS.rglob("*.md"),
+        *AGENT_SKILLS.rglob("*.md"),
+        *CLAUDE_SKILLS.rglob("*.md"),
+    ]
+    for path in paths:
         text = path.read_text(encoding="utf-8")
-        for term in GENERIC_REQUIREMENTS_FORBIDDEN:
+        for term in CONSUMER_FORBIDDEN:
             if contains(text, term):
                 fail(f"{path.relative_to(ROOT)} contains project-specific term '{term}'")
 
@@ -1202,7 +1204,7 @@ def main() -> int:
     validate_test_strategy_contract()
     validate_outcome_hypothesis_contract()
     validate_outcome_evidence_lifecycle()
-    validate_generic_requirements()
+    validate_generic_library()
     validate_alchemy_pipeline()
     validate_alchemy_dispatch_contract()
     validate_alchemy_topology_handshake()
