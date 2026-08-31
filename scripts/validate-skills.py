@@ -346,6 +346,28 @@ def fail(message: str) -> None:
     raise SystemExit(1)
 
 
+MATCHER_SELF_TEST = (
+    # (text, phrase, expected) — contains() is load-bearing for every
+    # contract check below, so a regression there would silently pass them all.
+    ("alpha beta\n   gamma delta", "beta gamma", True),
+    ("one\n\ttwo", "one two", True),
+    ("alpha beta gamma", "beta omega", False),
+    ("ends here\n\nstarts there", "here starts", False),
+    ("| A | B |\n| C | D |", "| A | B |", True),
+    ("Dispatch:   <SKIP>", "Dispatch: <SKIP>", True),
+    ("foo bar", "foobar", False),
+)
+
+
+def validate_matcher() -> None:
+    for text, phrase, expected in MATCHER_SELF_TEST:
+        if contains(text, phrase) is not expected:
+            fail(
+                f"contains({text!r}, {phrase!r}) returned {not expected}, "
+                f"expected {expected}"
+            )
+
+
 def skill_dirs(root: Path) -> list[Path]:
     if not root.exists():
         return []
@@ -1163,6 +1185,7 @@ def validate_public_doc_drift() -> None:
 
 
 def main() -> int:
+    validate_matcher()
     validate_root(CLAUDE_SKILLS)
     validate_root(AGENT_SKILLS)
     validate_mirrors()
