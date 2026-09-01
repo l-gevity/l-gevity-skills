@@ -155,7 +155,9 @@ date, but it never implies implementation or passed evidence.
 Use stable acceptance-criterion IDs when downstream tests or evidence must
 reference individual completion conditions. Preserve active IDs across edits;
 record aliases, splits, merges, replacements, and deprecated criteria without
-recycling identifiers.
+recycling identifiers. Every deprecation record also names the implementation
+artifacts reviewed against the retirement and an accountability reference for
+the decision.
 
 For migrations, freeze the imported source with a revision or checksums, keep an
 old-to-new ID/path map, prove structural and semantic equivalence, and remove the

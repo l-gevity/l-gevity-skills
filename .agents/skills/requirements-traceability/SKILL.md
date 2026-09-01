@@ -236,6 +236,8 @@ Put deterministic trace checks in the earliest capable blocking gate:
 - validate anchor syntax while authoring when editor tooling can do so;
 - reject unknown IDs, criteria, aliases, and stale references in static CI;
 - reject a representation gap that names no expiry condition;
+- reject a deprecated-criterion record that names no reviewed implementation
+  anchors or no accountability reference;
 - require criterion-tagged tests to exist before accepting test-result tags;
 - ingest executed test results before promoting `implemented` to `verified`;
 - require operational evidence to carry revision and run identity;
