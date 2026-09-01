@@ -19,6 +19,13 @@ the voice that asks whether a feature earns its complexity, whether a
 pipeline is truly idempotent, whether a structure can be simpler before
 it's optimized.
 
+Alchemy is the backbone for structural and architectural quality: is this
+worth building, is it well-designed, is it in the right place, is it as
+simple as it can be, are the rules enforced as code, are defects caught
+early, is the flow optimized. It is, in effect, the architect companion —
+not a security, accessibility, UX, API, or release reviewer. Those concerns
+live in their own companion skills, triggered independently alongside it.
+
 <img width="1536" height="1024" alt="L-GEVITY A.L.C.H.E.M.Y." src="https://github.com/user-attachments/assets/2fb2f2c2-193b-4e50-a334-be6a72053ea4" />
 
 ## 1. Start here
@@ -162,24 +169,39 @@ flowchart LR
 
 ### Living topology
 
-Morphogenetic architecture transfers mechanisms from living systems—not their
-silhouettes. Every component gets a declared position — domain, abstraction
-tier, layer — and **position legality** judges each proposed edge from those
-declarations alone: layer and tier are ordinal, domain is categorical, and
-seven violations are decided mechanically, with no telemetry and no history.
-It is a design-time check on the component being placed, never a whole-repo
-derivation, so it works on day one of a greenfield system; its output ships
-as `architecture-as-code` rules that name each edge, and those rules carry
-the standing check.
+Functionally, "living" means the architecture is a standing hypothesis, not
+a diagram drawn once and trusted forever. Placement is cheap and mechanical,
+so it runs on every change; restructuring is expensive and evidence-gated,
+so it runs only when something is actually challenged. Every accepted
+restructuring ships with a predicted effect and a recheck date, so drift
+between the declared architecture and the running system surfaces as a
+defect instead of accumulating silently — the topology stays continuously
+accountable to the code, rather than describing what the code used to be.
 
-Only restructuring needs observed pressure. A second candidate — from a graph
-cut, a biological lens, or a manual alternative — may challenge the baseline;
-software evidence decides both, at a bar scaled to how hard the change is to
-undo. When the one missing proof is a field that genuinely cannot be measured
-yet, a sufficiently reversible change may proceed **on probation**, recording
-an expiry, an instrumentation task, and a reversal path in a durable register
-— measured contradiction always blocks. Every accepted restructuring records
-a prediction that is re-measured when its window closes.
+Every component declares three coordinates: **domain**, **abstraction tier**,
+and **layer** (say UI, service, data). Those coordinates alone are enough to
+rule on whether a proposed dependency between two components is legal — the
+same way a linter blocks an illegal import without running the program.
+Tier and layer have a direction (a UI component may depend on a service, not
+the reverse); domain is just a label, with no ranking between domains. Seven
+illegal dependency shapes are caught this way, mechanically — no runtime
+data, no history, and no need for the rest of the repo to exist yet, so it
+works on day one of a greenfield project. The verdict ships as a permanent
+`architecture-as-code` rule that keeps enforcing that one dependency
+afterward.
+
+Changing the existing structure — merging or splitting components — is
+different: it isn't decided by rule, it needs evidence that the current
+shape is actually causing problems (coupling, duplicated change, failure
+propagation). A competing design has to beat the current one on measured
+deltas, and the required proof scales with how hard the change is to undo —
+renaming a module needs less justification than collapsing two services. If
+every measurement checks out except one that genuinely can't be taken yet,
+and the change is cheap to reverse, it can proceed **on probation**: a
+recorded expiry, a task to add the missing measurement, and a rollback path.
+A later measurement that contradicts the decision overrides the probation
+regardless. Every accepted restructuring also records what result it
+expects, checked again once that window closes.
 
 ```mermaid
 flowchart LR
