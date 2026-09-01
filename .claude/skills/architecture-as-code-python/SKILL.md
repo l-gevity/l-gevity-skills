@@ -103,7 +103,14 @@ import sys
 import tomllib
 from pathlib import Path
 
-ROOT_PACKAGE = "mypkg"          # set this for your project
+# Coverage gate (pattern Directive 7): the graph roots must cover every source
+# package. Derive them; one hardcoded root silently excludes whatever top-level
+# directory lands next.
+SOURCE_PACKAGES = sorted(
+    p.name
+    for p in Path(".").iterdir()
+    if p.is_dir() and (p / "__init__.py").exists() and not p.name.startswith(".")
+)
 GENERATED_CONFIG = Path(".importlinter")
 
 # 1. Discover — recursive walk, skipping the configured ignore-list
@@ -148,7 +155,11 @@ def expand(spec, except_=None):
 component_pattern = {c["name"]: c["pattern"] for c in components}
 component_single  = {c["name"]: c.get("single", False) for c in components}
 
-ini = ["[importlinter]", f"root_package = {ROOT_PACKAGE}", ""]
+if not SOURCE_PACKAGES:
+    sys.exit("No source packages discovered — the import graph would be empty.")
+ini = ["[importlinter]", "root_packages ="]
+ini.extend(f"    {p}" for p in SOURCE_PACKAGES)
+ini.append("")
 for i, edge in enumerate(forbidden):
     src = expand(edge["from"], edge.get("except"))
     dst = expand(edge["to"],   edge.get("except_to"))
@@ -233,6 +244,17 @@ Next action:    <specific file edit, package install, cache clear, or unresolved
 > loading, mark the entry-point as a single-module component
 > (`single = true`) so its rules are explicit, and consider banning the
 > dynamic style elsewhere.
+
+> [!IMPORTANT] **The graph root is the coverage gate.** import-linter builds
+> its graph from `root_package` / `root_packages`. A new top-level package or
+> directory outside that list is not in the graph, so no contract can fail on
+> it and the run still reports success — the Python form of pattern Directive 7
+> ("the emitted rule's scope must equal the linted source set"). Derive
+> `root_packages` from the tree at assembly time rather than hardcoding one
+> root, and fail the assembler when the derived list is empty or a top-level
+> source package is missing. import-linter has no native file-existence rule
+> (Directive 8), so that comparison — packages on disk vs. packages in the
+> generated config — is the check that catches an undeclared directory.
 
 > [!NOTE] **import-linter `*` is single-segment.** In `forbidden_modules` and
 > similar fields, `mypkg.*` matches `mypkg.foo` but **not** `mypkg.foo.bar`.

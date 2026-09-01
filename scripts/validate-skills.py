@@ -64,11 +64,28 @@ SKILL_REQUIRED_TERMS = {
     ),
     "architecture-as-code": (
         "`architecture-guidelines` or `morphogenetic-architecture`",
+        "Coverage is two independent gates",
+        "A file-existence rule is what catches an undeclared directory",
+        "The same catch-all at the repository root inverts",
+        "Forward EVERY field the component schema defines",
+        "The emitted rule block's file scope equals the linted source set.",
+        "Every file at repository root belongs to a declared component.",
+        "A passing lint is not evidence of coverage.",
     ),
     "architecture-as-code-javascript": (
         "no-restricted-syntax",
         "ImportExpression",
         "Production code must not import test-only code.",
+        "files: ['**/*.{js,jsx,mjs,ts,tsx}'],",
+        "'boundaries/no-unknown-files': 'error',",
+        "The broad glob is the point, not an accident",
+        "second, independent gate",
+        "decides what a pattern matches, and the default is",
+        "partialMatch: false",
+    ),
+    "architecture-as-code-python": (
+        "The graph root is the coverage gate",
+        "root_package",
     ),
     "architecture-guidelines": (
         "## 8. Layer Self-Sufficiency",

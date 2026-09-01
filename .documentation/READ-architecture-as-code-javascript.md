@@ -42,10 +42,10 @@ flat-config. The merged config is a throwaway build artifact; the
 per-module files are the source of truth, versioned next to the code they
 govern.
 
-## The three ways enforcement silently fails
+## The four ways enforcement silently fails
 
 Here's the part worth internalizing even if you never touch the config,
-because all three failures produce the same dangerous symptom: **a green
+because all four failures produce the same dangerous symptom: **a green
 lint run that isn't checking what you think it checks.**
 
 **1. Unresolved imports are invisible.** The plugin can only judge an
@@ -66,7 +66,28 @@ sits outside the law. Patterns are matched in order, narrowest first —
 the facade's exact file path before tier directories before the catch-all
 — so each file lands in its most specific classification.
 
-**3. Computed dynamic imports are invisible.** `import('./' + name)` can't
+Two caveats on that catch-all, both learned expensively. It belongs *inside*
+a module, where the parts sit at one depth. At the repository root the same
+`**` matches at the shallowest folder and steals files from the specific
+components below it, whatever its position in the list — so the root's loose
+files get declared individually, as exact file paths. And a catch-all only
+makes a file *classified*; to make an unclassified file *fail*, switch on the
+plugin's unknown-file rule. That rule is also the only one that can flag a
+file with no imports at all — a dependency rule needs an edge to judge, and
+such a file has none.
+
+**3. Unlinted files are invisible — and this one hides in the config.** The
+others are gaps in what the plugin can *see*; this is a gap in where it is
+*pointed*. The boundaries rule lives in a flat-config block with a `files`
+glob, and that glob is a second gate, independent of every component pattern:
+a file outside it is never handed to the rule. A scope that started as
+`packages/**` and grew into a hand-kept list of directories will eventually
+miss a new one, and the lint output won't change by a character — the count
+stays at zero because the rule was never asked. Point the block at the whole
+tree and keep real exclusions in the config's shared ignore list, where they
+are one visible list rather than an omission.
+
+**4. Computed dynamic imports are invisible.** `import('./' + name)` can't
 be resolved statically — the target is decided at runtime, so the boundary
 plugin can't see the edge at all. One computed import can smuggle any
 dependency past every rule. The countermeasure is a companion lint rule
@@ -76,9 +97,13 @@ template strings in an import are themselves the lint error. This isn't
 pedantry — it's closing the one door the whole enforcement scheme can't
 watch.
 
-The general principle behind all three: **static enforcement governs only
-the statically analyzable.** Every convenience that makes imports more
-"dynamic" trades away the ability to check them.
+The principle behind the first and fourth: **static enforcement
+governs only the statically analyzable.** Every convenience that makes imports
+more "dynamic" trades away the ability to check them. The principle behind
+the second and third is harsher: **the tool's silence is not a result.** A
+count of zero means the same thing whether the boundary held or was never
+examined, so coverage has to be proven with a positive signal, never inferred
+from a green check.
 
 ## Ecosystem idioms worth knowing
 

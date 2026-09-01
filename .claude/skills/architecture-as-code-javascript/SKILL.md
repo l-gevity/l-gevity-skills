@@ -84,11 +84,13 @@ function expand(spec, except) {
     return { type: types.length === 1 ? types[0] : types };
 }
 
-// 4. Emit boundaries-plugin config.
+// 4. Emit boundaries-plugin config. Forward every field the component schema
+//    defines: an omitted field is unexpressible in every architecture file in
+//    the repo, with no error to say so.
 const elements = COMPONENTS.map(c => ({
     type: c.name,
     pattern: c.pattern,
-    ...(c.mode && { mode: c.mode }),
+    ...(c.mode && { mode: c.mode }),        // REQUIRED — see § 5, matching mode
     ...(c.capture && { capture: c.capture }),
 }));
 const rules = allForbidden.map(e => ({
@@ -100,15 +102,28 @@ const rules = allForbidden.map(e => ({
 export default [
     /* ...language blocks, SDK lockdown, etc... */
     {
-        files: ['packages/**/*.{js,ts,mjs}'],
+        // The broad glob is the point, not an accident. This `files` entry is
+        // the second coverage gate: the element registry cannot fire on a file
+        // the rule never runs on. It must equal the linted source set
+        // (pattern Directive 7).
+        files: ['**/*.{js,jsx,mjs,ts,tsx}'],
         plugins: { boundaries },
         settings: { 'boundaries/elements': elements },
         rules: {
+            // File-existence gate. Flags any file matching no element, whether
+            // or not it imports anything — this is what catches a new
+            // undeclared directory (pattern Directive 8).
+            'boundaries/no-unknown-files': 'error',
             'boundaries/dependencies': ['warn', { default: 'allow', rules }],
         },
     },
 ];
 ```
+
+Exclusions — build output, vendored code, generated bundles — belong in the flat
+config's shared `ignores`, where one list governs every rule and shows up in
+review. Never express them by trimming this block's `files`: a narrowed glob
+looks identical to a clean repository in the lint output.
 
 **Dependencies:** `eslint-plugin-boundaries`, plus `"type": "module"` in the
 repo-root `package.json`.
@@ -165,6 +180,28 @@ export default {
 Tests may still import production components. Adapt the globs to the repository,
 but retain the direction: production → test is forbidden.
 
+### Classify repository-root files
+
+Root-level loose files — configs, entry scripts, generators — are the ones most
+often left unclassified, and the pattern's catch-all directive does not help
+here. A folder-mode `**` at the root matches at the shallowest segment and
+claims files that specific elements already own, from any position in the list
+(see § 5). Declare the root's files with `mode: 'file'` instead:
+
+```js
+// eslint.architecture.mjs (repository root)
+export default {
+    components: [
+        { name: 'repo-tooling-config', pattern: '*.config.js', mode: 'file' },
+        { name: 'repo-tooling-entry',  pattern: 'server.js',   mode: 'file' },
+        // No '**' catch-all at this level.
+    ],
+};
+```
+
+`boundaries/no-unknown-files` then names each root file still unclassified, so
+the list comes from the linter's output rather than from memory.
+
 ## 4. Output Contract
 
 When applying this implementation, emit:
@@ -186,9 +223,36 @@ Next action:    <specific file edit, dependency install, or unresolved question>
 > silently. Fix: install `eslint-import-resolver-alias` and add it under
 > `settings['import/resolver']` so `/js → packages/.../js` resolves.
 
-> [!NOTE] **Unmatched files bypass enforcement.** Files matching no component
-> are invisible to the plugin. End every constrained module's `components`
-> with a `<dir>/**` catch-all (pattern directive #5).
+> [!IMPORTANT] **The rule block's `files` glob is a second, independent gate.**
+> A correct element registry, correct forbidden edges, and strict severities do
+> nothing on a path outside `files`. A narrowed glob —
+> `['packages/**/*.{js,ts,mjs}']`, or an allowlist that grew one directory at a
+> time — lets an entire new top-level directory into the repository with the
+> boundaries lint reporting zero violations, because the rule never ran on it.
+> Nothing in the output distinguishes that from a clean run. Keep the scope at
+> `['**/*.{js,jsx,mjs,ts,tsx}']`.
+
+> [!IMPORTANT] **`mode` decides what a pattern matches, and the default is
+> `folder`.** In folder mode a pattern is tested against a file's path
+> *ancestors*, so `**` matches at the shallowest segment and captures files
+> that deeper, more specific elements already own — regardless of its position
+> in the list. A root-level `{ name: 'repo-unclassified', pattern: '**' }`
+> declared last, after several dozen specific elements, still wins, and yields
+> a flood of misclassifications rather than the intended safety net. Use
+> `mode: 'file'` for anything a shallower pattern would swallow.
+
+> [!NOTE] **`mode` is deprecated in v7 and the suggested replacement does not
+> cover this case.** The deprecation warning recommends `partialMatch: false`;
+> that does not classify a repository-root file — with a glob or with an exact
+> filename, the file stays unknown. `mode: 'file'` is currently the only form
+> that works. Accept the warning instead of chasing it.
+
+> [!NOTE] **Unmatched files bypass enforcement — silently.** Files matching no
+> element are invisible to `boundaries/dependencies`. End every constrained
+> module's `components` with a `<dir>/**` catch-all (pattern Directive 5), and
+> set `boundaries/no-unknown-files` to `error` so an unmatched file is reported
+> instead of ignored. Dependency rules are not a substitute: a file with no
+> imports, or one loaded by a `<script>` tag, has no edge to judge.
 
 > [!NOTE] **Facade-as-file pattern.** JavaScript idiomatically exposes a
 > facade as a single index/entry file. Use `mode: 'file'` plus an exact-path

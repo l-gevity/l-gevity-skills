@@ -50,8 +50,26 @@ description: >-
 > 5. **Every module with rules ends with a catch-all bucket.** Files matching
 >    no component are invisible to the linter and silently bypass forbidden
 >    edges. A `<dir>/**` (or whole-package) entry MUST be last in
->    `components`.
-> 6. **Recursion via discovery.** Assembler walks the tree; deeper files are
+>    `components`. This holds *inside* a module, where the siblings it must
+>    not shadow sit at the same depth.
+> 6. **The same catch-all at the repository root inverts.** Most import-graph
+>    linters match a pattern against a file's path *ancestors* by default, so
+>    a root-level `**` matches at the shallowest segment and claims files that
+>    deeper, more specific components already own. Declaration order does not
+>    break the tie — the catch-all wins from last position against dozens of
+>    specific components. Declare the root's real files explicitly with
+>    exact-file matching (`mode: 'file'`, `single = true`) instead.
+> 7. **Coverage is two independent gates: the registry and the rule's file
+>    scope.** A registry that classifies every file proves nothing when the
+>    emitted rule block runs on a subset of the linted source set. The emitted
+>    rule MUST cover every linted source file. Narrowing that scope is a
+>    bypass, and it is invisible — the tool reports zero violations either way.
+> 8. **A file-existence rule is what catches an undeclared directory.**
+>    Dependency rules judge edges; a file with no imports, or one reached only
+>    from a script tag, template, or config, has no edge to judge. Emit the
+>    stack's "every file must match a declared component" rule at error
+>    severity next to the dependency rules.
+> 9. **Recursion via discovery.** Assembler walks the tree; deeper files are
 >    processed first.
 
 ---
@@ -79,12 +97,20 @@ not. Most modules don't need their own file — they're declared once in the
 | --------- | -------- | ------------------------------------------------------------ |
 | `name`    | yes      | Module id referenced from `forbidden` edges.                 |
 | `pattern` | yes      | Selector for the module's files (stack-specific syntax).     |
-| `mode` / `single` | no | Marks a single-file or single-module unit (e.g. a facade). |
+| `mode` / `single` | no | Switches from ancestor matching to exact-file / exact-module matching (a facade, a repository-root file). |
 | `capture` | no       | Path-segment captures for parametric rules.                  |
 
 Order matters within a file: narrowest first (file-mode → sub-directories →
 catch-all). Across files: deeper-first (so a module's own file overrides its
 ancestor's catch-all).
+
+> [!IMPORTANT] **Matching mode decides what ordering can do.** Order only
+> breaks ties between candidates the matcher considers together. Under the
+> default ancestor matching a shallow pattern wins at its own shallow segment,
+> before any deeper component is tried — so a shallower entry declared *last*
+> still beats a specific entry declared first. A file that a shallower pattern
+> would otherwise swallow needs exact-file matching, not a better position in
+> the list. Repository-root files always do.
 
 ## 3. Forbidden — dependency edges
 
@@ -176,6 +202,15 @@ def expand(spec, except_):
     return types
 
 # 4. Emit the stack's native lint config from `components` + expanded `forbidden`.
+#    4a. Forward EVERY field the component schema defines — name, pattern,
+#        mode / single, capture. A field the emitter drops is unexpressible in
+#        every architecture file in the repo; `mode` is the usual casualty, and
+#        it is the one the repository root needs (Directive 6).
+#    4b. Scope the emitted rule block to the ENTIRE linted source set — never a
+#        subdirectory allowlist (Directive 7).
+#    4c. Emit the file-existence rule ("every file matches a declared
+#        component") at error severity alongside the dependency rules
+#        (Directive 8).
 
 # 5. Invoke the stack's lint tool against the emitted config.
 ```
@@ -215,14 +250,30 @@ code that never gets the gate.
 | Renaming a module without updating consumers. | Use prefix wildcards (`<prefix>-*`) so renames stay local. |
 | Module has rules but no catch-all bucket.     | Add the whole-module entry as the last `components` row.   |
 | Dynamic / unresolved imports evade rules.     | Make imports static and resolvable, or document the loophole and ban the dynamic style where possible. |
+| Rule block scoped to a subset of the linted source set. | Apply the rule to every linted source file; the registry cannot fire on a file the rule never sees. |
+| A `**` catch-all at repository root in ancestor/folder matching mode. | It captures files at the shallowest segment and overrides specific components regardless of order. Declare the root's files with file-mode components instead. |
+| Relying on dependency rules to catch an undeclared directory. | Use the file-existence rule; a file with no imports has no edge to judge. |
+| Assembler maps a subset of the schema's component fields. | Forward every field, `mode` included — a dropped field silently deletes that part of the schema. |
 
 Before merge:
 
 - [ ] No other-module name appears in any module's own architecture file.
 - [ ] `components` ordered narrowest-first; constrained modules end with a
       catch-all.
+- [ ] The emitted rule block's file scope equals the linted source set.
+- [ ] Every file at repository root belongs to a declared component.
+- [ ] The assembler forwards every field the component schema defines, `mode`
+      included.
 - [ ] Lint violation count matches baseline (or new violations reflect
       intentional changes).
+
+> [!IMPORTANT] **A passing lint is not evidence of coverage.** The violation
+> count does not move when a directory the linter cannot see is added — it
+> stays at zero because the question was never asked. The scope, root-file, and
+> assembler-field checks above all fail this way, so verify them against the
+> generated config and a positive signal: count the files the emitted rule
+> classifies and compare that with the file count of the linted source set.
+> Reading the lint result proves nothing about either gate.
 
 > [!NOTE] The "no other-module name" check is mechanical — a small AST/TOML
 > walk over each architecture file could enforce it as a meta-lint. Until

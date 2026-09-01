@@ -91,6 +91,36 @@ whole system quietly optional. The merged linter config itself is a build
 artifact — generated, git-ignored, never hand-edited; the per-module files
 are the single source of truth.
 
+## The two ways coverage fails quietly
+
+Naming the components is only the first of two gates, and the second is the
+one that gets missed: the rule also has a *scope* — the set of files the
+linter runs it against. A registry that classifies every file in the
+repository still enforces nothing on a path the rule never visits. Teams
+narrow that scope for ordinary reasons ("lint the packages directory"), it
+drifts into a hand-maintained allowlist, and one day a new top-level
+directory lands outside it. Thousands of lines, a public deployment, and a
+boundary lint reporting zero violations — because zero is also what it
+reports when the question is never asked. The rule's scope must be the whole
+source tree, and the exclusions must live somewhere a reviewer sees them.
+
+The second failure is subtler, and it is the catch-all advice above turning
+against itself. Most import-graph linters match a pattern against a file's
+parent *folders* rather than its full path, which means a `**` catch-all
+matches at the shallowest folder and claims files that more specific
+components already own — no matter how far down the list it sits. Inside a
+module, where the parts sit at one depth, the catch-all does what it
+promises. At the repository root it swallows everything. The root's loose
+files need to be declared as exact files, one by one.
+
+Both failures share a signature worth recognizing anywhere: the tool's only
+signal is a number that stays at zero, and a green check reads the same
+whether the boundary held or was never tested. The defense is to ask for a
+positive signal instead — *how many files did the rule actually classify, and
+does that match how many files exist?* — and to turn on the rule that fails
+on unclassified files, so a file with no imports at all cannot slip through
+the gap between "no forbidden edge found" and "no edge was ever examined."
+
 ## Rules before code
 
 A timing rule with an outsized effect: when creating a new module, write
