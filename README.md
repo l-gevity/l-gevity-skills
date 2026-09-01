@@ -9,7 +9,7 @@
 
     Or just 'do some alchemy' in any context
 
-    The Alchmey router will select the right skill in the right intensity, automatica!ly
+    The Alchemy router selects the right skill at the right intensity, automatically.
     Super-efficient, no context bloating.
     
 Most agent skills teach an AI *how* to do specific tasks — write tests,
@@ -93,7 +93,7 @@ it works.
 
 ### A.L.C.H.E.M.Y. pipeline
 
-You don't need to know the ALCHEMY internals, you alos don't have to use all stages or steps, but here they are. 
+You don't need to know the ALCHEMY internals, and you don't have to use every stage or step, but here they are.
 
 This is truly more an architectural brain than just a skill set. 
 
@@ -131,8 +131,8 @@ flowchart TD
     Design -->|"morphogenetic-architecture + structural-simplification"| Topology
     Topology -->|"architecture-as-code"| Rules
 
-    Rules -->|"test-drive-implementation"| Test
-    Test -->|"test-drive-implementation"| Source
+    Rules -->|"test-strategy (portfolio pass)"| Test
+    Test -->|"implement test-first (stack skills)"| Source
     Source -->|"run focused check"| TestRun
 
     TestRun -->|"defect-shift-left and CI/CD"| CIRun
@@ -150,7 +150,7 @@ collapsing every concern into one score.
 ```mermaid
 flowchart LR
     Change["Software change"]
-    Topology["Topology<br/>Domain · tier · layer<br/>+ observed pressure"]
+    Topology["Topology<br/>Domain · tier · layer<br/>legality, then pressure"]
     Structure["Structure<br/>D kinds · K edges<br/>P depth · n modules"]
     Flow["Flow<br/>left · out · down"]
     Evolution["Smallest evidence-backed evolution"]
@@ -163,26 +163,40 @@ flowchart LR
 ### Living topology
 
 Morphogenetic architecture transfers mechanisms from living systems—not their
-silhouettes. A second candidate — from a graph cut, a biological lens, or a
-manual alternative — may challenge the baseline; software evidence still
-decides, and every accepted restructuring records a prediction that is
-re-measured when its window closes.
+silhouettes. Every component gets a declared position — domain, abstraction
+tier, layer — and **position legality** judges each proposed edge from those
+declarations alone: layer and tier are ordinal, domain is categorical, and
+seven violations are decided mechanically, with no telemetry and no history.
+It is a design-time check on the component being placed, never a whole-repo
+derivation, so it works on day one of a greenfield system; its output ships
+as `architecture-as-code` rules that name each edge, and those rules carry
+the standing check.
+
+Only restructuring needs observed pressure. A second candidate — from a graph
+cut, a biological lens, or a manual alternative — may challenge the baseline;
+software evidence decides both, at a bar scaled to how hard the change is to
+undo. When the one missing proof is a field that genuinely cannot be measured
+yet, a sufficiently reversible change may proceed **on probation**, recording
+an expiry, an instrumentation task, and a reversal path in a durable register
+— measured contradiction always blocks. Every accepted restructuring records
+a prediction that is re-measured when its window closes.
 
 ```mermaid
 flowchart LR
-    Scaffold["Genetic scaffold<br/>declared topology + invariants"]
+    Scaffold["Genetic scaffold<br/>declared position + invariants"]
+    Legality["Position legality<br/>mechanical, day-one<br/>seven findings"]
     Fields["Morphogen fields<br/>static · runtime · change · data · failure"]
     Baseline["Lens-free candidate"]
     Lens["Second candidate<br/>graph cut · natural lens · manual"]
-    Evolution["Differentiation or remodeling"]
-    Proof["Software proof<br/>reversibility + structural deltas"]
+    Proof["Reversibility-scaled proof<br/>structural deltas · probation<br/>when a field is unobtainable"]
     Decision["PLACE · KEEP · MOVE · SPLIT<br/>MERGE · INTRODUCE-BOUNDARY<br/>DECLARE-RUNTIME-CYCLE · DEFER"]
-    Homeostasis["Homeostasis<br/>enforcement + prediction recheck"]
+    Homeostasis["Homeostasis<br/>named-edge rules · probation register<br/>prediction recheck"]
 
-    Scaffold --> Fields --> Baseline --> Evolution --> Proof --> Decision --> Homeostasis
+    Scaffold --> Legality --> Fields --> Baseline --> Proof --> Decision --> Homeostasis
+    Legality -. "ships as architecture-as-code rules" .-> Homeostasis
     Baseline -. "generator, reversibility-scaled" .-> Lens
-    Lens -. "alternative or newly exposed risk" .-> Evolution
-    Homeostasis --> Fields
+    Lens -. "alternative or newly exposed risk" .-> Proof
+    Homeostasis -- "window close re-enters audit" --> Fields
 ```
 
 ---
@@ -239,13 +253,18 @@ Next:       one concrete action
 See [the pipeline design](./ALCHEMY-PIPELINE-DESIGN.md) for routing rules,
 requirements qualification, gate handshakes, and acceptance criteria.
 
-Locality starts with a **Rapid placement/static-edge scan**. It escalates
+Locality starts with a **Rapid placement/static-edge scan** whose first check
+is position legality — mechanical, needing no observed field. It escalates
 **Rapid → Full** for **restructure · non-static evidence · broad scope · ambiguity**.
 Rapid can return `PLACE`, `KEEP`, `DECLARE-RUNTIME-CYCLE`, or `DEFER`; Full can
 also return `MOVE`, `SPLIT`, `MERGE`, or `INTRODUCE-BOUNDARY`.
 
 Topology changes use one bounded **L candidate → C measurement → L acceptance**
 handshake. L re-enters once; **Gate E cannot run before** that acceptance.
+When the only missing proof is a field that cannot be measured yet, a High- or
+Medium-reversibility restructuring may be accepted **on probation** — expiry,
+instrumentation task, and reversal path recorded, with the recheck placed at
+Gate H.
 
 </details>
 
