@@ -61,12 +61,15 @@ role: foundation | workflow | output | constraint | evidence-primitive | decisio
 kind: capability | business-rule | data | integration | security | compliance | operational
 requirement_scope: owning problem scope or foundation capability
 priority: must | should | could | won't-now
-status: draft | accepted | deprecated | superseded
+status: draft | accepted | deprecated | superseded | lapsing
 basis: authoritative | interpreted | evidenced | hypothesized
 source_refs: []
 complete_when_ref: requirement source location
 notes: ""
 ```
+
+`lapsing` marks an accepted retirement whose implementation removal has not
+landed. A lapsing record carries the expiry condition that ends it.
 
 Use project-defined labels when present. Keep the structural role and the domain
 kind separate: `constraint` explains how a node behaves in the graph; `security`
@@ -125,6 +128,10 @@ Check explicitly for:
 - duplicate or conflicting requirements;
 - requirements without usable complete-when conditions;
 - stale references after renames, splits, or merges;
+- two active records or criteria for one obligation after a replacement was
+  accepted (a predecessor that was never retired);
+- a split, merge, replacement, or retirement announced in prose instead of
+  recorded in lineage fields;
 - constraints hidden inside workflow prose;
 - external prerequisites without an owner or minimal contract;
 - source references that no longer match the grounding artifact;
@@ -132,6 +139,11 @@ Check explicitly for:
 
 Do not delete a requirement merely because it looks redundant. Mark the edge,
 preserve lineage, and propose the consolidation decision.
+
+Do retire what an accepted replacement supersedes. The change that accepts the
+replacement marks the predecessor `superseded`, or `lapsing` with the condition
+that ends it, in the same change. Two active records for one obligation is a
+blocking lineage issue, not a watch item.
 
 ## Repository Operationalization
 
@@ -143,7 +155,10 @@ When requirements live in a repository, keep four concerns explicit:
    syntax as early as editor tooling permits and again in blocking CI.
 3. **Semantic validation** checks global uniqueness, criterion IDs, reference
    resolution, alias ambiguity, lineage, dependency cycles, ownership, and
-   cross-record invariants that a file schema cannot prove.
+   cross-record invariants that a file schema cannot prove. For lineage: a
+   record that names a replacement has its predecessor retired or lapsing; a
+   lapsing record carries an expiry condition; lineage announced only in prose
+   fails.
 4. **Generated views** such as registers, diagrams, dependency order, code
    constants, and summaries are deterministic, marked read-only, and checked for
    drift in CI.
@@ -207,6 +222,7 @@ Canonical source:  <grounding artifact and version>
 Graph size:        <node count / typed-edge count>
 Cycle:             Pass | Fail | Not evaluated
 Blocking issues:   <IDs, cycles, conflicts, verification, ownership, or lineage>
+Retired:           <IDs superseded or lapsing in this change, or none>
 Inferred edges:    <count and evidence status>
 Repository gate:   <schema / semantics / generated drift / not configured>
 Next action:       <split, merge, source, decide, fix cycle, or run implementation-readiness>
@@ -220,7 +236,7 @@ Requirements topology:
 - Meta-context:             # standalone artifacts only
 - Reader guide:
 - Source and lineage:
-- Transformations:          # real splits, merges, inferred requirements
+- Transformations:          # real splits, merges, retirements, inferred requirements
 - Vocabulary:               # roles, edge types, graph direction
 - Requirement records:
 - Edge list:                # single source for relationships + evidence

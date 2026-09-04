@@ -238,6 +238,8 @@ Put deterministic trace checks in the earliest capable blocking gate:
 - reject a representation gap that names no expiry condition;
 - reject a deprecated-criterion record that names no reviewed implementation
   anchors or no accountability reference;
+- list lapsing criteria beside pending ones, and reject a lapsing record that
+  names no expiry condition;
 - require criterion-tagged tests to exist before accepting test-result tags;
 - ingest executed test results before promoting `implemented` to `verified`;
 - require operational evidence to carry revision and run identity;
@@ -288,6 +290,8 @@ Trace:
 
 - Do not mark a requirement verified because code, a route shell, a fixture, or
   a test definition exists.
+- Do not tag a test with a criterion it does not assert; when a criterion's
+  wording or mechanism changes, re-verify every test tagged to it.
 - Do not use issue text as canonical when it conflicts with requirements.
 - Do not hide unrelated work under a convenient requirement ID.
 - Do not duplicate every trace edge in a giant registry and nearby artifacts.

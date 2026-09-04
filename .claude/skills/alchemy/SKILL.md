@@ -158,7 +158,10 @@ Requirements Grounding, when evidence or meaning is absent or stale
 Routing rules:
 
 1. **Resume, do not restart.** Reuse the latest trustworthy hand-off artifact.
-   Re-entry begins at the earliest failed decision.
+   An artifact is trustworthy only when every decision in it names what it
+   supersedes and each predecessor is retired or marked lapsing; otherwise run
+   the `requirements-topology` lineage check before resuming. Re-entry begins
+   at the earliest failed decision.
 2. **Ground conditionally.** Route a new or stale ungrounded request through
    `requirements-grounding`. Route current grounded requirements directly to M.
 3. **M owns worth.** Grounding validates evidence and meaning and may supply
@@ -312,7 +315,8 @@ Core directives:
 ## 4. Pre-Flight Checklist
 
 ```
-- [ ] Qualification — Current grounded requirements, or grounding decision
+- [ ] Qualification — Current grounded requirements with predecessors retired,
+                      or grounding decision
 - [ ] Outcomes — Linked outcome hypotheses when decision-relevant, kept separate
                  from completion criteria; authoritative obligations may be N/A
 - [ ] Gate 1 — Necessity check on every proposed type/method/parameter
@@ -364,6 +368,7 @@ contradictory, or disputed:
 | Architecture starts from an assumed or stale problem | Requirements Grounding | Stop; source or confirm actor, problem, scope, and completion evidence |
 | Capability shipped or acceptance passed is reported as outcome success | Requirements Grounding | Separate completion evidence from the linked outcome hypothesis; measure impact after representative use |
 | Requirement order is prose-only, cyclic, or contradictory | Requirements Topology | Build the typed graph; return blocking conflicts or cycles to grounding |
+| Requirement text carries an old and a new decision at once | Requirements Topology — predecessor not retired | Retire it or mark it lapsing with an expiry in the same change; rerun the repository gate |
 | Architecture invents meaning, permissions, data, or acceptance criteria | Implementation Readiness | Stop at `NOT-READY`; resolve the named product or policy blocker |
 | `PARTLY-READY` work can be invalidated by an unresolved requirement | Implementation Readiness | Reject the slice; admit only bounded reversible work |
 | Interface added "for the second implementation" but second never lands | 1 — Rule of 3 | Run pruner; collapse to one concrete |
@@ -379,6 +384,7 @@ contradictory, or disputed:
 | Test scope or fidelity was frozen before architecture boundaries were accepted | Test Strategy companion | Preserve the Obligation pass; rerun the affected Portfolio rows after final A/L/C/E and before H |
 | Requirement marked verified from a code anchor or unexecuted test | Implementation follow-through | Run `requirements-traceability`; separate implemented from verified evidence |
 | A model, inventory, or design doc asserts another artifact's state and the code contradicts it | Implementation follow-through | Run `requirements-traceability`; prose about another artifact's state is a trace anchor, not narration |
+| Decided text cannot land because the trace gate refuses an unbuilt criterion, so text lags decisions | Implementation follow-through — gate admits no pending or lapsing state | Admit pending and lapsing states in the gate; the retirement lands with the implementation |
 | Stale or inconclusive outcome evidence silently justifies KEEP or DROP | Outcome follow-through → M | Refresh or bound the evidence in `requirements-traceability`, then rerun only M in Retrospective mode |
 | Duplicate implementations are unified but retain separate behavior tests | 6 — integration / contract | Add one shared conformance suite and real-boundary coverage for backend-specific semantics before deleting either copy |
 | "Just in case" extension point with one user | 1 — speculative optionality | DROP unless second use is named and probable |

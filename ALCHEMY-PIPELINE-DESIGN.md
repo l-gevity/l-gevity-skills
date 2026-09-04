@@ -171,7 +171,8 @@ confirmation.
   route never suppresses a project, domain, stack, UX, security,
   accessibility, API, release, or evidence skill.
 - `$alchemy <subject>` selects the smallest useful path and resumes from the
-  latest trustworthy decision artifact.
+  latest trustworthy decision artifact, one whose decisions name what they
+  supersede and whose predecessors are retired or lapsing.
 - `$alchemy audit <subject>` starts with `C₀`; it enters requirements recovery
   only when current intent is absent, stale, contradictory, or disputed.
 - Explicit gate aliases such as `$alchemy M`, `$alchemy C`, or `$alchemy E`

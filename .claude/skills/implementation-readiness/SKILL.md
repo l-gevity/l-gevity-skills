@@ -97,6 +97,8 @@ Mark a requirement or slice **ready** only when it has:
 - relevant security, privacy, accessibility, compliance, audit, and operational
   constraints;
 - no unresolved decision that changes the required outcome;
+- the retirement of every criterion the slice's mechanism replaces, admitted as
+  part of the slice;
 - an accepted validation decision, or an explicitly reversible experiment.
 
 Mark it **partly ready** when a bounded implementation can proceed behind an
@@ -226,6 +228,8 @@ decision.
 - Do not invent payloads, entities, integrations, or non-functional targets that
   the requirements do not support.
 - Do not restate complete-when conditions as a competing acceptance-criteria set.
+- Do not admit a replacement without the retirement it implies. A slice that
+  removes or replaces a mechanism carries the lapsing criteria and closes them.
 - Do not turn every graph edge into a contract or runtime dependency.
 - Do not bury product, domain, security, privacy, compliance, or source-currency
   decisions inside developer notes.

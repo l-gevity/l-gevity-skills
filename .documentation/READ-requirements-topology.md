@@ -124,6 +124,29 @@ input to architecture; treating the requirements graph as a system diagram
 skips the entire discipline of designing boundaries, and produces
 architectures that mirror the org's paperwork instead of the domain.
 
+## Replacements retire their predecessors
+
+A quieter way the graph rots: a decision changes a requirement, and the
+change lands as an *addition*. The new criterion goes in; the old one
+stays, because the mechanism it describes is still running and nobody
+wants to delete a line that still means something. Do that a few times
+and one obligation carries two contradictory rules at once, the coverage
+matrix reports both as green, and the next reader — human or agent —
+resumes from whichever one they happen to read first.
+
+The rule: a decision retires what it replaces *in the same change*.
+Accepting a replacement marks its predecessor superseded, right there,
+not in a follow-up. When the removal genuinely can't land yet — the old
+mechanism still runs and tests still exercise it — the old record is
+marked **lapsing**, with the condition that ends it written down: "until
+the role check replaces the allow-list," not "until later." A lapsing
+record is a retirement with an expiry attached; an unmarked predecessor
+is two truths with none. Two active records for one obligation is
+therefore a blocking finding in the graph checks, the same class as a
+cycle, not a tidy-up for someday. And the retirement lives in the
+lineage fields, where validation can see it — a replacement announced
+only in prose is a replacement the tooling will never notice.
+
 ## The habit
 
 The concept compresses to a reflex for whenever requirements are being
