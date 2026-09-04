@@ -193,7 +193,9 @@ as findings instead.
 10. **Classify independently**: assign basis, priority, validation decision, and
    confidence without letting one label imply another.
 11. **Record decisions**: capture source, assumption, owner, date, watch item, and
-    revisit trigger for every consequential choice.
+    revisit trigger for every consequential choice, and what the choice
+    supersedes: earlier decisions, requirement candidates, or criteria, or
+    `none`.
 
 ## Problem Check
 
@@ -332,6 +334,7 @@ Basis profile:  <authoritative / interpreted / evidenced / hypothesized mix>
 Confidence:     low | medium | high
 Blocking gaps:  <missing source, confirmation, evidence, actor, or completion>
 Outcome hypotheses: <linked IDs + decisions, or not applicable + reason>
+Supersedes:     <decisions, requirements, or criteria this decision retires, or none>
 Next action:    <confirm, source, split, test, reject, or run requirements-topology>
 Verification:   <sources and decisions checked, or Not run + reason>
 Revisit when:   <required for PROVISIONAL; measurable trigger or date>
@@ -356,7 +359,7 @@ Requirements grounding:
 - Basis and priority legend:
 - Validation decisions:
 - Assumptions and experiments:
-- Input and decision log:
+- Input and decision log:    # each entry carries Supersedes: <retired items or none>
 - Watch items and revisit triggers:
 - Topology handoff note:
 ```

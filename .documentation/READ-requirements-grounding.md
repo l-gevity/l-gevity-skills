@@ -124,9 +124,12 @@ The thread through all of it: a grounding artifact is valuable in
 proportion to how visibly it carries its own uncertainty. Every requirement
 states its basis, source, and confidence. Every consequential choice gets a
 decision log entry — what was decided, on what, by whom, and what would
-reopen it. Interpretations are marked as interpretations; unverifiable
-sources make their requirements provisional; open questions are listed as
-open rather than smoothed into confident prose.
+reopen it. Each entry also names what the decision supersedes: an earlier
+decision left standing beside its replacement is not history, it is a
+second answer the next reader may pick. Interpretations are marked as
+interpretations; unverifiable sources make their requirements provisional;
+open questions are listed as open rather than smoothed into confident
+prose.
 
 This inverts a common instinct — that requirement documents should look
 authoritative. A document that *looks* certain and isn't will be trusted

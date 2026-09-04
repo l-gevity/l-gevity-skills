@@ -1,6 +1,6 @@
 {
   "name": "@l-gevity/skills",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Open-source agent skills for architecture, requirements, test strategy, CI/CD, and continuous improvement",
   "keywords": ["claude", "claude-code", "skills", "architecture", "requirements", "testing", "ci-cd", "devops"],
   "homepage": "https://github.com/l-gevity/l-gevity-skills",

@@ -246,7 +246,8 @@ In Audit mode:
 
 1. Map current tests to risks, criteria, boundaries, and observed incidents.
 2. Find missing obligations, hollow oracles, stale tests, unverified doubles,
-   excessive E2E coverage, and same-scope duplicates.
+   excessive E2E coverage, and same-scope duplicates. A criterion tag whose
+   assertion does not exercise the criterion is a hollow oracle.
 3. Treat every escaped defect as evidence that the portfolio missed a risk,
    technique, oracle, fidelity, or placement decision.
 4. Treat flakes, order dependence, uncontrolled time, shared state, and

@@ -61,6 +61,7 @@ SKILL_REQUIRED_TERMS = {
         "When current outcome evidence reaches a revisit trigger",
         "Gate E remains blocked",
         "one candidate may re-enter Gate 3 only",
+        "predecessor is retired or marked lapsing",
     ),
     "architecture-as-code": (
         "`architecture-guidelines` or `morphogenetic-architecture`",
@@ -123,6 +124,7 @@ SKILL_REQUIRED_TERMS = {
         "Outcome hypotheses:",
         "M alone",
         "assess evidence state and freshness",
+        "Supersedes:",
     ),
     "requirements-topology": (
         "requirements-grounding",
@@ -134,6 +136,10 @@ SKILL_REQUIRED_TERMS = {
         "Cycle:             Pass | Fail | Not evaluated",
         "STABLE",
         "BLOCKED",
+        "never retired",
+        "Two active records for one obligation",
+        "lapsing",
+        "Retired:",
     ),
     "implementation-readiness": (
         "requirements-grounding",
@@ -143,6 +149,7 @@ SKILL_REQUIRED_TERMS = {
         "PARTLY-READY",
         "NOT-READY",
         "independent states",
+        "carries the lapsing criteria",
     ),
     "morphogenetic-architecture": (
         "Declare before observing",
@@ -237,6 +244,7 @@ SKILL_REQUIRED_TERMS = {
         "| Domain or data model view |",
         "Representation gaps: <class, artifact, and expiry condition, or none>",
         "representation gaps carry expiry",
+        "lapsing",
     ),
     "functionality-complexity-tradeoff": (
         "Outcome evidence informs worth; it is not the verdict",

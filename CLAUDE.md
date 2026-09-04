@@ -31,7 +31,8 @@ starts with metadata-only dispatch: `SKIP` routine local work, `DIRECT` one clea
 Do not load every gate to decide to skip. A core skip never suppresses independently matching
 project, domain, stack, UX, security, accessibility, API, release, or evidence skills.
 
-For non-trivial design/refactor work, resume from the latest trustworthy decision artifact:
+For non-trivial design/refactor work, resume from the latest trustworthy decision artifact,
+one whose decisions name what they supersede and whose predecessors are retired or lapsing:
 
 ```text
 Requirements Grounding, when evidence or meaning is absent or stale

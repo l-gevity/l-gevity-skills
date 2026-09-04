@@ -125,7 +125,12 @@ traversal — scope creep in process is still scope creep.
 The third idea, easily overlooked: the gates produce **decision records**
 — a worth verdict with its evidence, a placement with its rationale, a
 measured delta. When work continues, it *resumes from the latest
-trustworthy record* rather than starting over.
+trustworthy record* rather than starting over. A record earns that trust
+by carrying its own lineage — each decision in it names what it
+supersedes, and what it superseded is retired or marked lapsing — because
+a record that still holds an old and a new answer side by side is not a
+checkpoint but the argument itself, and resuming from it resumes the
+argument.
 
 This has two consequences. Decisions don't get relitigated for free — the
 worth question, once answered with evidence, stays answered until new
