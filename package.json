@@ -23,6 +23,8 @@
   ],
   "scripts": {
     "prepack": "npm run validate",
-    "validate": "python scripts/validate-skills.py"
+    "validate": "python scripts/validate-skills.py",
+    "test:installers": "bash scripts/test-installers.sh",
+    "test": "npm run validate && npm run test:installers"
   }
 }

@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate skills
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate skill contracts, mirrors, and installer structure
+        run: npm run validate
+
+  installers:
+    # The shell installers are the only code here that writes and deletes files
+    # in a consumer's repository, so they are exercised for real. macOS covers
+    # the shasum and BSD-tar branches that Linux does not.
+    name: Installers (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install from a working-tree archive and verify behavior
+        run: bash scripts/test-installers.sh
+
+  installers-powershell:
+    # Parse-only. The PowerShell installers have no end-to-end coverage yet;
+    # this catches syntax and 5.1-incompatible constructs, nothing more.
+    name: PowerShell installers parse
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse-check every PowerShell installer
+        shell: pwsh
+        run: |
+          $bad = 0
+          Get-ChildItem .install/*.ps1 | ForEach-Object {
+              $errs = $null
+              [System.Management.Automation.Language.Parser]::ParseFile(
+                  $_.FullName, [ref]$null, [ref]$errs) | Out-Null
+              if ($errs) {
+                  Write-Host "FAIL $($_.Name): $($errs[0].Message)"
+                  $bad++
+              } else {
+                  Write-Host "OK $($_.Name)"
+              }
+          }
+          if ($bad -gt 0) { exit 1 }

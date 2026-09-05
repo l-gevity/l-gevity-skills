@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CLAUDE_SKILLS = ROOT / ".claude" / "skills"
 AGENT_SKILLS = ROOT / ".agents" / "skills"
 DOCS = ROOT / ".documentation"
+INSTALL = ROOT / ".install"
 MAX_DESCRIPTION = 1024
 ALCHEMY_PIPELINE_STAGES = (
     "Requirements Grounding",
@@ -83,6 +84,13 @@ SKILL_REQUIRED_TERMS = {
         "second, independent gate",
         "decides what a pattern matches, and the default is",
         "partialMatch: false",
+        "Confine a provider SDK to its adapter",
+        "A provider SDK is an **npm package, not an element**",
+        "to: { module: { origin: 'external', source: x.package } }",
+        "Without `checkAllOrigins: true` the policy never fires",
+        "subjects every package to the block's `default`",
+        "Prove it red first",
+        "`boundaries/external` still works and is deprecated in v7",
     ),
     "architecture-as-code-python": (
         "The graph root is the coverage gate",
@@ -98,6 +106,8 @@ SKILL_REQUIRED_TERMS = {
         "consumers transform",
         "No peer internals",
         "| atomicity | integration | layer-self-sufficiency |",
+        "every rule above needs a question",
+        "after the caller's own write",
     ),
     "ci-cd-reliability-architecture": (
         "Release and Production Promotion",
@@ -111,6 +121,10 @@ SKILL_REQUIRED_TERMS = {
         "production-only",
         "never whether it runs",
         "Strategy:       <permanent | ephemeral | production-only progressive exposure>",
+        "Environment parity / permanent stages only",
+        "Representativeness:",
+        "in-place component replace",
+        "Zero-downtime:  <yes | no + why>",
     ),
     "continuous-improvement": (
         "Consumer-to-Library Promotion",
@@ -167,6 +181,8 @@ SKILL_REQUIRED_TERMS = {
         "## Assumption Vehicles",
         "parallel-ready",
         "Parallel-ready: yes | no + missing criterion",
+        "only on criteria readable from the artifacts",
+        "An assumption invalidatable by inspection is resolved, not scheduled",
     ),
     "morphogenetic-architecture": (
         "Declare before observing",
@@ -308,6 +324,9 @@ SKILL_REQUIRED_TERMS = {
         "reversible data change",
         "irreversible data migration",
         "Do not infer absence of readers from absence of imports",
+        "Coexisting clients:",
+        "The coexistence window does not end where the deployment ends",
+        "names the consumers it covers",
     ),
     "standup": (
         "Verified only",
@@ -397,6 +416,22 @@ MORPHOGENETIC_DECISIONS = (
     "DECLARE-RUNTIME-CYCLE",
     "DEFER",
 )
+# The installers diverged once into four copies of the Claude script that
+# differed only in the instruction filename, so three of them wrote skills to a
+# tree their own agent never reads. The profile block is the ONLY licensed
+# difference; everything else must stay byte-identical across the family.
+INSTALLER_PROFILES = {
+    "claude": ("CLAUDE.md", ".claude/skills"),
+    "codex": ("AGENTS.md", ".agents/skills"),
+    "gemini": ("GEMINI.md", ".agents/skills"),
+    "grok": ("GROK.md", ".agents/skills"),
+}
+INSTALLER_PROFILE_RE = re.compile(
+    r"# --- agent profile ---\n(.*?)# --- end agent profile ---", re.S
+)
+INSTALLER_HEADER_RE = re.compile(
+    r"(?m)^# l-gevity-skills installer \(.*\)$|^# Usage: .*$"
+)
 CONSUMER_FORBIDDEN = (
     "PayQuality",
     "PayLens",
@@ -423,6 +458,13 @@ PUBLIC_DOC_FORBIDDEN = {
             "Patternized / templated",
             "Level 0",
             "Level 5",
+        ),
+    },
+    "parallel-ready assignee criterion": {
+        "files": (DOCS / "READ-implementation-readiness.md",),
+        "patterns": (
+            "unassigned to anyone in particular",
+            "unassigned to a specific person",
         ),
     },
 }
@@ -1479,8 +1521,102 @@ def validate_public_doc_drift() -> None:
                     )
 
 
+def installer_body(text: str) -> str:
+    """The script with its per-agent profile and header comments removed."""
+    return INSTALLER_HEADER_RE.sub("", INSTALLER_PROFILE_RE.sub("", text))
+
+
+# Counting the target tree instead of the source is what made the installer
+# report a consumer's 40 mirrored directories as 40 freshly installed skills.
+INSTALLER_BODY_REQUIRED = {
+    "sh": ("--force-local", "$SRC_SKILL_NAMES", "$SRC_FILES", "sha256_of",
+           "previous_files", "KNOWN_MEMFILES", "KNOWN_SKILL_DIRS"),
+    "ps1": ("$SrcSkillNames.Count", "$SrcFiles.Count", "Get-FileHash",
+            "Get-PreviousFiles", "KnownMemFiles", "KnownSkillDirs"),
+}
+INSTALLER_BODY_FORBIDDEN = {
+    "sh": ('find "$TARGET',),
+    "ps1": ("Get-ChildItem $SkillsDest -Directory",),
+}
+
+
+def validate_installers() -> None:
+    for suffix in ("sh", "ps1"):
+        bodies = {}
+        for agent, (memfile, primary) in INSTALLER_PROFILES.items():
+            path = INSTALL / f"install-{agent}.{suffix}"
+            if not path.is_file():
+                fail(f"missing installer {path.relative_to(ROOT)}")
+            text = path.read_text(encoding="utf-8")
+
+            match = INSTALLER_PROFILE_RE.search(text)
+            if match is None:
+                fail(f"{path.relative_to(ROOT)} has no agent profile block")
+            profile = match.group(1)
+            for value in (agent, memfile, primary):
+                if f"'{value}'" not in profile and f'"{value}"' not in profile:
+                    fail(f"{path.relative_to(ROOT)} profile must declare '{value}'")
+            for other_primary in {p for _, p in INSTALLER_PROFILES.values()}:
+                if other_primary != primary and (
+                    f"'{other_primary}'" in profile or f'"{other_primary}"' in profile
+                ):
+                    fail(
+                        f"{path.relative_to(ROOT)} installs into "
+                        f"'{other_primary}', which is not its agent's tree"
+                    )
+            bodies[agent] = installer_body(text)
+
+        reference = bodies["claude"]
+        for term in INSTALLER_BODY_REQUIRED[suffix]:
+            if term not in reference:
+                fail(f"install-*.{suffix} must keep '{term}'")
+        for term in INSTALLER_BODY_FORBIDDEN[suffix]:
+            if term in reference:
+                fail(
+                    f"install-*.{suffix} must not derive reported counts from "
+                    f"the target tree: '{term}'"
+                )
+        for agent, body in bodies.items():
+            if body != reference:
+                fail(
+                    f"install-{agent}.{suffix} differs from "
+                    f"install-claude.{suffix} outside its agent profile block"
+                )
+
+
+def validate_ci_wiring() -> None:
+    """A test nothing runs is documentation. Keep the workflow pointed at both."""
+    tests = ROOT / "scripts" / "test-installers.sh"
+    if not tests.is_file():
+        fail(f"missing {tests.relative_to(ROOT)}")
+
+    workflow = ROOT / ".github" / "workflows" / "ci.yml"
+    if not workflow.is_file():
+        fail(f"missing {workflow.relative_to(ROOT)}")
+    text = workflow.read_text(encoding="utf-8")
+    for command in ("npm run validate", "bash scripts/test-installers.sh"):
+        if command not in text:
+            fail(f"{workflow.relative_to(ROOT)} must run '{command}'")
+    for platform in ("ubuntu-latest", "macos-latest", "windows-latest"):
+        if platform not in text:
+            fail(f"{workflow.relative_to(ROOT)} must cover {platform}")
+
+    package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+    scripts = package.get("scripts", {})
+    if scripts.get("test:installers") != "bash scripts/test-installers.sh":
+        fail("package.json must expose test:installers")
+
+    # Under a bare `* text=auto` a shell script checks out CRLF on Windows and
+    # bash dies on the carriage return. Every .sh must be pinned to LF.
+    attributes = (ROOT / ".gitattributes").read_text(encoding="utf-8")
+    if not contains(attributes, "*.sh text eol=lf"):
+        fail(".gitattributes must pin '*.sh text eol=lf'")
+
+
 def main() -> int:
     validate_matcher()
+    validate_installers()
+    validate_ci_wiring()
     validate_root(CLAUDE_SKILLS)
     validate_root(AGENT_SKILLS)
     validate_mirrors()
