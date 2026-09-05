@@ -80,6 +80,8 @@ SKILL_REQUIRED_TERMS = {
         "Production code must not import test-only code.",
         "files: ['**/*.{js,jsx,mjs,ts,tsx}'],",
         "'boundaries/no-unknown-files': 'error',",
+        "'boundaries/dependencies': ['error', { default: 'allow', rules }],",
+        "a dependency rule at `warn` is a report rather than a boundary",
         "The broad glob is the point, not an accident",
         "second, independent gate",
         "decides what a pattern matches, and the default is",

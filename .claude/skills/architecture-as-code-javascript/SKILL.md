@@ -116,11 +116,17 @@ export default [
             // or not it imports anything — this is what catches a new
             // undeclared directory (pattern Directive 8).
             'boundaries/no-unknown-files': 'error',
-            'boundaries/dependencies': ['warn', { default: 'allow', rules }],
+            'boundaries/dependencies': ['error', { default: 'allow', rules }],
         },
     },
 ];
 ```
+
+Both rules are emitted at `error`. The pattern requires the file-existence rule
+at error severity alongside the dependency rules, and a dependency rule at
+`warn` is a report rather than a boundary: the build stays green while the edge
+it forbids ships. If a repository cannot yet pass, narrow the rule's scope
+through declared components, never by softening its severity.
 
 Exclusions — build output, vendored code, generated bundles — belong in the flat
 config's shared `ignores`, where one list governs every rule and shows up in
