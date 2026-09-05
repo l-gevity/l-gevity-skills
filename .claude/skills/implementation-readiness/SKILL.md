@@ -86,10 +86,13 @@ route to the missing stage.
 7. Identify ADR candidates where multiple viable designs or unresolved forces
    remain.
 8. Define the smallest coherent vertical slice that demonstrates the core outcome.
-   Mark a slice **parallel-ready** only when it is isolated (needs little
-   context beyond its own scope), small enough to merge on its own, unassigned
-   to a specific person, and independent of every other slice in its group;
-   record parallel-ready groups in the implementation order.
+   Mark a slice **parallel-ready** only on criteria readable from the
+   artifacts: it is isolated (needs little context beyond its own scope),
+   shares no unmerged prerequisite, carries no unresolved contract, is
+   mergeable on its own, and is independent of every other slice in its group.
+   Record parallel-ready groups in the implementation order. Who will pick a
+   slice up is a scheduling fact, not a property of the slice; it cannot be
+   read from any artifact and is not a criterion.
 9. Reference grounding's complete-when conditions as acceptance tests; add only
    concrete fixtures, expected values, and edge cases still needed.
 10. Separate ready work, blockers, risks, and technical questions.
@@ -114,6 +117,13 @@ author a new one. For a feasibility or technical assumption, state the
 criterion in the technical question or ADR seed that raised it; that is
 derived build preparation, not requirement meaning. A vehicle without an
 invalidation criterion is speculative build, not an experiment.
+
+**An assumption invalidatable by inspection is resolved, not scheduled.** If
+reading the code, schema, configuration, or contract answers the question,
+answer it now and record the fact. Carrying a lookup as an open assumption
+inflates the risk list, and — because ordering is riskiest-first — displaces
+the assumption that actually needed the first slice. Only questions no
+available artifact can settle earn a vehicle and a position in the order.
 
 ## Readiness Gate
 
@@ -262,8 +272,10 @@ decision.
 - Do not admit a replacement without the retirement it implies. A slice that
   removes or replaces a mechanism carries the lapsing criteria and closes them.
 - Do not turn every graph edge into a contract or runtime dependency.
-- Do not mark a slice parallel-ready while it shares an unmerged prerequisite,
-  an assignee, or an unresolved contract with another slice in its group.
+- Do not mark a slice parallel-ready while it shares an unmerged prerequisite
+  or an unresolved contract with another slice in its group.
+- Do not schedule an assumption that reading an existing artifact would settle;
+  resolve it and record the answer.
 - Do not bury product, domain, security, privacy, compliance, or source-currency
   decisions inside developer notes.
 - Do not mark a requirement implemented or verified in a readiness package; hand

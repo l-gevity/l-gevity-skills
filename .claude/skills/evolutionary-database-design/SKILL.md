@@ -172,7 +172,8 @@ Element:            <store.table.column | topic.field | contract.path | file.fie
 Current shape:      <type, nullability, constraints, encoding, semantics>
 Writer:             <owning component, or unowned>
 Readers:            <components, reports, exports, analytics, backups, other repos>
-Coexisting versions:<versions live at once during rollout, plus rollback target>
+Coexisting versions:<server versions live at once during rollout, plus rollback target>
+Coexisting clients: <cached browser bundles, installed apps, pinned SDKs, or none — and how long each survives>
 Volume / rate:      <rows or events, write rate, lock behavior, or unmeasured>
 Obligations:        <retention, backup, audit, privacy, compliance, or none>
 Reader evidence:    <access logs, query metrics, contract registry, grep, or none>
@@ -182,6 +183,15 @@ Use the widest evidence available for readers: query logs, access metrics,
 contract or schema registries, consumer lists, and export inventories. A
 grep across one repository is a lower bound. An element with an unknown
 writer or an unbounded reader set yields `DEFER` for that element.
+
+The coexistence window does not end where the deployment ends. Code the
+deployment cannot reach still runs: a browser bundle already fetched, a mobile
+app not yet updated, a pinned SDK in a partner's build. Each is a live version
+of the reader for as long as its own lifetime, which is set by cache policy,
+release cadence, or nothing at all. A window bounded only by the rollout
+duration is a window measured from the server's point of view. When a client
+lifetime is undeclared or unmeasured, the window is unbounded and the element
+yields `DEFER`.
 
 ### 3. Classify the change
 
@@ -208,7 +218,11 @@ Then state the compatibility mode the coexistence window requires:
   when more than two versions coexist or historical data is never rewritten.
 
 A weaker mode is acceptable only when a named owner accepts a coordinated
-cutover or downtime, and the record says so.
+cutover or downtime, the record says so, and the acceptance **names the
+consumers it covers**. "No external consumers" covers the parties it
+enumerates and no others; an unnamed cached bundle, installed app, or pinned
+SDK is not covered by it. An acceptance whose scope is not written down is
+re-examined against the current `Coexisting clients` list, not inherited.
 
 ### 4. Design the transition
 
@@ -371,7 +385,8 @@ Design pass:          Compatibility | Transition | Combined
 Decision:             COMPATIBLE | STAGED | BREAKING | DEFER
 Change class:         <additive | widening | narrowing | rename/move | semantic | destructive | ownership transfer | identity>
 Compatibility mode:   <backward | forward | full | full-transitive | weaker, accepted by owner>
-Coexistence window:   <versions live at once, including the rollback target>
+Coexistence window:   <server versions live at once, including the rollback target>
+Coexisting clients:   <cached bundles, installed apps, pinned SDKs and their lifetimes, or none>
 Reversibility input:  <reversible data change | irreversible data migration | unknown>
 Staged path:          <stages in order, or single step>
 Contract trigger:     <evidence that closes the old shape, or not yet defined>

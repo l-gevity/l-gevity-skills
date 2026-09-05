@@ -24,7 +24,9 @@ description: >-
 
 - Filename: `eslint.architecture.mjs`. Use `.mjs` only; `.js` trips
   source-discovery walkers and ESLint's own config-loader.
-- ES module with `export default { components: [...], forbidden: [...] }`.
+- ES module with `export default { components: [...], forbidden: [...] }`, plus
+  an optional `externals: [...]` for npm-package policy (§3). `forbidden`
+  relates declared components to each other and cannot name a package.
 - Pattern syntax: filesystem globs (`<dir>/**`).
 - Repo-root `package.json` must include `"type": "module"`.
 
@@ -130,6 +132,67 @@ repo-root `package.json`.
 
 ## 3. JavaScript-specific enforcement recipes
 
+### Confine a provider SDK to its adapter
+
+The `architecture-guidelines` §10 handoff usually arrives as "only the adapter
+may talk to the provider". A provider SDK is an **npm package, not an
+element**, so `forbidden` cannot express it: that list only relates declared
+components to each other. Declare package policy separately.
+
+```js
+// eslint.architecture.mjs
+export default {
+    components: [
+        { name: 'email-adapter', pattern: 'api/src/email/**' },
+        { name: 'api-other',     pattern: 'api/src/**' },   // catch-all, last
+    ],
+    forbidden: [ /* element-to-element edges */ ],
+    externals: [
+        { package: '@azure/communication-email', allow: ['email-adapter'],
+          why: 'The provider SDK is confined to its adapter; callers use the port.' },
+    ],
+};
+```
+
+Assembler translation. Policies are evaluated in order and **the last match
+wins**, so deny the package everywhere first, then re-allow its owning
+elements:
+
+```js
+const allExternals = archs.flatMap(m => m.default.externals ?? []);
+const externalRules = allExternals.flatMap(x => [
+    { from: expand('*'),
+      disallow: { to: { module: { origin: 'external', source: x.package } } },
+      message: x.why },
+    { from: expand(x.allow),
+      allow: { to: { module: { origin: 'external', source: x.package } } } },
+]);
+
+'boundaries/dependencies': ['error', {
+    default: 'allow',
+    checkAllOrigins: true,                       // REQUIRED — see below
+    rules: [...rules, ...externalRules],
+}],
+```
+
+Two traps make this silently wrong:
+
+- **Without `checkAllOrigins: true` the policy never fires.** The rule reports
+  nothing, the lint is green, and the boundary does not exist. The flag is not
+  an optimization.
+- **`checkAllOrigins: true` subjects every package to the block's `default`.**
+  With `default: 'disallow'` that turns one SDK policy into a repo-wide import
+  ban. Keep the blanket `default: 'allow'` and express prohibition as rules, or
+  add an explicit allow-all policy first.
+
+Register the rule at `error`. At `warn` this is a report, not a boundary.
+
+**Prove it red first.** Add a throwaway file that imports the package from
+outside the adapter, confirm the lint fails on it with the declared message and
+line, delete the file, then confirm the adapter and its callers pass. A policy
+that has never failed has not been shown to run — the `checkAllOrigins` trap
+above produces exactly the same green output as a working rule.
+
 ### Require literal dynamic-import paths
 
 A computed `import(expression)` can bypass path resolution and therefore every
@@ -210,8 +273,8 @@ When applying this implementation, emit:
 Scope:          <repo / package / module path>
 Decision:       Add eslint.architecture.mjs | Update assembler | Update ESLint config | Blocked
 Generated config:<path, if any>
-Rules changed:  <boundaries/dependencies or no-restricted-imports entries>
-Verification:   <eslint command / assembler command / Not run + reason>
+Rules changed:  <boundaries/dependencies element edges, externals package policy, or no-restricted-imports entries>
+Verification:   <eslint command / assembler command / red-first proof / Not run + reason>
 Next action:    <specific file edit, dependency install, or unresolved question>
 ```
 
@@ -246,6 +309,13 @@ Next action:    <specific file edit, dependency install, or unresolved question>
 > that does not classify a repository-root file — with a glob or with an exact
 > filename, the file stays unknown. `mode: 'file'` is currently the only form
 > that works. Accept the warning instead of chasing it.
+
+> [!NOTE] **`boundaries/external` still works and is deprecated in v7.** Unlike
+> the `mode` deprecation above, this one has a working replacement: fold
+> package policy into `boundaries/dependencies` with `checkAllOrigins: true`
+> and the `to.module.origin` / `to.module.source` sub-selector (§3, *Confine a
+> provider SDK to its adapter*). Do not run both rules over the same package —
+> two verdicts on one edge, and the one that reports depends on rule order.
 
 > [!NOTE] **Unmatched files bypass enforcement — silently.** Files matching no
 > element are invisible to `boundaries/dependencies`. End every constrained

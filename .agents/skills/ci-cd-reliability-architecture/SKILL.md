@@ -177,6 +177,11 @@ apply the same §9 gates in the stage the strategy provides:
 | Ephemeral stages | Per-change preview or staging created on demand; production is the only permanent environment | Representative environments are cheap to create and costly to keep |
 | Production-only, progressive exposure | Development plus production; feature flags, rings, canaries, and dark launches bound who sees the change | No non-production environment is representative, or reproducing production is impractical |
 
+Choosing permanent stages creates an evidence obligation, not just a shape:
+the §9 environment-parity gate carries it. A permanent stage whose drift from
+production is never measured has the cost of a stage and the evidence value of
+none, and every check that stage runs inherits its unmeasured gap.
+
 Under production-only, the preview stage is the production deployment before
 exposure: the candidate runs behind a flag or in an empty ring with no user
 traffic, and the §9 preview checks run against it there. The strategy changes
@@ -194,6 +199,13 @@ where such a check can run, never whether it runs.
 **Rules:**
 
 - Never force-stop running instances (drops in-flight connections)
+- Name the rollout shape honestly. Replacing two or more components of one
+  release in parallel, each overwriting its predecessor where it stands, is an
+  **in-place component replace**: no slot to swap, no single switch to
+  reverse, and old and new components live together for the length of the
+  slowest job. It is zero-downtime only when every pair of coexisting
+  component versions is compatible across that window — an
+  `evolutionary-database-design` question, not a deployment detail
 - Decouple deployment from release: where exposure is progressive, deploying
   an artifact and exposing its behavior to users are separate, separately
   reversible steps (flag, ring, or canary weight). Where promotion is atomic,
@@ -363,6 +375,7 @@ justifies the omission.
 | **Preview / every deployable candidate** | Startup smoke; critical-journey E2E; supported-browser compatibility; visual regression where rendered UI is material; broken-link validation for navigable content | Block merge where the verification stage precedes merge, otherwise withhold exposure and block promotion; run against the strategy's verification stage using the candidate artifact |
 | **Frontend preview / applicable routes** | Bundle/resource budgets; Lighthouse performance, accessibility, best-practices, and SEO assertions as applicable; dedicated automated accessibility rules | Block merge on breached budgets or new violations, or withhold exposure when the verification stage follows merge; test representative public and authenticated routes under declared mobile/desktop profiles |
 | **Pre-deploy / every target environment** | Config/schema and feature-flag consistency; secret presence/expiry; migration dry-run and reversibility; deployed-contract diff; IAM/capacity/quota/cost projection; rollback-artifact availability | Abort before mutation; attach results to the release record |
+| **Environment parity / permanent stages only** | Measured drift of the verification stage from production: region and topology, runtime and dependency versions, configuration and feature-flag state, data shape and scale | Block promotion on undeclared drift; an unmeasured stage cannot carry the evidence §5 admitted it for |
 | **Deploy execution / every deployment** | Startup, readiness, dependency-connectivity, health, and rollback-trigger verification | Withhold traffic or roll back automatically on failure |
 | **Canary/staging / promotion and scheduled** | Performance regression, load/stress/soak as risk requires; resilience/fault-injection; rollback drill; backup-restore verification for stateful systems | Block promotion on threshold breach; expensive suites may be scheduled, but their evidence must be fresh enough for the release policy |
 | **Production / bounded verification window** | Health, availability, latency, error rate, saturation, and critical synthetic journeys | Roll back automatically on threshold breach; otherwise advance to `DEPLOYED-HEALTHY` |
@@ -391,6 +404,7 @@ Each gate declares and records:
 Check:          <category and command/tool>
 Stage/trigger:  <PR | preview | pre-deploy | deploy | canary | production>
 Scope:          <components, routes, contracts, or environment>
+Representativeness: <how the stage differs from production, measured; or n/a for a production check>
 Artifact:       <commit and immutable digest>
 Policy:         <threshold, baseline, compatibility rule, or expected result>
 Result:         <pass | fail | not-applicable + evidence>
@@ -439,6 +453,9 @@ must satisfy the release's evidence-freshness policy.
       progressive exposure chosen by environment representativeness and
       recorded; verification stage isolated from users; the user-facing change
       promoted atomically or ramped on a bounded exposure schedule
+- [ ] **Environment parity**: under permanent stages, drift of the verification
+      stage from production is measured and recorded, not assumed; the rollout
+      shape and its zero-downtime claim are stated
 - [ ] **Release switch**: under progressive exposure, exposure to users is a
       separate, reversible step from deployment (flag, ring, or canary weight);
       under atomic promotion, reversal is re-promotion of the last known-good
@@ -473,7 +490,9 @@ Release state:  <BUILD-VERIFIED | RELEASE-READY | DEPLOYING | PRODUCTION-VERIFYI
 Test evidence:  <applicable gates, reports, exclusions, and results>
 Preflight:      <checks and results>
 Strategy:       <permanent | ephemeral | production-only progressive exposure>
-Rollout:        <atomic | blue/green | canary + health thresholds; exposure switch or re-promotion path>
+Representativeness: <measured drift of the verification stage from production, or unmeasured>
+Rollout:        <atomic | blue/green | canary | in-place component replace + health thresholds; exposure switch or re-promotion path>
+Zero-downtime:  <yes | no + why>
 Rollback:       <trigger, known-good artifact, result>
 Owner handoff:  <operational owner or missing>
 Evidence:       <workflow file, command, log, branch rule, secret path, or deployment behavior checked>
