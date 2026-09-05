@@ -25,6 +25,7 @@
     "prepack": "npm run validate",
     "validate": "python scripts/validate-skills.py",
     "test:installers": "bash scripts/test-installers.sh",
+    "test:installers:ps": "pwsh -NoProfile -File scripts/test-installers.ps1",
     "test": "npm run validate && npm run test:installers"
   }
 }
