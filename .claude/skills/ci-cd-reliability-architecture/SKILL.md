@@ -3,7 +3,8 @@ name: ci-cd-reliability-architecture
 description: >-
     Establishes idempotency, self-containment, immutable artifacts,
     self-healing, zero-downtime, and zero-knowledge security for CI/CD
-    pipelines, including evidence-gated release and production promotion. Use
+    pipelines, including delivery-strategy choice, evidence-gated release, and
+    production promotion. Use
     this skill when designing, auditing, or debugging any workflow, release, or
     deployment pipeline.
 ---
@@ -21,7 +22,9 @@ description: >-
 > 2. **Self-Contained** — explicit inputs, outputs, failure mode (§2).
 > 3. **Immutable Artifacts** — build once, promote; config at deploy time (§3).
 > 4. **Self-Healing** — retry transient, fail-fast permanent (§4).
-> 5. **Zero-Downtime** — preview environment, atomic promotion (§5).
+> 5. **Zero-Downtime** — chosen delivery strategy, verification beside
+>    production, then atomic promotion or a separately reversible exposure
+>    switch (§5).
 > 6. **Zero-Knowledge** — OIDC / federated identity, no standing cloud secrets (§6).
 > 7. **Evidence-Gated** — every merge and promotion is blocked by the earliest
 >    applicable verification gate (§9).
@@ -164,21 +167,46 @@ exit 1
 
 ## 5. Zero-Downtime
 
+**Choose the delivery strategy first.** Select it by how representative a
+non-production environment can be made, record it in the release record, and
+apply the same §9 gates in the stage the strategy provides:
+
+| Strategy | Shape | Choose when |
+| --- | --- | --- |
+| Permanent stages | Fixed test and acceptance environments ahead of production | Non-production can be kept representative and its drift from production is measured |
+| Ephemeral stages | Per-change preview or staging created on demand; production is the only permanent environment | Representative environments are cheap to create and costly to keep |
+| Production-only, progressive exposure | Development plus production; feature flags, rings, canaries, and dark launches bound who sees the change | No non-production environment is representative, or reproducing production is impractical |
+
+Under production-only, the preview stage is the production deployment before
+exposure: the candidate runs behind a flag or in an empty ring with no user
+traffic, and the §9 preview checks run against it there. The strategy changes
+which stage is capable of an environment-dependent check; `defect-shift-left`
+still places each check at the earliest capable stage. The strategy bounds
+where such a check can run, never whether it runs.
+
 | Layer              | Pattern                                                                                  | Why                                                   |
 | ------------------ | ---------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| **Frontend**       | Deploy to isolated preview environment per PR; atomically promote to production on merge | Production untouched during validation; safe to retry |
-| **Backend**        | Deploy to staging slot; health-check; swap (platform handles connection draining)        | Graceful shutdown; in-flight requests complete        |
+| **Frontend**       | Deploy to the strategy's verification stage (per-change preview, or production behind a flag or empty ring); atomically promote or switch exposure | Users see only a verified candidate; safe to retry |
+| **Backend**        | Deploy to a staging slot or unexposed production instance; health-check; swap or shift traffic (platform handles connection draining) | Graceful shutdown; in-flight requests complete        |
 | **API versioning** | Additive changes for tolerant readers; version and deprecate breaking changes            | Clients remain backwards-compatible                   |
 | **PR concurrency** | Cancel in-progress runs for the same branch; only latest commit deploys                  | Prevent old commits overwriting newer deployments     |
 
 **Rules:**
 
 - Never force-stop running instances (drops in-flight connections)
-- Always test in a staging/preview environment before promoting to production
+- Decouple deployment from release: where exposure is progressive, deploying
+  an artifact and exposing its behavior to users are separate, separately
+  reversible steps (flag, ring, or canary weight). Where promotion is atomic,
+  promotion is the release and its reversal is re-promoting the last
+  known-good artifact. State which of the two applies; a release with neither
+  a switch nor a re-promotable predecessor can only be undone by a redeploy
+- Always verify the candidate in the strategy's verification stage (permanent
+  stage, ephemeral preview, or unexposed production deployment) before users
+  see its behavior
 - Adding fields is compatible only when clients are tolerant readers; removing
   or renaming fields breaks clients
-- If E2E tests fail on a preview environment: block the merge; preview
-  auto-cleaned on PR close
+- If verification fails in the strategy's verification stage: block the merge
+  or withhold exposure; ephemeral previews are auto-cleaned on PR close
 - For multi-tenant data layers, apply the Expand/Contract pattern for schema
   changes
 
@@ -310,9 +338,9 @@ Any failed gate → BLOCKED or ROLLBACK
 | Test evidence | Applicable Stage 5–9 gates from §9 passed against the named commit or artifact digest |
 | Preflight | Config/schema, contract compatibility, migration reversibility, secrets, IAM and capacity checked before mutation |
 | Promotion | Same digest as verified; protected approval when required; one deployment owns the target environment |
-| Rollout | Atomic, blue/green, or canary strategy with explicit health thresholds |
+| Rollout | Atomic, blue/green, or canary strategy with explicit health thresholds; under progressive exposure the user-facing switch is a separate step from the deployment |
 | Verification | Bounded window checks health, error rate, latency and availability; breach triggers automatic rollback |
-| Record and handoff | Immutable release record names artifact, checks, outcome, rollback result and operational owner |
+| Record and handoff | Immutable release record names artifact, delivery strategy, checks, outcome, rollback result and operational owner |
 
 The skill's boundary ends at `DEPLOYED-HEALTHY`, when the verification window
 passes and the named operational owner accepts the handoff.
@@ -332,8 +360,8 @@ justifies the omission.
 | **Build / every PR** | Format and lint; strict type-check; build/package; secret scan; SAST; dependency/CVE and license audit; IaC scan when IaC exists; bundle/artifact budget | Block merge; branch protection requires the full-repository CI backstop |
 | **Unit / every PR** | Unit and property tests; project-owned coverage policy with no unexplained regression | Block merge; publish machine-readable results and coverage evidence |
 | **Integration / every PR** | Component/integration tests; API/schema contract and backward-compatibility tests; authorization negative-path tests; container/artifact reproducibility | Block merge; test the same output that becomes the immutable artifact |
-| **Preview / every deployable PR** | Startup smoke; critical-journey E2E; supported-browser compatibility; visual regression where rendered UI is material; broken-link validation for navigable content | Block merge and promotion; run against the isolated preview using the candidate artifact |
-| **Frontend preview / applicable routes** | Bundle/resource budgets; Lighthouse performance, accessibility, best-practices, and SEO assertions as applicable; dedicated automated accessibility rules | Block merge on breached budgets or new violations; test representative public and authenticated routes under declared mobile/desktop profiles |
+| **Preview / every deployable candidate** | Startup smoke; critical-journey E2E; supported-browser compatibility; visual regression where rendered UI is material; broken-link validation for navigable content | Block merge where the verification stage precedes merge, otherwise withhold exposure and block promotion; run against the strategy's verification stage using the candidate artifact |
+| **Frontend preview / applicable routes** | Bundle/resource budgets; Lighthouse performance, accessibility, best-practices, and SEO assertions as applicable; dedicated automated accessibility rules | Block merge on breached budgets or new violations, or withhold exposure when the verification stage follows merge; test representative public and authenticated routes under declared mobile/desktop profiles |
 | **Pre-deploy / every target environment** | Config/schema and feature-flag consistency; secret presence/expiry; migration dry-run and reversibility; deployed-contract diff; IAM/capacity/quota/cost projection; rollback-artifact availability | Abort before mutation; attach results to the release record |
 | **Deploy execution / every deployment** | Startup, readiness, dependency-connectivity, health, and rollback-trigger verification | Withhold traffic or roll back automatically on failure |
 | **Canary/staging / promotion and scheduled** | Performance regression, load/stress/soak as risk requires; resilience/fault-injection; rollback drill; backup-restore verification for stateful systems | Block promotion on threshold breach; expensive suites may be scheduled, but their evidence must be fresh enough for the release policy |
@@ -399,15 +427,22 @@ must satisfy the release's evidence-freshness policy.
       authorization negative paths, and candidate artifact verified
 - [ ] **Health check**: Post-deploy validation present; rollback on failure
 - [ ] **Preview verification**: smoke, critical E2E, supported browsers, and
-      applicable visual/link checks block merge via branch protection
+      applicable visual/link checks block merge via branch protection, or block
+      exposure when the verification stage follows merge
 - [ ] **Frontend quality**: applicable representative routes have bundle,
       Lighthouse, and dedicated automated accessibility gates
 - [ ] **Pre-deploy tests**: config, migration, contract, secret, feature-flag,
       IAM/capacity, and rollback-artifact checks abort before mutation
 - [ ] **Scheduled risk tests**: applicable load/soak, resilience, rollback, and
       restore evidence satisfies the release's freshness policy
-- [ ] **Preview environments**: All deployments use isolated preview; production
-      promoted atomically
+- [ ] **Delivery strategy**: permanent, ephemeral, or production-only
+      progressive exposure chosen by environment representativeness and
+      recorded; verification stage isolated from users; the user-facing change
+      promoted atomically or ramped on a bounded exposure schedule
+- [ ] **Release switch**: under progressive exposure, exposure to users is a
+      separate, reversible step from deployment (flag, ring, or canary weight);
+      under atomic promotion, reversal is re-promotion of the last known-good
+      artifact
 - [ ] **PR concurrency**: Cancel-in-progress enabled; only the latest commit
       deploys
 - [ ] **Release evidence**: Artifact digest/provenance and preflight results recorded
@@ -437,7 +472,8 @@ Artifact:       <commit, digest, provenance>
 Release state:  <BUILD-VERIFIED | RELEASE-READY | DEPLOYING | PRODUCTION-VERIFYING | DEPLOYED-HEALTHY | BLOCKED | ROLLBACK>
 Test evidence:  <applicable gates, reports, exclusions, and results>
 Preflight:      <checks and results>
-Rollout:        <strategy and health thresholds>
+Strategy:       <permanent | ephemeral | production-only progressive exposure>
+Rollout:        <atomic | blue/green | canary + health thresholds; exposure switch or re-promotion path>
 Rollback:       <trigger, known-good artifact, result>
 Owner handoff:  <operational owner or missing>
 Evidence:       <workflow file, command, log, branch rule, secret path, or deployment behavior checked>

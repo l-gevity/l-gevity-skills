@@ -37,6 +37,15 @@ cover). The second one looks like bureaucracy and is actually the scope
 argument you'd otherwise have during the sprint, held early and cheaply
 instead.
 
+One more sweep closes the classic blind spot. Sources say what the system
+must *do* and go quiet on how reliable, secure, recoverable, or safe it must
+be — until an incident makes the unstated obligation loud. So the skill walks
+a standard, published list of quality characteristics and records each one as
+covered, not applicable for a reason, or open with an owner — turning that
+silence into a finding somebody holds. It does not manufacture requirements: a
+characteristic with no actor, source, or evidence behind it stays open, not
+invented.
+
 ## Not all "requirements" carry the same weight
 
 Every requirement rests on some basis, and the four kinds justify very

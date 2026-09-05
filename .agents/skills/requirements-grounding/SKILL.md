@@ -7,7 +7,8 @@ description: >-
     or stakeholder needs, separating facts from interpretations and hypotheses,
     writing solution-free requirement candidates, defining measurable expected
     outcomes without turning them into acceptance criteria, deciding what belongs
-    in scope,
+    in scope, sweeping quality characteristics for unstated non-functional
+    obligations,
     reverse-engineering provisional requirements from existing code, tests,
     schemas, configuration, public interfaces, documentation, or history, or
     determining whether requirements are ready for dependency modeling. Do not use
@@ -185,14 +186,21 @@ as findings instead.
    requirement.
 8. **Describe completion**: add actor, capability, purpose when useful, and two to
    four observable complete-when conditions.
-9. **State outcome hypotheses when relevant**: link a measurable downstream
-   impact hypothesis to the affected requirements without turning it into a
-   completion condition. For authoritative obligations whose validity does not
-   depend on product-value evidence, record `not applicable` plus the reason
-   instead of creating a hypothesis record.
-10. **Classify independently**: assign basis, priority, validation decision, and
-   confidence without letting one label imply another.
-11. **Record decisions**: capture source, assumption, owner, date, watch item, and
+9. **Sweep quality characteristics**: walk the product-quality
+   characteristics in [references/quality-model.md](references/quality-model.md)
+   for obligations the drafted candidates and their sources imply but do not
+   state. Record each characteristic as covered by named candidate slugs, not
+   applicable with a reason, or open with an owner, and draft the candidates a
+   covered-but-unwritten obligation needs. A candidate set that names no
+   quality characteristic is a coverage finding, not evidence that none apply.
+10. **State outcome hypotheses when relevant**: link a measurable downstream
+    impact hypothesis to the affected requirements without turning it into a
+    completion condition. For authoritative obligations whose validity does not
+    depend on product-value evidence, record `not applicable` plus the reason
+    instead of creating a hypothesis record.
+11. **Classify independently**: assign basis, priority, validation decision, and
+    confidence without letting one label imply another.
+12. **Record decisions**: capture source, assumption, owner, date, watch item, and
     revisit trigger for every consequential choice, and what the choice
     supersedes: earlier decisions, requirement candidates, or criteria, or
     `none`.
@@ -350,6 +358,7 @@ Requirements grounding:
 - Done when:
 - Not-problem:
 - Scope placements:
+- Quality coverage:          # per characteristic: covered | not applicable + reason | open + owner
 - Actors and role splits:
 - Requirement candidates:   # readable slug IDs + requirement shape
 - Outcome hypotheses:       # linked records or not applicable + reason
@@ -383,6 +392,9 @@ stale. Never leave silent divergence.
   into requirements merely because they exist.
 - Do not make an authoritative source say more than it says.
 - Do not use priority as a proxy for certainty or source authority.
+- Do not turn a quality characteristic into a requirement or a numeric target
+  without an actor, source, or evidence; an open characteristic is a finding
+  with an owner, not a manufactured non-functional requirement.
 - Do not place outcome hypotheses inside requirement completion conditions.
 - Do not mark an outcome hypothesis `supported` from acceptance, integration, or
   implementation evidence alone.

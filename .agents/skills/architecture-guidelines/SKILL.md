@@ -3,9 +3,10 @@ name: architecture-guidelines
 description: >-
     First-principles architectural rules for module/service/abstraction design:
     minimalism, modularity, functional core, resilience, layer self-sufficiency,
-    naming, and concurrency. TRIGGER when introducing a
+    integration, naming, and concurrency. TRIGGER when introducing a
     module/service/abstraction, refactoring across module boundaries, applying
-    SOLID, deciding whether a control may rely on the layer beneath it, or
+    SOLID, deciding whether a control may rely on the layer beneath it,
+    designing an integration edge between applications or services, or
     reviewing architectural concerns (purity, idempotency, naming, fail-fast).
     SKIP for bug fixes within an existing module, content/copy edits, CSS-only
     changes, dependency bumps, and trivial renames. Emits an `Enforcement`
@@ -137,12 +138,46 @@ against concurrent mutation?"_
 below it disappears?"_ A "no" is a defect in the layer under review, never a
 requirement on the layer below.
 
+## 9. Integration Discipline
+
+Rules for edges that cross an application boundary: a different deployable,
+data store, team, or lifecycle.
+
+- **Smart endpoints, dumb pipes**: The transport (gateway, proxy, queue,
+  topic, bus) decouples parties in location and time and does nothing else.
+  Business logic, validation, enrichment, transformation, storage, replay,
+  and access decisions live in the endpoints, never in the pipe.
+- **Producers are consumer-agnostic; consumers transform**: A producer
+  publishes its own domain representation once. Each consumer maps it into
+  its own model. A canonical or unified intermediate model shared across
+  applications couples every party to every change; do not introduce one.
+- **No peer internals**: An application reaches another only through that
+  application's published contract (API, event, queue, file exchange), never
+  its database, file system, or internal modules. Reaching past the contract
+  is the integration form of the interface violation in §4.
+- **Untrusted network**: Every cross-application edge is designed for the
+  open internet. The receiving endpoint authenticates, authorizes, and
+  validates on its own; §8 governs what the pipe's placement can and cannot
+  satisfy.
+- **Asynchronous where the caller can continue**: Use a queue or topic when
+  the caller does not need the answer to proceed; reserve synchronous
+  request-response for when it does. Fire-and-forget only where loss is
+  acceptable and stated.
+- **Contracts expose domain, not implementation**: Payloads carry domain
+  entities, never storage rows, join tables, or internal identifiers. A change
+  to a shared payload shape follows `evolutionary-database-design`.
+
+**Review check:** for each cross-application edge, ask _"which side
+transforms, what does the pipe do besides carry, and does the receiver
+validate as if the network were public?"_ An answer that names the pipe for
+any of these is a defect in the endpoint.
+
 > [!IMPORTANT] **Complexity Warning**: If a solution violates any guideline
 > above, state: _"Complexity Warning: introduces [X]. A simpler alternative is
 > [Y]."_ If the violation is non-trivial, see `structural-simplification` §8
 > Decision Protocol for a per-axis comparison before accepting it.
 
-## 9. Enforcement Handoff
+## 10. Enforcement Handoff
 
 Use `architecture-as-code` only for constraints that can be enforced as import
 or dependency rules. Do not duplicate this skill's principles there; hand off
@@ -162,6 +197,12 @@ Constraint:  external callers use the facade only
 Enforcement: add architecture rule: forbid * -> <module-internal-*>, except <module-*>
 ```
 
+```
+Principle:   integration discipline
+Constraint:  no module reaches a peer application's internals
+Enforcement: add architecture rule: forbid * -> <peer-storage-client | peer-internal-*>, except <integration-adapter-*>
+```
+
 A principle can also settle as no handoff. Record that outcome rather than
 omitting it:
 
@@ -172,7 +213,7 @@ Enforcement: none - not an import or dependency edge; verify by exercising the
              component without that layer (`defect-shift-left`)
 ```
 
-## 10. Output Contract
+## 11. Output Contract
 
 When this skill changes or rejects a design, emit a coder-facing decision
 record:
@@ -180,7 +221,7 @@ record:
 ```
 Subject:        <module / service / abstraction / PR / code path>
 Decision:       Proceed | Simplify | Split | Inline | Reject | Defer
-Principle:      <YAGNI | Rule of 3 | DRY | SoC | SRP | capability-boundary | DI | fail-fast | idempotency | atomicity | layer-self-sufficiency | naming | concurrency>
+Principle:      <YAGNI | Rule of 3 | DRY | SoC | SRP | capability-boundary | DI | fail-fast | idempotency | atomicity | integration | layer-self-sufficiency | naming | concurrency>
 Evidence:       <callers, imports, tests, runtime invariant, or file paths checked>
 Enforcement:    <none | add architecture rule: constraint | update architecture rule: constraint>
 Next action:    <edit, delete, extract, add test, add lint rule, or ask user>
@@ -193,3 +234,4 @@ Verification:   <command / review check / Not run + reason>
 - **`structural-simplification`** — per-axis complexity comparison (`D, K, P, n`).
 - **`morphogenetic-architecture`** — declared placement, observed coupling fields, and topology evolution.
 - **`architecture-as-code`** — consumes explicit `Enforcement` handoffs and turns enforceable dependency constraints into lint rules.
+- **`evolutionary-database-design`** — staged, compatible change to a payload or stored shape shared across an integration edge.

@@ -112,6 +112,16 @@ force-killing instances mid-request. Its inverse is the anti-pattern behind
 most self-inflicted outages: modify the live thing in place and verify
 afterward, with users as the test harness.
 
+Which "next to" you use is a strategy choice, made by how representative a
+non-production environment can actually be: permanent stages, ephemeral
+per-change previews, or — when nothing outside production is representative —
+production itself, behind a flag or in an empty ring where no user sees the
+change yet. Wherever exposure has a switch of its own, *deploying* and
+*releasing* are two steps: the artifact lands, gets verified, and only then is
+its behavior switched on for users, by a switch that can be flipped back
+without a redeploy. Where promotion is atomic instead, promotion is the
+release — and the way back is re-promoting the last known-good artifact.
+
 The same "old and new must coexist" logic governs contracts. During any
 rollout, some clients still speak yesterday's API against today's server —
 so changes must be additive, with breaking changes versioned and deprecated

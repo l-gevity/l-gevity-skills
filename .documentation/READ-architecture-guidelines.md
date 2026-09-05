@@ -66,6 +66,21 @@ A boundary works only if everyone honors the same three-way deal:
   every caller needs. Every exposed function is a promise you must keep
   forever; generosity in an interface is future regret.
 
+## Integrations: the same deal, between applications
+
+When the boundary separates two applications rather than two modules, the
+deal holds with the stakes raised, because the other side changes on its own
+schedule and cannot be refactored with you. The pipe between them — gateway,
+queue, bus — only carries; every decision (validate, transform, enrich,
+authorize) belongs to an endpoint, or it becomes invisible logic nobody owns. The producer publishes its own domain shape once, and each
+consumer translates into its own model — a shared "canonical" model sounds
+like order and is actually a coupling that makes every party pay for every
+change. And nothing reaches past the published contract into a peer's
+database or internals: the integration form of grabbing a module's private
+field. Because the wire is not yours, design each edge as if it crossed the
+open internet, and prefer asynchronous exchange wherever the caller doesn't
+need the answer to continue.
+
 ## Dependencies: directed, acyclic, shallow
 
 Draw every module as a dot and every "A imports B" as an arrow. That

@@ -93,6 +93,11 @@ SKILL_REQUIRED_TERMS = {
         "must hold with the endpoint publicly reachable",
         "are additional layers, never the control",
         "does this still hold when the layer below it disappears?",
+        "## 9. Integration Discipline",
+        "Smart endpoints, dumb pipes",
+        "consumers transform",
+        "No peer internals",
+        "| atomicity | integration | layer-self-sufficiency |",
     ),
     "ci-cd-reliability-architecture": (
         "Release and Production Promotion",
@@ -101,6 +106,11 @@ SKILL_REQUIRED_TERMS = {
         "DEPLOYED-HEALTHY",
         "Rollback:",
         "Owner handoff:",
+        "Choose the delivery strategy first",
+        "Decouple deployment from release",
+        "production-only",
+        "never whether it runs",
+        "Strategy:       <permanent | ephemeral | production-only progressive exposure>",
     ),
     "continuous-improvement": (
         "Consumer-to-Library Promotion",
@@ -125,6 +135,9 @@ SKILL_REQUIRED_TERMS = {
         "M alone",
         "assess evidence state and freshness",
         "Supersedes:",
+        "references/quality-model.md",
+        "coverage finding, not evidence that none apply",
+        "Quality coverage:",
     ),
     "requirements-topology": (
         "requirements-grounding",
@@ -150,6 +163,10 @@ SKILL_REQUIRED_TERMS = {
         "NOT-READY",
         "independent states",
         "carries the lapsing criteria",
+        "Riskiest assumption first",
+        "## Assumption Vehicles",
+        "parallel-ready",
+        "Parallel-ready: yes | no + missing criterion",
     ),
     "morphogenetic-architecture": (
         "Declare before observing",
@@ -1045,6 +1062,33 @@ def validate_test_strategy_contract() -> None:
         )
 
 
+def validate_requirements_grounding_contract() -> None:
+    skill = AGENT_SKILLS / "requirements-grounding"
+    reference = skill / "references" / "quality-model.md"
+    if not reference.is_file():
+        fail(f"{reference.relative_to(ROOT)} is required")
+    text = reference.read_text(encoding="utf-8")
+    # Pin the 2023 revision of the product quality model, not the 2011 names.
+    for term in (
+        "ISO/IEC 25010:2023",
+        "Interaction capability",
+        "Flexibility",
+        "Safety",
+        "coverage finding",
+        # 2011 -> 2023 renames, not additions; a project profile maps by these.
+        "accessibility to inclusivity",
+        "maturity to faultlessness",
+    ):
+        if not contains(text, term):
+            fail(f"{reference.relative_to(ROOT)} missing quality-model term '{term}'")
+    skill_text = (skill / "SKILL.md").read_text(encoding="utf-8")
+    if not contains(skill_text, "references/quality-model.md"):
+        fail(
+            ".agents/skills/requirements-grounding/SKILL.md must link "
+            "references/quality-model.md"
+        )
+
+
 def validate_evolutionary_database_design_contract() -> None:
     skill = AGENT_SKILLS / "evolutionary-database-design"
     metadata = skill / "agents" / "openai.yaml"
@@ -1453,6 +1497,7 @@ def main() -> int:
     validate_readme_index()
     validate_overview_skill_count()
     validate_test_strategy_contract()
+    validate_requirements_grounding_contract()
     validate_evolutionary_database_design_contract()
     validate_outcome_hypothesis_contract()
     validate_outcome_evidence_lifecycle()

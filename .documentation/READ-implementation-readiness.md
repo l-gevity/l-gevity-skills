@@ -118,6 +118,23 @@ slice also gives the readiness decision its first real test: nothing
 exposes a phantom "ready" faster than attempting a thin end-to-end path
 through it.
 
+Two refinements decide the order among slices. First, the *riskiest
+assumption* goes first: not the most valuable feature, but the belief that,
+if wrong, invalidates the most of the plan — and it gets the cheapest vehicle
+that can prove it wrong. A proof of concept kills one feasibility assumption
+and is thrown away; a prototype tests what stakeholders actually want and
+never ships; a minimum viable product is the smallest thing that lets real
+use test the outcome hypothesis, and doubles as the first full rehearsal of
+the delivery path.
+
+Second, a slice is *parallel-ready* — safe to hand to several people or
+agents at once — only when it is isolated enough to need little context,
+small enough to merge on its own, unassigned to anyone in particular, and
+independent of the other slices in its group. These are the conditions under
+which work coordinates through the shared artifact instead of through
+meetings; a group that fails one of them is a sequence wearing a parallel
+costume.
+
 ## Ready ≠ built ≠ verified
 
 Last, a bookkeeping rule that prevents a whole family of status lies:

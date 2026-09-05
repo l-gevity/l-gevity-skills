@@ -5,7 +5,8 @@ description: >-
     development, and verification, then derives the smallest coherent
     build-preparation package without inventing requirement meaning. Use when
     producing capability maps, epics or workstreams, implementation slices,
-    dependency sequencing, contract candidates, domain-model seeds, cross-cutting
+    dependency sequencing, riskiest-assumption ordering, parallel-ready slices,
+    contract candidates, domain-model seeds, cross-cutting
     constraints, acceptance-test references, ADR seeds, technical questions, or
     explicit ready/partly-ready/not-ready decisions. Do not use for initial
     discovery or requirement graph normalization.
@@ -28,6 +29,9 @@ architects, QA engineers, and technical product owners can use to prepare a buil
 >    an API, event, service, or synchronous call.
 > 5. **Prefer the smallest coherent slice.** Prove an end-to-end outcome before
 >    expanding implementation surface.
+> 6. **Riskiest assumption first.** Sequence experiments and slices so the
+>    assumption most likely to invalidate the plan is tested earliest, by the
+>    cheapest vehicle that can invalidate it.
 
 ## Boundary
 
@@ -73,17 +77,43 @@ route to the missing stage.
 4. Check every external prerequisite for an existing artifact or an explicit
    minimal contract. Mark dependent work partial or blocked when neither exists.
 5. Convert prerequisite edges into implementation order while keeping architecture
-   choices open.
+   choices open. Within that order, place first the slice or experiment that
+   tests the riskiest unvalidated assumption: the one most likely to be wrong,
+   weighted by the cost of learning that late. Choose the cheapest vehicle that
+   can invalidate it (see Assumption Vehicles).
 6. Derive only supported domain-model seeds, contract candidates, integration
    points, data boundaries, and non-functional constraints.
 7. Identify ADR candidates where multiple viable designs or unresolved forces
    remain.
 8. Define the smallest coherent vertical slice that demonstrates the core outcome.
+   Mark a slice **parallel-ready** only when it is isolated (needs little
+   context beyond its own scope), small enough to merge on its own, unassigned
+   to a specific person, and independent of every other slice in its group;
+   record parallel-ready groups in the implementation order.
 9. Reference grounding's complete-when conditions as acceptance tests; add only
    concrete fixtures, expected values, and edge cases still needed.
 10. Separate ready work, blockers, risks, and technical questions.
 11. Seed stable requirement and acceptance-criterion references for downstream
     traceability without claiming implementation or verification evidence yet.
+
+## Assumption Vehicles
+
+Match the vehicle to the assumption it must be able to invalidate. Each is a
+bounded experiment, not the product:
+
+| Vehicle | Invalidates | Constraint |
+| --- | --- | --- |
+| Proof of concept | One named feasibility or technical assumption | Any technology, disposable; throwaway code never crosses the merge boundary without the enforcement `architecture-as-code` requires |
+| Prototype | A functional or interaction assumption, with stakeholders | One-off, without the non-functional obligations; demonstrates, never ships |
+| Minimum viable product | The linked outcome hypothesis, through real use | Complete enough for one full build-measure-learn turn, and the first end-to-end exercise of the delivery path |
+
+Record the vehicle, the assumption, and the invalidation criterion. For a
+need or outcome assumption, carry the criterion from the grounding
+experiment it serves or from the hypothesis's `Decision threshold`; do not
+author a new one. For a feasibility or technical assumption, state the
+criterion in the technical question or ADR seed that raised it; that is
+derived build preparation, not requirement meaning. A vehicle without an
+invalidation criterion is speculative build, not an experiment.
 
 ## Readiness Gate
 
@@ -144,6 +174,7 @@ Implementation slice:
 - Data touched and ownership:
 - Roles and permissions:
 - Evidence and operations:
+- Parallel-ready: yes | no + missing criterion
 - Risks and watch items:
 - Developer / architect questions:
 ```
@@ -204,7 +235,7 @@ Implementation readiness:
 - Blocking gaps and owners:
 - Capability map:
 - Workstreams or epics:
-- Implementation order:
+- Implementation order:         # riskiest assumption first; parallel-ready groups marked
 - Smallest coherent slice:
 - Cross-cutting constraints:
 - Data ownership and lifecycle:
@@ -231,6 +262,8 @@ decision.
 - Do not admit a replacement without the retirement it implies. A slice that
   removes or replaces a mechanism carries the lapsing criteria and closes them.
 - Do not turn every graph edge into a contract or runtime dependency.
+- Do not mark a slice parallel-ready while it shares an unmerged prerequisite,
+  an assignee, or an unresolved contract with another slice in its group.
 - Do not bury product, domain, security, privacy, compliance, or source-currency
   decisions inside developer notes.
 - Do not mark a requirement implemented or verified in a readiness package; hand
