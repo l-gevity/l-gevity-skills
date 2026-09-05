@@ -61,8 +61,10 @@ A promoted rule must pass all of these:
 - [ ] `scripts/validate-skills.py` enforces the new invariant where practical,
       and the check is proved to fail on a deliberate violation before it lands.
 - [ ] `npm run validate` passes.
-- [ ] `npm run test:installers` passes when anything under `.install/` changed.
-      The four `.sh` installers must stay byte-identical outside their agent
-      profile block; edit `install-claude.sh` and propagate.
+- [ ] `npm run test:installers` and, on Windows, `npm run test:installers:ps`
+      pass when anything under `.install/` changed. Each family must stay
+      byte-identical outside its agent profile block; edit `install-claude.sh`
+      or `install-claude.ps1` and propagate. The PowerShell suite runs every
+      assertion under both pwsh 7 and Windows PowerShell 5.1.
 - [ ] Consumer project remains domain-specific only and is repinned after
       publication.

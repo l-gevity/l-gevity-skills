@@ -1585,16 +1585,21 @@ def validate_installers() -> None:
 
 
 def validate_ci_wiring() -> None:
-    """A test nothing runs is documentation. Keep the workflow pointed at both."""
-    tests = ROOT / "scripts" / "test-installers.sh"
-    if not tests.is_file():
-        fail(f"missing {tests.relative_to(ROOT)}")
+    """A test nothing runs is documentation. Keep the workflow pointed at all."""
+    for name in ("test-installers.sh", "test-installers.ps1"):
+        tests = ROOT / "scripts" / name
+        if not tests.is_file():
+            fail(f"missing {tests.relative_to(ROOT)}")
 
     workflow = ROOT / ".github" / "workflows" / "ci.yml"
     if not workflow.is_file():
         fail(f"missing {workflow.relative_to(ROOT)}")
     text = workflow.read_text(encoding="utf-8")
-    for command in ("npm run validate", "bash scripts/test-installers.sh"):
+    for command in (
+        "npm run validate",
+        "bash scripts/test-installers.sh",
+        "./scripts/test-installers.ps1",
+    ):
         if command not in text:
             fail(f"{workflow.relative_to(ROOT)} must run '{command}'")
     for platform in ("ubuntu-latest", "macos-latest", "windows-latest"):
@@ -1603,14 +1608,22 @@ def validate_ci_wiring() -> None:
 
     package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
     scripts = package.get("scripts", {})
-    if scripts.get("test:installers") != "bash scripts/test-installers.sh":
-        fail("package.json must expose test:installers")
+    expected_scripts = {
+        "test:installers": "bash scripts/test-installers.sh",
+        "test:installers:ps": "pwsh -NoProfile -File scripts/test-installers.ps1",
+    }
+    for name, command in expected_scripts.items():
+        if scripts.get(name) != command:
+            fail(f"package.json must expose {name} as '{command}'")
 
     # Under a bare `* text=auto` a shell script checks out CRLF on Windows and
-    # bash dies on the carriage return. Every .sh must be pinned to LF.
-    attributes = (ROOT / ".gitattributes").read_text(encoding="utf-8")
-    if not contains(attributes, "*.sh text eol=lf"):
-        fail(".gitattributes must pin '*.sh text eol=lf'")
+    # bash dies on the carriage return. Pin both script families explicitly.
+    # Match whole lines: '.install/*.ps1 text eol=crlf' contains the general
+    # pin as a substring, so a substring test would pass without it.
+    attributes = (ROOT / ".gitattributes").read_text(encoding="utf-8").splitlines()
+    for pin in ("*.sh text eol=lf", "*.ps1 text eol=crlf"):
+        if pin not in [line.strip() for line in attributes]:
+            fail(f".gitattributes must pin '{pin}' for every path")
 
 
 def main() -> int:

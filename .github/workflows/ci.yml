@@ -43,9 +43,11 @@ jobs:
         run: bash scripts/test-installers.sh
 
   installers-powershell:
-    # Parse-only. The PowerShell installers have no end-to-end coverage yet;
-    # this catches syntax and 5.1-incompatible constructs, nothing more.
-    name: PowerShell installers parse
+    # The suite runs itself once per available host, so on this runner every
+    # assertion is made under both pwsh 7 and Windows PowerShell 5.1 — the one
+    # consumers most often pipe `iwr | iex` into, and the one that rejects
+    # constructs pwsh 7 accepts.
+    name: Installers (windows-latest, PowerShell)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
@@ -65,3 +67,6 @@ jobs:
               }
           }
           if ($bad -gt 0) { exit 1 }
+      - name: Install from a working-tree archive and verify behavior
+        shell: pwsh
+        run: ./scripts/test-installers.ps1
