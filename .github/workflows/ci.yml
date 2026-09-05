@@ -17,11 +17,11 @@ jobs:
     name: Validate skills
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Validate skill contracts, mirrors, and installer structure
@@ -38,7 +38,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install from a working-tree archive and verify behavior
         run: bash scripts/test-installers.sh
 
@@ -48,7 +48,7 @@ jobs:
     name: PowerShell installers parse
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Parse-check every PowerShell installer
         shell: pwsh
         run: |
