@@ -50,6 +50,17 @@ owns pipeline execution triggers and gating, and `requirements-traceability`
 owns evidence state. Test Strategy is not a qualification stage, gate, acronym
 letter, or prerequisite for Architecture.
 
+When an admitted slice changes persisted or serialized data shape,
+`evolutionary-database-design` is an independently matched two-pass companion.
+Its Compatibility pass follows readiness and precedes A, supplying the data
+facts L grades reversibility from; its Transition pass consumes final A/L/C and
+E when applicable and precedes the Test Strategy Portfolio pass and H. Use a
+Combined pass only for a stable accepted target shape. L owns placement and the
+reversibility grade, H owns placement of each check, CI/CD owns deploy order
+and gating, and `requirements-traceability` owns the migration anchor and
+evidence state. Evolutionary Database Design is not a qualification stage,
+gate, acronym letter, or prerequisite for Architecture.
+
 ## Pipeline
 
 ```mermaid
@@ -85,6 +96,8 @@ flowchart TD
     R -. "NOT-READY" .-> G
     R -. "verification design material" .-> TS1["Test Strategy<br/>Obligation pass"]
     TS1 -. "risks · failure modes · oracles" .-> A
+    R -. "data shape changes" .-> DS1["Evolutionary Database Design<br/>Compatibility pass"]
+    DS1 -. "readers · versions · change class" .-> A
 
     A --> L["L · Locality<br/>candidate or final decision"]
     L -- "Final PLACE / KEEP / DECLARE-RUNTIME-CYCLE" --> C["C · Complexity"]
@@ -97,6 +110,8 @@ flowchart TD
     E --> H["H · Hermetic<br/>shift defects left"]
     E -. "accepted architecture" .-> TS2["Test Strategy<br/>Portfolio pass"]
     TS2 -. "final selected checks" .-> H
+    E -. "accepted shape and ownership" .-> DS2["Evolutionary Database Design<br/>Transition pass"]
+    DS2 -. "migration units" .-> TS2
     H --> Y["Y · Yield<br/>iteration 2"]
 
     C -. "Redesign" .-> A
@@ -130,6 +145,17 @@ When verification design is material, interleave the companion handshake:
 ```text
 Readiness → Test Strategy obligation pass
 → A/L/C/E → Test Strategy portfolio pass
+→ H
+```
+
+When the slice changes persisted or serialized data shape, interleave the data
+companion as well; its Transition pass precedes the Test Strategy portfolio
+pass so the migration units are inside the evidence scope:
+
+```text
+Readiness → Evolutionary Database Design compatibility pass
+→ A/L/C/E → Evolutionary Database Design transition pass
+→ Test Strategy portfolio pass
 → H
 ```
 
@@ -247,6 +273,12 @@ meaning or invalidate its verification.
     precedes H, and a Combined pass requires stable accepted architecture. H
     owns placement, CI/CD owns pipeline execution triggers and gating, and
     traceability owns proof state.
+15. Evolutionary Database Design owns data-shape transition without becoming a
+    gate: the Compatibility pass precedes A and supplies the data facts L
+    grades reversibility from, the Transition pass follows final A/L/C/E and
+    precedes the Test Strategy Portfolio pass and H, and a Combined pass
+    requires a stable accepted target shape. Expand and contract never ship in
+    one deployable; the contract step is gated on evidence, not a date.
 
 ## Complexity Assessment
 
@@ -305,6 +337,10 @@ following:
   without restarting the pipeline or treating acceptance as impact proof.
 - Route material verification design through the Test Strategy two-pass
   handshake without changing the core qualification or gate sequence.
+- Route a slice that changes persisted or serialized data shape through the
+  Evolutionary Database Design two-pass handshake, with its Transition pass
+  preceding the Test Strategy Portfolio pass, without changing the core
+  qualification or gate sequence.
 
 ## Non-goals
 

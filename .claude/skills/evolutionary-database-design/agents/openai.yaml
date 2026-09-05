@@ -1,0 +1,4 @@
+interface:
+  display_name: "Evolutionary Database Design"
+  short_description: "Compatible, staged, reversible data-shape change"
+  default_prompt: "Use $evolutionary-database-design to plan a compatible, staged migration for this data-shape change."

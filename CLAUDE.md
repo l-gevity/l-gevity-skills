@@ -78,6 +78,17 @@ and stimulus. H places the check, CI/CD owns pipeline execution triggers and gat
 traceability owns executed-evidence state. Collapse to a Combined pass only for stable
 accepted architecture. Test Strategy is not a new qualification stage, gate, or letter.
 
+When a slice changes persisted or serialized data shape — a schema, event or message
+payload, API body, or file format — use `evolutionary-database-design` as a two-pass
+task-matched companion:
+`Readiness → Compatibility pass → A/L/C/E → Transition pass → Test Strategy Portfolio pass → H`.
+The Compatibility pass inventories readers, writers, the coexistence window, and the
+obligations that bind the data, classifies the change, and supplies the data facts L
+grades reversibility from; the Transition pass consumes accepted architecture to fix the
+staged expand/contract path, migration units, backfill, contract trigger, and reversal
+step per stage. Expand and contract never ship in one deployable, and the contract step
+is gated on evidence, not a date. It is not a new qualification stage, gate, or letter.
+
 **Qualification and Gates 1–4 shape the design; 5–6 enforce it; 7 optimizes a stable
 baseline in iteration 2.** Enforcement files for new modules are **written before** their
 implementation code, not retrofitted — both ship in the same PR. Spike/throwaway code is

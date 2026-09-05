@@ -224,6 +224,32 @@ stage, CI/CD owns pipeline execution triggers and gating, and traceability owns
 executed-evidence state. Test Strategy is not a qualification stage,
 A.L.C.H.E.M.Y. gate, acronym letter, or prerequisite for A.
 
+When an admitted slice changes persisted or serialized data shape — a schema,
+event or message payload, API body, or file format — use
+`evolutionary-database-design` as a two-pass task-matched companion:
+
+```text
+Implementation Readiness
+→ Evolutionary Database Design — Compatibility pass
+→ A → L/C → E, as justified
+→ Evolutionary Database Design — Transition pass
+→ Test Strategy — Portfolio pass, when it applies
+→ H
+```
+
+The Compatibility pass inventories readers, writers, the coexistence window,
+and the obligations that bind the data, classifies the change, and supplies
+the data facts Gate 3 grades reversibility from before A. The Transition pass
+consumes final accepted architecture to fix the staged expand/contract path,
+migration units, backfill, contract trigger, and reversal step per stage
+before the Test Strategy Portfolio pass and H. Collapse them into a Combined
+pass only for a stable accepted target shape. Gate 3 still owns placement and
+the reversibility grade, Gate H the earliest capable stage, CI/CD the deploy
+order and gating, and traceability the migration anchor. Expand and contract
+never ship in one deployable, and the contract step is gated on evidence, not
+a date. Evolutionary Database Design is not a qualification stage,
+A.L.C.H.E.M.Y. gate, acronym letter, or prerequisite for A.
+
 For an existing project, implementation is evidence rather than intent.
 Code-derived requirements remain `PROVISIONAL` until an authoritative artifact
 or independent confirmation supports them.
@@ -309,6 +335,9 @@ Core directives:
 7. When verification design is material, preserve the Test Strategy two-pass
    handshake. Architecture may refine the portfolio but must not silently erase
    an admitted risk or oracle.
+8. When a slice changes persisted or serialized data shape, preserve the
+   Evolutionary Database Design two-pass handshake. Expand and contract never
+   ship in one deployable; the contract step is gated on evidence, not a date.
 
 ---
 
@@ -325,12 +354,17 @@ Core directives:
 - [ ] Readiness — READY or bounded reversible PARTLY-READY before Architecture
 - [ ] Test strategy — Obligation pass before A: risks, failure modes, oracles,
                        and required confidence
+- [ ] Data shape — Compatibility pass before A: readers, writers, coexistence
+                    window, obligations, change class, and compatibility mode
 - [ ] Gate 2 — Smallest correct design (SoC + SRP + DI; pure core, I/O at edges)
 - [ ] Gate 3 — Rapid/Full mode and selection reason recorded; each component placed at Domain / Tier / Layer; allowed edges and observed fields recorded
 - [ ] Gate 4 — Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ computed for design vs status quo
 - [ ] Gate 3 acceptance — MOVE / SPLIT / MERGE / INTRODUCE-BOUNDARY re-entered
                               once with Gate 4 measurement; final decision recorded
 - [ ] Gate 5 — eslint.architecture.mjs in the SAME PR as the code
+- [ ] Data shape — Transition pass after final A/L/C/E and before the Test
+                    strategy Portfolio pass: staged path, migration units,
+                    backfill, contract trigger, and reversal step per stage
 - [ ] Test strategy — Portfolio pass after final A/L/C/E and before H: technique,
                        scope, fidelity, dependencies, data, environment, stimulus
 - [ ] Gate 6 — Every error path mapped to earliest catchable stage
@@ -382,6 +416,9 @@ contradictory, or disputed:
 | Architecture file disagrees with code | 5 — drift | Re-run lint; treat as a defect |
 | Many tests or high coverage but no risk or oracle rationale | Test Strategy companion | Run `test-strategy`; map material risks to credible evidence and remove false-confidence metrics |
 | Test scope or fidelity was frozen before architecture boundaries were accepted | Test Strategy companion | Preserve the Obligation pass; rerun the affected Portfolio rows after final A/L/C/E and before H |
+| Migration ran green in development but the code versions live during rollout or rollback cannot all read the shape | Evolutionary Database Design companion | Run `evolutionary-database-design`; inventory the coexisting versions and stage the change as expand/contract |
+| Expansion never contracted: parallel columns, dual writes, or `_old`/`_new` pairs with no closing evidence | Evolutionary Database Design companion — contract trigger undefined | Name the evidence that closes the old shape and an owner, or record it as accepted residual risk |
+| Contract or destructive migration shipped in the same deployable as its expand step | Evolutionary Database Design companion — staged path collapsed | Split the deployable; gate the contract step on evidence and a snapshot |
 | Requirement marked verified from a code anchor or unexecuted test | Implementation follow-through | Run `requirements-traceability`; separate implemented from verified evidence |
 | A model, inventory, or design doc asserts another artifact's state and the code contradicts it | Implementation follow-through | Run `requirements-traceability`; prose about another artifact's state is a trace anchor, not narration |
 | Decided text cannot land because the trace gate refuses an unbuilt criterion, so text lags decisions | Implementation follow-through — gate admits no pending or lapsing state | Admit pending and lapsing states in the gate; the retirement lands with the implementation |

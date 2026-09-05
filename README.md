@@ -86,6 +86,7 @@ it works.
 | Designing modules and services, placing responsibilities, and untangling dependency topology | [`architecture-guidelines`](./.agents/skills/architecture-guidelines/SKILL.md), [`morphogenetic-architecture`](./.agents/skills/morphogenetic-architecture/SKILL.md) |
 | Measuring whether a refactor or restructuring actually simplifies the system | [`structural-simplification`](./.agents/skills/structural-simplification/SKILL.md) |
 | Encoding and enforcing architectural boundaries in JavaScript, TypeScript, or Python | [`architecture-as-code`](./.agents/skills/architecture-as-code/SKILL.md), [`architecture-as-code-javascript`](./.agents/skills/architecture-as-code-javascript/SKILL.md), [`architecture-as-code-python`](./.agents/skills/architecture-as-code-python/SKILL.md) |
+| Changing a database schema, event or message payload, API body, or file format without breaking the code versions that coexist during rollout and rollback | [`evolutionary-database-design`](./.agents/skills/evolutionary-database-design/SKILL.md) |
 | Designing a risk-driven test strategy and moving defect detection to the earliest capable stage | [`test-strategy`](./.agents/skills/test-strategy/SKILL.md), [`defect-shift-left`](./.agents/skills/defect-shift-left/SKILL.md) |
 | Designing or auditing reliable build, release, and deployment pipelines | [`ci-cd-reliability-architecture`](./.agents/skills/ci-cd-reliability-architecture/SKILL.md) |
 | Linking requirements to implementation, executed verification, operations, and outcome evidence | [`requirements-traceability`](./.agents/skills/requirements-traceability/SKILL.md) |
@@ -293,7 +294,7 @@ Gate H.
 <details>
 <summary><strong>What is included</strong></summary>
 
-The library contains 20 composable skills. Each has an operational `SKILL.md`
+The library contains 21 composable skills. Each has an operational `SKILL.md`
 and a primer: a standalone concept explainer that teaches the underlying
 engineering idea to developers, independent of the skill machinery.
 
@@ -317,6 +318,7 @@ engineering idea to developers, independent of the skill machinery.
 | [`implementation-readiness`](./.claude/skills/implementation-readiness/SKILL.md) | [Read](./.documentation/READ-implementation-readiness.md) |
 | [`requirements-traceability`](./.claude/skills/requirements-traceability/SKILL.md) | [Read](./.documentation/READ-requirements-traceability.md) |
 | [`test-strategy`](./.claude/skills/test-strategy/SKILL.md) | [Read](./.documentation/READ-test-strategy.md) |
+| [`evolutionary-database-design`](./.claude/skills/evolutionary-database-design/SKILL.md) | [Read](./.documentation/READ-evolutionary-database-design.md) |
 | [`standup`](./.claude/skills/standup/SKILL.md) | [Read](./.documentation/READ-standup.md) |
 | [`continuous-improvement`](./.claude/skills/continuous-improvement/SKILL.md) | [Read](./.documentation/READ-continuous-improvement.md) |
 

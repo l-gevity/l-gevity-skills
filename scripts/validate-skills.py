@@ -272,6 +272,26 @@ SKILL_REQUIRED_TERMS = {
         "pipeline execution triggers",
         "quarantined test cannot count as verified evidence",
     ),
+    "evolutionary-database-design": (
+        "Every change is a refactoring, not an edit",
+        "Compatible with every live version",
+        "Expand before contract",
+        "Meaning changes are new elements",
+        "Absence of an import is not absence of a reader",
+        "Compatibility pass — after readiness, before A",
+        "Transition pass — after final A/L/C and E when applicable, before H",
+        "COMPATIBLE | STAGED | BREAKING | DEFER",
+        "`evolutionary-database-design` is a task-matched Alchemy companion",
+        "A Compatibility pass is provisional by design",
+        "the Transition pass precedes its Portfolio pass",
+        "Expand and contract never ship in the same deployable",
+        "The contract trigger is evidence",
+        "A down-migration is a development convenience, not a rollback path",
+        "Reversibility input:",
+        "reversible data change",
+        "irreversible data migration",
+        "Do not infer absence of readers from absence of imports",
+    ),
     "standup": (
         "Verified only",
         "Delta only",
@@ -1025,6 +1045,81 @@ def validate_test_strategy_contract() -> None:
         )
 
 
+def validate_evolutionary_database_design_contract() -> None:
+    skill = AGENT_SKILLS / "evolutionary-database-design"
+    metadata = skill / "agents" / "openai.yaml"
+    if not metadata.is_file():
+        fail(f"{metadata.relative_to(ROOT)} is required")
+
+    contracts = {
+        ROOT / "CLAUDE.md": (
+            "evolutionary-database-design",
+            "two-pass",
+            "Compatibility pass",
+            "Transition pass",
+            "Expand and contract never ship in one deployable",
+            "gated on evidence, not a date",
+        ),
+        AGENT_SKILLS / "alchemy" / "SKILL.md": (
+            "`evolutionary-database-design`",
+            "two-pass task-matched companion",
+            "Compatibility pass",
+            "Transition pass",
+            "grades reversibility from before A",
+            "before the Test Strategy Portfolio pass and H",
+            "Expand and contract never ship in one deployable",
+        ),
+        ROOT / "ALCHEMY-PIPELINE-DESIGN.md": (
+            "`evolutionary-database-design`",
+            "independently matched two-pass companion",
+            "DS1",
+            "DS2",
+            "precedes the Test Strategy Portfolio pass and H",
+        ),
+    }
+    for path, terms in contracts.items():
+        text = path.read_text(encoding="utf-8")
+        for term in terms:
+            if not contains(text, term):
+                fail(
+                    f"{path.relative_to(ROOT)} missing evolutionary-database-"
+                    f"design ownership term '{term}'"
+                )
+
+    # The reversibility vocabulary this skill hands to L must be the vocabulary
+    # L's reversibility table actually grades from; a drift on either side
+    # silently breaks the handshake.
+    morphogenetic = (
+        AGENT_SKILLS / "morphogenetic-architecture" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    for term in ("reversible data change", "irreversible data migration"):
+        if not contains(morphogenetic, term):
+            fail(
+                ".agents/skills/morphogenetic-architecture/SKILL.md no longer "
+                f"grades from '{term}', which evolutionary-database-design emits"
+            )
+
+    alchemy_text = (AGENT_SKILLS / "alchemy" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    ordered_terms = (
+        "Test strategy — Obligation pass before A",
+        "Data shape — Compatibility pass before A",
+        "Gate 2 — Smallest correct design",
+        "Gate 5 — eslint.architecture.mjs in the SAME PR as the code",
+        "Data shape — Transition pass after final A/L/C/E",
+        "Test strategy — Portfolio pass after final A/L/C/E and before H",
+        "Gate 6 — Every error path mapped to earliest catchable stage",
+    )
+    positions = [alchemy_text.find(term) for term in ordered_terms]
+    if any(position < 0 for position in positions) or positions != sorted(positions):
+        fail(
+            ".agents/skills/alchemy/SKILL.md must preserve the Evolutionary "
+            "Database Design Compatibility -> A/L/C/E -> Transition -> Test "
+            "Strategy Portfolio -> H checklist order"
+        )
+
+
 def validate_outcome_hypothesis_contract() -> None:
     skill_path = AGENT_SKILLS / "requirements-grounding" / "SKILL.md"
     skill_text = skill_path.read_text(encoding="utf-8")
@@ -1358,6 +1453,7 @@ def main() -> int:
     validate_readme_index()
     validate_overview_skill_count()
     validate_test_strategy_contract()
+    validate_evolutionary_database_design_contract()
     validate_outcome_hypothesis_contract()
     validate_outcome_evidence_lifecycle()
     validate_generic_library()
