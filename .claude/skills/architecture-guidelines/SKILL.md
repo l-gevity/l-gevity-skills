@@ -167,10 +167,20 @@ data store, team, or lifecycle.
   entities, never storage rows, join tables, or internal identifiers. A change
   to a shared payload shape follows `evolutionary-database-design`.
 
-**Review check:** for each cross-application edge, ask _"which side
-transforms, what does the pipe do besides carry, and does the receiver
-validate as if the network were public?"_ An answer that names the pipe for
-any of these is a defect in the endpoint.
+**Review check:** every rule above needs a question, or the check passes while
+the rule fails. For each cross-application edge, ask all four:
+
+1. _"Which side transforms, and what does the pipe do besides carry?"_ An
+   answer that names the pipe is a defect in the endpoint.
+2. _"Does the receiver authenticate, authorize, and validate on its own, as if
+   the network were public?"_
+3. _"Does the caller wait for an answer it does not need, and what happens to
+   the message when the pipe fails after the caller's own write?"_ A
+   synchronous edge that leaves a stored record with no way to complete or
+   retry it is an unrecoverable half-state, not a failed call.
+4. _"Does the edge reach past the peer's published contract, and does the
+   payload carry domain entities rather than storage rows or internal
+   identifiers?"_
 
 > [!IMPORTANT] **Complexity Warning**: If a solution violates any guideline
 > above, state: _"Complexity Warning: introduces [X]. A simpler alternative is

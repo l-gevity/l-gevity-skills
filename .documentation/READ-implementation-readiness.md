@@ -129,11 +129,13 @@ the delivery path.
 
 Second, a slice is *parallel-ready* — safe to hand to several people or
 agents at once — only when it is isolated enough to need little context,
-small enough to merge on its own, unassigned to anyone in particular, and
-independent of the other slices in its group. These are the conditions under
-which work coordinates through the shared artifact instead of through
-meetings; a group that fails one of them is a sequence wearing a parallel
-costume.
+small enough to merge on its own, free of any unmerged prerequisite or
+unresolved contract it shares with a sibling, and independent of the other
+slices in its group. These are the conditions under which work coordinates
+through the shared artifact instead of through meetings; a group that fails
+one of them is a sequence wearing a parallel costume. Note what is *not* on
+the list: who will pick the slice up. That is a scheduling fact, invisible in
+the artifacts, and a criterion nobody can check is not a criterion.
 
 ## Ready ≠ built ≠ verified
 
