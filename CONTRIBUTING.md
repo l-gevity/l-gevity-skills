@@ -58,7 +58,11 @@ A promoted rule must pass all of these:
 - [ ] `.documentation/READ-<name>.md` matches the public role.
 - [ ] `README.md` indexes new or renamed skills.
 - [ ] `CLAUDE.md` and `ALCHEMY-PIPELINE-DESIGN.md` reflect routing changes.
-- [ ] `scripts/validate-skills.py` enforces the new invariant where practical.
+- [ ] `scripts/validate-skills.py` enforces the new invariant where practical,
+      and the check is proved to fail on a deliberate violation before it lands.
 - [ ] `npm run validate` passes.
+- [ ] `npm run test:installers` passes when anything under `.install/` changed.
+      The four `.sh` installers must stay byte-identical outside their agent
+      profile block; edit `install-claude.sh` and propagate.
 - [ ] Consumer project remains domain-specific only and is repinned after
       publication.
