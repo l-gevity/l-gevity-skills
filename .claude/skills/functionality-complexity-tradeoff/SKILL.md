@@ -295,101 +295,24 @@ exist**. Inputs are observable; bias toward measurement over judgment.
 
 ## 4. Heuristic Checks
 
-Fast signals — not substitutes for measurement. The necessity-gate
-heuristics in §1b run first; the table below covers worth-related signals
-that apply once necessity has passed.
-
-| Check                        | Signal                                                            | Axis affected |
-| ---------------------------- | ----------------------------------------------------------------- | ------------- |
-| **Usage silence**            | No telemetry hits over a context-appropriate window → `F × R` approaches 0, unless instrumentation is absent or the path is externally required | `V`           |
-| **Workaround in wild**       | Users or code already bypass this path → `I` is small             | `V`           |
-| **Single caller**            | Feature referenced from one call site only → `R` is small         | `V`           |
-| **Flag defaulted off**       | Feature flag has been `off` in production for months → `V ≈ 0`    | `V`           |
-| **Orphan test**              | Tests exist but no one edits the code they cover → inspect whether they guard a stable contract, invariant, or obsolete feature | `V` / `M`     |
-| **Churn hotspot**            | High commit frequency on these files → `M + X` are large          | `C`           |
-| **Churn × complexity**       | High churn AND high cyclomatic / cognitive score → hotspot        | `C`           |
-| **Defect clustering**        | Feature's code dominates recent bug tickets → `X` is large        | `C`           |
-| **Bug-fix-to-feature ratio** | Most commits on this code are fixes, not improvements → `C > V`   | `C`           |
-| **Blocked PRs**              | Other work routinely waits on or works around this → `E` is large | `C`           |
-| **Documentation rot**        | Docs disagree with code → `M` is under-invested, `X` is hidden    | `C`           |
-
-> [!IMPORTANT] **Churn × complexity is a strong empirical signal**
-> for "code that costs more than it returns" (Tornhill, _Your Code as a Crime
-> Scene_). Files that change often AND score high on cyclomatic or cognitive
-> complexity are disproportionately responsible for defects and maintenance
-> spend. Run this check before any subjective judgment in retrospective mode.
-
-> [!NOTE] Usage silence and zero-everything signature look identical from
-> outside. The difference: usage silence assumes the path is reachable but
-> unused (low V); zero-everything signature, combined with an invariant
-> audit, suggests the path is *unreachable* (failed necessity). The verdicts
-> diverge — DELETE vs. OBSOLETE — and the rationales close the question with
-> different durability.
+Fast worth signals — usage silence, workaround in the wild, single caller,
+flag defaulted off, orphan test, churn hotspot, churn × complexity, defect
+clustering, bug-fix-to-feature ratio, blocked PRs, documentation rot — and the
+axis each one moves. The necessity heuristics in §1b run first. Read
+[references/worth-signals.md](references/worth-signals.md) when scoring `V`
+or `C` in retrospective mode, and run churn × complexity before any
+subjective judgment.
 
 ---
 
 ## 5. Forcing Questions
 
-Each question exposes a common failure mode. Answers MUST be written, not
-implicit.
-
-### Necessity interrogation
-
-Apply BEFORE value interrogation. If any answer is "no" or "we cannot
-construct one" after checking the relevant callers and runtime paths, the code
-is a candidate for OBSOLETE / DROP-as-non-problem.
-
-- **Can the failure mode this guards against actually occur** given the
-  deployment topology, type system, and runtime guarantees of this stack?
-- **Construct one concrete real-world sequence** that activates this code
-  without violating an architectural invariant. Can you?
-- **Is the concern owned by another layer** (framework, middleware, type
-  system, deployment topology, network boundary)? Is that layer already
-  enforcing it?
-- **Do the prerequisites of the pattern this implements hold here**
-  (long-lived process, multiple implementations, non-idempotent dependency,
-  mutable shared state, etc.)?
-- **Does the original rationale still apply**, or has the world it
-  described — the dependency, the platform, the client class, the ongoing
-  migration — changed?
-- **If this is documenting an invariant rather than enforcing one**, is
-  there a cheaper place for that documentation (comment, ADR, build-time
-  check, test)?
-
-### Value interrogation
-
-- **Who** specifically needs this? Roles, counts, cohorts — not "users".
-- **What do they do today** without it? If nothing, the value may be imagined.
-- **What is the simplest alternative** that would satisfy 80% of the need?
-  (CLI, config, docs, external tool, manual process, nothing at all.)
-- **What evidence — not opinion** — supports the `V` estimate?
-- **What is the smallest useful slice** we could ship and still claim the
-  win?
-
-### Cost interrogation
-
-- What **new vocabulary** — concepts, abstractions, types — does this add?
-  (Component-kinds Δ)
-- What currently-independent parts does this **link**? (Dependency-edges Δ)
-- How long is the **dependency chain** a typical change traverses once this
-  exists? (Max-chain-depth Δ)
-- How many tests — including error paths, edge cases, and integration —
-  will this require? (`M`)
-- **If this breaks, what else breaks** with it? What is the blast radius?
-  (`X`)
-- What future change does this make **harder, slower, or more dangerous**?
-  (`E`)
-
-### Counterfactual
-
-- If we **delete** this in 12 months, what is the removal cost?
-- If we **never build** it, what is the realistic worst outcome?
-- Is there a **non-code** solution (docs, training, config, external tool,
-  process change)?
-
-> [!WARNING] If the removal cost in 12 months exceeds the build cost today,
-> this is a **one-way door**. Apply §8 asymmetric trade-offs before
-> committing. One-way doors demand higher `V` and greater confidence.
+Four interrogations — necessity, value, cost, counterfactual — each exposing a
+common failure mode. Answers MUST be written, not implicit. Read
+[references/forcing-questions.md](references/forcing-questions.md) and answer
+the necessity questions before any value scoring. A removal cost in 12 months
+that exceeds the build cost today is a one-way door: apply §8 before
+committing.
 
 ---
 
@@ -482,60 +405,19 @@ outcome hypothesis.
 
 ## 8. Asymmetric Trade-offs
 
-Cases where the Worth Matrix gives the wrong answer on its own.
-
-### 8a. Optionality premium
-
-A low-`V` / low-`C` feature may be worth keeping or building if it preserves
-**concrete** future optionality — a known next feature whose path becomes
-cheap because of it.
-
-Test: is the next feature **named and probable**, or is the optionality
-speculative? Speculative optionality fails YAGNI; the null hypothesis wins.
-Note the overlap with **generality without instantiation** (§1a): an
-abstraction whose anticipated variation never materialized fails both this
-test and the necessity gate.
-
-### 8b. Irreversibility tax
-
-A feature that is hard to remove once shipped — public API, persisted
-schema, user-visible behavior, wire format — must clear a higher bar.
-**Raise the required `V` by one tier**, or require High confidence.
-
-### 8c. Regulatory / contractual / accessibility floor
-
-Some features deliver `V` that cannot be observed from usage telemetry:
-audit logs, accessibility paths, legal holds, compliance records, safety
-interlocks. Assign a **fixed-high `U`** regardless of `F × R`; `C` is still
-measured normally. These features are kept even when "unused" when the
-applicable external requirement, jurisdiction, contract, or safety case is
-identified. They pass the necessity gate only after that requirement is mapped
-to this code path.
-
-### 8d. Keystone cost
-
-Some features have high local `C` because they are the seam holding a
-correct abstraction in place. Removing them would **raise global complexity**
-elsewhere. Measure net **Component-kinds Δ, Dependency-edges Δ,
-Max-chain-depth Δ, Module-count Δ** across the whole system before
-committing to DELETE or SIMPLIFY. A local reduction that increases global
-complexity is not a simplification (see `structural-simplification` Core
-Directive 5).
-
-### 8e. Hot-path performance or safety
-
-Some complexity exists because the simple version was measured to be too
-slow, too unsafe, or too fragile. `C` appears inflated but is structurally
-load-bearing. The audit must read the original rationale (commit message,
-ADR, benchmark) before voting SIMPLIFY.
-
-> [!IMPORTANT] **§8e is the inverse of the necessity gate.** Necessity
-> failures look load-bearing but aren't; §8e cases look cargo-culted but
-> are. Origin archaeology is the shared diagnostic — the difference is
-> whether the rationale's premises still hold today (necessity passes,
-> §8e applies) or have lapsed (necessity fails, OBSOLETE applies). Lost
-> history is not permission to remove load-bearing complexity; lapsed
-> history supports removing obsolete code after the normal safety checks.
+Five cases where the Worth Matrix alone gives the wrong answer: **8a
+optionality premium** (a named, probable next feature; speculative optionality
+fails YAGNI), **8b irreversibility tax** (public API, persisted schema, wire
+format: raise the required `V` one tier or require High confidence), **8c
+regulatory / contractual / accessibility floor** (fixed-high `U` once the
+external requirement is mapped to this code path), **8d keystone cost** (local
+`C` that holds global complexity down; measure the whole-system deltas before
+DELETE or SIMPLIFY), and **8e hot-path performance or safety** (measured,
+load-bearing complexity; the inverse of the necessity gate, told apart by
+whether the original rationale's premises still hold). Read
+[references/asymmetric-tradeoffs.md](references/asymmetric-tradeoffs.md)
+whenever the matrix returns NEGOTIATE, a floor may apply, or complexity looks
+load-bearing.
 
 ---
 
@@ -582,28 +464,13 @@ Revisit when:   <measurable trigger or calendar date>
 
 ## 10. Common Patterns
 
-| Pattern                                                                       | Typical verdict                                                                       |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| **Code guarding against a state ruled out by the architecture**               | **OBSOLETE — §1 impossible-state guard; SIMPLIFY if it is the only executable invariant record** |
-| **Defensive check duplicating a guarantee from an upstream layer**            | **OBSOLETE — §1 already-defended-elsewhere; keep only if it covers a different trust boundary** |
-| **Pattern transplanted from a stack whose prerequisites do not hold here**    | **OBSOLETE — §1 cargo-culted; or SIMPLIFY if partly load-bearing (§8e)**              |
-| **Feature flag for a launch that completed**                                  | **OBSOLETE — §1 phantom requirement (preferred over DELETE for closure)**             |
-| **Generic abstraction with one concrete user, no second user proposed**       | **OBSOLETE or SIMPLIFY — §1 generality without instantiation; collapse to concrete**  |
-| **Branch unreachable given upstream contracts (e.g. null-guard on non-null)** | **OBSOLETE — §1 logically dead branch**                                               |
-| "Just in case" flexibility                                                    | DROP — fails §8a optionality test                                                     |
-| Admin-only tool used quarterly                                                | BUILD-minimal — satisfy via script or CLI, not UI                                     |
-| "Power user" shortcut                                                         | NEGOTIATE — measure `R` honestly; almost always smaller than claimed                  |
-| Dead code behind `off` feature flag                                           | DELETE if the flag was a real toggle that lost; OBSOLETE if the launch completed (§1) |
-| Duplicate of library or framework feature                                     | OBSOLETE if the framework already runs it for the same scope; DROP / DELETE if `I` is ~0 by choice |
-| Legacy integration, usage unknown                                             | QUARANTINE — instrument first, then decide (unless §1 already returns OBSOLETE)       |
-| Extension point with one implementation                                       | OBSOLETE if no second implementation is named and probable; SIMPLIFY otherwise        |
-| Actor/role condition encoded as a separate right, role, or endpoint           | SIMPLIFY — an attribute or workflow-state gate satisfies the obligation (§1e), unless a second person is explicitly required |
-| "We'll need this for feature X"                                               | DEFER — build when X is real, not before                                              |
-| Stable feature that still produces bugs                                       | SIMPLIFY (churn × complexity hotspot), then re-evaluate                               |
-| Feature with no docs, no tests, no telemetry                                  | QUARANTINE + add all three, or DEPRECATE — but check §1 first; it may be unreachable  |
-| Compliance / audit / accessibility path                                       | KEEP when the mapped external requirement applies — §8c floor                         |
-| Complex optimization with a benchmark in git                                  | KEEP unless benchmark is restaged (§8e)                                               |
-| Assertion that documents an invariant nothing else captures                   | SIMPLIFY — downgrade to comment / ADR / build-time check (§1c), do not OBSOLETE       |
+A lookup of recurring subjects — impossible-state guards, duplicated
+defenses, transplanted patterns, completed-launch flags, one-user
+abstractions, "just in case" flexibility, quarterly admin tools, legacy
+integrations of unknown usage, compliance paths, benchmarked optimizations —
+with the verdict each typically earns and the section that decides it. Read
+[references/common-patterns.md](references/common-patterns.md) to calibrate a
+verdict against precedent; the pattern never replaces the ledger.
 
 ---
 

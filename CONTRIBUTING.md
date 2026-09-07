@@ -55,6 +55,10 @@ A promoted rule must pass all of these:
 
 - [ ] Generic skill method changed in `.agents/skills/<name>/SKILL.md`.
 - [ ] `.claude/skills/<name>/SKILL.md` is byte-identical.
+- [ ] Detail an agent needs only on some paths lives in `references/*.md`,
+      linked from `SKILL.md` with a stub that keeps the section number and
+      the essentials; the validator requires every reference file to be
+      linked and every link to resolve.
 - [ ] `.documentation/READ-<name>.md` matches the public role, was re-read
       against the skill diff, and was then restamped with
       `python scripts/validate-skills.py --stamp-primers`. The stamp records

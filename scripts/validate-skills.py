@@ -235,23 +235,11 @@ SKILL_REQUIRED_TERMS = {
         "Absent means unobtainable, not unfetched",
         "### Position Legality",
         "design-time check on a proposed or changed",
-        "Auditing a\nwhole codebase from three axes is an explicit non-goal",
-        "Same tier, or a higher tier calling a lower tier",
-        "can never orchestrate, so it cannot violate this clause",
-        "unless either endpoint is the declared adapter",
         "**layer inversion**",
-        "**Re-export module**",
         "**Inbound interface**",
-        "**External SDK**",
-        "Containment is not distance",
-        "None of this is sliceable",
-        "**composition root**",
         "| Ownership / authority | Directed, acyclic per concern |",
         "Authority is acyclic **per concern**, not per component",
-        "the domain clause needs a",
-        "record it as **Not applicable** with the reason",
         "position-legality clauses first",
-        "Domain is categorical",
         "Position legality:   Pass | Fail",
         "durable register that the standing",
         "Seven fields form the **restructuring set**",
@@ -447,6 +435,27 @@ CONSUMER_FORBIDDEN = (
     "docs/requirements",
     "npm run requirements",
 )
+# Pinned phrases that live in a skill's references/*.md rather than SKILL.md.
+# A reference file is loaded on demand, so the rule it carries is pinned to
+# that file, and SKILL.md must link the file (validate_reference_links).
+REFERENCE_REQUIRED_TERMS = {
+    "morphogenetic-architecture": {
+        "references/position-legality.md": (
+            "Auditing a\nwhole codebase from three axes is an explicit non-goal",
+            "Same tier, or a higher tier calling a lower tier",
+            "can never orchestrate, so it cannot violate this clause",
+            "unless either endpoint is the declared adapter",
+            "**Re-export module**",
+            "**External SDK**",
+            "Containment is not distance",
+            "None of this is sliceable",
+            "**composition root**",
+            "the domain clause needs a",
+            "record it as **Not applicable** with the reason",
+            "Domain is categorical",
+        ),
+    },
+}
 CONTRIBUTION_REQUIRED_TERMS = (
     "canonical source for generic skill method",
     "Consumer-to-library promotion loop",
@@ -583,6 +592,14 @@ def validate_skill(path: Path) -> None:
     for term in SKILL_REQUIRED_TERMS.get(name, ()):
         if not contains(text, term):
             fail(f"{skill_file.relative_to(ROOT)} missing required term '{term}'")
+    for relative, terms in REFERENCE_REQUIRED_TERMS.get(name, {}).items():
+        reference = path / relative
+        if not reference.is_file():
+            fail(f"{path.relative_to(ROOT)}/{relative} is required")
+        reference_text = reference.read_text(encoding="utf-8")
+        for term in terms:
+            if not contains(reference_text, term):
+                fail(f"{reference.relative_to(ROOT)} missing required term '{term}'")
 
 
 def validate_root(root: Path) -> None:
@@ -1042,6 +1059,25 @@ def validate_report_blocks() -> None:
         fail(f"{samples.relative_to(ROOT)} sample (f) 'What I did not check' is empty")
 
 
+REFERENCE_LINK_RE = re.compile(r"\]\((references/[^)\s]+\.md)\)")
+
+
+def validate_reference_links() -> None:
+    """A reference file is progressive disclosure only if SKILL.md points at
+    it; a link that resolves to nothing is a rule the agent can never read."""
+    for skill in skill_dirs(AGENT_SKILLS):
+        text = (skill / "SKILL.md").read_text(encoding="utf-8")
+        linked = set(REFERENCE_LINK_RE.findall(text))
+        present = {
+            path.relative_to(skill).as_posix()
+            for path in (skill / "references").glob("*.md")
+        } if (skill / "references").is_dir() else set()
+        for missing in sorted(linked - present):
+            fail(f"{skill.relative_to(ROOT)}/SKILL.md links {missing}, which does not exist")
+        for orphan in sorted(present - linked):
+            fail(f"{skill.relative_to(ROOT)}/{orphan} is not linked from SKILL.md")
+
+
 PRIMER_STAMP_RE = re.compile(r"<!-- skill-revision: ([0-9a-f]{12}) -->")
 ASSET_SUFFIXES = {".svg", ".png"}
 SCRATCH_IGNORE = (".git", "__pycache__", "node_modules", "*.pyc", "settings.local.json")
@@ -1229,6 +1265,30 @@ def mutation_test() -> int:
         write_raw(path, text.replace('    "!**/__pycache__/",\n', ""), crlf)
 
     cases.append((Case("package: __pycache__ exclusion removed", [package], ("__pycache__",)), drop_cache_exclusion))
+
+    legality = [copy / tree / "skills" / "morphogenetic-architecture" / "references" / "position-legality.md" for tree in (".agents", ".claude")]
+    moved_term = next(iter(REFERENCE_REQUIRED_TERMS["morphogenetic-architecture"].values()))[0]
+
+    def remove_reference_term(files=legality, pattern=phrase_pattern(moved_term)):
+        for path in files:
+            text, crlf = read_raw(path)
+            if not pattern.search(text):
+                raise RuntimeError(f"reference term not found in {path.name}")
+            write_raw(path, pattern.sub("", text), crlf)
+
+    cases.append((Case("reference: pinned phrase removed from position-legality.md", legality, ("position-legality.md",)), remove_reference_term))
+
+    pruner = [copy / tree / "skills" / "functionality-complexity-tradeoff" / "SKILL.md" for tree in (".agents", ".claude")]
+
+    def unlink_reference(files=pruner):
+        for path in files:
+            text, crlf = read_raw(path)
+            link = "[references/common-patterns.md](references/common-patterns.md)"
+            if link not in text:
+                raise RuntimeError(f"reference link not found in {path}")
+            write_raw(path, text.replace(link, "the common-patterns table"), crlf)
+
+    cases.append((Case("reference: file left unlinked from SKILL.md", pruner, ("common-patterns.md",)), unlink_reference))
 
     try:
         code, output = run()
@@ -1899,6 +1959,7 @@ def main() -> int:
     validate_root(CLAUDE_SKILLS)
     validate_root(AGENT_SKILLS)
     validate_mirrors()
+    validate_reference_links()
     validate_retired_skill_references()
     validate_morphogenetic_mode_selection()
     validate_morphogenetic_graph_analyzer()
