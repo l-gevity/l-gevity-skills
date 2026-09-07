@@ -1063,7 +1063,10 @@ def skill_revision(skill: Path) -> str:
     """Content hash of a skill's authored files, line endings normalized so a
     CRLF working copy and an LF checkout agree."""
     digest = hashlib.sha256()
-    for relative in sorted(mirror_source_files(skill)):
+    # Sort by the posix string, not the Path: Path ordering is case-insensitive
+    # on Windows and case-sensitive elsewhere, so SKILL.md and references/
+    # would hash in a different order per platform.
+    for relative in sorted(mirror_source_files(skill), key=lambda path: path.as_posix()):
         digest.update(relative.as_posix().encode("utf-8"))
         digest.update(b"\0")
         digest.update((skill / relative).read_bytes().replace(b"\r\n", b"\n"))
