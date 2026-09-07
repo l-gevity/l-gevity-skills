@@ -26,6 +26,8 @@ jobs:
           python-version: '3.12'
       - name: Validate skill contracts, mirrors, and installer structure
         run: npm run validate
+      - name: Prove every validator check fails on a deliberate violation
+        run: npm run validate:mutation
 
   installers:
     # The shell installers are the only code here that writes and deletes files

@@ -174,3 +174,5 @@ pipeline for detection timing, operational toil, and code altitude. The
 full operational reference — command grammar, dispatch rules, gate
 handshakes, and the decision-trail format — lives in
 [SKILL.md](../.claude/skills/alchemy/SKILL.md).*
+
+<!-- skill-revision: 7c2678017aa2 -->

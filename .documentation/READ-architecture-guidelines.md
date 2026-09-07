@@ -225,3 +225,5 @@ where modules belong and how boundaries evolve under evidence; and
 rules above into build-failing lint checks. The full operational reference
 for this concept lives in
 [SKILL.md](../.claude/skills/architecture-guidelines/SKILL.md).*
+
+<!-- skill-revision: 5362db25cdb0 -->

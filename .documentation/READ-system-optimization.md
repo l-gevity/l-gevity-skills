@@ -176,3 +176,5 @@ complexity axes used to judge whether a change simplified anything. The full
 operational reference for this concept — scan layers, waste tables, flow
 levers, and the decision record — lives in
 [SKILL.md](../.claude/skills/system-optimization/SKILL.md).*
+
+<!-- skill-revision: 9676bbd03a24 -->

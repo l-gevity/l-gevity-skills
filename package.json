@@ -1,6 +1,6 @@
 {
   "name": "@l-gevity/skills",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "Open-source agent skills for architecture, requirements, test strategy, CI/CD, and continuous improvement",
   "keywords": ["claude", "claude-code", "skills", "architecture", "requirements", "testing", "ci-cd", "devops"],
   "homepage": "https://github.com/l-gevity/l-gevity-skills",
@@ -15,6 +15,7 @@
     ".claude/skills/",
     ".documentation/",
     "scripts/",
+    "!**/__pycache__/",
     "ALCHEMY-PIPELINE-DESIGN.md",
     "CONTRIBUTING.md",
     "CLAUDE.md",
@@ -24,8 +25,9 @@
   "scripts": {
     "prepack": "npm run validate",
     "validate": "python scripts/validate-skills.py",
+    "validate:mutation": "python scripts/validate-skills.py --mutation-test",
     "test:installers": "bash scripts/test-installers.sh",
     "test:installers:ps": "pwsh -NoProfile -File scripts/test-installers.ps1",
-    "test": "npm run validate && npm run test:installers"
+    "test": "npm run validate && npm run validate:mutation && npm run test:installers"
   }
 }

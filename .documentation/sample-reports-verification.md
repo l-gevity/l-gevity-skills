@@ -5,6 +5,10 @@ readable without consulting the internal structural axis symbols or
 morphogenetic mechanism-transfer model. Used to satisfy Verification gate 1
 from the reporting-vocabulary translation plan.
 
+A sixth, (f), shows a report as it reaches the reader: the four plain-language
+blocks the root instruction file defines first, then the record unchanged. Its
+record must still pass `check_topology_report.py --samples`.
+
 ---
 
 ## (a) Prospective complexity report — new abstraction
@@ -242,3 +246,49 @@ If any field requires consulting §1 of either skill to interpret, that
 field name fails and gets rewritten. The five reports above are the
 canonical artifacts for that test — any future edit to the emit
 templates should produce the same five reports and re-pass the test.
+
+---
+
+## (f) Summary-led report
+
+**Scenario.** A new component placed with `morphogenetic-architecture`, as the
+report reaches the reader: four plain-language blocks first, then the record.
+
+**What I found.** You are adding `notifications/email-sender`, and it belongs
+here (the record calls this PLACE): the notifications domain, one job, the
+application layer. Its only outbound call is to the mail adapter, and nothing
+in another domain imports it.
+
+**Why it matters.** A component with a clear address is one a future change can
+find and reason about. Placing it now costs one line in the architecture
+config; moving it later costs every import that grows around it.
+
+**Do this first.**
+1. Add `notifications/email-sender` to `eslint.architecture.mjs` for the
+   notifications module, with `mail-adapter` as its only allowed outbound edge.
+2. Run the architecture lint and confirm it passes with the new entry.
+
+**What I did not check.** Runtime calls and change history; placing a new
+component does not need them. The architecture lint did not run; run
+`npm run lint:architecture` to confirm.
+
+```text
+Subject:             notifications/email-sender — new component
+Mode:                Design
+Analysis mode:       Rapid
+Selection reason:    bounded static check — new component placement
+Decision:            PLACE
+Declared topology:   notifications / capability / application; inbound send(message); outbound mail-adapter
+Position legality:   Pass
+Static cycle:        Pass
+Runtime cycles:      none
+Observed fields:     static = checked; runtime, change, data, failure = Not measured
+Boundary evidence:   domain reason — notifications owns delivery; no cross-domain import observed
+Enforcement:         add architecture rule: notifications/email-sender -> mail-adapter only
+Next action:         Add the component entry and the outbound rule to eslint.architecture.mjs.
+Verification:        Not run — architecture lint; run npm run lint:architecture
+```
+
+A reader should be able to say what was decided and do the first step from the
+four blocks alone, and name every check that did not run from the last block
+alone. A block that needs the record to be understood fails and gets rewritten.

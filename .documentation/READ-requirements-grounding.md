@@ -159,3 +159,5 @@ decides whether a grounded capability justifies its cost. The full
 operational reference — modes, recovery protocol, record shapes, and the
 validation gate — lives in
 [SKILL.md](../.claude/skills/requirements-grounding/SKILL.md).*
+
+<!-- skill-revision: 4e0f1bf3eef3 -->

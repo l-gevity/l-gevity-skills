@@ -220,3 +220,5 @@ recurring operational work out of human hands into durable systems, and
 reusable capability. The full operational reference for this concept — the
 complete 12-stage ladder, a defect-class-to-stage taxonomy, and an audit
 protocol — lives in [SKILL.md](../.claude/skills/defect-shift-left/SKILL.md).*
+
+<!-- skill-revision: ccfc4609b914 -->

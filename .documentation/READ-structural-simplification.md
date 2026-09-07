@@ -172,3 +172,5 @@ where boundaries belong before this model measures the move. The full
 operational reference — measurement recipes, operation catalogues, the
 trade-off matrix, and the decision record — lives in
 [SKILL.md](../.claude/skills/structural-simplification/SKILL.md).*
+
+<!-- skill-revision: 8d76fb56af3d -->

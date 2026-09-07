@@ -160,3 +160,5 @@ work enters implementation — tracking whether the evidence obligations
 readiness defined are actually fulfilled. The full operational reference —
 gate criteria, derived-artifact shapes, and the decision record — lives in
 [SKILL.md](../.claude/skills/implementation-readiness/SKILL.md).*
+
+<!-- skill-revision: 45270692f57c -->

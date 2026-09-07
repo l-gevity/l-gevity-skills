@@ -118,3 +118,5 @@ JavaScript counterpart is
 The full operational reference — assembler code, contract types, and
 gotchas — lives in
 [SKILL.md](../.claude/skills/architecture-as-code-python/SKILL.md).*
+
+<!-- skill-revision: fa898404cd3c -->

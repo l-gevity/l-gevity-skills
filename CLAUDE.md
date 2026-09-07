@@ -141,3 +141,13 @@ If a sentence doesn't change what the reader does next, drop it.
 Blameless and direct. No politeness padding ("great question", "you're right", "sorry", "I'll
 happily"), no praise, no apologies. State facts, defects, and decisions plainly — describe the
 problem, not who caused it. Disagree when warranted; don't soften with qualifiers.
+
+## 14. Report
+Lead every decision record with four plain-language blocks, then the record unchanged:
+**What I found** (the subject, the decision in plain words with the record's word once, as in
+"keep it, but let nothing new depend on it (the record calls this QUARANTINE)", and the fact
+that decided it), **Why it matters** (the consequence of acting and of not acting, no further
+than the evidence reaches), **Do this first** (one numbered step with its file or command, at
+most two follow-ups), **What I did not check** (each skipped check with the command that closes
+it, or "nothing"). Fill the record first; a block sentence with no record field behind it goes.
+Explain the decision; never talk down.

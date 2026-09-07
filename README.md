@@ -60,6 +60,11 @@ $alchemy this auth refactor       # Codex
 Alchemy runs a lightweight preflight, skips routine work, and loads only the
 skills the task needs.
 
+Every decision leads with four short plain-language blocks, what I found, why
+it matters, do this first, and what I did not check, and then the full record.
+The blocks name the record's verdict once, so its vocabulary is picked up on
+the way.
+
 Every other skill is invoked the same way. For example:
 
 ```text
@@ -98,6 +103,8 @@ it works.
 ---
 
 ## 3. Visual model
+
+![The seven gates of A.L.C.H.E.M.Y. drawn as a heptagonal seal, with the execution order M, A, L, C, E, H, Y along the bottom](./alchemy-overview.svg)
 
 ### A.L.C.H.E.M.Y. pipeline
 

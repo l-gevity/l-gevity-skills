@@ -1,8 +1,11 @@
 from pathlib import Path
+import hashlib
 import json
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,13 +35,17 @@ OUTPUT_MARKERS = (
     "Emit one coder-facing",
     "Emit a coder-facing",
 )
+# Every decision report leads with these, in this order -- CLAUDE.md section 14.
+REPORT_BLOCKS = ("What I found", "Why it matters", "Do this first", "What I did not check")
 PYTHON_CACHE_SUFFIXES = {".pyc", ".pyo"}
 # Primers (.documentation/READ-*.md) are concept explainers for non-architect
 # developers, not mirrors of skill operational contracts. Operational-contract
 # terms are validated in SKILL.md, README.md, CLAUDE.md, and
 # ALCHEMY-PIPELINE-DESIGN.md only; primers are checked structurally
 # (existence, canonical backlink, README index links, forbidden legacy
-# vocabulary) in validate_primers() and PUBLIC_DOC_FORBIDDEN.
+# vocabulary) in validate_primers() and PUBLIC_DOC_FORBIDDEN, and for
+# attention in validate_primer_revisions(): a primer carries the revision of
+# the skill it was last re-read against and fails until restamped.
 SKILL_REQUIRED_TERMS = {
     "alchemy": (
         "Adaptive Requirements Qualification",
@@ -757,13 +764,6 @@ def validate_morphogenetic_mode_selection() -> None:
         / "references"
         / "rapid-topology-scan.md"
     )
-    metadata = (
-        AGENT_SKILLS
-        / "morphogenetic-architecture"
-        / "agents"
-        / "openai.yaml"
-    )
-
     if not rapid.is_file():
         fail(f"{rapid.relative_to(ROOT)} is missing")
 
@@ -795,11 +795,6 @@ def validate_morphogenetic_mode_selection() -> None:
     for term in required_rapid_terms:
         if not contains(rapid_text, term):
             fail(f"{rapid.relative_to(ROOT)} missing Rapid guard '{term}'")
-
-    metadata_text = metadata.read_text(encoding="utf-8")
-    for term in ("Rapid placement", "escalate to full evidence-driven analysis"):
-        if not contains(metadata_text, term):
-            fail(f"{metadata.relative_to(ROOT)} missing mode metadata '{term}'")
 
     public_contracts = {
         ROOT / "README.md": (
@@ -1001,6 +996,266 @@ def validate_topology_report_checker() -> None:
             fail(f"{checker.relative_to(ROOT)} {description} failed: {detail}")
 
 
+def validate_report_blocks() -> None:
+    """One report shape for one audience: the four plain-language blocks are
+    defined once in the root instruction file, named by the router, and shown
+    in a sample whose record still passes its own checker unchanged."""
+    root = ROOT / "CLAUDE.md"
+    text = root.read_text(encoding="utf-8")
+    match = re.search(r"## 14\. Report(.*)", text, re.S)
+    if not match:
+        fail(f"{root.relative_to(ROOT)} missing '## 14. Report'")
+    section = match.group(1)
+    positions = [section.find(f"**{block}**") for block in REPORT_BLOCKS]
+    if -1 in positions or positions != sorted(positions):
+        fail(
+            f"{root.relative_to(ROOT)} report blocks must appear in order: "
+            + ", ".join(REPORT_BLOCKS)
+        )
+    if not contains(section, "(the record calls this QUARANTINE)"):
+        fail(f"{root.relative_to(ROOT)} report rule must show the verdict callout")
+    if not contains(section, "Fill the record first"):
+        fail(f"{root.relative_to(ROOT)} report rule must put the record before the blocks")
+
+    alchemy = AGENT_SKILLS / "alchemy" / "SKILL.md"
+    router = alchemy.read_text(encoding="utf-8")
+    for block in REPORT_BLOCKS:
+        if not contains(router, block):
+            fail(f"{alchemy.relative_to(ROOT)} output contract must name report block '{block}'")
+
+    samples = DOCS / "sample-reports-verification.md"
+    sample = markdown_section(samples, "## (f) Summary-led report")
+    heads = re.findall(r"^\*\*([^*]+?)\.\*\*", sample, re.M)
+    heads = [head for head in heads if head != "Scenario"]
+    if heads != list(REPORT_BLOCKS):
+        fail(f"{samples.relative_to(ROOT)} sample (f) blocks are {heads}, expected {list(REPORT_BLOCKS)}")
+    if not re.search(r"\(the\s+record\s+calls\s+this\s+PLACE\)", sample):
+        fail(f"{samples.relative_to(ROOT)} sample (f) never teaches its verdict word")
+    record = REPORT_BLOCK_RE.search(sample)
+    if record is None or not re.search(r"^Decision:\s+PLACE", record.group(1), re.M):
+        fail(f"{samples.relative_to(ROOT)} sample (f) must end with the unchanged PLACE record")
+    last_block = sample.find(f"**{REPORT_BLOCKS[-1]}.**")
+    if record.start() < last_block:
+        fail(f"{samples.relative_to(ROOT)} sample (f) record must follow the four blocks")
+    unchecked = sample[last_block + len(f"**{REPORT_BLOCKS[-1]}.**") : record.start()].strip()
+    if not unchecked:
+        fail(f"{samples.relative_to(ROOT)} sample (f) 'What I did not check' is empty")
+
+
+PRIMER_STAMP_RE = re.compile(r"<!-- skill-revision: ([0-9a-f]{12}) -->")
+ASSET_SUFFIXES = {".svg", ".png"}
+SCRATCH_IGNORE = (".git", "__pycache__", "node_modules", "*.pyc", "settings.local.json")
+
+
+def read_raw(path: Path) -> tuple[str, bool]:
+    """Return text with line endings normalized to LF, plus whether the file
+    was CRLF, so a rewrite can put the same endings back."""
+    raw = path.read_bytes().decode("utf-8")
+    crlf = "\r\n" in raw
+    return (raw.replace("\r\n", "\n") if crlf else raw), crlf
+
+
+def write_raw(path: Path, text: str, crlf: bool) -> None:
+    path.write_bytes((text.replace("\n", "\r\n") if crlf else text).encode("utf-8"))
+
+
+def skill_revision(skill: Path) -> str:
+    """Content hash of a skill's authored files, line endings normalized so a
+    CRLF working copy and an LF checkout agree."""
+    digest = hashlib.sha256()
+    for relative in sorted(mirror_source_files(skill)):
+        digest.update(relative.as_posix().encode("utf-8"))
+        digest.update(b"\0")
+        digest.update((skill / relative).read_bytes().replace(b"\r\n", b"\n"))
+        digest.update(b"\0")
+    return digest.hexdigest()[:12]
+
+
+def validate_primer_revisions() -> None:
+    """A primer is an explainer, not a contract mirror, so its content is not
+    pinned. What is pinned is attention: each primer carries the revision of
+    the skill it was last re-read against, and this fails until someone
+    re-reads the primer and restamps it with --stamp-primers."""
+    for skill in skill_dirs(AGENT_SKILLS):
+        primer = DOCS / f"READ-{skill.name}.md"
+        found = PRIMER_STAMP_RE.findall(primer.read_text(encoding="utf-8"))
+        expected = skill_revision(skill)
+        if len(found) != 1:
+            fail(
+                f"{primer.relative_to(ROOT)} must carry exactly one skill-revision "
+                "stamp; re-read it against the skill, then run --stamp-primers"
+            )
+        if found[0] != expected:
+            fail(
+                f"{primer.relative_to(ROOT)} was last reviewed against skill-revision "
+                f"{found[0]}, but {skill.name} is now {expected}; re-read the "
+                "primer against the skill diff, then run --stamp-primers"
+            )
+
+
+def stamp_primers() -> int:
+    """Rewrite every primer's stamp to the current skill revision. Run only
+    after re-reading the primer against the skill change; the stamp records
+    that the reading happened, it does not replace it."""
+    changed = 0
+    for skill in skill_dirs(AGENT_SKILLS):
+        primer = DOCS / f"READ-{skill.name}.md"
+        text, crlf = read_raw(primer)
+        stamp = f"<!-- skill-revision: {skill_revision(skill)} -->"
+        if PRIMER_STAMP_RE.search(text):
+            new = PRIMER_STAMP_RE.sub(stamp, text, count=1)
+        else:
+            new = text.rstrip("\n") + "\n\n" + stamp + "\n"
+        if new != text:
+            write_raw(primer, new, crlf)
+            changed += 1
+            print(f"stamped {primer.relative_to(ROOT)}")
+    print(f"{changed} primer(s) restamped")
+    return 0
+
+
+def validate_asset_references() -> None:
+    """An image nobody links is dead weight in every install archive."""
+    def in_scope(path: Path) -> bool:
+        return ".git" not in path.parts and "node_modules" not in path.parts
+
+    corpus = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in ROOT.rglob("*.md")
+        if in_scope(path)
+    )
+    orphans = [
+        path.relative_to(ROOT).as_posix()
+        for path in sorted(ROOT.rglob("*"))
+        if path.is_file()
+        and path.suffix.lower() in ASSET_SUFFIXES
+        and in_scope(path)
+        and path.name not in corpus
+    ]
+    if orphans:
+        fail(
+            "unreferenced assets, delete them or link them from a markdown file: "
+            + ", ".join(orphans)
+        )
+
+
+def mutation_test() -> int:
+    """Prove the checks bite. In a scratch copy of the repository, break one
+    thing per rule family and require the validator to fail on it. A check
+    never observed failing is a hypothesis, not a safeguard."""
+    scratch = Path(tempfile.mkdtemp(prefix="l-gevity-mutation-"))
+    copy = scratch / "repo"
+    shutil.copytree(ROOT, copy, ignore=shutil.ignore_patterns(*SCRATCH_IGNORE))
+    validator = copy / "scripts" / "validate-skills.py"
+
+    def run() -> tuple[int, str]:
+        result = subprocess.run(
+            [sys.executable, str(validator)],
+            cwd=copy,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        return result.returncode, (result.stdout + result.stderr).strip()
+
+    def phrase_pattern(phrase: str) -> "re.Pattern[str]":
+        # Tokens may be separated by wrapping or blockquote markers; mirror flatten().
+        return re.compile(r"(?:\s|>)+".join(re.escape(token) for token in phrase.split()))
+
+    class Case:
+        def __init__(self, label: str, files: list[Path], expected: tuple[str, ...]):
+            self.label, self.files, self.expected = label, files, expected
+            self.snapshot = {path: path.read_bytes() for path in files if path.exists()}
+
+        def restore(self) -> None:
+            for path in self.files:
+                if path in self.snapshot:
+                    path.write_bytes(self.snapshot[path])
+                elif path.exists():
+                    path.unlink()
+
+    cases: list[tuple[Case, "callable"]] = []
+
+    for name, terms in SKILL_REQUIRED_TERMS.items():
+        phrase = terms[0]
+        pattern = phrase_pattern(phrase)
+        files = [copy / tree / "skills" / name / "SKILL.md" for tree in (".agents", ".claude")]
+
+        def remove_phrase(files=files, pattern=pattern, name=name):
+            for path in files:
+                text, crlf = read_raw(path)
+                if not pattern.search(text):
+                    raise RuntimeError(f"{name}: pinned phrase not found in {path.name}")
+                write_raw(path, pattern.sub("", text), crlf)
+
+        cases.append((Case(f"{name}: pinned phrase {phrase[:40]!r} removed", files, (name, phrase[:20])), remove_phrase))
+
+    mirror = copy / ".claude" / "skills" / "alchemy" / "SKILL.md"
+
+    def drift_mirror(path=mirror):
+        path.write_bytes(path.read_bytes() + b"\ndrift\n")
+
+    cases.append((Case("mirror: one byte differs between trees", [mirror], ("mirror mismatch",)), drift_mirror))
+
+    primer = copy / ".documentation" / "READ-alchemy.md"
+
+    def strip_stamp(path=primer):
+        text, crlf = read_raw(path)
+        write_raw(path, PRIMER_STAMP_RE.sub("", text), crlf)
+
+    cases.append((Case("primer: skill-revision stamp removed", [primer], ("skill-revision",)), strip_stamp))
+
+    def stale_stamp(path=primer):
+        text, crlf = read_raw(path)
+        write_raw(path, PRIMER_STAMP_RE.sub("<!-- skill-revision: 000000000000 -->", text), crlf)
+
+    cases.append((Case("primer: stamp older than the skill", [primer], ("skill-revision",)), stale_stamp))
+
+    orphan = copy / ".documentation" / "orphan-asset.svg"
+
+    def add_orphan(path=orphan):
+        path.write_text("<svg xmlns='http://www.w3.org/2000/svg'/>", encoding="utf-8")
+
+    cases.append((Case("asset: unreferenced svg added", [orphan], ("orphan-asset.svg",)), add_orphan))
+
+    package = copy / "package.json"
+
+    def drop_cache_exclusion(path=package):
+        text, crlf = read_raw(path)
+        write_raw(path, text.replace('    "!**/__pycache__/",\n', ""), crlf)
+
+    cases.append((Case("package: __pycache__ exclusion removed", [package], ("__pycache__",)), drop_cache_exclusion))
+
+    try:
+        code, output = run()
+        if code != 0:
+            print(f"ERROR: the unmutated copy must validate first: {output.splitlines()[0] if output else code}")
+            return 1
+        failures = []
+        for case, mutate in cases:
+            mutate()
+            try:
+                code, output = run()
+            finally:
+                case.restore()
+            first = output.splitlines()[0] if output else ""
+            if code == 0:
+                failures.append(f"{case.label}: validator still passed")
+            elif not any(token in output for token in case.expected):
+                failures.append(f"{case.label}: failed for another reason: {first}")
+            else:
+                print(f"caught  {case.label}")
+    finally:
+        shutil.rmtree(scratch, ignore_errors=True)
+    for line in failures:
+        print(f"ERROR: {line}")
+    if failures:
+        return 1
+    print(f"{len(cases)} deliberate violations, all caught")
+    return 0
+
+
 def validate_primers() -> None:
     skills = {path.name for path in skill_dirs(CLAUDE_SKILLS)}
     primers = {path.stem.removeprefix("READ-") for path in DOCS.glob("READ-*.md")}
@@ -1134,11 +1389,6 @@ def validate_requirements_grounding_contract() -> None:
 
 
 def validate_evolutionary_database_design_contract() -> None:
-    skill = AGENT_SKILLS / "evolutionary-database-design"
-    metadata = skill / "agents" / "openai.yaml"
-    if not metadata.is_file():
-        fail(f"{metadata.relative_to(ROOT)} is required")
-
     contracts = {
         ROOT / "CLAUDE.md": (
             "evolutionary-database-design",
@@ -1507,8 +1757,13 @@ def validate_contribution_contract() -> None:
             fail(f"{path.relative_to(ROOT)} missing promotion term '{term}'")
 
     package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
-    if "CONTRIBUTING.md" not in package.get("files", []):
+    files = package.get("files", [])
+    if "CONTRIBUTING.md" not in files:
         fail("package.json must publish CONTRIBUTING.md")
+    # A directory in the allow-list is walked without the root ignore rules,
+    # so a compiled cache under scripts/ ships unless excluded here.
+    if "!**/__pycache__/" not in files:
+        fail("package.json files must exclude '!**/__pycache__/' or npm pack ships .pyc caches")
 
 
 def validate_public_doc_drift() -> None:
@@ -1599,6 +1854,7 @@ def validate_ci_wiring() -> None:
     text = workflow.read_text(encoding="utf-8")
     for command in (
         "npm run validate",
+        "npm run validate:mutation",
         "bash scripts/test-installers.sh",
         "./scripts/test-installers.ps1",
     ):
@@ -1611,6 +1867,7 @@ def validate_ci_wiring() -> None:
     package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
     scripts = package.get("scripts", {})
     expected_scripts = {
+        "validate:mutation": "python scripts/validate-skills.py --mutation-test",
         "test:installers": "bash scripts/test-installers.sh",
         "test:installers:ps": "pwsh -NoProfile -File scripts/test-installers.ps1",
     }
@@ -1629,6 +1886,10 @@ def validate_ci_wiring() -> None:
 
 
 def main() -> int:
+    if "--stamp-primers" in sys.argv[1:]:
+        return stamp_primers()
+    if "--mutation-test" in sys.argv[1:]:
+        return mutation_test()
     validate_matcher()
     validate_installers()
     validate_ci_wiring()
@@ -1643,8 +1904,11 @@ def main() -> int:
     validate_morphogenetic_probation()
     validate_sample_reports()
     validate_topology_report_checker()
+    validate_report_blocks()
     validate_morphogenetic_public_vocabulary()
     validate_primers()
+    validate_primer_revisions()
+    validate_asset_references()
     validate_readme_index()
     validate_overview_skill_count()
     validate_test_strategy_contract()

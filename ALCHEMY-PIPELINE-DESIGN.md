@@ -279,6 +279,10 @@ meaning or invalidate its verification.
     precedes the Test Strategy Portfolio pass and H, and a Combined pass
     requires a stable accepted target shape. Expand and contract never ship in
     one deployable; the contract step is gated on evidence, not a date.
+16. Reports are summary-led: the four plain-language blocks the root
+    instruction file defines are derived from the completed decision trail
+    after every verdict, skip rationale, and verification state is fixed, and
+    the trail follows them unchanged.
 
 ## Complexity Assessment
 

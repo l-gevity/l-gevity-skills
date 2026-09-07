@@ -127,3 +127,5 @@ into a constraint analysis; and
 decides what to do about debt this report only counts. The full operational
 reference — parameters, section rules, and the output contract — lives in
 [SKILL.md](../.claude/skills/standup/SKILL.md).*
+
+<!-- skill-revision: 03d8c7ed1303 -->

@@ -174,3 +174,5 @@ human hands into durable systems, and bring-down moves bespoke code down into
 maintained, reusable capability. The full operational reference for this
 concept — the complete scale, outsourcing triggers, and survey protocols —
 lives in [SKILL.md](../.claude/skills/bring-down/SKILL.md).*
+
+<!-- skill-revision: d5232318a8a0 -->

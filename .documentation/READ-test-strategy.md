@@ -149,3 +149,5 @@ gates that execute the portfolio;
 executed evidence actually verifies. The full operational reference — the
 risk ledger, technique selection, portfolio governance, and decision rules
 — lives in [SKILL.md](../.claude/skills/test-strategy/SKILL.md).*
+
+<!-- skill-revision: 4eb10d9c0a12 -->

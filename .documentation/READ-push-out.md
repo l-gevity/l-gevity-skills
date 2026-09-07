@@ -160,3 +160,5 @@ durable systems, and [bring-down](READ-bring-down.md) moves bespoke code down
 into maintained, reusable capability. The full operational reference for this
 concept — the complete ladder, target-rank heuristics, and move patterns —
 lives in [SKILL.md](../.claude/skills/push-out/SKILL.md).*
+
+<!-- skill-revision: 286c272aa0bc -->

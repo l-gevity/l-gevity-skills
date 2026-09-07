@@ -45,14 +45,6 @@ names below in every emit block, gate table, and cross-skill citation.
 
 **Naming guardrails.** `P` is **max-chain-depth**, never "depth" alone — bare "depth" collides with the layer field in `morphogenetic-architecture`. Symbols appear in exactly three places: inside a formula, inside this table, and inside §§1–7 (the internal model). Anywhere else in narrative, use the coder-facing field name.
 
-> **2026-05-22 — emit field-name change.** Field labels in emit blocks
-> changed from internal symbols to coder-facing fields:
-> `ΔD → Component-kinds Δ`, `ΔK → Dependency-edges Δ`,
-> `ΔP → Max-chain-depth Δ`, `Δn → Module-count Δ`.
-> Any downstream consumer (script, hook, agent prompt) that pattern-matched
-> on the old labels must update. Internal symbols remain in §§1–7 and in
-> formulas; they are no longer emitted in reports.
-
 ---
 
 ## 1. The Complexity Model

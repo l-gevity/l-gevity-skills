@@ -248,3 +248,5 @@ mechanism that keeps decided boundaries from drifting. The full operational
 reference — analysis modes, evidence fields, finding taxonomy, and the
 decision record — lives in
 [SKILL.md](../.claude/skills/morphogenetic-architecture/SKILL.md).*
+
+<!-- skill-revision: 7ca4ea53ca1b -->

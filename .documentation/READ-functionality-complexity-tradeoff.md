@@ -177,3 +177,5 @@ passes — even if it's worth having, should *you* be the one maintaining it?
 The full operational reference for this concept — detection heuristics,
 scoring axes, the worth matrix, and verdicts — lives in
 [SKILL.md](../.claude/skills/functionality-complexity-tradeoff/SKILL.md).*
+
+<!-- skill-revision: 8dfe777a2890 -->

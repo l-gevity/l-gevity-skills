@@ -169,3 +169,5 @@ graph to decide what is actually buildable. The full operational reference
 — record and edge schemas, graph checks, repository gates, and output
 modes — lives in
 [SKILL.md](../.claude/skills/requirements-topology/SKILL.md).*
+
+<!-- skill-revision: 9dc9963a87ef -->

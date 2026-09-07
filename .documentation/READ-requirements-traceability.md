@@ -175,3 +175,5 @@ outcome evidence to decide what stays. The full operational reference —
 evidence states, anchor placement, gap taxonomy, and build-gate checks —
 lives in
 [SKILL.md](../.claude/skills/requirements-traceability/SKILL.md).*
+
+<!-- skill-revision: 85a40f2ec00d -->

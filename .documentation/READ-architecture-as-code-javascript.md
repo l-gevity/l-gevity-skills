@@ -120,10 +120,15 @@ from a green check.
   assembler `import()`s at startup. Naming them `.js` gets them
   misclassified as application source by discovery walkers and by ESLint
   itself; the `.mjs` extension keeps them out of their own jurisdiction.
-- **Warnings during migration, errors after.** A newly-introduced rule on
-  an old codebase surfaces existing violations. Run it at `warn` while
-  the backlog clears, then promote to `error` — an error nobody can merge
-  past is the end state; a permanent warning is theatre.
+- **Errors from day one; narrow the scope for legacy.** A newly-introduced
+  rule on an old codebase surfaces existing violations, and the reflex is to
+  run it at `warn` until the backlog clears. Don't: a rule at `warn` is a
+  report, not a boundary — the build stays green while the edge it forbids
+  ships. Register it at `error`, and if the repository cannot pass yet,
+  narrow the rule's scope through declared components (declare the legacy
+  area as its own component and allow only the edges it already has), never
+  by softening the severity. The debt then sits in the architecture file
+  where a review can see it shrink.
 
 ## The habit
 
@@ -145,3 +150,5 @@ counterpart is
 full operational reference — assembler code, recipes, and gotchas — lives
 in
 [SKILL.md](../.claude/skills/architecture-as-code-javascript/SKILL.md).*
+
+<!-- skill-revision: 4c31e698ccfc -->

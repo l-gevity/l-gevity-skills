@@ -468,6 +468,11 @@ Verification:   <commands, lint rules, tests, or Not run + reason>
 If implementing changes, include the normal coding summary after the alchemy
 verdict.
 
+Lead any run that reaches a verdict with the four report blocks the root
+instruction file defines, What I found, Why it matters, Do this first, and
+What I did not check, then emit the records unchanged. `SKIP` emits the compact
+output alone.
+
 ## 8. Discipline
 
 - **Skipped stages require a one-line rationale.** Skipped qualification stages

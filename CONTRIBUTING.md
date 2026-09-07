@@ -55,12 +55,18 @@ A promoted rule must pass all of these:
 
 - [ ] Generic skill method changed in `.agents/skills/<name>/SKILL.md`.
 - [ ] `.claude/skills/<name>/SKILL.md` is byte-identical.
-- [ ] `.documentation/READ-<name>.md` matches the public role.
+- [ ] `.documentation/READ-<name>.md` matches the public role, was re-read
+      against the skill diff, and was then restamped with
+      `python scripts/validate-skills.py --stamp-primers`. The stamp records
+      which skill revision the primer was reviewed against; the validator
+      fails until it matches, and the stamp is not a substitute for the
+      reading.
 - [ ] `README.md` indexes new or renamed skills.
 - [ ] `CLAUDE.md` and `ALCHEMY-PIPELINE-DESIGN.md` reflect routing changes.
 - [ ] `scripts/validate-skills.py` enforces the new invariant where practical,
-      and the check is proved to fail on a deliberate violation before it lands.
-- [ ] `npm run validate` passes.
+      and the check is proved to fail on a deliberate violation before it lands:
+      add that violation to `--mutation-test` so CI keeps proving it.
+- [ ] `npm run validate` and `npm run validate:mutation` pass.
 - [ ] `npm run test:installers` and, on Windows, `npm run test:installers:ps`
       pass when anything under `.install/` changed. Each family must stay
       byte-identical outside its agent profile block; edit `install-claude.sh`

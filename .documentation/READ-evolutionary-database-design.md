@@ -97,3 +97,5 @@ the dry-run, the deploy order, and the rollback. The operational reference —
 inventory, change taxonomy, staged path, migration units, data contract, and
 decision rules — lives in
 [SKILL.md](../.claude/skills/evolutionary-database-design/SKILL.md).*
+
+<!-- skill-revision: e10f958469c4 -->

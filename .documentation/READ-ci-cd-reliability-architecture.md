@@ -177,3 +177,5 @@ runs *on top of* a reliable pipeline (stability first, then speed). The
 full operational reference for this concept — checklists, gate tables, and
 the promotion state machine — lives in
 [SKILL.md](../.claude/skills/ci-cd-reliability-architecture/SKILL.md).*
+
+<!-- skill-revision: 68d4aa263010 -->
