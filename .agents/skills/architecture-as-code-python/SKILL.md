@@ -15,7 +15,7 @@ description: >-
 # Architecture-as-Code — Python Implementation
 
 > **Prerequisite.** Read [`architecture-as-code`](../architecture-as-code/)
-> first. The schema (§1), components (§2), forbidden edges (§3), rule
+> first. The schema (§1), subsystems (§2), forbidden edges (§3), rule
 > placement (§4), assembler concept (§5), and anti-patterns / audit (§6) are
 > defined there and apply identically here. This file documents only what is
 > Python-specific.
@@ -23,7 +23,8 @@ description: >-
 ## 1. File format
 
 - Filename: `architecture.toml`. Plain TOML — no Python code, no imports.
-- TOML arrays-of-tables: `[[components]]`, `[[forbidden]]`.
+- TOML arrays-of-tables: `[[subsystems]]`, `[[forbidden]]`. `[[components]]`
+  is read as a deprecated alias for `[[subsystems]]` (§3).
 - Pattern syntax: dotted module paths (`mypkg.core.tier1`). The package and
   all submodules match by default; set `single = true` to match only the
   exact module.
@@ -33,19 +34,19 @@ description: >-
 
 ```toml
 # architecture.toml — example for a package with internal layering
-[[components]]
+[[subsystems]]
 name = "core-facade"
 pattern = "mypkg.core.api"           # public sub-package = the facade
 
-[[components]]
+[[subsystems]]
 name = "core-tier1"
 pattern = "mypkg.core.tier1"
 
-[[components]]
+[[subsystems]]
 name = "core-tier3"
 pattern = "mypkg.core.tier3"
 
-[[components]]
+[[subsystems]]
 name = "core-other"
 pattern = "mypkg.core"               # whole-package catch-all, last
 
@@ -120,15 +121,20 @@ arch_files = sorted(
     key=lambda p: -len(p.parts),  # deeper-first
 )
 
-# 2. Concat
-components, forbidden = [], []
+# 2. Concat. [[components]] is the deprecated alias for [[subsystems]]
+#    (pattern Directive 1): warn on it, reject a file that carries both.
+subsystems, forbidden = [], []
 for f in arch_files:
     data = tomllib.loads(f.read_text(encoding="utf-8"))
-    components.extend(data.get("components", []))
+    if "subsystems" in data and "components" in data:
+        sys.exit(f"{f}: declare [[subsystems]] or [[components]], not both")
+    if "components" in data:
+        print(f"{f}: [[components]] is a deprecated alias for [[subsystems]]", file=sys.stderr)
+    subsystems.extend(data.get("subsystems", data.get("components", [])))
     forbidden.extend(data.get("forbidden", []))
 
 # 3. Expand wildcards against the live registry.
-names = [c["name"] for c in components]
+names = [c["name"] for c in subsystems]
 
 def expand(spec, except_=None):
     if isinstance(spec, dict):
@@ -152,8 +158,8 @@ def expand(spec, except_=None):
     return types
 
 # 4. Emit import-linter contracts (INI format).
-component_pattern = {c["name"]: c["pattern"] for c in components}
-component_single  = {c["name"]: c.get("single", False) for c in components}
+subsystem_pattern = {c["name"]: c["pattern"] for c in subsystems}
+subsystem_single  = {c["name"]: c.get("single", False) for c in subsystems}
 
 if not SOURCE_PACKAGES:
     sys.exit("No source packages discovered — the import graph would be empty.")
@@ -166,9 +172,9 @@ for i, edge in enumerate(forbidden):
     if not src or not dst:
         continue   # nothing to forbid after exceptions
 
-    src_modules = [component_pattern[n] for n in src]
-    dst_modules = [component_pattern[n] for n in dst]
-    as_packages = not any(component_single[n] for n in src + dst)
+    src_modules = [subsystem_pattern[n] for n in src]
+    dst_modules = [subsystem_pattern[n] for n in dst]
+    as_packages = not any(subsystem_single[n] for n in src + dst)
 
     ini.append(f"[importlinter:contract:{i}]")
     ini.append(f"name = {edge['why'][:80]}")

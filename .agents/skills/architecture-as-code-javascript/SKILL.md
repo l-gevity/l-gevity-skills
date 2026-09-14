@@ -15,7 +15,7 @@ description: >-
 # Architecture-as-Code — JavaScript Implementation
 
 > **Prerequisite.** Read [`architecture-as-code`](../architecture-as-code/)
-> first. The schema (§1), components (§2), forbidden edges (§3), rule
+> first. The schema (§1), subsystems (§2), forbidden edges (§3), rule
 > placement (§4), assembler concept (§5), and anti-patterns / audit (§6) are
 > defined there and apply identically here. This file documents only what is
 > JavaScript-specific.
@@ -24,16 +24,17 @@ description: >-
 
 - Filename: `eslint.architecture.mjs`. Use `.mjs` only; `.js` trips
   source-discovery walkers and ESLint's own config-loader.
-- ES module with `export default { components: [...], forbidden: [...] }`, plus
+- ES module with `export default { subsystems: [...], forbidden: [...] }`, plus
   an optional `externals: [...]` for npm-package policy (§3). `forbidden`
   relates declared subsystems to each other and cannot name a package.
+  `components` is read as a deprecated alias for `subsystems` (§2).
 - Pattern syntax: filesystem globs (`<dir>/**`).
 - Repo-root `package.json` must include `"type": "module"`.
 
 ```js
 // eslint.architecture.mjs — example for a subsystem with internal layering
 export default {
-    components: [
+    subsystems: [
         { name: 'core-facade', pattern: 'packages/core/index.js', mode: 'file' },
         { name: 'core-tier1',  pattern: 'packages/core/tier1/**' },
         { name: 'core-tier3',  pattern: 'packages/core/tier3/**' },
@@ -64,13 +65,20 @@ top-level `await`).
 const files = findFilesByName(REPO_ROOT, 'eslint.architecture.mjs');
 files.sort((a, b) => b.split(sep).length - a.split(sep).length); // deeper-first
 
-// 2. Concat
+// 2. Concat. `components` is the deprecated alias for `subsystems` (pattern
+//    §1): warn on it, reject a file that carries both.
 const archs = await Promise.all(files.map(f => import(pathToFileURL(f).href)));
-const COMPONENTS  = archs.flatMap(m => m.default.components ?? []);
+const SUBSYSTEMS = archs.flatMap((m, i) => {
+    if (m.default.subsystems && m.default.components)
+        throw new Error(`${files[i]}: declare subsystems or components, not both`);
+    if (m.default.components)
+        console.warn(`${files[i]}: 'components' is a deprecated alias for 'subsystems'`);
+    return m.default.subsystems ?? m.default.components ?? [];
+});
 const allForbidden = archs.flatMap(m => m.default.forbidden ?? []);
 
 // 3. Expand wildcards against the live registry.
-const names = COMPONENTS.map(c => c.name);
+const names = SUBSYSTEMS.map(c => c.name);
 function expand(spec, except) {
     if (spec && typeof spec === 'object' && !Array.isArray(spec)) return spec; // parametric
     const resolve = list =>
@@ -89,7 +97,7 @@ function expand(spec, except) {
 // 4. Emit boundaries-plugin config. Forward every field the subsystem schema
 //    defines: an omitted field is unexpressible in every architecture file in
 //    the repo, with no error to say so.
-const elements = COMPONENTS.map(c => ({
+const elements = SUBSYSTEMS.map(c => ({
     type: c.name,
     pattern: c.pattern,
     ...(c.mode && { mode: c.mode }),        // REQUIRED — see § 5, matching mode
@@ -148,7 +156,7 @@ subsystems to each other. Declare package policy separately.
 ```js
 // eslint.architecture.mjs
 export default {
-    components: [
+    subsystems: [
         { name: 'email-adapter', pattern: 'api/src/email/**' },
         { name: 'api-other',     pattern: 'api/src/**' },   // catch-all, last
     ],
@@ -231,7 +239,7 @@ forbid the production subsystem from importing it:
 
 ```js
 export default {
-    components: [
+    subsystems: [
         { name: 'app-test', pattern: 'src/**/*.test.{js,jsx,ts,tsx}' },
         { name: 'app-test-support', pattern: 'test/**' },
         { name: 'app-prod', pattern: 'src/**' }, // catch-all, last
@@ -260,7 +268,7 @@ claims files that specific elements already own, from any position in the list
 ```js
 // eslint.architecture.mjs (repository root)
 export default {
-    components: [
+    subsystems: [
         { name: 'repo-tooling-config', pattern: '*.config.js', mode: 'file' },
         { name: 'repo-tooling-entry',  pattern: 'server.js',   mode: 'file' },
         // No '**' catch-all at this level.
@@ -325,7 +333,7 @@ Next action:    <specific file edit, dependency install, or unresolved question>
 
 > [!NOTE] **Unmatched files bypass enforcement — silently.** Files matching no
 > element are invisible to `boundaries/dependencies`. End every constrained
-> subsystem's `components` with a `<dir>/**` catch-all (pattern Directive 5), and
+> subsystem's `subsystems` list with a `<dir>/**` catch-all (pattern Directive 5), and
 > set `boundaries/no-unknown-files` to `error` so an unmatched file is reported
 > instead of ignored. Dependency rules are not a substitute: a file with no
 > imports, or one loaded by a `<script>` tag, has no edge to judge.

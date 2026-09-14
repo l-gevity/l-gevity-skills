@@ -119,4 +119,4 @@ The full operational reference — assembler code, contract types, and
 gotchas — lives in
 [SKILL.md](../.claude/skills/architecture-as-code-python/SKILL.md).*
 
-<!-- skill-revision: 108c6afee4b5 -->
+<!-- skill-revision: 37cb6dee8603 -->

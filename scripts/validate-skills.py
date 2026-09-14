@@ -86,6 +86,10 @@ SKILL_REQUIRED_TERMS = {
         "The emitted rule block's file scope equals the linted source set.",
         "Every file at repository root belongs to a declared subsystem.",
         "A passing lint is not evidence of coverage.",
+        # Expand step of the components -> subsystems key rename: the alias
+        # rule stays documented until the contract step removes it.
+        "`components` is accepted as a deprecated alias for `subsystems`",
+        "rejects a file that carries both",
     ),
     "architecture-as-code-javascript": (
         "no-restricted-syntax",
@@ -106,10 +110,12 @@ SKILL_REQUIRED_TERMS = {
         "subjects every package to the block's `default`",
         "Prove it red first",
         "`boundaries/external` still works and is deprecated in v7",
+        "m.default.subsystems ?? m.default.components ?? []",
     ),
     "architecture-as-code-python": (
         "The graph root is the coverage gate",
         "root_package",
+        'data.get("subsystems", data.get("components", []))',
     ),
     "architecture-guidelines": (
         "## 8. Layer Self-Sufficiency",
@@ -1475,6 +1481,21 @@ def mutation_test() -> int:
             write_raw(path, pattern.sub("", text, count=1), crlf)
 
     cases.append((Case("coverage: reference left without pinned phrases", validator_copy, ("graph-analysis.md has no pinned phrases",)), unpin_reference))
+
+    # The expand step of the components -> subsystems key rename must keep the
+    # alias readable until the contract step; dropping the JS fallback is the
+    # premature contract this case guards against.
+    js_skill = [copy / tree / "skills" / "architecture-as-code-javascript" / "SKILL.md" for tree in (".agents", ".claude")]
+
+    def drop_alias_fallback(files=js_skill):
+        for path in files:
+            text, crlf = read_raw(path)
+            needle = "m.default.subsystems ?? m.default.components ?? []"
+            if needle not in text:
+                raise RuntimeError(f"alias fallback not found in {path}")
+            write_raw(path, text.replace(needle, "m.default.subsystems ?? []"), crlf)
+
+    cases.append((Case("schema: components alias dropped before the contract step", js_skill, ("architecture-as-code-javascript",)), drop_alias_fallback))
 
     try:
         code, output = run()

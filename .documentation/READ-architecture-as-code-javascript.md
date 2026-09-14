@@ -151,4 +151,4 @@ full operational reference — assembler code, recipes, and gotchas — lives
 in
 [SKILL.md](../.claude/skills/architecture-as-code-javascript/SKILL.md).*
 
-<!-- skill-revision: 22ab19d998b9 -->
+<!-- skill-revision: 5e0a52b7f6bb -->

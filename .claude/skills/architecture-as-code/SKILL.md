@@ -24,7 +24,7 @@ description: >-
 
 > **Input Contract.** Consume only explicit `Enforcement` handoffs from
 > `architecture-guidelines` or `morphogenetic-architecture` (or an equivalent
-> architecture decision). Translate the named constraint into `components`
+> architecture decision). Translate the named constraint into `subsystems`
 > entries and forbidden edges. Do not restate or reinterpret architecture doctrine here;
 > if a constraint is not enforceable as an import/dependency rule, return
 > `Decision: Defer` or `Reject rule`. Aspect *coverage* — every subsystem in
@@ -37,7 +37,7 @@ description: >-
 > 1. **Subsystem = directory** (or a single file for a facade). Files belong
 >    to a subsystem by living under its path / dotted path.
 > 2. **One optional config file per subsystem** — declaratively lists the
->    subsystems it contains (its `components` entries) and its outbound rules.
+>    subsystems it contains (its `subsystems` entries) and its outbound rules.
 >    Repo root has one too, same structure.
 > 3. **A subsystem knows itself, not its context.** Its own file governs
 >    internals (sub-tiers, layering) and outbound dependencies ("what I
@@ -53,7 +53,7 @@ description: >-
 > 5. **Every subsystem with rules ends with a catch-all bucket.** Files matching
 >    no declared subsystem are invisible to the linter and silently bypass forbidden
 >    edges. A `<dir>/**` (or whole-package) entry MUST be last in
->    `components`. This holds *inside* a subsystem, where the siblings it must
+>    `subsystems`. This holds *inside* a subsystem, where the siblings it must
 >    not shadow sit at the same depth.
 > 6. **The same catch-all at the repository root inverts.** Most import-graph
 >    linters match a pattern against a file's path *ancestors* by default, so
@@ -82,19 +82,26 @@ description: >-
 Each architecture config declares two optional top-level arrays:
 
 ```
-components: [ ... ]   # one entry per subsystem
+subsystems: [ ... ]   # one entry per subsystem
 forbidden:  [ ... ]   # one entry per dependency edge
 ```
 
 Concrete encoding (`.mjs`, `.toml`, `.yaml`, …) is stack-specific. Schema is
 not. Most subsystems don't need their own file — they're declared once in the
-`components` list higher up in the tree.
+`subsystems` list higher up in the tree.
+
+`components` is accepted as a deprecated alias for `subsystems` while
+consumers migrate: an assembler reads `subsystems` first, falls back to
+`components` with a warning, and rejects a file that carries both. This is the
+expand step of an expand/contract change (`evolutionary-database-design`); the
+contract step — dropping the alias — lands in a later major release once no
+known consumer file still writes it, never on a date.
 
 > [!NOTE] `<own-prefix>` is the shared prefix of the subsystem names a config
 > file declares — e.g. `core-` for `core-facade`, `core-tier1`, `core-other`.
 > A single-entry subsystem just uses the bare name.
 
-## 2. Components — subsystems declared as patterns
+## 2. Subsystems — declared as patterns
 
 | Field     | Required | Purpose                                                      |
 | --------- | -------- | ------------------------------------------------------------ |
@@ -191,25 +198,26 @@ identical across stacks; encoding is not.
 files = walk(REPO_ROOT, name = "<config-filename>")
 files.sort(by_depth, descending = True)   # deeper-first
 
-# 2. Concat
-components = []
+# 2. Concat. `components` is the deprecated alias for `subsystems`: warn on
+#    it, treat it as `subsystems`, and reject a file that carries both.
+subsystems = []
 forbidden  = []
 for f in files:
     data = parse(f)
-    components.extend(data.components)
+    subsystems.extend(data.subsystems ?? data.components)
     forbidden.extend(data.forbidden)
 
 # 3. Expand wildcards against the live registry.
 #    Turn a spec ('foo' | 'foo-*' | '*' | list | parametric) into
 #    a concrete list of subsystem names, with `except` subtracted.
-names = [c.name for c in components]
+names = [c.name for c in subsystems]
 def expand(spec, except_):
     if spec is parametric: return spec     # passthrough
     types = resolve_to_names(spec, names)  # handles *, prefix-*, lists
     if except_: types = types - resolve_to_names(except_, names)
     return types
 
-# 4. Emit the stack's native lint config from `components` + expanded `forbidden`.
+# 4. Emit the stack's native lint config from `subsystems` + expanded `forbidden`.
 #    4a. Forward EVERY field the subsystem schema defines — name, pattern,
 #        mode / single, capture. A field the emitter drops is unexpressible in
 #        every architecture file in the repo; `mode` is the usual casualty, and
@@ -256,7 +264,8 @@ code that never gets the gate.
 | A subsystem's own file names another subsystem.     | Move higher, or rewrite with `<own-prefix>-*` + `*`.       |
 | Hardcoded list of "all other subsystems".        | Use `'*'` + `except` / `except_to`.                        |
 | Renaming a subsystem without updating consumers. | Use prefix wildcards (`<prefix>-*`) so renames stay local. |
-| Subsystem has rules but no catch-all bucket.     | Add the whole-subsystem entry as the last `components` row.   |
+| Subsystem has rules but no catch-all bucket.     | Add the whole-subsystem entry as the last `subsystems` row.   |
+| A file carries both `subsystems` and `components`. | Keep one key; the assembler rejects both — two lists for one registry is the same-scope duplication that hides drift. |
 | Dynamic / unresolved imports evade rules.     | Make imports static and resolvable, or document the loophole and ban the dynamic style where possible. |
 | Rule block scoped to a subset of the linted source set. | Apply the rule to every linted source file; the registry cannot fire on a file the rule never sees. |
 | A `**` catch-all at repository root in ancestor/folder matching mode. | It captures files at the shallowest segment and overrides specific subsystems regardless of order. Declare the root's files with file-mode entries instead. |
@@ -266,8 +275,10 @@ code that never gets the gate.
 Before merge:
 
 - [ ] No other-subsystem name appears in any subsystem's own architecture file.
-- [ ] `components` ordered narrowest-first; constrained subsystems end with a
+- [ ] `subsystems` ordered narrowest-first; constrained subsystems end with a
       catch-all.
+- [ ] New architecture files use `subsystems`; the `components` alias appears
+      only in files not yet migrated, and never beside `subsystems`.
 - [ ] The emitted rule block's file scope equals the linted source set.
 - [ ] Every file at repository root belongs to a declared subsystem.
 - [ ] The assembler forwards every field the subsystem schema defines, `mode`
@@ -301,7 +312,7 @@ Stack:          JavaScript | Python | Other
 Input:          <Enforcement handoff consumed, or none>
 Decision:       Add config | Update config | Reject rule | Defer | Blocked
 Config files:   <eslint.architecture.mjs / architecture.toml / generated config>
-Components:     <subsystem names or patterns added/changed>
+Subsystems:     <names or patterns added/changed>
 Forbidden edges:<from -> to rules added/changed>
 Verification:   <lint command / meta-lint / Not run + reason>
 Next action:    <specific edit, rule, test, or owner question>
