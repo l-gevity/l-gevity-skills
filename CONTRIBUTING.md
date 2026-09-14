@@ -74,6 +74,12 @@ A promoted rule must pass all of these:
       phrase (`SKILL_REQUIRED_TERMS`, `REFERENCE_REQUIRED_TERMS`); the
       validator's pin-coverage check fails on a skill or reference without one,
       because a rule nobody pins can be reworded without failing the build.
+- [ ] `CLAUDE.md` and every `SKILL.md` stay within `SIZE_BUDGET_WORDS`, and the
+      skill descriptions together within `DESCRIPTION_BUDGET_CHARS`. The budget
+      is a ratchet: a trim lowers the entry in the same change, and a growth
+      raises it only with the rationale in the commit message. A section an
+      agent needs only on some paths moves to `references/*.md`, which carries
+      no budget.
 - [ ] `npm run validate` and `npm run validate:mutation` pass.
 - [ ] `npm run test:installers` and, on Windows, `npm run test:installers:ps`
       pass when anything under `.install/` changed. Each family must stay

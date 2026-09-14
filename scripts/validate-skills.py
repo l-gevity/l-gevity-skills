@@ -14,6 +14,43 @@ AGENT_SKILLS = ROOT / ".agents" / "skills"
 DOCS = ROOT / ".documentation"
 INSTALL = ROOT / ".install"
 MAX_DESCRIPTION = 1024
+# Size budget, in whitespace-split words, for the two tiers an agent pays for
+# on every load: the root instruction file on every turn of every consumer
+# session, and each SKILL.md on every invocation. references/*.md load on
+# demand and are the intended destination for moved sections, so they carry no
+# budget. The ceiling is a ratchet, granular to 100 words: a file may not grow
+# past its entry, and an entry may not sit 100 or more words above its file,
+# so a trim lowers the entry in the same change and a growth raises it only
+# with the rationale in the commit message.
+SIZE_BUDGET_GRAIN = 100
+SIZE_BUDGET_WORDS = {
+    "CLAUDE.md": 1200,
+    "alchemy": 4500,
+    "architecture-as-code": 2700,
+    "architecture-as-code-javascript": 2200,
+    "architecture-as-code-python": 1500,
+    "architecture-guidelines": 1900,
+    "bring-down": 2800,
+    "ci-cd-reliability-architecture": 3500,
+    "continuous-improvement": 1300,
+    "defect-shift-left": 3100,
+    "evolutionary-database-design": 3300,
+    "functionality-complexity-tradeoff": 4500,
+    "implementation-readiness": 1900,
+    "morphogenetic-architecture": 4700,
+    "push-out": 1300,
+    "requirements-grounding": 3100,
+    "requirements-topology": 2000,
+    "requirements-traceability": 2500,
+    "standup": 1100,
+    "structural-simplification": 2600,
+    "system-optimization": 2600,
+    "test-strategy": 2100,
+}
+# The always-on description tier summed over every skill, same ratchet in
+# characters: MAX_DESCRIPTION caps one skill, this caps the listing every
+# session carries whether or not a skill is invoked.
+DESCRIPTION_BUDGET_CHARS = 13500
 ALCHEMY_PIPELINE_STAGES = (
     "Requirements Grounding",
     "M — Minimum",
@@ -577,6 +614,7 @@ CONTRIBUTION_REQUIRED_TERMS = (
     "Consumer-to-library promotion loop",
     "Publish, then repin",
     "project overlay",
+    "SIZE_BUDGET_WORDS",
 )
 PUBLIC_DOC_FORBIDDEN = {
     "bring-down old public model": {
@@ -777,6 +815,61 @@ def validate_pin_coverage() -> None:
             key = f"references/{reference.name}"
             if not pinned.get(key):
                 fail(f"{name}/{key} has no pinned phrases; add a REFERENCE_REQUIRED_TERMS entry")
+
+
+def word_count(path: Path) -> int:
+    return len(path.read_text(encoding="utf-8").split())
+
+
+def check_budget(label: str, key: str, actual: int, budget: int, unit: str) -> None:
+    if actual > budget:
+        fail(f"{label} is {actual} {unit}, over its size budget of {budget}")
+    if budget - actual >= SIZE_BUDGET_GRAIN:
+        floor = -(-actual // SIZE_BUDGET_GRAIN) * SIZE_BUDGET_GRAIN
+        fail(
+            f"{label} is {actual} {unit} but its size budget is {budget}, "
+            f"which is slack; lower {key} to {floor} in the same change"
+        )
+
+
+def validate_size_budget() -> None:
+    """Growth is silent: a section added to a skill fails no pin, no mirror,
+    and no link check, so the only thing that can report it is a ceiling.
+    Mirrors are proven identical before this runs, so one tree is measured.
+    A skill without an entry is unbudgeted, which the per-file check can
+    never report, so coverage fails first."""
+    check_budget(
+        "CLAUDE.md",
+        'SIZE_BUDGET_WORDS["CLAUDE.md"]',
+        word_count(ROOT / "CLAUDE.md"),
+        SIZE_BUDGET_WORDS["CLAUDE.md"],
+        "words",
+    )
+    skills = skill_dirs(AGENT_SKILLS)
+    for path in skills:
+        name = path.name
+        if name not in SIZE_BUDGET_WORDS:
+            fail(f"{name}/SKILL.md has no size budget; add a SIZE_BUDGET_WORDS entry")
+        check_budget(
+            f"{name}/SKILL.md",
+            f'SIZE_BUDGET_WORDS["{name}"]',
+            word_count(path / "SKILL.md"),
+            SIZE_BUDGET_WORDS[name],
+            "words",
+        )
+    stale = sorted(set(SIZE_BUDGET_WORDS) - {"CLAUDE.md"} - {path.name for path in skills})
+    if stale:
+        fail(f"SIZE_BUDGET_WORDS budgets skills that do not exist: {', '.join(stale)}")
+    descriptions = sum(
+        len(parse_frontmatter(path / "SKILL.md").get("description", "")) for path in skills
+    )
+    check_budget(
+        "the skill description listing",
+        "DESCRIPTION_BUDGET_CHARS",
+        descriptions,
+        DESCRIPTION_BUDGET_CHARS,
+        "chars",
+    )
 
 
 def validate_retired_skill_references() -> None:
@@ -1505,6 +1598,51 @@ def mutation_test() -> int:
 
     cases.append((Case("schema: components alias dropped before the contract step", js_skill, ("architecture-as-code-javascript",)), drop_alias_fallback))
 
+    # The size ratchet has four failure paths, and each is proven on its own:
+    # a file grows past its entry, a skill has no entry, an entry sits a grain
+    # or more above its file, and an entry outlives its skill. Filler words
+    # trip no pin, mirror, or retired-term check, so the ceiling is the only
+    # check that can report the growth; both trees grow so the mirror check
+    # cannot fire first.
+    grown = [copy / tree / "skills" / "standup" / "SKILL.md" for tree in (".agents", ".claude")]
+
+    def grow_skill(files=grown):
+        for path in files:
+            text, crlf = read_raw(path)
+            write_raw(path, text + "\n" + " ".join(["filler"] * (2 * SIZE_BUDGET_GRAIN)) + "\n", crlf)
+
+    cases.append((Case("size: skill grown past its budget", grown, ("over its size budget",)), grow_skill))
+
+    def unbudget_skill(files=validator_copy):
+        for path in files:
+            text, crlf = read_raw(path)
+            needle = '    "standup": 1100,\n'
+            if needle not in text:
+                raise RuntimeError("standup size budget not found in the validator copy")
+            write_raw(path, text.replace(needle, "", 1), crlf)
+
+    cases.append((Case("size: skill left without a budget", validator_copy, ("no size budget",)), unbudget_skill))
+
+    def slacken_budget(files=validator_copy):
+        for path in files:
+            text, crlf = read_raw(path)
+            needle = '    "standup": 1100,\n'
+            if needle not in text:
+                raise RuntimeError("standup size budget not found in the validator copy")
+            write_raw(path, text.replace(needle, '    "standup": 1300,\n', 1), crlf)
+
+    cases.append((Case("size: budget left slack after a trim", validator_copy, ("which is slack",)), slacken_budget))
+
+    def budget_ghost_skill(files=validator_copy):
+        for path in files:
+            text, crlf = read_raw(path)
+            needle = '    "standup": 1100,\n'
+            if needle not in text:
+                raise RuntimeError("standup size budget not found in the validator copy")
+            write_raw(path, text.replace(needle, needle + '    "retired-skill": 1100,\n', 1), crlf)
+
+    cases.append((Case("size: budget kept for a skill that no longer exists", validator_copy, ("do not exist",)), budget_ghost_skill))
+
     try:
         code, output = run()
         if code != 0:
@@ -2188,6 +2326,7 @@ def main() -> int:
     validate_mirrors()
     validate_reference_links()
     validate_pin_coverage()
+    validate_size_budget()
     validate_retired_skill_references()
     validate_morphogenetic_mode_selection()
     validate_morphogenetic_graph_analyzer()
