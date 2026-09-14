@@ -166,6 +166,7 @@ Fast proxies — not substitutes for measurement.
 | **Decomposition**          | Split along natural seams → K↓, D↓, P↓ in local subgraphs    |
 | **Factoring**              | Extract common subsystem → D↓ (dedup) + K↓ (N deps collapse to 1) |
 | **Separation of concerns** | One responsibility per subsystem → D↓ internal + K↓ external |
+| **Aspect extraction**      | Move an aspect interleaved in n subsystems into one mechanism → K: n×m edges → n + m; D↓ only where the copies had diverged; P +1 on the aspect path; n +1 |
 
 ---
 
@@ -176,7 +177,9 @@ interfaces, locality, and separately measured relationship fields. Bounded
 public surfaces and local neighbor sets cap K, directional static edges cap P,
 cohesive positions bound n, and consistent subsystem forms cap D. Decompose
 along domain, abstraction-tier, or layer seams only when the proposed cut
-improves the measured vector.
+improves the measured vector. Decomposition splits one subsystem into several;
+aspect extraction pulls one aspect out of several subsystems. They are
+different cuts; judge both by the vector.
 
 For dependency projections that require acyclicity, reject cycles before
 scoring trade-offs. For runtime feedback, name the cycle semantics and measure

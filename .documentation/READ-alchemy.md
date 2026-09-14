@@ -176,4 +176,4 @@ full operational reference — command grammar, dispatch rules, gate
 handshakes, and the decision-trail format — lives in
 [SKILL.md](../.claude/skills/alchemy/SKILL.md).*
 
-<!-- skill-revision: 7f686da6cc2f -->
+<!-- skill-revision: a309e7bd2af3 -->

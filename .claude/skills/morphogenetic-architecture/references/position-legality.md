@@ -63,6 +63,14 @@ cohesive capability at one primary position" has no answer for a subsystem
 built to be incohesive; name it as the composition root and move on rather than
 forcing a position it cannot have.
 
+An **aspect mechanism** — the one subsystem that implements a property holding
+across many — is placed like any subsystem. Edges into it from every subsystem
+in its `Holds across` satisfy the domain clause through its declared inbound
+interface: the common case of that clause, not an exemption. The layer and tier
+clauses still apply, so its position must be reachable from every governed
+subsystem without a layer skip or tier inversion, or the mechanism is the
+declared adapter for that transition.
+
 When domain, tier, or layer cannot be stated independently for a subsystem,
 the check cannot run: report **placement ambiguity** and resolve the position
 before continuing. The domain clause blocks the same way when a target domain

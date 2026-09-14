@@ -330,6 +330,11 @@ Next action:    <specific file edit, dependency install, or unresolved question>
 > instead of ignored. Dependency rules are not a substitute: a file with no
 > imports, or one loaded by a `<script>` tag, has no edge to judge.
 
+> [!NOTE] **The plugin forbids; it never requires.** An aspect coverage check —
+> every subsystem in the governed set uses the mechanism — has no
+> `boundaries/dependencies` form. `dependency-cruiser`'s `required` rules can
+> express it over the same registry; `defect-shift-left` places that check.
+
 > [!NOTE] **Facade-as-file pattern.** JavaScript idiomatically exposes a
 > facade as a single index/entry file. Use `mode: 'file'` plus an exact-path
 > `pattern` (no glob) so the facade is matched alone.

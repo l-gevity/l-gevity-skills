@@ -263,6 +263,11 @@ Next action:    <specific file edit, package install, cache clear, or unresolved
 > hit this limit. But if you write raw module patterns yourself, mind the
 > difference.
 
+> [!NOTE] **import-linter forbids; it never requires.** An aspect coverage
+> check — every subsystem in the governed set uses the mechanism — has no
+> contract type. Express it as a grimp-based test over the same registry;
+> `defect-shift-left` places that check.
+
 > [!NOTE] **Cache staleness during refactors.** `.import_linter_cache/`
 > speeds up subsequent runs but can mislead during heavy refactors. Delete
 > it if results don't match what your import statements actually say.

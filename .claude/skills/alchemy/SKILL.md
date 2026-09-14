@@ -101,7 +101,7 @@ Use this deterministic signal matrix when no alias is present:
 | Worth, dead code, speculative abstraction, or "should this exist?" | `DIRECT → M` |
 | Defect found late, check placement, or CI detection timing | `DIRECT → H` or `left` |
 | Structural refactor inside one boundary | `ADAPTIVE → M, C`; add A when responsibility or public contract changes, H when verification placement changes |
-| New subsystem/service/library, cross-boundary dependency, increment cut through every layer (vertical slice), or consolidation | `ADAPTIVE → qualification as needed, M, A, L, C, E, H` |
+| New subsystem/service/library, cross-boundary dependency, increment cut through every layer (vertical slice), consolidation, or an aspect added or changed across several subsystems (auth, audit, logging, retry, i18n) | `ADAPTIVE → qualification as needed, M, A, L, C, E, H` |
 | Existing-code over-engineering audit | `ADAPTIVE` Audit mode beginning at `C₀` |
 | Explicit full traversal | `FULL` |
 
@@ -148,7 +148,7 @@ This is vocabulary, not a gate rule.
 | Primitive | Definition | Named specializations |
 |:--|:--|:--|
 | **Subsystem** | A part produced by decomposition: the thing a position is assigned to and a rule file governs. *Where change lands.* | L places it at a position; E governs it per directory; C counts subsystems (n) and their kinds (D); `bring-down` ranks the capability it can be replaced by. Requirements skills group requirements into *capabilities*; A decides when a capability becomes a subsystem boundary, and L places it. |
-| **Aspect** | A property that holds across a declared set of the units the stage knows — problem scopes at Grounding and Topology, capabilities at Readiness, subsystems from L onward; the scope → subsystem mapping is L's placement decision, never inferred upstream. One obligation (the rule) and one mechanism (the subsystem that implements it). *Which dimension is touched.* | Grounding records the scopes it holds across; Topology structures it as a constraint node; Readiness projects it onto capabilities; M names its single owner; A extracts it, never interleaves it; L places its mechanism; C measures the extraction; E enforces the mechanism's edges; H places the coverage check; Test Strategy designs its oracle; Traceability proves coverage. |
+| **Aspect** | A property that holds across a declared set of the units the stage knows — problem scopes at Grounding and Topology, capabilities at Readiness, subsystems from L onward; the scope → subsystem mapping is L's placement decision, never inferred upstream. One obligation (the rule) and one mechanism (the subsystem that implements it). *Which dimension is touched.* | Grounding: a requirement with `Holds across`; Topology: a `constraint` node with `holds_across` and the `Aspect coverage` check; Readiness: a row of the aspect matrix; M: the aspect-owner map; A: extracted, never interleaved; L: the mechanism's position plus `Holds across`; C: the aspect-extraction delta; E: the mechanism's exclusivity edges; H: placement of the coverage check; Test Strategy: its oracle; Traceability: the `aspect-uncovered` gap. |
 | **Increment** | The bounded unit of change admitted to implementation; it adds, changes, or removes cells of the subsystem × aspect matrix. *What changes.* | Readiness admits it — a *vertical increment* realizes one outcome end to end through every layer it crosses; `evolutionary-database-design`: a *migration increment* per stage; `system-optimization`: a *batch* is the set of increments moved together; CI/CD: the *candidate artifact* is its built form. |
 | **Iteration** | One cycle that admits an increment, realizes it, and measures the resulting baseline: completion evidence plus the structural and flow measurements later windows compare against. Prediction windows, outcome-evidence windows, and revisit triggers are carried across iterations and close on their own trigger, re-entering L or M as a new bounded decision. "Iteration 2" is the next iteration on the same subject, *starting from that measured baseline*. | Completion evidence closes an iteration (`requirements-traceability`); outcome evidence does not. Y optimizes only a stable, measured baseline, so it *runs in the iteration after the increment ships*. A PDCA or DMAIC turn in `system-optimization` is an iteration whose Check or Control step is the measurement. |
 
@@ -371,6 +371,8 @@ Core directives:
             For each abstraction: name the second concrete instance.
 - [ ] Topology — Typed graph when relationships are non-trivial, or recorded skip
 - [ ] Readiness — READY or bounded reversible PARTLY-READY before Architecture
+- [ ] Aspects — every aspect the increment touches is covered or explicitly open
+               (readiness matrix)
 - [ ] Test strategy — Obligation pass before A: risks, failure modes, oracles,
                        and required confidence
 - [ ] Data shape — Compatibility pass before A: readers, writers, coexistence
@@ -430,6 +432,7 @@ contradictory, or disputed:
 | Empty config / config with one value across all envs | 1 — one-value config | Inline the value |
 | `if (impossible_state)` runtime guards | 1 — impossible-state guard | OBSOLETE; document the invariant elsewhere |
 | Cross-domain imports bypass the declared boundary | 3 — topology violated | Move the subsystem or introduce one named boundary |
+| Aspect hand-wired per subsystem (n copies of auth, audit, or logging) | 2 — aspect extraction skipped | Re-run A with the aspect's holds-across set; C measures the n → 1 extraction |
 | Refactor "felt simpler" but no measurement | 3–4 — topology candidate not accepted | Compute Subsystem-kinds / Dependency-edges / Max-chain-depth / Subsystem-count Δ, then re-enter Gate 3 once for final acceptance |
 | Eslint rules added in follow-up PR | 5 — same-PR discipline broken | Block the follow-up; add rules to original PR |
 | Defects caught at runtime that types could express | 6 — left-shift not applied | Move the check upward; remove the runtime guard |

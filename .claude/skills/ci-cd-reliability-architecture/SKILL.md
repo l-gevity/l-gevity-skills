@@ -278,7 +278,7 @@ justifies the omission.
 
 | Stage / trigger | Required verification | Gate behavior |
 | --- | --- | --- |
-| **Build / every PR** | Format and lint; strict type-check; build/package; secret scan; SAST; dependency/CVE and license audit; IaC scan when IaC exists; bundle/artifact budget | Block merge; branch protection requires the full-repository CI backstop |
+| **Build / every PR** | Format and lint; strict type-check; build/package; architecture rules and fitness functions; secret scan; SAST; dependency/CVE and license audit; IaC scan when IaC exists; bundle/artifact budget | Block merge; branch protection requires the full-repository CI backstop |
 | **Unit / every PR** | Unit and property tests; project-owned coverage policy with no unexplained regression | Block merge; publish machine-readable results and coverage evidence |
 | **Integration / every PR** | Component/integration tests; API/schema contract and backward-compatibility tests; authorization negative-path tests; container/artifact reproducibility | Block merge; test the same output that becomes the immutable artifact |
 | **Preview / every deployable candidate** | Startup smoke; critical-journey E2E; supported-browser compatibility; visual regression where rendered UI is material; broken-link validation for navigable content | Block merge where the verification stage precedes merge, otherwise withhold exposure and block promotion; run against the strategy's verification stage using the candidate artifact |
@@ -321,6 +321,9 @@ Report:         <durable artifact or log reference>
 Failure action: <block merge | abort deploy | withhold traffic | rollback>
 Owner:          <team or operational owner>
 ```
+
+For an aspect coverage gate, `Scope` is the governed set from the
+architecture-as-code registry.
 
 Do not run every expensive test on every commit. Fast deterministic checks
 block the PR; environment-dependent checks block preview or promotion; costly

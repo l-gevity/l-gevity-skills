@@ -123,6 +123,8 @@ SKILL_REQUIRED_TERMS = {
         "| atomicity | integration | layer-self-sufficiency |",
         "every rule above needs a question",
         "after the caller's own write",
+        "Aspects are extracted, not interleaved",
+        "Principle:   aspect coverage",
     ),
     "ci-cd-reliability-architecture": (
         "Release and Production Promotion",
@@ -140,6 +142,11 @@ SKILL_REQUIRED_TERMS = {
         "Representativeness:",
         "in-place subsystem replace",
         "Zero-downtime:  <yes | no + why>",
+    ),
+    "defect-shift-left": (
+        "Aspect coverage gap",
+        "### 6.6 Hand-checked aspect coverage",
+        "fitness-function runner",
     ),
     "continuous-improvement": (
         "Consumer-to-Library Promotion",
@@ -259,6 +266,7 @@ SKILL_REQUIRED_TERMS = {
         "Record **Prediction** for every accepted MOVE, SPLIT, MERGE, or",
         "Before accepting a Medium- or Low-reversibility restructuring",
         "must name which generators were attempted",
+        "| Positions an aspect binds | **Holds across**",
     ),
     "requirements-traceability": (
         "Trace both directions",
@@ -1324,6 +1332,20 @@ def mutation_test() -> int:
             write_raw(path, text + "\nA cross-cutting concern belongs to one layer.\n", crlf)
 
     cases.append((Case("vocabulary: retired term reintroduced", retired, ("retired term",)), reintroduce_retired_term))
+
+    # An appended pin is proven only by the case that removes it: the automatic
+    # cases above remove each skill's first pin, never a later one.
+    guidelines = [copy / tree / "skills" / "architecture-guidelines" / "SKILL.md" for tree in (".agents", ".claude")]
+    aspect_rule = phrase_pattern("Aspects are extracted, not interleaved")
+
+    def remove_aspect_rule(files=guidelines, pattern=aspect_rule):
+        for path in files:
+            text, crlf = read_raw(path)
+            if not pattern.search(text):
+                raise RuntimeError(f"aspect rule not found in {path}")
+            write_raw(path, pattern.sub("", text), crlf)
+
+    cases.append((Case("vocabulary: aspect extraction rule removed", guidelines, ("architecture-guidelines", "Aspects are extracted")), remove_aspect_rule))
 
     try:
         code, output = run()

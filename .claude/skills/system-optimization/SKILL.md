@@ -130,10 +130,11 @@ and turn "improve flow" into concrete moves.
   A resource pinned at 95% is not "efficient" — it is a delay generator (this is
   Muri, §2). Size shared resources (CI runners, reviewers, on-call) for
   headroom, not full utilization.
-- **Batch size** — large batches inflate cycle time, delay feedback, and raise
-  risk per release. Halving batch size roughly halves queue time and localizes
-  failure. Small PRs, trunk-based flow, and incremental deploys are batch-size
-  controls, not stylistic preferences.
+- **Batch size** — a batch is the set of increments moved together; large
+  batches inflate cycle time, delay feedback, and raise risk per release.
+  Halving batch size roughly halves queue time and localizes failure. Small
+  PRs, trunk-based flow, and incremental deploys are batch-size controls, not
+  stylistic preferences.
 
 | Lever              | Effect                              | Move                                                  |
 | ------------------ | ----------------------------------- | ----------------------------------------------------- |
@@ -280,6 +281,9 @@ For identifying constraints, waste, and root causes in operational analysis:
 ## 11. Continuous Improvement (Kaizen / PDCA)
 
 - Every optimization is a hypothesis — validate before declaring permanent.
+- A PDCA turn, like a DMAIC cycle (§5), is an iteration: its Check or Control
+  step is the measurement, and Y starts from the stable, measured baseline the
+  previous iteration recorded.
 - After resolving a bottleneck, explicitly identify the current constraint
   before the next cycle.
 - When several improvements compete and none is the constraint, sequence by

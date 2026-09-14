@@ -226,4 +226,4 @@ rules above into build-failing lint checks. The full operational reference
 for this concept lives in
 [SKILL.md](../.claude/skills/architecture-guidelines/SKILL.md).*
 
-<!-- skill-revision: c94ab81f9419 -->
+<!-- skill-revision: d3ffd304628d -->

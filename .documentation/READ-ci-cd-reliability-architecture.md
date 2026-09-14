@@ -178,4 +178,4 @@ full operational reference for this concept — checklists, gate tables, and
 the promotion state machine — lives in
 [SKILL.md](../.claude/skills/ci-cd-reliability-architecture/SKILL.md).*
 
-<!-- skill-revision: d16a96fa7c82 -->
+<!-- skill-revision: 35a7db1e8681 -->

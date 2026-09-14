@@ -249,4 +249,4 @@ reference — analysis modes, evidence fields, finding taxonomy, and the
 decision record — lives in
 [SKILL.md](../.claude/skills/morphogenetic-architecture/SKILL.md).*
 
-<!-- skill-revision: 49bdaf0e8934 -->
+<!-- skill-revision: c814a1571475 -->

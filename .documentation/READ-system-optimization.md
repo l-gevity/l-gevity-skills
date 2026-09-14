@@ -177,4 +177,4 @@ operational reference for this concept — scan layers, waste tables, flow
 levers, and the decision record — lives in
 [SKILL.md](../.claude/skills/system-optimization/SKILL.md).*
 
-<!-- skill-revision: 3c58bb4eb4e8 -->
+<!-- skill-revision: b3dc6bddb6d1 -->

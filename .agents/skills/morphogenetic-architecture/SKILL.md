@@ -124,6 +124,8 @@ Use coder-facing terms in every report:
 | Low-pressure candidate separation | **Candidate boundary** |
 | Thing being placed | **Subsystem** — a part of the system produced by decomposition; where change lands |
 | Its declared address | **Position** |
+| Property holding across positions | **Aspect** — one obligation, one mechanism subsystem |
+| Positions an aspect binds | **Holds across** — declared at subsystem granularity here; the scope → subsystem mapping is this skill's placement decision |
 
 Keep **layer** and **abstraction tier** separate. Keep **subsystem** (the thing)
 and **position** (where it belongs) separate.
@@ -458,13 +460,18 @@ KEEP, DECLARE-RUNTIME-CYCLE, and DEFER do not require a restructuring delta.
 Use this handoff shape:
 
 ```text
-Principle:   <locality | direction | interface | SDK ownership>
+Principle:   <locality | direction | interface | SDK ownership | aspect ownership>
 Constraint:  <subsystem-pattern> may/must not depend on <subsystem-pattern>
 Enforcement: add/update architecture rule: <exact constraint>
 ```
 
 Introduce new lint rules at `warn`; promote each rule to `error` after its
 violations clear.
+
+For an aspect mechanism, **Declared topology** carries `Holds across` as an
+indented continuation line, never a top-level line. The mechanism's exclusivity
+edges are the handoff; the coverage check over the governed set routes to
+`defect-shift-left`, like the probationary register below.
 
 ### Close the Loop
 

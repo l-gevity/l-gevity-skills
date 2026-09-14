@@ -27,7 +27,10 @@ description: >-
 > architecture decision). Translate the named constraint into `components`
 > entries and forbidden edges. Do not restate or reinterpret architecture doctrine here;
 > if a constraint is not enforceable as an import/dependency rule, return
-> `Decision: Defer` or `Reject rule`.
+> `Decision: Defer` or `Reject rule`. Aspect *coverage* — every subsystem in
+> the governed set must use the mechanism — is never an edge rule: return
+> `Decision: Reject rule` with `Next action: coverage check (defect-shift-left)`;
+> the mechanism's exclusivity edges are the rule.
 
 > **Core Directives**
 >
@@ -149,6 +152,11 @@ emitted to developers.
 { from: { type: 'domain-handler', captured: { domain: '*' } },
   to:   { type: 'domain-handler', captured: { domain: '!{from.captured.domain}' } },
   why:  'Cross-domain import: extract shared helpers to a sibling shared/ subsystem.' }
+
+# Aspect ownership — higher level. Only the mechanism reaches the aspect's
+# internals; the provider SDK behind it is package policy (stack-specific).
+{ from: '*', except: ['audit-mechanism'], to: 'audit-internal-*',
+  why: 'The audit aspect has one mechanism; every other subsystem routes through it.' }
 ```
 
 ## 4. Where each rule lives
@@ -266,6 +274,8 @@ Before merge:
       included.
 - [ ] Lint violation count matches baseline (or new violations reflect
       intentional changes).
+- [ ] The subsystem registry the assembler builds lists every governed
+      subsystem: it is the population an aspect coverage check enumerates.
 
 > [!IMPORTANT] **A passing lint is not evidence of coverage.** The violation
 > count does not move when a directory the linter cannot see is added — it

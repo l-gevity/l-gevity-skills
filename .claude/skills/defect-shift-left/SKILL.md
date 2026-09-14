@@ -95,6 +95,7 @@ unrepresentable?_ If yes, the check belongs at Stage 0.
 | Style, formatting, unused code, API misuse      | 2     | LSP / editor (else 5: lint)                      |
 | Banned API / unsafe pattern                     | 2     | LSP rule (else 5: lint)                          |
 | Forbidden architectural dependency              | 2     | Editor import rule (else 5: depcheck / lint)     |
+| Aspect coverage gap — a governed subsystem lacks the aspect's mechanism | 5 | Fitness function over the subsystem registry (else 7: policy test) |
 | Committed config violates schema                | 2     | Editor schema hint (else 5: schema validation)   |
 | Secret in source                                | 3     | Pre-commit scanner (else 5: SAST)                |
 | Symbol resolution / missing import              | 4     | Compiler                                         |
@@ -302,6 +303,22 @@ Both are warranted: different blast radii (single commit vs. branch), different
 bypass costs. Layering pays when the earlier layer is faster _and_ bypassable —
 the later layer is the un-bypassable backstop, not a duplicate.
 
+### 6.6 Hand-checked aspect coverage → fitness function
+
+|            |                                                                                  |
+| ---------- | -------------------------------------------------------------------------------- |
+| **Shifts** | Aspect coverage gap: a subsystem in an aspect's governed set lacks the mechanism |
+| **From**   | Stage 7+ (code review, incident)                                                 |
+| **To**     | Stage 5 (fitness function in blocking static analysis)                           |
+
+An aspect's obligation holds across a declared set of subsystems. A dependency
+rule can confine its mechanism (§6.2) but cannot require that every governed
+subsystem reaches it; a fitness function can. Its population is the subsystem
+registry `architecture-as-code` assembles, its assertion is the oracle
+`test-strategy` §7 defines for the aspect, and its runner is the stack's
+fitness-function tool — `dependency-cruiser` `required` rules, ArchUnit, or a
+grimp-based test. This skill places the check; it does not design the oracle.
+
 ---
 
 ## 7. Stack-Aware Tooling Survey
@@ -322,7 +339,7 @@ options. A plain shift-left audit stops at the missing category.
 | **2**  | LSP, editor lint integration, formatter-on-save                   |
 | **3**  | Hook runner, secret scanner, commit-message linter                |
 | **4**  | Compiler / type-checker invoked in build                          |
-| **5**  | Linter, dependency auditor, SAST, license checker, IaC scanner    |
+| **5**  | Linter, dependency auditor, SAST, license checker, IaC scanner, fitness-function runner |
 | **6**  | Unit test runner, property-test library, coverage gate            |
 | **7**  | Integration / contract test harness, container build verifier     |
 | **8a** | Migration dry-run, config validator, IAM diff, cost projector     |

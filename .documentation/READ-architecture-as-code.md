@@ -190,4 +190,4 @@ implementations exist for
 reference — file schema, rule placement, assembler, and audit checklist —
 lives in [SKILL.md](../.claude/skills/architecture-as-code/SKILL.md).*
 
-<!-- skill-revision: 221a6f8d9a4d -->
+<!-- skill-revision: 34b82e59dfdf -->

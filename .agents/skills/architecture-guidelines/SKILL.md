@@ -64,9 +64,11 @@ description: >-
 
 ## 4. Modularity
 
-- **SoC**: One responsibility per subsystem; aspects (properties that hold
-  across many subsystems) are extracted into their own subsystem, not
-  interleaved.
+- **SoC**: One responsibility per subsystem.
+- **Aspects are extracted, not interleaved**: an aspect has one obligation —
+  a rule over the subsystems it holds across — and one mechanism — one
+  subsystem that implements it. Extract the mechanism into its own subsystem;
+  never copy it per subsystem, never model the obligation as a subsystem.
 - **SRP**: One reason to change per subsystem. Two forces of change → split.
 - **Capability Boundary = Subsystem Boundary**: A capability with its own
   domain name, lifecycle, dependency surface, test surface, or reason to change
@@ -84,7 +86,9 @@ description: >-
 
 **Review check:** If a directory contains multiple named capabilities, require
 one of: a single facade/interface proving they are one higher-level capability,
-or a split into capability-named subsystem directories.
+or a split into capability-named subsystem directories. For each aspect the
+design touches, name its mechanism subsystem and the subsystems it holds
+across.
 
 ## 5. Resilience
 
@@ -215,6 +219,12 @@ Constraint:  no subsystem reaches a peer application's internals
 Enforcement: add architecture rule: forbid * -> <peer-storage-client | peer-internal-*>, except <integration-adapter-*>
 ```
 
+```
+Principle:   aspect extraction
+Constraint:  only <audit-mechanism> reaches the audit internals and SDK
+Enforcement: add architecture rule: forbid * -> <audit-internal-*>, except <audit-mechanism>
+```
+
 A principle can also settle as no handoff. Record that outcome rather than
 omitting it:
 
@@ -225,6 +235,16 @@ Enforcement: none - not an import or dependency edge; verify by exercising the
              subsystem without that layer (`defect-shift-left`)
 ```
 
+One aspect yields two handoffs: the mechanism's exclusivity edge above, and a
+coverage obligation that is not an edge:
+
+```
+Principle:   aspect coverage
+Constraint:  every subsystem in <holds across> routes through <audit-mechanism>
+Enforcement: none - not an edge; place a coverage check over the subsystem
+             registry (`defect-shift-left`)
+```
+
 ## 11. Output Contract
 
 When this skill changes or rejects a design, emit a coder-facing decision
@@ -233,7 +253,7 @@ record:
 ```
 Subject:        <subsystem / service / abstraction / PR / code path>
 Decision:       Proceed | Simplify | Split | Inline | Reject | Defer
-Principle:      <YAGNI | Rule of 3 | DRY | SoC | SRP | capability-boundary | DI | fail-fast | idempotency | atomicity | integration | layer-self-sufficiency | naming | concurrency>
+Principle:      <YAGNI | Rule of 3 | DRY | SoC | SRP | capability-boundary | DI | fail-fast | idempotency | atomicity | integration | layer-self-sufficiency | naming | concurrency | aspect>
 Evidence:       <callers, imports, tests, runtime invariant, or file paths checked>
 Enforcement:    <none | add architecture rule: constraint | update architecture rule: constraint>
 Next action:    <edit, delete, extract, add test, add lint rule, or ask user>
