@@ -25,14 +25,16 @@ Touch only what the task requires. No adjacent improvements, no refactor of what
 no helpers for one-shot work.
 
 ## 6. Walk the adaptive pipeline in order
-An explicit `/alchemy`, `$alchemy`, or natural-language request such as "do some alchemy"
-starts with metadata-only dispatch: `SKIP` routine local work, `DIRECT` one clear gate,
-`ADAPTIVE` structural work, and use `FULL` only for explicit full-traversal language.
-Do not load every gate to decide to skip. A core skip never suppresses independently matching
-project, domain, stack, UX, security, accessibility, API, release, or evidence skills.
+`/alchemy`, `$alchemy`, or a natural request such as "do some alchemy" runs the `alchemy`
+skill, which owns routing, the gate table, handshakes, and the decision trail; this section
+keeps only the invariants every session holds. Dispatch from metadata before loading any
+gate: `SKIP` routine local work, `DIRECT` one clear gate, `ADAPTIVE` structural work, and
+`FULL` only for explicit full-traversal language. A core skip never suppresses an
+independently matching companion skill. Focused aliases stay focused and report missing
+prerequisites instead of running the full pipeline.
 
-For non-trivial design/refactor work, resume from the latest trustworthy decision artifact,
-one whose decisions name what they supersede and whose predecessors are retired or lapsing:
+Resume from the latest trustworthy decision artifact, one whose decisions name what they
+supersede, then walk:
 
 ```text
 Requirements Grounding, when evidence or meaning is absent or stale
@@ -42,83 +44,45 @@ Requirements Grounding, when evidence or meaning is absent or stale
 → A — Architecture → L → C → E → H → Y
 ```
 
-Four primitives describe every change. A **subsystem** is a part produced by decomposition —
-*where change lands*. An **aspect** is a property that holds across a declared set of
-subsystems, with one obligation and one mechanism — *which dimension is touched*. An
-**increment** is the bounded unit of change admitted to implementation — *what changes*. An
-**iteration** is one cycle that admits an increment, realizes it, and measures the resulting
-baseline; "iteration 2" is the next iteration on the same subject, *starting from that measured
-baseline*. `alchemy` defines them; every skill's local term specializes exactly one.
+Gates M, A, L, C, E, H, Y map to `functionality-complexity-tradeoff`,
+`architecture-guidelines`, `morphogenetic-architecture`, `structural-simplification`,
+`architecture-as-code` plus its stack skill, `defect-shift-left`, and `system-optimization`.
+Qualification and Gates 1–4 shape the design, 5–6 enforce it, and 7 optimizes a stable,
+measured baseline, so it runs in the iteration after the increment ships. Enforcement files
+for a new subsystem ship in the same PR as its code; spike code is the only exception and
+never crosses the merge boundary without rules.
 
-For `MOVE`, `SPLIT`, `MERGE`, or `INTRODUCE-BOUNDARY`, the L/C segment is the
-bounded `L candidate → C measurement → L acceptance` handshake. L re-enters
-once for the unchanged candidate, and E remains blocked until that final
-topology decision.
+Four primitives describe every change, defined by `alchemy`. A **subsystem** is a part
+produced by decomposition, *where change lands*. An **aspect** holds across a declared set of
+subsystems with one obligation and one mechanism, *which dimension is touched*. An
+**increment** is the bounded unit of change admitted to implementation, *what changes*. An
+**iteration** admits an increment, realizes it, and measures the resulting baseline;
+iteration 2 is the next cycle on the same subject, *starting from that measured baseline*.
 
-Focused aliases stay focused; report missing prerequisites instead of silently running the
-full pipeline. Only `READY`, or `PARTLY-READY` as a bounded reversible increment, may enter A.
-`NOT-GROUNDED`, `BLOCKED`, and `NOT-READY` stop or return to the failed stage. Audits start
-at the read-only `C₀` structural baseline and recover requirements only when current intent
-is missing, stale, contradictory, or disputed.
-
-Grounding keeps the problem outcome, requirement completion, and linked outcome
-hypotheses distinct. Passing completion criteria proves a working capability, not downstream
-impact. When impact is decision-relevant, measured hypothesis evidence flows to M; M retains
-the build, keep, simplify, defer, drop, obsolete, and removal verdicts. An authoritative obligation
-may mark the outcome hypothesis not applicable and must not wait for a value test.
-
-Once an admitted increment enters implementation, use `requirements-traceability` to maintain
-bidirectional links between canonical IDs, implementation anchors, and executed evidence.
-Traceability is follow-through, not a new qualification stage or gate; `READY` never means
-implemented, and a code anchor never means verified.
-
-For linked outcome hypotheses, Grounding owns meaning, Traceability owns measurement links,
-evidence state, and freshness, and M owns the worth verdict. Acceptance, deployment, and
-adoption are not impact proof. When a revisit trigger fires, route only the bounded
-functionality and current evidence back to M in Retrospective mode; do not restart the pipeline.
-
-When verification design is material and architecture can change the evidence boundary,
-use `test-strategy` as a two-pass task-matched companion:
-`Readiness → Obligation pass → A/L/C/E → Portfolio pass → H`. The first pass defines
-risks, failure modes, oracles, and required confidence; the second consumes accepted
-architecture to finalize technique, scope, fidelity, dependencies, data, environment,
-and stimulus. H places the check, CI/CD owns pipeline execution triggers and gating, and
-traceability owns executed-evidence state. Collapse to a Combined pass only for stable
-accepted architecture. Test Strategy is not a new qualification stage, gate, or letter.
-
-When an increment changes persisted or serialized data shape — a schema, event or message
-payload, API body, or file format — use `evolutionary-database-design` as a two-pass
-task-matched companion:
-`Readiness → Compatibility pass → A/L/C/E → Transition pass → Test Strategy Portfolio pass → H`.
-The Compatibility pass inventories readers, writers, the coexistence window, and the
-obligations that bind the data, classifies the change, and supplies the data facts L
-grades reversibility from; the Transition pass consumes accepted architecture to fix the
-staged expand/contract path, migration increments, backfill, contract trigger, and reversal
-step per stage. Expand and contract never ship in one deployable, and the contract step
-is gated on evidence, not a date. It is not a new qualification stage, gate, or letter.
-
-**Qualification and Gates 1–4 shape the design; 5–6 enforce it; 7 optimizes a stable, measured
-baseline, so it runs in the iteration after the increment ships (iteration 2).** Enforcement
-files for new subsystems are **written before** their
-implementation code, not retrofitted — both ship in the same PR. Spike/throwaway code is
-the only exception, and must not cross the merge boundary without rules.
-
-| # | Gate | Skill | Output |
-|---|---|---|---|
-| 1 | Necessity | [`functionality-complexity-tradeoff`](.../functionality-complexity-tradeoff) | BUILD / KEEP / SIMPLIFY or stop |
-| 2 | First principles | [`architecture-guidelines`](.../architecture-guidelines) | Smallest correct design |
-| 3 | Topology | [`morphogenetic-architecture`](.../morphogenetic-architecture) | Rapid/Full mode selection plus a final topology decision, or one candidate requiring Gate 4 measurement; a probationary acceptance carries its expiry, instrumentation, and prediction recheck into the trail, placed at Gate 6 |
-| 4 | Complexity | [`structural-simplification`](.../structural-simplification) | Structural deltas, then Gate 3 acceptance when restructuring |
-| 5 | Enforcement | [`architecture-as-code`](.../architecture-as-code) + [`-javascript`](.../architecture-as-code-javascript) / [`-python`](.../architecture-as-code-python) | Per-subsystem config |
-| 6 | Shift-left | [`defect-shift-left`](.../defect-shift-left) | Each error path → earliest stage |
-| 7 | Optimize (iter 2) | [`system-optimization`](.../system-optimization) | Constraint analysis |
-
-At Gate 3, start in Rapid for bounded placement and static-edge checks. Escalate
-to Full for restructuring, multi-field evidence, broad scope, ambiguity, or an
-explicit deep audit. Record `Analysis mode` and `Selection reason`; a request
-for speed cannot waive the `Rapid → Full` escalation or the Gate 3–4
-measurement handshake. Gate 3 `Full` is a topology-analysis mode; Alchemy
-`FULL` remains a traversal dispatch and does not override the Gate 3 selector.
+- M returns BUILD / KEEP / SIMPLIFY or stop. Only `READY`, or `PARTLY-READY` as a bounded
+  reversible increment, enters A; `NOT-GROUNDED`, `BLOCKED`, and `NOT-READY` stop or return
+  to the failed stage. Audits start at the read-only `C₀` structural baseline and recover
+  requirements only when current intent is missing, stale, contradictory, or disputed.
+- At Gate 3, start in Rapid and record `Analysis mode` and `Selection reason`; a request for
+  speed cannot waive the `Rapid → Full` escalation. `MOVE`, `SPLIT`, `MERGE`, and
+  `INTRODUCE-BOUNDARY` run the bounded `L candidate → C measurement → L acceptance`
+  handshake, L re-enters once for the unchanged candidate, and E remains blocked until that
+  final topology decision.
+- Grounding keeps the problem outcome, requirement completion, and linked outcome hypotheses
+  distinct: completion proves a working capability, not downstream impact, and an
+  authoritative obligation may mark the hypothesis not applicable. Grounding owns meaning,
+  Traceability owns measurement links, evidence state, and freshness, and M owns the worth
+  verdict. When a revisit trigger fires, route only the bounded functionality back to M in
+  Retrospective mode; do not restart the pipeline.
+- After readiness, `requirements-traceability` links canonical IDs to implementation anchors
+  and executed evidence. `READY` never means implemented; a code anchor never means verified.
+- Two two-pass task-matched companions bracket A/L/C/E: `test-strategy`, when verification
+  design is material, with its Obligation pass before A and Portfolio pass before H, where H
+  places each check and CI/CD owns pipeline execution triggers and gating; and
+  `evolutionary-database-design`, when persisted or serialized data shape changes, with its
+  Compatibility pass before A and Transition pass before the Portfolio pass. Expand and
+  contract never ship in one deployable, and the contract step is gated on evidence, not a
+  date.
 
 ## 7. Define success; checkpoint
 Strong success criteria let you loop independently. After each significant step, summarize

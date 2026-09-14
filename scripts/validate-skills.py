@@ -484,6 +484,14 @@ CONSUMER_FORBIDDEN = (
 # A reference file is loaded on demand, so the rule it carries is pinned to
 # that file, and SKILL.md must link the file (validate_reference_links).
 REFERENCE_REQUIRED_TERMS = {
+    "alchemy": {
+        "references/failure-modes.md": (
+            "| Symptom | Skipped gate | Recovery |",
+            "then re-enter Gate 3 once for final acceptance",
+            "Split the deployable; gate the contract step on evidence and a snapshot",
+            "DROP unless second use is named and probable",
+        ),
+    },
     "morphogenetic-architecture": {
         "references/position-legality.md": (
             "Auditing a\nwhole codebase from three axes is an explicit non-goal",
