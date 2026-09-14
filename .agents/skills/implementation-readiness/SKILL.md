@@ -136,7 +136,9 @@ Mark a requirement or increment **ready** only when it has:
 - known prerequisites with existing artifacts or named minimal contracts;
 - identified data ownership and lifecycle;
 - relevant security, privacy, accessibility, compliance, audit, and operational
-  constraints;
+  constraints, with topology's `Aspect coverage:` at `Pass` for every aspect
+  that holds across the increment's capability, or each `Fail` carried as a
+  blocking gap with an owner;
 - no unresolved decision that changes the required outcome;
 - the retirement of every criterion the increment's mechanism replaces,
   admitted as part of the increment;
@@ -183,6 +185,7 @@ Implementation increment:
 - In scope / out of scope:
 - Acceptance-test references:
 - Data touched and ownership:
+- Aspects touched:
 - Roles and permissions:
 - Evidence and operations:
 - Parallel-ready: yes | no + missing criterion
@@ -248,7 +251,7 @@ Implementation readiness:
 - Workstreams or epics:
 - Implementation order:         # riskiest assumption first; parallel-ready groups marked
 - Smallest coherent increment:
-- Aspects:
+- Aspects:                      # aspect × capability matrix, projected from topology
 - Data ownership and lifecycle:
 - Evidence and operational needs:
 - Contract candidates:
@@ -258,6 +261,14 @@ Implementation readiness:
 - Technical questions:
 - Traceability:
 ```
+
+`Aspects` is the aspect × capability matrix: one row per aspect (a `constraint`
+node with `holds_across`), one column per capability in the package, and in
+each cell `covered by <ID>`, `open + owner`, or `excluded by <grounding or
+topology record>`. It is a projection of topology's `holds_across` and
+`constrains` edges onto the capability map — derived build preparation, never a
+second authority: an exclusion cites a record and is never a readiness reason.
+An increment's `Aspects touched` names the rows it must satisfy.
 
 For a standalone artifact, state audience, purpose, completion date, source
 artifacts, source currency, and caveats once near the top. Keep every derived item

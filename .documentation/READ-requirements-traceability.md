@@ -176,4 +176,4 @@ evidence states, anchor placement, gap taxonomy, and build-gate checks —
 lives in
 [SKILL.md](../.claude/skills/requirements-traceability/SKILL.md).*
 
-<!-- skill-revision: 7b5be79af6ba -->
+<!-- skill-revision: 1021cd9b3af7 -->

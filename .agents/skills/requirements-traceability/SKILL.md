@@ -61,6 +61,8 @@ Require:
 - canonical outcome-hypothesis IDs and versions when outcome evidence is in
   scope;
 - the passing readiness decision and admitted increment;
+- for aspect requirements, the governed set at subsystem granularity from the
+  accepted placement decision or the architecture-as-code registry;
 - the changed implementation, contract, decision, or operations artifacts;
 - the project's accepted anchor forms and executable verification sources;
 - commit, build, run, or environment identity when operational evidence is
@@ -164,6 +166,7 @@ creates a new hypothesis version and invalidates dependent assessments.
 | Data or migration | Schema/migration identifier plus compatibility or migration test |
 | Domain or data model view | Stable entity/node identifier plus the requirement IDs that authorize it |
 | ADR or architecture record | Requirement IDs in the decision context |
+| Aspect | Requirement ID on the mechanism subsystem plus the coverage check that enumerates the governed set |
 | Operations | Runbook/check identifier plus revision, environment, run, and outcome |
 | Issue or change record | Canonical IDs, admitted increment, evidence links, and named gaps |
 
@@ -219,6 +222,7 @@ Completion record:
 | `missing-requirement` | Work may be justified but has no canonical requirement or accepted rationale |
 | `missing-implementation` | Requirement exists but no implementation anchor covers it |
 | `missing-test` | Implementation exists but no executable verification covers it |
+| `aspect-uncovered` | The aspect's coverage check is absent, unexecuted, or reports a governed subsystem without the mechanism for the current revision |
 | `stale-reference` | Anchor targets an unknown, replaced, or removed ID or criterion |
 | `scope-deferred` | Work is intentionally later and cites an accepted deferral |
 | `decision-blocked` | An unresolved product, policy, platform, or ownership decision blocks proof |
@@ -242,6 +246,8 @@ Put deterministic trace checks in the earliest capable blocking gate:
 - list lapsing criteria beside pending ones, and reject a lapsing record that
   names no expiry condition;
 - require criterion-tagged tests to exist before accepting test-result tags;
+- reject an aspect whose coverage check is absent, unexecuted, or reports a
+  governed subsystem without the mechanism for the current revision;
 - ingest executed test results before promoting `implemented` to `verified`;
 - require operational evidence to carry revision and run identity;
 - reject unknown hypothesis IDs and outcome assessments that omit the hypothesis

@@ -160,4 +160,4 @@ operational reference — modes, recovery protocol, record shapes, and the
 validation gate — lives in
 [SKILL.md](../.claude/skills/requirements-grounding/SKILL.md).*
 
-<!-- skill-revision: 836bbdbfe8b9 -->
+<!-- skill-revision: 49777b1203a7 -->

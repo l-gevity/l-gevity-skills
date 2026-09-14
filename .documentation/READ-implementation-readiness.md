@@ -162,4 +162,4 @@ readiness defined are actually fulfilled. The full operational reference —
 gate criteria, derived-artifact shapes, and the decision record — lives in
 [SKILL.md](../.claude/skills/implementation-readiness/SKILL.md).*
 
-<!-- skill-revision: 72323d486385 -->
+<!-- skill-revision: 85f0a0f0b989 -->

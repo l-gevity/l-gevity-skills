@@ -167,6 +167,7 @@ SKILL_REQUIRED_TERMS = {
         "references/quality-model.md",
         "coverage finding, not evidence that none apply",
         "Quality coverage:",
+        "Holds across:",
     ),
     "requirements-topology": (
         "requirements-grounding",
@@ -182,6 +183,8 @@ SKILL_REQUIRED_TERMS = {
         "Two active records for one obligation",
         "lapsing",
         "Retired:",
+        "holds_across",
+        "Aspect coverage:",
     ),
     "implementation-readiness": (
         "requirements-grounding",
@@ -198,6 +201,8 @@ SKILL_REQUIRED_TERMS = {
         "Parallel-ready: yes | no + missing criterion",
         "only on criteria readable from the artifacts",
         "An assumption invalidatable by inspection is resolved, not scheduled",
+        "- Aspects:",
+        "Aspects touched:",
     ),
     "morphogenetic-architecture": (
         "Declare before observing",
@@ -281,6 +286,7 @@ SKILL_REQUIRED_TERMS = {
         "Representation gaps: <class, artifact, and expiry condition, or none>",
         "representation gaps carry expiry",
         "lapsing",
+        "`aspect-uncovered`",
     ),
     "functionality-complexity-tradeoff": (
         "Outcome evidence informs worth; it is not the verdict",

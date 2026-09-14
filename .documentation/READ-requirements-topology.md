@@ -170,4 +170,4 @@ graph to decide what is actually buildable. The full operational reference
 modes — lives in
 [SKILL.md](../.claude/skills/requirements-topology/SKILL.md).*
 
-<!-- skill-revision: 561bd436c467 -->
+<!-- skill-revision: 746388bc25bc -->

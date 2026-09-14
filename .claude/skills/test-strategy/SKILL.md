@@ -63,6 +63,10 @@ Consume:
 - actor workflows, contracts, current or accepted architecture boundaries, and
   data ownership;
 - functional and quality constraints;
+- the readiness aspect matrix, at capability level, for the Obligation pass;
+- the subsystem-level governed set of each aspect — from the accepted
+  placement decision or the architecture-as-code registry — for the
+  Portfolio pass;
 - historical defects, incidents, change hotspots, and production signals;
 - delivery, environment, privacy, compliance, and cost constraints.
 
@@ -234,7 +238,10 @@ Check the applicable surface without inventing requirements:
 - reliability, resilience, recovery, and data integrity;
 - security, privacy, compliance, and auditability;
 - usability, accessibility, and supported environments;
-- operability, configuration, deployment, and production verification.
+- operability, configuration, deployment, and production verification;
+- aspects: for every aspect that holds across the subject, one oracle per
+  governed subsystem or one generative check over the governed set — a
+  hand-written test per cell is the n-copies smell.
 
 When a quality area is material but lacks an authoritative requirement or
 specialist policy, record a blocker or route to the matching companion skill.

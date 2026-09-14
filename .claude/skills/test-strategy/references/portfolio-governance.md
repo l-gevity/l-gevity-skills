@@ -163,6 +163,7 @@ Use several independent signals:
 | Signal | What it can show | What it cannot prove |
 | --- | --- | --- |
 | Criterion/risk mapping | Intended obligations have tests | Tests are useful or passed |
+| Aspect coverage result | Every governed subsystem reaches the mechanism for each aspect that holds across it | That the mechanism is correct, or that the governed set is complete |
 | Executed evidence | Named checks passed for a revision | Future or unobserved behavior |
 | Line/branch coverage | Code was executed; gaps exist | Assertion strength or requirement satisfaction |
 | Mutation results | Tests detect selected injected changes | All real faults or non-functional quality |

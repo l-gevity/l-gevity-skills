@@ -193,6 +193,8 @@ as findings instead.
    applicable with a reason, or open with an owner, and draft the candidates a
    covered-but-unwritten obligation needs. A candidate set that names no
    quality characteristic is a coverage finding, not evidence that none apply.
+   A covered obligation that binds more than one scope is an aspect: give its
+   candidate a `Holds across` line.
 10. **State outcome hypotheses when relevant**: link a measurable downstream
     impact hypothesis to the affected requirements without turning it into a
     completion condition. For authoritative obligations whose validity does not
@@ -233,6 +235,7 @@ Requirement: <readable-slug>
 Actor: <one actor>
 Must be able to: <one solution-free capability or outcome>
 So that: <purpose, when it adds information>
+Holds across: <problem scopes or all; aspects only>
 Complete when:
 - <observable condition>
 - <observable condition>
@@ -250,6 +253,12 @@ legend. Never silently translate away a domain distinction.
 
 `So that` records purpose. It is neither evidence that the outcome will occur nor
 a substitute for a testable outcome hypothesis.
+
+`Holds across` marks an aspect: an obligation that binds more than one problem
+scope or foundation capability. Record it once, on the aspect requirement, never
+repeated on the requirements it constrains. The quality sweep still records a
+characteristic as covered by named slugs; the slugs, not the characteristic,
+carry `Holds across`. Omit the line for a requirement that holds in one scope.
 
 ## Outcome Hypothesis Shape
 
@@ -395,6 +404,9 @@ stale. Never leave silent divergence.
 - Do not turn a quality characteristic into a requirement or a numeric target
   without an actor, source, or evidence; an open characteristic is a finding
   with an owner, not a manufactured non-functional requirement.
+- Do not give a requirement `Holds across` without a source or evidence that
+  binds it to each scope named; `all` is a claim about every scope, not a
+  default.
 - Do not place outcome hypotheses inside requirement completion conditions.
 - Do not mark an outcome hypothesis `supported` from acceptance, integration, or
   implementation evidence alone.

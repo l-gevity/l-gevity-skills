@@ -60,6 +60,7 @@ actor: one actor
 role: foundation | workflow | output | constraint | evidence-primitive | decision-input
 kind: capability | business-rule | data | integration | security | compliance | operational
 requirement_scope: owning problem scope or foundation capability
+holds_across: []
 priority: must | should | could | won't-now
 status: draft | accepted | deprecated | superseded | lapsing
 basis: authoritative | interpreted | evidenced | hypothesized
@@ -70,6 +71,11 @@ notes: ""
 
 `lapsing` marks an accepted retirement whose implementation removal has not
 landed. A lapsing record carries the expiry condition that ends it.
+
+`holds_across` lists the requirement scopes, or `all`, that a `constraint` node
+binds; a node with it is an aspect. It normalizes grounding's `Holds across`,
+and the edge list is the evidence it is checked against: every scope it names
+receives a `constrains` edge from the node.
 
 Use project-defined labels when present. Keep the structural role and the domain
 kind separate: `constraint` explains how a node behaves in the graph; `security`
@@ -133,6 +139,8 @@ Check explicitly for:
 - a split, merge, replacement, or retirement announced in prose instead of
   recorded in lineage fields;
 - constraints hidden inside workflow prose;
+- an aspect whose `holds_across` names a scope with no `constrains` edge into
+  it;
 - external prerequisites without an owner or minimal contract;
 - source references that no longer match the grounding artifact;
 - requirement-scope clusters with mixed owners, lifecycles, or test surfaces.
@@ -154,8 +162,10 @@ When requirements live in a repository, keep four responsibilities explicit:
 2. **Schema validation** checks record shape, required fields, enums, and ID
    syntax as early as editor tooling permits and again in blocking CI.
 3. **Semantic validation** checks global uniqueness, criterion IDs, reference
-   resolution, alias ambiguity, lineage, dependency cycles, ownership, and
-   cross-record invariants that a file schema cannot prove. For lineage: a
+   resolution, alias ambiguity, lineage, dependency cycles, ownership, aspect
+   coverage (every scope a node's `holds_across` names receives a `constrains`
+   edge from it), and cross-record invariants that a file schema cannot prove.
+   For lineage: a
    record that names a replacement has its predecessor retired or lapsing; a
    lapsing record carries an expiry condition; lineage announced only in prose
    fails.
@@ -221,13 +231,18 @@ Decision:          STABLE | NEEDS-REFACTOR | BLOCKED
 Canonical source:  <grounding artifact and version>
 Graph size:        <node count / typed-edge count>
 Cycle:             Pass | Fail | Not evaluated
-Blocking issues:   <IDs, cycles, conflicts, verification, ownership, or lineage>
+Aspect coverage:   Pass | Fail: <aspect → scope> | Not evaluated
+Blocking issues:   <IDs, cycles, conflicts, verification, ownership, lineage, or aspect coverage>
 Retired:           <IDs superseded or lapsing in this change, or none>
 Inferred edges:    <count and evidence status>
 Repository gate:   <schema / semantics / generated drift / not configured>
 Next action:       <split, merge, source, decide, fix cycle, or run implementation-readiness>
 Verification:      <graph checks and source comparisons run, or Not run + reason>
 ```
+
+`Aspect coverage: Fail` yields `NEEDS-REFACTOR` when the uncovered scope has a
+node the aspect should constrain, and `BLOCKED` when the scope has no
+requirement at all — a meaning gap that returns to grounding.
 
 A full graph package additionally contains:
 
@@ -265,10 +280,12 @@ source, source currency, and caveats once near the top.
 - Do not infer service boundaries, synchronous calls, or event flows from graph
   edges.
 - Do not hide uncertainty by converting an inference into a source fact.
-- Do not claim the graph is stable while cycles, must-have verification gaps, or
-  unresolved ID transformations remain.
+- Do not claim the graph is stable while cycles, must-have verification gaps,
+  unresolved ID transformations, or aspect-coverage failures remain.
 - Do not report a cycle failure without inspecting the `depends_on` projection;
   use `Not evaluated` and name the missing graph input instead.
+- Do not report an aspect-coverage failure without both `holds_across` and the
+  `constrains` edges; use `Not evaluated` and name the missing input.
 - Do not hand-edit generated views or let them become a competing requirement
   source.
 - If grounding changes materially, refresh the topology or state exactly what is
