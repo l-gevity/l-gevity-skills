@@ -57,8 +57,8 @@ and fix it.
 
 | Question or finding | Use |
 | --- | --- |
-| Where does one new component belong?; **placement ambiguity** | Cell differentiation |
-| **god component**, SPLIT candidate | Segmentation |
+| Where does one new subsystem belong?; **placement ambiguity** | Cell differentiation |
+| **god subsystem**, SPLIT candidate | Segmentation |
 | **false boundary**, repeated independent implementations | Convergent evolution |
 | **cross-domain coupling**, **external SDK bypass** | Hierarchical branching |
 | **hidden runtime coupling** | Stigmergy |
@@ -67,36 +67,36 @@ and fix it.
 | **resilience bottleneck** | Leaf venation |
 | Should this runtime loop exist, and inside what bound? | Homeostasis |
 | Should this edge be removed? | Physarum |
-| Should this component be retired? | Apoptosis |
+| Should this subsystem be retired? | Apoptosis |
 | Do these independent peers now need a coordinator? | Quorum sensing |
 | **forbidden import cycle**, **layer-skip violation**, **tier inversion** | Hard invariant — no lens |
 
 ## Mechanism Atlas
 
-Three families answer three different questions: what a component becomes, how
-components reach each other, and what holds, changes, or removes form over
+Three families answer three different questions: what a subsystem becomes, how
+subsystems reach each other, and what holds, changes, or removes form over
 time.
 
 ### Pattern and Differentiation
 
-*What should this component become, and where is the seam?*
+*What should this subsystem become, and where is the seam?*
 
 | Natural architecture | Transferable mechanism | Software use | Required evidence | Reject when |
 | --- | --- | --- | --- | --- |
-| **Cell differentiation** | Shared rules produce specialized cells according to position and signals | Place or split components by domain position and responsibility instead of cloning bespoke variants | Domain meaning plus responsibility/change evidence | Domain meaning and responsibility/change evidence do not reveal distinct positions or reasons to change |
-| **Segmentation and compartments** | Repeated segments acquire distinct identity from positional genes, and compartment lineages do not mix across a boundary | Keep sibling modules symmetric with one varying positional parameter, and forbid direct peer-to-peer crossing between compartments such as tenant, region, or plugin | The sibling contract, the parameter that legitimately varies, and observed cross-peer edges | The siblings lack a stable shared contract or legitimate operation requires the proposed peer crossings |
-| **Convergent evolution** | Unrelated lineages under the same pressure independently evolve similar structures without shared ancestry | Read independently reinvented solutions in separate components as a signal for one missing shared capability, or as duplication that the shared pressure justifies | The shared pressure, both contracts, and change/failure history for each implementation | The contracts, lifecycles, or failure semantics differ materially despite surface similarity |
+| **Cell differentiation** | Shared rules produce specialized cells according to position and signals | Place or split subsystems by domain position and responsibility instead of cloning bespoke variants | Domain meaning plus responsibility/change evidence | Domain meaning and responsibility/change evidence do not reveal distinct positions or reasons to change |
+| **Segmentation and compartments** | Repeated segments acquire distinct identity from positional genes, and compartment lineages do not mix across a boundary | Keep sibling subsystems symmetric with one varying positional parameter, and forbid direct peer-to-peer crossing between compartments such as tenant, region, or plugin | The sibling contract, the parameter that legitimately varies, and observed cross-peer edges | The siblings lack a stable shared contract or legitimate operation requires the proposed peer crossings |
+| **Convergent evolution** | Unrelated lineages under the same pressure independently evolve similar structures without shared ancestry | Read independently reinvented solutions in separate subsystems as a signal for one missing shared capability, or as duplication that the shared pressure justifies | The shared pressure, both contracts, and change/failure history for each implementation | The contracts, lifecycles, or failure semantics differ materially despite surface similarity |
 
 ### Transport and Connection
 
-*How should components reach each other?*
+*How should subsystems reach each other?*
 
 | Natural architecture | Transferable mechanism | Software use | Required evidence | Reject when |
 | --- | --- | --- | --- | --- |
 | **Hierarchical branching** | Repeated branching distributes material while retaining trunks and local twigs | Nest domains and route infrastructure access through named trunks/adapters | Ownership, call paths, and bottleneck evidence | The proposed trunk has no clear owner or creates a bottleneck without a recovery path |
 | **Physarum adaptive transport** | Valuable routes reinforce while costly routes weaken under an efficiency/cost/fault-tolerance trade-off | Consolidate high-value interfaces and propose pruning demonstrably unused edges | Runtime volume, change history, reachability, and failure impact | The edge remains reachable or required, or pruning increases material failure impact |
 | **Leaf venation** | Loops trade transport cost for resilience under damage and fluctuating loads | Add runtime redundancy or alternate delivery paths while keeping static ownership acyclic | Failure injection, incident paths, load variation, and recovery behavior | Failure injection and load variation show no recovery benefit proportionate to the added route |
-| **Stigmergy** | Agents coordinate by modifying a shared environment rather than by addressing each other | Decide whether coordination through shared state, queues, artifacts, or registries is a declared contract or an undeclared edge, then name its owner and make the route traceable | Write/read ownership of the shared medium, runtime routes, and the inventory of undeclared edges | The medium is a separate component needing its own position, or its owner and routes cannot be stated |
+| **Stigmergy** | Agents coordinate by modifying a shared environment rather than by addressing each other | Decide whether coordination through shared state, queues, artifacts, or registries is a declared contract or an undeclared edge, then name its owner and make the route traceable | Write/read ownership of the shared medium, runtime routes, and the inventory of undeclared edges | The medium is a separate subsystem needing its own position, or its owner and routes cannot be stated |
 | **Endosymbiosis** | An absorbed organism keeps some machinery but loses autonomy while the host takes over control and interfaces | Decide whether an external capability is absorbed behind an owned adapter, kept external with its own lifecycle, or hosted internally | Ownership, failure isolation, upgrade cadence, and data/contract coupling with the external system | Ownership, upgrade cadence, failure isolation, or data coupling requires an independent lifecycle |
 
 ### Persistence and Renewal
@@ -108,7 +108,7 @@ time.
 | **Homeostasis** | Negative feedback keeps a variable inside viable bounds | Declare retry, backpressure, autoscaling, or reconciliation cycles with setpoint, bound, owner, and observability | Runtime state transitions and telemetry | The loop lacks a stable setpoint, bound, owner, exit, or observable state |
 | **Bone remodeling** | Structure accumulates along persistent load and recedes where load disappears | Move boundaries or prune edges only after sustained pressure across a meaningful window | Repeated co-change, traffic, or failure pressure | The signal disappears under a predeclared window change or authoritative fields disagree |
 | **Quorum sensing** | Individuals act independently until a density signal crosses a threshold, then switch to coordinated collective behavior | Decide whether independent peers still need no coordinator, or whether measured contention justifies one explicit control point | Peer count, contention/conflict rate, coordination cost, and the failure profile of the added control point | Contention stays below the predeclared threshold or coordinator failure costs more than peer coordination |
-| **Apoptosis** | Programmed, signal-triggered death removes cells cleanly and neighbors absorb the remains without inflammation | Retire a component through an explicit removal signal — deprecation marker, reachability proof, owner, and cleanup path — instead of leaving it to rot in place | Reachability, callers, runtime traffic across a stated window, and data-retention obligations | Callers, traffic, or retention duties remain, or no owner accepts the cleanup path |
+| **Apoptosis** | Programmed, signal-triggered death removes cells cleanly and neighbors absorb the remains without inflammation | Retire a subsystem through an explicit removal signal — deprecation marker, reachability proof, owner, and cleanup path — instead of leaving it to rot in place | Reachability, callers, runtime traffic across a stated window, and data-retention obligations | Callers, traffic, or retention duties remain, or no owner accepts the cleanup path |
 
 ## Reversibility Rationale
 
@@ -137,7 +137,7 @@ Use sacred geometry as a visual and questioning vocabulary, not as optimization
 evidence:
 
 - **Circle** — ask what is inside one ownership boundary.
-- **Vesica / overlap** — expose a shared concern that may need one owner.
+- **Vesica / overlap** — expose a shared aspect that may need one owner.
 - **Spiral** — show iterative growth or re-entry through a bounded loop.
 - **Branch** — show distribution from an explicit trunk or contract.
 - **Lattice** — show peer symmetry and repeated local rules.
@@ -165,14 +165,14 @@ static ownership cycle.
 
 **Co-changing monolith → differentiation plus remodeling.** Independent
 capabilities repeatedly change and fail for different reasons inside one
-component. Propose SPLIT; accept only when domain meaning and an independent
+subsystem. Propose SPLIT; accept only when domain meaning and an independent
 change or failure field agree.
 
 **Shared status column → stigmergy.** Two services coordinate by writing and
 polling one status field that neither declares as an interface. Name the medium,
 give it a single writer and an explicit contract, and record the edge in the
 declared topology. The analogy stops at intent: insects need no owner, software
-does. Reject the lens when the medium is really a third component that deserves
+does. Reject the lens when the medium is really a third subsystem that deserves
 its own position rather than a contract.
 
 **Duplicate retry helpers → convergent evolution.** Two domains independently

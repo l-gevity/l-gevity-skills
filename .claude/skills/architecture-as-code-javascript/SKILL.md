@@ -2,11 +2,11 @@
 name: architecture-as-code-javascript
 description: >-
     JavaScript / TypeScript implementation of the `architecture-as-code`
-    pattern. Per-module `eslint.architecture.mjs` files merged into a single
+    pattern. Per-subsystem `eslint.architecture.mjs` files merged into a single
     ESLint flat-config and enforced via `eslint-plugin-boundaries`. TRIGGER
     when: implementing or extending architecture-as-code in a JS/TS repo,
     debugging an `eslint-plugin-boundaries` rule, or adapting the assembler.
-    SKIP for routine edits inside a governed module. Reads in conjunction with
+    SKIP for routine edits inside a governed subsystem. Reads in conjunction with
     `architecture-as-code` (the pattern, source of truth for schema, rule
     placement, anti-patterns, and audit checklist) — this skill defines only
     the JS-specific encoding, assembler code, and gotchas.
@@ -26,12 +26,12 @@ description: >-
   source-discovery walkers and ESLint's own config-loader.
 - ES module with `export default { components: [...], forbidden: [...] }`, plus
   an optional `externals: [...]` for npm-package policy (§3). `forbidden`
-  relates declared components to each other and cannot name a package.
+  relates declared subsystems to each other and cannot name a package.
 - Pattern syntax: filesystem globs (`<dir>/**`).
 - Repo-root `package.json` must include `"type": "module"`.
 
 ```js
-// eslint.architecture.mjs — example for a module with internal layering
+// eslint.architecture.mjs — example for a subsystem with internal layering
 export default {
     components: [
         { name: 'core-facade', pattern: 'packages/core/index.js', mode: 'file' },
@@ -86,7 +86,7 @@ function expand(spec, except) {
     return { type: types.length === 1 ? types[0] : types };
 }
 
-// 4. Emit boundaries-plugin config. Forward every field the component schema
+// 4. Emit boundaries-plugin config. Forward every field the subsystem schema
 //    defines: an omitted field is unexpressible in every architecture file in
 //    the repo, with no error to say so.
 const elements = COMPONENTS.map(c => ({
@@ -126,7 +126,7 @@ Both rules are emitted at `error`. The pattern requires the file-existence rule
 at error severity alongside the dependency rules, and a dependency rule at
 `warn` is a report rather than a boundary: the build stays green while the edge
 it forbids ships. If a repository cannot yet pass, narrow the rule's scope
-through declared components, never by softening its severity.
+through declared subsystems, never by softening its severity.
 
 Exclusions — build output, vendored code, generated bundles — belong in the flat
 config's shared `ignores`, where one list governs every rule and shows up in
@@ -143,7 +143,7 @@ repo-root `package.json`.
 The `architecture-guidelines` §10 handoff usually arrives as "only the adapter
 may talk to the provider". A provider SDK is an **npm package, not an
 element**, so `forbidden` cannot express it: that list only relates declared
-components to each other. Declare package policy separately.
+subsystems to each other. Declare package policy separately.
 
 ```js
 // eslint.architecture.mjs
@@ -202,7 +202,7 @@ above produces exactly the same green output as a working rule.
 ### Require literal dynamic-import paths
 
 A computed `import(expression)` can bypass path resolution and therefore every
-component boundary. Apply this rule to every production and test source block:
+subsystem boundary. Apply this rule to every production and test source block:
 
 ```js
 {
@@ -226,8 +226,8 @@ boundaries rules so a new source block cannot silently omit it.
 
 ### Prevent production imports of test-only code
 
-Declare test code as a narrower component before the production catch-all, then
-forbid the production component from importing it:
+Declare test code as a narrower subsystem before the production catch-all, then
+forbid the production subsystem from importing it:
 
 ```js
 export default {
@@ -246,7 +246,7 @@ export default {
 };
 ```
 
-Tests may still import production components. Adapt the globs to the repository,
+Tests may still import production subsystems. Adapt the globs to the repository,
 but retain the direction: production → test is forbidden.
 
 ### Classify repository-root files
@@ -276,7 +276,7 @@ the list comes from the linter's output rather than from memory.
 When applying this implementation, emit:
 
 ```
-Scope:          <repo / package / module path>
+Scope:          <repo / package / subsystem path>
 Decision:       Add eslint.architecture.mjs | Update assembler | Update ESLint config | Blocked
 Generated config:<path, if any>
 Rules changed:  <boundaries/dependencies element edges, externals package policy, or no-restricted-imports entries>
@@ -325,7 +325,7 @@ Next action:    <specific file edit, dependency install, or unresolved question>
 
 > [!NOTE] **Unmatched files bypass enforcement — silently.** Files matching no
 > element are invisible to `boundaries/dependencies`. End every constrained
-> module's `components` with a `<dir>/**` catch-all (pattern Directive 5), and
+> subsystem's `components` with a `<dir>/**` catch-all (pattern Directive 5), and
 > set `boundaries/no-unknown-files` to `error` so an unmatched file is reported
 > instead of ignored. Dependency rules are not a substitute: a file with no
 > imports, or one loaded by a `<script>` tag, has no edge to judge.

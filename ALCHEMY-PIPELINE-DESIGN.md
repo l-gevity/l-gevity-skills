@@ -28,14 +28,14 @@ Phase** that spans the Minimum gate and precedes architectural design:
    typed dependency graph when their relationships are non-trivial.
 4. `implementation-readiness` determines whether the resulting requirement
    graph is ready to enter architecture and identifies the smallest coherent
-   delivery slice.
+   delivery increment.
 
 These skills qualify work entering A.L.C.H.E.M.Y.; they do not become new
 letters in the acronym.
 
 `requirements-traceability` begins after a passing readiness decision when an
-admitted slice enters architecture, implementation, verification, review, or
-closeout. It maintains implementation, executed-completion, and linked
+admitted increment enters architecture, implementation, verification, review,
+or closeout. It maintains implementation, executed-completion, and linked
 outcome-evidence state; it is not a qualification stage, gate, acronym letter,
 or prerequisite for Architecture. When current outcome evidence reaches a
 revisit trigger, the bounded functionality re-enters only M in Retrospective
@@ -50,7 +50,7 @@ owns pipeline execution triggers and gating, and `requirements-traceability`
 owns evidence state. Test Strategy is not a qualification stage, gate, acronym
 letter, or prerequisite for Architecture.
 
-When an admitted slice changes persisted or serialized data shape,
+When an admitted increment changes persisted or serialized data shape,
 `evolutionary-database-design` is an independently matched two-pass companion.
 Its Compatibility pass follows readiness and precedes A, supplying the data
 facts L grades reversibility from; its Transition pass consumes final A/L/C and
@@ -92,7 +92,7 @@ flowchart TD
     T -. "NEEDS-REFACTOR / BLOCKED" .-> G
 
     R -- "READY" --> A["A · Architecture"]
-    R -- "PARTLY-READY<br/>bounded reversible slice" --> A
+    R -- "PARTLY-READY<br/>bounded reversible increment" --> A
     R -. "NOT-READY" .-> G
     R -. "verification design material" .-> TS1["Test Strategy<br/>Obligation pass"]
     TS1 -. "risks · failure modes · oracles" .-> A
@@ -111,7 +111,7 @@ flowchart TD
     E -. "accepted architecture" .-> TS2["Test Strategy<br/>Portfolio pass"]
     TS2 -. "final selected checks" .-> H
     E -. "accepted shape and ownership" .-> DS2["Evolutionary Database Design<br/>Transition pass"]
-    DS2 -. "migration units" .-> TS2
+    DS2 -. "migration increments" .-> TS2
     H --> Y["Y · Yield<br/>iteration 2"]
 
     C -. "Redesign" .-> A
@@ -148,9 +148,9 @@ Readiness → Test Strategy obligation pass
 → H
 ```
 
-When the slice changes persisted or serialized data shape, interleave the data
-companion as well; its Transition pass precedes the Test Strategy portfolio
-pass so the migration units are inside the evidence scope:
+When the increment changes persisted or serialized data shape, interleave the
+data companion as well; its Transition pass precedes the Test Strategy
+portfolio pass so the migration increments are inside the evidence scope:
 
 ```text
 Readiness → Evolutionary Database Design compatibility pass
@@ -220,7 +220,7 @@ confirmation.
 | Requirements Grounding | `GROUNDED` | `PROVISIONAL`, `NOT-GROUNDED` | Grounded requirement set, linked outcome hypotheses when relevant, evidence map, assumptions, confirmation queue |
 | M — Minimum | `BUILD`, `KEEP`, `SIMPLIFY` | `DEFER`, `DROP`, `OBSOLETE` | Functionality/complexity decision per candidate |
 | Requirements Topology | `STABLE` | `NEEDS-REFACTOR`, `BLOCKED` | Atomic typed graph, stable IDs, dependencies, conflicts, dependency order |
-| Implementation Readiness | `READY`, bounded `PARTLY-READY` | `NOT-READY` | Smallest coherent slice, verification obligations, unresolved blockers |
+| Implementation Readiness | `READY`, bounded `PARTLY-READY` | `NOT-READY` | Smallest coherent increment, verification obligations, unresolved blockers |
 | A — Architecture | Gate-specific pass | Redesign, reject, or defer | First-principles design record |
 | L — Morphogenetic topology | Final `PLACE`, `KEEP`, `DECLARE-RUNTIME-CYCLE`, or measured restructuring decision | `DEFER`, including an unmeasured restructuring candidate | Rapid/Full selection plus final topology report, or one candidate plus Gate C measurement request; a probationary acceptance adds its expiry, instrumentation task, and prediction recheck, placed at Gate H |
 | C — Complexity | `Proceed` | `Redesign`, `Reject` | Four structural deltas; re-enter L once when measuring its unchanged candidate |
@@ -231,8 +231,8 @@ An L-stage provisional `DEFER` with one restructuring candidate is a bounded
 measurement handoff to C, not permission to enter E. Any other `DEFER` stops.
 
 `PARTLY-READY` may enter Architecture only as an explicitly bounded,
-reversible slice whose unresolved requirements cannot change the slice's
-meaning or invalidate its verification.
+reversible increment whose unresolved requirements cannot change the
+increment's meaning or invalidate its verification.
 
 ## Invariants
 
@@ -242,10 +242,10 @@ meaning or invalidate its verification.
    outcome hypotheses distinct. Completion evidence does not support an outcome
    hypothesis, and measured impact informs but does not replace M's worth verdict.
 3. Requirements Topology models requirement relationships; Morphogenetic
-   Architecture places implementation components and compares declared
+   Architecture places implementation subsystems and compares declared
    topology with observed coupling fields. Neither substitutes for the other.
-4. Implementation Readiness prepares a coherent build slice without inventing
-   missing requirement meaning.
+4. Implementation Readiness prepares a coherent build increment without
+   inventing missing requirement meaning.
 5. A failed requirements decision cannot be bypassed by advancing to
    Architecture.
 6. Focused aliases preserve current A.L.C.H.E.M.Y. command behavior.
@@ -291,22 +291,22 @@ meaning or invalidate its verification.
 
 ## Complexity Assessment
 
-A naive always-on ten-stage conveyor adds three component kinds, three
+A naive always-on ten-stage conveyor adds three subsystem kinds, three
 dependency edges to every full route, and three levels of mandatory chain depth
-without reducing the number of existing A.L.C.H.E.M.Y. modules:
+without reducing the number of existing A.L.C.H.E.M.Y. subsystems:
 
 | Measure | Naive always-on pipeline | Adaptive A.L.C.H.E.M.Y. pipeline |
 |:--|:--|:--|
-| Component-kinds Δ | `+3` | `+3` capabilities, invoked conditionally |
+| Subsystem-kinds Δ | `+3` | `+3` capabilities, invoked conditionally |
 | Dependency-edges Δ | `+3` on every full route | Added only where evidence, topology, or readiness is unresolved |
 | Max-chain-depth Δ | `+3` | Between `0` and `+3`, based on the subject |
-| Module-count Δ | `0` | `0` |
+| Subsystem-count Δ | `0` | `0` |
 | Cycle pass | Pass | Pass on solid path; rework and the single L/C/L acceptance loop are bounded and explicit |
 
 The adaptive pipeline invokes the Requirements Qualification Phase only when
 the work's risk or dependency structure justifies the extra reasoning cost. It
 preserves the shortest useful route for local and already-grounded decisions.
-The dispatch preflight adds no module and no mandatory gate depth: `SKIP`
+The dispatch preflight adds no subsystem and no mandatory gate depth: `SKIP`
 returns before sibling loading, while `DIRECT` and `ADAPTIVE` replace ad hoc
 route inference with one explicit classification.
 
@@ -322,13 +322,13 @@ following:
   over the active subject, not as help or a full traversal.
 - Return `SKIP` for routine local work without loading core gate skills while
   preserving independently triggered companion skills.
-- Return `DIRECT` for one clear gate concern, `ADAPTIVE` for structural work,
+- Return `DIRECT` for one clear gate question, `ADAPTIVE` for structural work,
   and `FULL` only for explicit full-traversal language.
 - Route an already-grounded request directly to M.
 - Skip topology with a recorded rationale for one bounded independent
   requirement.
 - Prevent `NOT-GROUNDED`, `BLOCKED`, and `NOT-READY` work from entering A.
-- Admit `PARTLY-READY` only as a bounded reversible slice.
+- Admit `PARTLY-READY` only as a bounded reversible increment.
 - Begin an existing-project audit at `C₀` and use recovery mode conditionally.
 - Preserve focused gate and DevOps-triad aliases.
 - Start L in Rapid when the subject is bounded; escalate to Full without
@@ -346,7 +346,7 @@ following:
   without restarting the pipeline or treating acceptance as impact proof.
 - Route material verification design through the Test Strategy two-pass
   handshake without changing the core qualification or gate sequence.
-- Route a slice that changes persisted or serialized data shape through the
+- Route an increment that changes persisted or serialized data shape through the
   Evolutionary Database Design two-pass handshake, with its Transition pass
   preceding the Test Strategy Portfolio pass, without changing the core
   qualification or gate sequence.

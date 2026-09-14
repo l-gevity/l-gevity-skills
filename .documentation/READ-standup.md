@@ -78,7 +78,7 @@ because they move visibly each day. The two that actually decide whether a
 deadline holds move slowly enough to be invisible daily and decisive
 quarterly.
 
-**Architectural debt** is structural, not featural: the shared component
+**Architectural debt** is structural, not featural: the shared subsystem
 nobody adopted, the infrastructure cost curve bending the wrong way, the model
 with no screen, the data-model gap everyone routes around. Reporting the three
 heaviest items with a single trend word — increasing, stable, decreasing —
@@ -128,4 +128,4 @@ decides what to do about debt this report only counts. The full operational
 reference — parameters, section rules, and the output contract — lives in
 [SKILL.md](../.claude/skills/standup/SKILL.md).*
 
-<!-- skill-revision: 03d8c7ed1303 -->
+<!-- skill-revision: c48eac3c529f -->

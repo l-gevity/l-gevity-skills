@@ -74,7 +74,7 @@ prospective mode. For retrospective removals, apply the safety constraints in
 | Category                          | Definition                                                                                  | Typical example                                                                                                                                                                    |
 | --------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Impossible-state guard**        | Defends against a state ruled out by deployment topology, type system, or runtime invariant | Client/server version skew in a single-artifact SWA; null-guard on a non-nullable type; race-condition mutex in a single-threaded executor; retry loop on a deterministic in-process call |
-| **Already-defended-elsewhere**    | Concern fully owned by a different layer, duplicated here                                   | XSS-escaping atop a templating engine that already escapes; manual rollback inside an outer transaction; CSRF token on an idempotent GET; HTTPS-upgrade logic when the load balancer terminates TLS |
+| **Already-defended-elsewhere**    | Aspect fully owned by a different layer, duplicated here                                    | XSS-escaping atop a templating engine that already escapes; manual rollback inside an outer transaction; CSRF token on an idempotent GET; HTTPS-upgrade logic when the load balancer terminates TLS |
 | **Cargo-culted pattern**          | Pattern whose prerequisites do not hold in this context                                     | Connection pool in a CLI that exits in 200 ms; singleton in a stateless lambda; client-side request dedupe against an idempotent endpoint; back-compat shim for a client class that no longer exists |
 | **Phantom requirement**           | Solves a requirement that was never real or has lapsed                                      | Feature flag for a completed launch; A/B branch after the experiment concluded; migration code that has provably run on every record                                              |
 | **Generality without instantiation** | Abstraction whose anticipated variation never materialized                               | Strategy pattern with one strategy; plugin interface with one implementation; config key that has held one value across all environments for the feature's lifetime              |
@@ -91,7 +91,7 @@ subject to the invariant-documentation and load-bearing exceptions in §§1c/8e.
 | **Invariant audit**              | List the invariants the architecture, type system, deployment topology, and trust boundary maintain. List the conditions the code branches on. Branches that contradict an invariant are dead.                     | Impossible-state guards, dead branches             |
 | **Trigger reachability**         | Construct a concrete real-world sequence that activates the code without violating an architectural invariant. Failure to construct one after checking callers, entry points, tests, and runtime paths is a positive finding. | Impossible-state guards, dead branches             |
 | **Origin archaeology**           | Pull the introducing commit / PR / ADR. Verify the rationale's premises still hold (dependency present, platform supported, client class extant, migration incomplete). Lapsed premises mean the code is obsolete. | Phantom requirements                               |
-| **Layer-responsibility map**     | For each cross-cutting concern (auth, escaping, retry, validation, caching), name the single layer that owns it. Other layers performing the same job are redundant or signal a missing trust boundary.            | Already-defended-elsewhere                         |
+| **Layer-responsibility map**     | For each aspect (auth, escaping, retry, validation, caching), name the single layer that owns it. Other layers performing the same job are redundant or signal a missing trust boundary.                          | Already-defended-elsewhere                         |
 | **Pattern-prerequisite check**   | For each recognizable pattern, list its prerequisites (long-lived process, mutable shared state, non-idempotent dependency, multiple implementations). Prerequisites that do not hold here mean the pattern is cargo-culted. | Cargo-culted patterns                          |
 | **One-value config**             | A flag, env var, or config key that has held one value across all environments for the feature's lifetime is a dead-seam candidate. Either inline the value or document the concrete second value, compliance requirement, or pending rollout that keeps it alive. | Generality without instantiation, phantom reqs.    |
 | **Zero-everything signature**    | Production code with zero telemetry hits AND zero bug history AND zero recent edits is not necessarily "stable" — it may have never run. Combine with the invariant audit to distinguish load-bearing-but-quiet from guarding-the-impossible. | Impossible-state guards                |
@@ -190,7 +190,7 @@ are handled separately in §8.
 ### Cost axes
 
 Structural cost is **delegated** to `structural-simplification`: the
-**Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ**
+**Subsystem-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Subsystem-count Δ**
 introduced (prospective) or already present (retrospective). See the
 Reporting Vocabulary in `structural-simplification` for the symbol mapping.
 This skill adds three ongoing-cost axes that structure alone does not capture:
@@ -207,8 +207,8 @@ plus ongoing maintenance × lifetime):
 `Aggregate cost ≈ (ΔD + ΔK + ΔP + Δn) + (M + X + E) × L`
 
 — where `ΔD, ΔK, ΔP, Δn` are the structural deltas from `structural-simplification`
-(see its Reporting Vocabulary: Component-kinds Δ, Dependency-edges Δ,
-Max-chain-depth Δ, Module-count Δ).
+(see its Reporting Vocabulary: Subsystem-kinds Δ, Dependency-edges Δ,
+Max-chain-depth Δ, Subsystem-count Δ).
 
 ### The worth inequality
 
@@ -254,7 +254,7 @@ implementation**. All inputs are estimates; record confidence explicitly.
 
 ### 3b. Retrospective — auditing existing functionality
 
-Applied to code, modules, features, capabilities, or flags that **already
+Applied to code, subsystems, features, capabilities, or flags that **already
 exist**. Inputs are observable; bias toward measurement over judgment.
 
 1. Define the boundary: files, symbols, entry points, feature flags, routes,
@@ -379,7 +379,7 @@ outcome hypothesis.
 | Verdict           | Meaning                                                                                                                                    |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | **BUILD**         | Proceed as specified. Record the worth rationale; it becomes the audit baseline.                                                           |
-| **BUILD-minimal** | Build the smallest slice capturing ≥80% of `V`; defer the rest with explicit revisit triggers.                                             |
+| **BUILD-minimal** | Build the smallest increment capturing ≥80% of `V`; defer the rest with explicit revisit triggers.                                         |
 | **NEGOTIATE**     | High `V`, high `C`. Reduce scope, conform to an existing pattern (§7a of `structural-simplification`), or accept debt with an expiry date. |
 | **DEFER**         | `V` is unclear or evidence is thin. Document trigger conditions; revisit.                                                                  |
 | **DROP**          | Does not clear the cost bar, OR fails the necessity gate (rationale: "guards against a state that cannot occur in this stack"). Record the rejection so the idea is not re-proposed without new evidence — or, for necessity failures, without a change in the stack's invariants. |
@@ -428,24 +428,24 @@ Keep fields concrete enough for Codex to choose the next edit, test, telemetry
 task, or rejection:
 
 ```
-Subject:        <feature / module / ticket / path under review>
+Subject:        <feature / subsystem / ticket / path under review>
 Mode:           Prospective | Retrospective
 Necessity:      Pass | Fail
 Necessity note: <if Fail: which §1a category, which invariant violated /
                  prerequisite missing / premise lapsed; one line.
                  If Pass and non-trivial: brief note on what made it pass.>
 V scores:       U=<0-3>  F=<0-3>  R=<0-3>  I=<0-3>       (1-line evidence each; OMIT if Necessity=Fail)
-C scores:       Component-kinds Δ=<±n>  Dependency-edges Δ=<±n>
-                Max-chain-depth Δ=<±n>  Module-count Δ=<±n>      (prospective: deltas; retrospective: measured absolutes; OMIT if Necessity=Fail)
+C scores:       Subsystem-kinds Δ=<±n>  Dependency-edges Δ=<±n>
+                Max-chain-depth Δ=<±n>  Subsystem-count Δ=<±n>   (prospective: deltas; retrospective: measured absolutes; OMIT if Necessity=Fail)
                 M=<0-3>  X=<0-3>  E=<0-3>                 (1-line evidence each; OMIT if Necessity=Fail)
 Confidence V:   Low | Medium | High                       (OMIT if Necessity=Fail)
 Confidence C:   Low | Medium | High                       (OMIT if Necessity=Fail)
 Outcome evidence: <hypothesis IDs, states, freshness, observation links, or none / not applicable>
 Decision:       <BUILD | BUILD-minimal | NEGOTIATE | DEFER | DROP | KEEP | SIMPLIFY | QUARANTINE | DEPRECATE | DELETE | OBSOLETE>
 Rationale:      <2–4 sentences tying scores → decision, or necessity finding → OBSOLETE>
-Next action:    <build minimal slice, delete path, add telemetry, write test, update lint rule, or stop>
+Next action:    <build minimal increment, delete path, add telemetry, write test, update lint rule, or stop>
 Verification:   <command / telemetry / caller check / Not run + reason>
-Minimal alt:    <smallest slice preserving most V, if applicable>
+Minimal alt:    <smallest increment preserving most V, if applicable>
 Revisit when:   <measurable trigger or calendar date>
 ```
 

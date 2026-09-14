@@ -29,7 +29,7 @@ that belong to someone else?* That yields a concrete checklist. Work is
   more on this below;
 - **data ownership and lifecycle are identified** — which system is
   authoritative for the records this touches, and what happens to them;
-- the relevant cross-cutting constraints (security, privacy, compliance,
+- the relevant aspects (security, privacy, compliance,
   accessibility, operations) are *identified* — not solved, but known
   to apply, because retrofitted constraints are the expensive kind;
 - **no unresolved decision remains that would change the required
@@ -102,23 +102,24 @@ restates acceptance criteria in its own words — the canonical completion
 conditions are referenced, because a paraphrase is a fork, and forks
 drift.
 
-## Start with the smallest coherent slice
+## Start with the smallest coherent increment
 
 Of everything that's ready, what gets built first? The principle: the
-**smallest vertical slice that demonstrates the core outcome end to end**
-— one actor, one workflow, real boundaries crossed, thin at every layer,
-rather than a complete horizontal layer of everything.
+**smallest coherent increment — one cut through every layer, so it
+demonstrates the core outcome end to end**: one actor, one workflow, real
+boundaries crossed, thin at every layer, rather than a complete horizontal
+layer of everything.
 
 The reasoning is about *when risk surfaces*. Horizontal layers feel
 productive and defer every integration truth to the end, where surprises
-are most expensive. A vertical slice drags the riskiest unknowns — does
+are most expensive. A vertical increment drags the riskiest unknowns — does
 the data flow, does the contract hold, is the outcome what the actor
 needed — into week one, while everything is still cheap to change. The
-slice also gives the readiness decision its first real test: nothing
+increment also gives the readiness decision its first real test: nothing
 exposes a phantom "ready" faster than attempting a thin end-to-end path
 through it.
 
-Two refinements decide the order among slices. First, the *riskiest
+Two refinements decide the order among increments. First, the *riskiest
 assumption* goes first: not the most valuable feature, but the belief that,
 if wrong, invalidates the most of the plan — and it gets the cheapest vehicle
 that can prove it wrong. A proof of concept kills one feasibility assumption
@@ -127,14 +128,14 @@ never ships; a minimum viable product is the smallest thing that lets real
 use test the outcome hypothesis, and doubles as the first full rehearsal of
 the delivery path.
 
-Second, a slice is *parallel-ready* — safe to hand to several people or
+Second, an increment is *parallel-ready* — safe to hand to several people or
 agents at once — only when it is isolated enough to need little context,
 small enough to merge on its own, free of any unmerged prerequisite or
 unresolved contract it shares with a sibling, and independent of the other
-slices in its group. These are the conditions under which work coordinates
+increments in its group. These are the conditions under which work coordinates
 through the shared artifact instead of through meetings; a group that fails
 one of them is a sequence wearing a parallel costume. Note what is *not* on
-the list: who will pick the slice up. That is a scheduling fact, invisible in
+the list: who will pick the increment up. That is a scheduling fact, invisible in
 the artifacts, and a criterion nobody can check is not a criterion.
 
 ## Ready ≠ built ≠ verified
@@ -161,4 +162,4 @@ readiness defined are actually fulfilled. The full operational reference —
 gate criteria, derived-artifact shapes, and the decision record — lives in
 [SKILL.md](../.claude/skills/implementation-readiness/SKILL.md).*
 
-<!-- skill-revision: 45270692f57c -->
+<!-- skill-revision: 72323d486385 -->

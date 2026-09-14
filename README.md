@@ -23,7 +23,7 @@ Alchemy is the backbone for structural and architectural quality: is this
 worth building, is it well-designed, is it in the right place, is it as
 simple as it can be, are the rules enforced as code, are defects caught
 early, is the flow optimized. It is, in effect, the architect companion —
-not a security, accessibility, UX, API, or release reviewer. Those concerns
+not a security, accessibility, UX, API, or release reviewer. Those reviews
 live in their own companion skills, triggered independently alongside it.
 
 <img width="1536" height="1024" alt="L-GEVITY A.L.C.H.E.M.Y." src="https://github.com/user-attachments/assets/2fb2f2c2-193b-4e50-a334-be6a72053ea4" />
@@ -86,9 +86,9 @@ it works.
 |---|---|
 | Routing a design, refactor, or architecture audit through the smallest useful process | [`alchemy`](./.agents/skills/alchemy/SKILL.md) |
 | Turning requests, evidence, obligations, or existing behavior into grounded requirements | [`requirements-grounding`](./.agents/skills/requirements-grounding/SKILL.md) |
-| Structuring requirements, resolving dependencies and conflicts, and finding a coherent delivery slice | [`requirements-topology`](./.agents/skills/requirements-topology/SKILL.md), [`implementation-readiness`](./.agents/skills/implementation-readiness/SKILL.md) |
+| Structuring requirements, resolving dependencies and conflicts, and finding a coherent delivery increment | [`requirements-topology`](./.agents/skills/requirements-topology/SKILL.md), [`implementation-readiness`](./.agents/skills/implementation-readiness/SKILL.md) |
 | Deciding whether proposed or existing functionality is worth its complexity | [`functionality-complexity-tradeoff`](./.agents/skills/functionality-complexity-tradeoff/SKILL.md) |
-| Designing modules and services, placing responsibilities, and untangling dependency topology | [`architecture-guidelines`](./.agents/skills/architecture-guidelines/SKILL.md), [`morphogenetic-architecture`](./.agents/skills/morphogenetic-architecture/SKILL.md) |
+| Designing subsystems and services, placing responsibilities, and untangling dependency topology | [`architecture-guidelines`](./.agents/skills/architecture-guidelines/SKILL.md), [`morphogenetic-architecture`](./.agents/skills/morphogenetic-architecture/SKILL.md) |
 | Measuring whether a refactor or restructuring actually simplifies the system | [`structural-simplification`](./.agents/skills/structural-simplification/SKILL.md) |
 | Encoding and enforcing architectural boundaries in JavaScript, TypeScript, or Python | [`architecture-as-code`](./.agents/skills/architecture-as-code/SKILL.md), [`architecture-as-code-javascript`](./.agents/skills/architecture-as-code-javascript/SKILL.md), [`architecture-as-code-python`](./.agents/skills/architecture-as-code-python/SKILL.md) |
 | Changing a database schema, event or message payload, API body, or file format without breaking the code versions that coexist during rollout and rollback | [`evolutionary-database-design`](./.agents/skills/evolutionary-database-design/SKILL.md) |
@@ -123,7 +123,7 @@ flowchart TD
     Req0["Document — grounded requirement"]
     Req1["Document — approved requirement"]
     Graph["Document — requirement dependency graph"]
-    Slice["Document — delivery slice"]
+    Increment["Document — delivery increment"]
 
     Design["Document — architecture/design"]
     Topology["Document — topology and complexity record"]
@@ -139,10 +139,10 @@ flowchart TD
     Input -->|"requirements-grounding"| Req0
     Req0 -->|"functionality-complexity-tradeoff"| Req1
     Req1 -->|"requirements-topology (when needed)"| Graph
-    Graph -->|"implementation-readiness"| Slice
-    Req1 -.->|"implementation-readiness (independent requirement)"| Slice
+    Graph -->|"implementation-readiness"| Increment
+    Req1 -.->|"implementation-readiness (independent requirement)"| Increment
 
-    Slice -->|"architecture-guidelines"| Design
+    Increment -->|"architecture-guidelines"| Design
     Design -->|"morphogenetic-architecture + structural-simplification"| Topology
     Topology -->|"architecture-as-code"| Rules
 
@@ -160,13 +160,13 @@ flowchart TD
 ### Three quality spaces
 
 Alchemy evaluates a change from three complementary directions instead of
-collapsing every concern into one score.
+collapsing every dimension into one score.
 
 ```mermaid
 flowchart LR
     Change["Software change"]
     Topology["Topology<br/>Domain · tier · layer<br/>legality, then pressure"]
-    Structure["Structure<br/>D kinds · K edges<br/>P depth · n modules"]
+    Structure["Structure<br/>D kinds · K edges<br/>P depth · n subsystems"]
     Flow["Flow<br/>left · out · down"]
     Evolution["Smallest evidence-backed evolution"]
 
@@ -198,11 +198,11 @@ between the declared architecture and the running system surfaces as a
 defect instead of accumulating silently — the topology stays continuously
 accountable to the code, rather than describing what the code used to be.
 
-Every component declares three coordinates: **domain**, **abstraction tier**,
+Every subsystem declares three coordinates: **domain**, **abstraction tier**,
 and **layer** (say UI, service, data). Those coordinates alone are enough to
-rule on whether a proposed dependency between two components is legal — the
+rule on whether a proposed dependency between two subsystems is legal — the
 same way a linter blocks an illegal import without running the program.
-Tier and layer have a direction (a UI component may depend on a service, not
+Tier and layer have a direction (a UI subsystem may depend on a service, not
 the reverse); domain is just a label, with no ranking between domains. Seven
 illegal dependency shapes are caught this way, mechanically — no runtime
 data, no history, and no need for the rest of the repo to exist yet, so it
@@ -210,13 +210,13 @@ works on day one of a greenfield project. The verdict ships as a permanent
 `architecture-as-code` rule that keeps enforcing that one dependency
 afterward.
 
-Changing the existing structure — merging or splitting components — is
+Changing the existing structure — merging or splitting subsystems — is
 different: it isn't decided by rule, it needs evidence that the current
 shape is actually causing problems (coupling, duplicated change, failure
 propagation). A competing design has to beat the current one on measured
 deltas, and the required proof scales with how hard the change is to undo —
-renaming a module needs less justification than collapsing two services. If
-every measurement checks out except one that genuinely can't be taken yet,
+renaming a subsystem needs less justification than collapsing two services.
+If every measurement checks out except one that genuinely can't be taken yet,
 and the change is cheap to reverse, it can proceed **on probation**: a
 recorded expiry, a task to add the missing measurement, and a rollback path.
 A later measurement that contradicts the decision overrides the probation
@@ -255,7 +255,7 @@ optimized.
 |---|---|
 | **M — Minimum** | Is the functionality worth its complexity? |
 | **A — Architecture** | Is the design minimal, modular, and purposeful? |
-| **L — Locality** | Is each component in the right boundary? |
+| **L — Locality** | Is each subsystem in the right boundary? |
 | **C — Complexity** | Does the change measurably simplify the system? |
 | **E — Enforcement** | Can architectural rules be encoded as checks? |
 | **H — Hermetic** | Is each defect caught at the earliest capable stage? |
@@ -276,7 +276,7 @@ The [`alchemy`](./.agents/skills/alchemy/SKILL.md) skill classifies work before
 loading deeper instructions:
 
 - `SKIP` — routine local work needs no structural analysis.
-- `DIRECT` — one concern maps to one skill.
+- `DIRECT` — one question maps to one skill.
 - `ADAPTIVE` — non-trivial work gets the smallest ordered route.
 - `FULL` — an explicit full audit traverses the complete pipeline.
 

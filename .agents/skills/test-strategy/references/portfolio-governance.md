@@ -113,7 +113,7 @@ Match environment fidelity to the behavior:
 
 | Environment | Appropriate use |
 | --- | --- |
-| Process/hermetic | Pure logic, properties, state machines, deterministic components |
+| Process/hermetic | Pure logic, properties, state machines, deterministic subsystems |
 | Container/ephemeral dependency | Database, queue, filesystem, protocol, migration semantics |
 | Isolated preview | Assembled service, browser journeys, configuration, smoke checks |
 | Staging/pre-production | Version skew, larger workload, recovery, integration with managed dependencies |

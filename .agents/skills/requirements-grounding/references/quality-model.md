@@ -33,7 +33,7 @@ not evidence that none apply.
 | Reliability | faultlessness, availability, fault tolerance, recoverability | Uptime, degraded modes, restore points and objectives |
 | Security | confidentiality, integrity, non-repudiation, accountability, authenticity, resistance | Who may see or change what, and what must be provable afterwards |
 | Maintainability | modularity, reusability, analysability, modifiability, testability | Change and diagnosis expectations over the product's life |
-| Flexibility | adaptability, scalability, installability, replaceability | Growth, new environments, and replacement of parts |
+| Flexibility | adaptability, scalability, installability, replaceability | Growth, new environments, and replacement of subsystems |
 | Safety | operational constraint, risk identification, fail safe, hazard warning, safe integration | Harm to people, property, or environment when the system misbehaves |
 
 Mapping from ISO/IEC 25010:2011. Renamed: usability to interaction

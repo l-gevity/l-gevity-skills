@@ -10,7 +10,7 @@ description: >-
     during rollout and rollback; when planning an expand/contract transition,
     its reversal steps, and the evidence that permits the contract step; or
     when auditing never-contracted expansions, semantic drift, unowned data,
-    and migrations without a reversal path. Do not use for component
+    and migrations without a reversal path. Do not use for subsystem
     placement, requirement meaning, test technique, pipeline stage placement,
     gating, or evidence state; hand those to morphogenetic-architecture,
     requirements-grounding, test-strategy, defect-shift-left,
@@ -33,8 +33,8 @@ same compatibility model applies to all of them.
 ## Core Directives
 
 1. **Every change is a refactoring, not an edit.** A data-shape change is one
-   unit: the schema change, the data migration, and the access-code change.
-   Never ship one without the others.
+   indivisible bundle: the schema change, the data migration, and the
+   access-code change. Never ship one without the others.
 2. **Compatible with every live version.** Version skew is the normal state
    during a rollout, not an edge case. The shape must be readable and
    writable by every version that can coexist, including the rollback target.
@@ -60,10 +60,10 @@ same compatibility model applies to all of them.
 
 ## Boundary
 
-Use this skill when an admitted slice changes a persisted or serialized shape,
-or retrospectively when an existing store, contract, migration history, or
-data incident provides a bounded subject. In Design mode, use two passes when
-architecture can still change the target shape, its write owner, or the
+Use this skill when an admitted increment changes a persisted or serialized
+shape, or retrospectively when an existing store, contract, migration history,
+or data incident provides a bounded subject. In Design mode, use two passes
+when architecture can still change the target shape, its write owner, or the
 deployment topology that determines which versions coexist:
 
 1. **Compatibility pass — after readiness, before A.** Inventory the current
@@ -73,8 +73,8 @@ deployment topology that determines which versions coexist:
    that `morphogenetic-architecture` grades reversibility from.
 2. **Transition pass — after final A/L/C and E when applicable, before H.**
    Consume the accepted target shape, ownership, and topology; fix the staged
-   path, the migration units per stage, the backfill strategy, the contract
-   trigger, the reversal step per stage, and the data contract.
+   path, the migration increments per stage, the backfill strategy, the
+   contract trigger, the reversal step per stage, and the data contract.
 
 Use a **Combined pass** only for Audit mode against a stable store, or when
 the target shape, ownership, and topology are already accepted and will not
@@ -83,7 +83,7 @@ change.
 Consume:
 
 - the readiness package's data ownership and lifecycle, domain-model seeds,
-  contract candidates, and cross-cutting constraints;
+  contract candidates, and aspects;
 - current declared schemas, contracts, serializers, and migration history;
 - deployment topology and rollout strategy: which versions coexist, and what
   the rollback target is;
@@ -92,7 +92,7 @@ Consume:
 - historical migration incidents, escaped defects, and production signals.
 
 If requirement meaning, data ownership, or the completion conditions of the
-slice are unclear, return to `requirements-grounding` or
+increment are unclear, return to `requirements-grounding` or
 `implementation-readiness`. Existing schemas and access code are evidence of
 readers and writers, not proof of their absence and not product intent.
 
@@ -101,15 +101,15 @@ This skill owns:
 - the change classification and required compatibility mode;
 - the transition design: staged path, reversal step per stage, contract
   trigger;
-- the migration units: schema change, data migration, and access-code change
-  per stage, and the backfill strategy;
+- the migration increments: schema change, data migration, and access-code
+  change per stage, and the backfill strategy;
 - the data contract between a shape's writer and its consumers;
 - the compatibility obligations handed to verification, placement, pipeline,
   and traceability skills.
 
 This skill does not own:
 
-- component placement, write-ownership assignment across boundaries, or the
+- subsystem placement, write-ownership assignment across boundaries, or the
   reversibility grade of a boundary move;
 - requirement meaning, readiness, or the worth of the functionality the data
   serves;
@@ -128,7 +128,7 @@ Implementation Readiness
   and writers, coexistence window, obligations, change class, mode
 → A → L/C → E, as justified: target shape, ownership, reversibility grade
 → Evolutionary Database Design — Transition pass: staged path, migration
-  units, backfill, contract trigger, reversal per stage, data contract
+  increments, backfill, contract trigger, reversal per stage, data contract
 → Test Strategy — Portfolio pass: compatibility and migration evidence
 → Defect Shift-Left: earliest capable stage for each check
 → CI/CD Reliability: dry-run, reversibility gate, deploy order, rollback
@@ -136,8 +136,8 @@ Implementation Readiness
 ```
 
 When `test-strategy` also applies, the Transition pass precedes its Portfolio
-pass so the migration units are inside the evidence scope. Do not restart the
-Compatibility pass after architecture unless the architecture changes which
+pass so the migration increments are inside the evidence scope. Do not restart
+the Compatibility pass after architecture unless the architecture changes which
 elements change, who reads or writes them, or which versions coexist. If
 accepted architecture changes after the Transition pass, rerun only the
 affected stages before handing them to H.
@@ -159,7 +159,7 @@ Select a mode:
 In Design mode, also select the design pass defined under Boundary:
 Compatibility, Transition, or Combined.
 
-Define the subject as the set of elements a slice changes, one store or
+Define the subject as the set of elements an increment changes, one store or
 contract, or a bounded migration history. Do not plan for "the whole
 database" when no change or incident bounds the work.
 
@@ -170,8 +170,8 @@ For each element that changes, record:
 ```text
 Element:            <store.table.column | topic.field | contract.path | file.field>
 Current shape:      <type, nullability, constraints, encoding, semantics>
-Writer:             <owning component, or unowned>
-Readers:            <components, reports, exports, analytics, backups, other repos>
+Writer:             <owning subsystem, or unowned>
+Readers:            <subsystems, reports, exports, analytics, backups, other repos>
 Coexisting versions:<server versions live at once during rollout, plus rollback target>
 Coexisting clients: <cached browser bundles, installed apps, pinned SDKs, or none — and how long each survives>
 Volume / rate:      <rows or events, write rate, lock behavior, or unmeasured>
@@ -205,7 +205,7 @@ Classify each element by what it does to an existing reader or writer:
 | Rename or move | Column rename, table split or merge, field relocated | No | No | Expand/contract |
 | Semantic | Same name, new unit, encoding, time zone, currency, or meaning | Silently wrong | Silently wrong | New element or version; never in place |
 | Destructive | Drop, delete, truncate, purge | Breaks | n/a | Contract step only |
-| Ownership transfer | Write authority moves to another component or service | Depends | Depends | Staged with `morphogenetic-architecture` |
+| Ownership transfer | Write authority moves to another subsystem or service | Depends | Depends | Staged with `morphogenetic-architecture` |
 | Identity | Primary key, identifier format, or uniqueness change | No | No | Treat as semantic plus rename |
 
 Then state the compatibility mode the coexistence window requires:
@@ -261,9 +261,9 @@ stage without a reversal step, is an **irreversible data migration**. That
 skill grades the boundary; this skill supplies the staged path whose reversal
 step its Low-reversibility bar requires.
 
-### 5. Design the migration units
+### 5. Design the migration increments
 
-In a Transition or Combined pass, define one unit per stage:
+In a Transition or Combined pass, define one increment per stage:
 
 ```text
 Stage:            <expand | migrate writers | backfill | migrate readers | verify | contract>
@@ -271,14 +271,14 @@ Schema change:    <DDL, contract diff, serializer change>
 Data migration:   <backfill or transform, batch size, checkpoint, throttle, verification>
 Access code:      <writer and reader change shipped with it>
 Reversal step:    <how it is undone and what is lost>
-Deploy order:     <what must be live before this unit>
+Deploy order:     <what must be live before this increment>
 Evidence:         <what proves this stage is complete>
 ```
 
 Rules:
 
-- Ship each unit's schema change, data migration, and access code together,
-  in the same change as the code that depends on them.
+- Ship each increment's schema change, data migration, and access code
+  together, in the same change as the code that depends on them.
 - Make every migration idempotent and re-runnable; a partial run followed by
   a retry converges.
 - Production rollback is the previous stage's code against the expanded
@@ -302,7 +302,7 @@ boundary, record:
 
 ```text
 Shape:              <store, topic, contract, or file>
-Owner:              <writing component>
+Owner:              <writing subsystem>
 Consumers:          <named readers, or unknown>
 Compatibility mode: <backward | forward | full | full-transitive>
 Versioning:         <additive only | versioned element | versioned contract>
@@ -379,7 +379,7 @@ Emit one row per changed element:
 Then emit:
 
 ```text
-Subject:              <store, contract, shape, slice, or migration history>
+Subject:              <store, contract, shape, increment, or migration history>
 Mode:                 Design | Audit
 Design pass:          Compatibility | Transition | Combined
 Decision:             COMPATIBLE | STAGED | BREAKING | DEFER
@@ -390,7 +390,7 @@ Coexisting clients:   <cached bundles, installed apps, pinned SDKs and their lif
 Reversibility input:  <reversible data change | irreversible data migration | unknown>
 Staged path:          <stages in order, or single step>
 Contract trigger:     <evidence that closes the old shape, or not yet defined>
-Migration units:      <per-stage units, or not yet fixed>
+Migration increments: <per-stage increments, or not yet fixed>
 Data contract:        <owner, consumers, mode, deprecation, or none needed>
 Obligations:          <retention, backup, audit, privacy, compliance, or none>
 Handoffs:             <test-strategy, shift-left, CI/CD, traceability, M, bring-down, companions>

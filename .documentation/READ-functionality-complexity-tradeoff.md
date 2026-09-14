@@ -31,7 +31,7 @@ surprising amount of code fails this test — it guards against things that
   different versions. A mutex in a single-threaded runtime.
 - **Already defended elsewhere.** Hand-rolled XSS escaping on top of a
   template engine that already escapes everything. A CSRF token on a
-  read-only GET. The concern is real — but another layer owns it, and this
+  read-only GET. The risk is real — but another layer owns it, and this
   copy is a rumor of a defense, not a defense.
 - **Cargo-culted patterns.** A connection pool in a CLI that exits in 200
   milliseconds. A singleton in a stateless function. The pattern is fine
@@ -76,7 +76,7 @@ ledger with two sides — scored separately, never collapsed into one number,
 because a real trade-off is only visible while both sides are visible.
 
 **Value** is what the functionality delivers, and it has four honest
-components: how *severe* the need is (what actually breaks without it), how
+factors: how *severe* the need is (what actually breaks without it), how
 *often* it arises, how *many* users or flows encounter it, and how *costly
 the alternative* is (a decent workaround slashes value; no alternative
 multiplies it). These multiply rather than add — which is the sharp edge: a
@@ -104,7 +104,7 @@ lifetime, not the demo.
 
 With the ledger in view, the decision rule is deliberately asymmetric: **if
 worth is not clearly positive, don't build it** — or build the smallest
-slice that captures most of the value. This is YAGNI, but with its
+increment that captures most of the value. This is YAGNI, but with its
 reasoning attached: it isn't pessimism about ideas; it's arithmetic about
 asymmetry. Not building costs almost nothing and is reversible the moment
 real evidence arrives. Building speculatively costs the full ledger,
@@ -154,10 +154,10 @@ Four cases where the raw ledger misleads, worth knowing by name:
 ## The habit
 
 The discipline compresses into a short interrogation, applicable to a
-ticket, a PR, or a ten-year-old module: *Can the problem this solves
+ticket, a PR, or a ten-year-old subsystem: *Can the problem this solves
 actually occur here — can I construct the sequence that triggers it? Who
 specifically needs it, and what do they do today without it? What's the
-smallest slice that captures most of the value? What does this cost per
+smallest increment that captures most of the value? What does this cost per
 future change, not per demo? And if it vanished in twelve months, what's
 the realistic worst outcome?*
 
@@ -178,4 +178,4 @@ The full operational reference for this concept — detection heuristics,
 scoring axes, the worth matrix, and verdicts — lives in
 [SKILL.md](../.claude/skills/functionality-complexity-tradeoff/SKILL.md).*
 
-<!-- skill-revision: 55bb1f98c4d8 -->
+<!-- skill-revision: f8ad697df2e2 -->

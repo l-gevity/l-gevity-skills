@@ -82,9 +82,9 @@ SKILL_REQUIRED_TERMS = {
         "Coverage is two independent gates",
         "A file-existence rule is what catches an undeclared directory",
         "The same catch-all at the repository root inverts",
-        "Forward EVERY field the component schema defines",
+        "Forward EVERY field the subsystem schema defines",
         "The emitted rule block's file scope equals the linted source set.",
-        "Every file at repository root belongs to a declared component.",
+        "Every file at repository root belongs to a declared subsystem.",
         "A passing lint is not evidence of coverage.",
     ),
     "architecture-as-code-javascript": (
@@ -138,7 +138,7 @@ SKILL_REQUIRED_TERMS = {
         "Strategy:       <permanent | ephemeral | production-only progressive exposure>",
         "Environment parity / permanent stages only",
         "Representativeness:",
-        "in-place component replace",
+        "in-place subsystem replace",
         "Zero-downtime:  <yes | no + why>",
     ),
     "continuous-improvement": (
@@ -243,8 +243,8 @@ SKILL_REQUIRED_TERMS = {
         "design-time check on a proposed or changed",
         "**layer inversion**",
         "**Inbound interface**",
-        "| Ownership / authority | Directed, acyclic per concern |",
-        "Authority is acyclic **per concern**, not per component",
+        "| Ownership / authority | Directed, acyclic per aspect |",
+        "Authority is acyclic **per aspect**, not per subsystem",
         "position-legality clauses first",
         "Position legality:   Pass | Fail",
         "durable register that the standing",
@@ -347,10 +347,10 @@ SKILL_REQUIRED_TERMS = {
 STRUCTURAL_REPORT_FIELDS = (
     "Subject",
     "Decision",
-    "Component-kinds Δ",
+    "Subsystem-kinds Δ",
     "Dependency-edges Δ",
     "Max-chain-depth Δ",
-    "Module-count Δ",
+    "Subsystem-count Δ",
     "Cycle",
     "Non-structural gates",
     "Trade-off",
@@ -661,6 +661,16 @@ def validate_retired_skill_references() -> None:
         "spatial placement",
         "wormhole",
         "domain / tier / layer grid",
+        # Vocabulary retired by the change-primitives rename: the structure
+        # unit is a subsystem, the unit of change an increment, and a
+        # property holding across subsystems an aspect.
+        "cross-cutting concern",
+        "cross-cutting constraint",
+        "Component-kinds Δ",
+        "Module-count Δ",
+        "implementation slice",
+        "admitted slice",
+        "migration unit",
     )
     paths = [
         ROOT / "README.md",
@@ -669,8 +679,11 @@ def validate_retired_skill_references() -> None:
         *DOCS.glob("*.md"),
         *DOCS.glob("*.svg"),
         *ROOT.glob("*.svg"),
-        *(path / "SKILL.md" for path in skill_dirs(CLAUDE_SKILLS)),
-        *(path / "SKILL.md" for path in skill_dirs(AGENT_SKILLS)),
+        # Every markdown file in a skill directory, references included: a
+        # retired term inside references/*.md is loaded on demand and drifts
+        # just as silently as one in SKILL.md.
+        *(md for path in skill_dirs(CLAUDE_SKILLS) for md in sorted(path.rglob("*.md"))),
+        *(md for path in skill_dirs(AGENT_SKILLS) for md in sorted(path.rglob("*.md"))),
     ]
     for path in paths:
         text = path.read_text(encoding="utf-8").casefold()
@@ -1295,6 +1308,16 @@ def mutation_test() -> int:
             write_raw(path, text.replace(link, "the common-patterns table"), crlf)
 
     cases.append((Case("reference: file left unlinked from SKILL.md", pruner, ("common-patterns.md",)), unlink_reference))
+
+    # Both trees get the same text so the mirror check cannot fire first.
+    retired = [copy / tree / "skills" / "standup" / "SKILL.md" for tree in (".agents", ".claude")]
+
+    def reintroduce_retired_term(files=retired):
+        for path in files:
+            text, crlf = read_raw(path)
+            write_raw(path, text + "\nA cross-cutting concern belongs to one layer.\n", crlf)
+
+    cases.append((Case("vocabulary: retired term reintroduced", retired, ("retired term",)), reintroduce_retired_term))
 
     try:
         code, output = run()

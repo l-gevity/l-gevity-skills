@@ -8,9 +8,9 @@ description: >-
     code should be replaced by a lower-level capability, especially an external
     library or service; when reducing bespoke wrappers around commodity
     behavior; or when designing an improvement roadmap for reuse and platform
-    leverage. Skip purely in-codebase componentization or patternization unless
-    the target is an approved external library, framework capability, platform
-    product, or managed service.
+    leverage. Skip purely in-codebase subsystem extraction or patternization
+    unless the target is an approved external library, framework capability,
+    platform product, or managed service.
 ---
 
 # Bring-Down
@@ -46,8 +46,8 @@ description: >-
 
 > **Scope Boundary**
 >
-> Purely internal moves from local code to shared modules, components,
-> templates, or architecture patterns belong to the architecture skills. Use
+> Purely internal moves from local code to shared subsystems, templates, or
+> architecture patterns belong to the architecture skills. Use
 > `bring-down` for those levels only when the move consumes an external or
 > platform capability, such as a framework feature, approved third-party
 > library, internal self-service platform product, or managed service.
@@ -81,7 +81,7 @@ reserve the full prose name for narrative explanation.
 `L1 PLP` means an internal platform product: a supported self-service
 capability owned outside this codebase, such as a reusable deployment workflow,
 auth gateway, logging pipeline, hosted data module, or policy-enforced cloud
-resource. It is not just a shared module in the repo.
+resource. It is not just a shared subsystem in the repo.
 
 `L0 SRVC` means an external service or managed commodity: SaaS, PaaS, managed
 cloud service, or provider-owned capability where this codebase keeps only the
@@ -128,7 +128,7 @@ for commodity sub-capabilities that can be outsourced safely.
 Use `functionality-complexity-tradeoff` before replacing code: if the duplicated
 functionality is unnecessary, delete it instead of bringing it down.
 
-If the target is "shared helper", "component", "template", "manifest", "script",
+If the target is "shared helper", "subsystem", "template", "manifest", "script",
 or "pattern" in the same repo/team, exclude it from bring-down recommendations
 and list it under gaps or handoffs.
 
@@ -138,7 +138,7 @@ and list it under gaps or handoffs.
 
 The first bring-down move is discovery inside the current technology stack.
 Look for a lower placement or alternative that already exists before creating
-or buying anything. If the best move is only a repo-local component, module, or
+or buying anything. If the best move is only a repo-local subsystem or
 template, stop and use the architecture skills instead.
 
 Search for:
@@ -156,9 +156,9 @@ external library, template, platform product, or service is justified only
 when the current stack has no suitable lower placement.
 
 Do not recommend a lower level with a vague landing like "patternize",
-"componentize", "extract", "shared module", or "manifest". Name the actual
-package, API, standard, platform product, or service. If none is known, report
-the candidate as "no bring-down landing found".
+"extract a subsystem", "extract", "shared subsystem", or "manifest". Name the
+actual package, API, standard, platform product, or service. If none is known,
+report the candidate as "no bring-down landing found".
 
 ---
 
@@ -228,7 +228,7 @@ capabilities, pricing, SLAs, regions, and compliance posture are time-sensitive.
 
 ## 7. Bring-Down Protocol
 
-1. **Define scope.** Name the repos, modules, services, teams, or workflows
+1. **Define scope.** Name the repos, subsystems, services, teams, or workflows
    under review.
 2. **Inventory candidates.** Find custom-maintained commodity behavior,
    copy/paste code, repeated scripts, repeated PR shapes, local wrappers, and
@@ -250,7 +250,7 @@ capabilities, pricing, SLAs, regions, and compliance posture are time-sensitive.
    remove it from bring-down recommendations and hand it off.
 11. **Compute distance.** Current level - target level.
 12. **Choose one move.** Move down one level unless the intermediate level is
-   already satisfied. If the move is purely internal componentization or
+   already satisfied. If the move is purely internal subsystem extraction or
    patternization, hand off to architecture skills.
 13. **Prove and retire.** Migrate at least one real consumer and remove the old
    duplicate path.
@@ -288,8 +288,8 @@ the named standard path is maintained outside the consuming code owner.
 `bring-down` changes reuse/specificity altitude. It does not assign domain,
 tier, layer, or dependency direction.
 
-When the best answer is to componentize or patternize inside the codebase, use
-`morphogenetic-architecture`, `architecture-guidelines`, and
+When the best answer is to extract a subsystem or patternize inside the
+codebase, use `morphogenetic-architecture`, `architecture-guidelines`, and
 `architecture-as-code` instead. Use `structural-simplification` to verify any
 externalization or platform move actually reduces complexity.
 
@@ -307,12 +307,12 @@ graph.
 | Building a new shared thing before looking locally | Search the current stack for existing lower placements first |
 | Library recommendation from stale memory | Search stack-native indexes and current primary sources before recommending new L3 LIB |
 | GitHub stars as library proof | Require exact fit, compatibility, maintenance, security, license, migration, and deletion evidence |
-| Triggering bring-down for repo-local componentization | Use architecture skills unless the target is an external/library/platform capability |
+| Triggering bring-down for repo-local subsystem extraction | Use architecture skills unless the target is an external/library/platform capability |
 | Recommendation has no landing capability | Name the exact package/API, standard, platform product, or service before recommending it |
 | Target has the same maintenance owner | Exclude it from bring-down and hand off to the relevant skill |
 | Platform product without adoption | Measure consumers, escape hatches, and support load |
 | Template with no enforcement | Add lint, generator checks, or review gate where feasible |
-| Managed service for differentiating logic | Keep local or componentized where domain value lives |
+| Managed service for differentiating logic | Keep local or extracted as a subsystem where domain value lives |
 | Service selection from stale memory | Browse current primary sources before recommending alternatives |
 | Wrapper around commodity service with no added policy | Delete wrapper or state the invariant it enforces |
 | Replacement without deleting custom code | Require migration and retirement criteria |
@@ -333,7 +333,7 @@ labeled bullets instead. Include `Library search` only when a library survey
 was needed.
 
 ```
-Scope:          <repos/modules/services/teams/workflows>
+Scope:          <repos/subsystems/services/teams/workflows>
 Mode:           Assessment | Improvement | Roadmap
 Decision:       <valid bring-down move, or no bring-down recommendation>
 Summary:        <2-4 sentences: main duplication, best bring-down move, key risk>
@@ -385,8 +385,8 @@ Service comparison:
 ## 12. See Also
 
 - **`functionality-complexity-tradeoff`** - decide whether the functionality should exist before replacing it.
-- **`structural-simplification`** - verify the externalization actually reduces component kinds, edges, depth, or count.
-- **`morphogenetic-architecture`** - place the resulting component and check
+- **`structural-simplification`** - verify the externalization actually reduces subsystem kinds, edges, depth, or count.
+- **`morphogenetic-architecture`** - place the resulting subsystem and check
   observed boundary pressure after bring-down chooses the reuse level.
 - **`push-out`** - move recurring operational work outward.
 - **`defect-shift-left`** - move defect detection earlier.

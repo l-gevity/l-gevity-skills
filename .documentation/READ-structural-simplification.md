@@ -16,23 +16,23 @@ per-axis before/after comparisons instead of intuition contests.
 
 ## The four axes
 
-Take any structure made of parts and relationships — a codebase, a
+Take any structure made of subsystems and relationships — a codebase, a
 deployment, a data model, a workflow, even an org chart. Its complexity has
-four independent components:
+four independent axes:
 
 | Axis | Question it answers | How to measure |
 | ---- | ------------------- | -------------- |
 | **Diversity** (D) | How many *kinds* of things are there? | Count the distinct patterns, shapes, and concepts a reader must learn |
 | **Coupling** (K) | How *connected* is it? | Count the relationships — imports, calls, references — and their density |
 | **Depth** (P) | How *long are the chains*? | Find the longest path from any entry point to any endpoint |
-| **Quantity** (n) | How many *parts* are there? | Count them |
+| **Quantity** (n) | How many *subsystems* are there? | Count them |
 
 Each axis taxes the reader differently. Diversity taxes *learning*: a
 codebase with twelve ways to fetch data must be learned twelve times.
 Coupling taxes *change*: every edge is a path along which a modification
 here becomes a surprise there. Depth taxes *tracing*: a five-hop chain
 means five files open before you find where anything actually happens.
-Quantity taxes *navigation*: more parts, more places to look.
+Quantity taxes *navigation*: more subsystems, more places to look.
 
 The crucial rule: **score each axis separately, and never collapse them
 into one number.** A single "complexity score" would let a large
@@ -49,7 +49,7 @@ axes *at the cost of* others:
 diversity drops (three variant shapes become one pattern) and coupling
 drops (N scattered dependencies collapse onto one) — but depth rises (every
 reader now traverses an extra level) and quantity rises (the abstraction is
-a new part). Whether that trade wins depends on the numbers: with three or
+a new subsystem). Whether that trade wins depends on the numbers: with three or
 more genuine instances, usually yes; done speculatively for one, every
 axis worsens at once — the measurable meaning of "premature abstraction."
 
@@ -64,10 +64,10 @@ and quantity drop; the check is whether the removed layer secretly earned
 its keep (enforcing a boundary, hiding a volatile dependency), because its
 callers now couple directly to what it concealed.
 
-**Merging two parts**: quantity and diversity drop, but the coupling that
+**Merging two subsystems**: quantity and diversity drop, but the coupling that
 ran *between* them doesn't vanish — it moves inside, invisible to any
-dependency graph. Merging two tightly-entangled parts is honest bookkeeping;
-merging two unrelated ones creates the many-jobs module that is worse than
+dependency graph. Merging two tightly-entangled subsystems is honest bookkeeping;
+merging two unrelated ones creates the many-jobs subsystem that is worse than
 either original.
 
 The pattern generalizes: *"is this simpler?"* is the wrong question. The
@@ -80,17 +80,17 @@ Two findings aren't trade-offs at all — they're vetoes.
 
 **Cycles.** In any structure that's supposed to flow one way — imports,
 layering, ownership — a cycle (A depends on B depends on C depends on A)
-isn't "high coupling"; it's a property violation. The three parts can no
+isn't "high coupling"; it's a property violation. The three subsystems can no
 longer be understood, tested, or replaced separately; they've fused into
-one unit wearing three names. A restructuring that introduces a cycle is
+one subsystem wearing three names. A restructuring that introduces a cycle is
 rejected regardless of how nicely its other axes score. (Structures that
 legitimately contain loops — state machines, retry logic, feedback systems
 — are fine; there, the discipline is naming the loop's semantics and bounds
 explicitly rather than pretending it isn't there.)
 
 **False unification.** Merging lookalikes — two config keys, two roles, two
-statuses collapsed into one — is safe only if every *other* part of the
-system that references them treats all the merged members identically. If
+statuses collapsed into one — is safe only if every *other* subsystem
+that references them treats all the merged members identically. If
 some access rule bans one but allows the other, the merged item would need
 to be half-banned: the difference you erased was load-bearing. Before
 claiming a diversity win from any merge, enumerate the places that
@@ -101,7 +101,7 @@ reference the things being merged and check they're uniform.
 The model becomes practice as a short written exercise — minutes, not days
 — for any proposed restructuring:
 
-1. **Model both states.** Sketch the parts and relationships before and
+1. **Model both states.** Sketch the subsystems and relationships before and
    after; record the four counts for each. The four *deltas* are the
    proposal's real content.
 2. **Check for cycles** in the after-state. A cycle in a must-be-acyclic
@@ -111,10 +111,10 @@ The model becomes practice as a short written exercise — minutes, not days
    - *What unique pattern does this introduce that nothing else uses?* And
      what's the second concrete instance? (No second instance → it's
      speculation.)
-   - *Which previously-independent parts does this connect?*
+   - *Which previously-independent subsystems does this connect?*
    - *How long is the chain a typical change now traverses?* (More than
      three hops: the depth is itself the problem.)
-   - *If we deleted the new part, what would its dependents do?* (If the
+   - *If we deleted the new subsystem, what would its dependents do?* (If the
      answer is "use the thing it wraps, directly" — it's a pass-through
      that earns nothing.)
 4. **Check the non-structural gates.** A structurally cleaner design that
@@ -130,7 +130,7 @@ The model becomes practice as a short written exercise — minutes, not days
 Three recurring cases where accepting a local worsening is correct — each
 with a condition attached:
 
-- **Conformance.** One module doing things its own way, among ten uniform
+- **Conformance.** One subsystem doing things its own way, among ten uniform
   siblings, inflates diversity out of proportion to its size — every
   reader must learn the standard pattern *plus* the exception. Rewriting
   the snowflake to match, even if slightly clumsier locally, deletes a
@@ -138,7 +138,7 @@ with a condition attached:
   pattern must genuinely fit — a real domain difference deserves a name,
   not forced uniformity.
 - **Deletion.** A special case costs more than its own code: it forces
-  conditional paths, extra tests, and exceptions in every part that
+  conditional paths, extra tests, and exceptions in every subsystem that
   touches it. Removing a marginal feature improves all four axes at once —
   the only move that does. *Condition:* someone has verified the feature's
   worth is actually negative, and removal respects migration and
@@ -152,7 +152,7 @@ with a condition attached:
 ## The habit
 
 The model compresses into a discipline of one sentence: **before accepting
-any "simplification," write down the four deltas.** Kinds of parts,
+any "simplification," write down the four deltas.** Kinds of subsystems,
 connections, longest chain, count — before and after. The exercise takes
 minutes and it converts refactoring debates from adjective exchanges into
 comparisons of numbers. Most proposals survive it. The ones that don't were
@@ -173,4 +173,4 @@ operational reference — measurement recipes, operation catalogues, the
 trade-off matrix, and the decision record — lives in
 [SKILL.md](../.claude/skills/structural-simplification/SKILL.md).*
 
-<!-- skill-revision: 8d76fb56af3d -->
+<!-- skill-revision: 0f90986d4738 -->

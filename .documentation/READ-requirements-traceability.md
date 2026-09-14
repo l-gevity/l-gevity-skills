@@ -3,7 +3,7 @@
 A new tech lead joins and asks two innocent questions about a contractual
 requirement: *"Where is report approval implemented, and what proves it
 works?"* The team's answers, reconstructed over two days: the
-implementation is "mostly in the workflow module, probably," the proof is
+implementation is "mostly in the workflow subsystem, probably," the proof is
 "the tests pass" (which tests? for which criteria?), and along the way
 someone discovers that one acceptance criterion was never implemented at
 all — it fell out during a refactor eight months ago, and nothing noticed.
@@ -176,4 +176,4 @@ evidence states, anchor placement, gap taxonomy, and build-gate checks —
 lives in
 [SKILL.md](../.claude/skills/requirements-traceability/SKILL.md).*
 
-<!-- skill-revision: 85a40f2ec00d -->
+<!-- skill-revision: 7b5be79af6ba -->

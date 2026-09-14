@@ -6,14 +6,14 @@ names the findings they decide. Section numbers refer to SKILL.md.
 
 ### Position Legality
 
-Check the edges of the component being placed, not every edge in the
+Check the edges of the subsystem being placed, not every edge in the
 repository. This is a **design-time check on a proposed or changed
 position** — its inbound and outbound edges, a handful at a time. Auditing a
 whole codebase from three axes is an explicit non-goal: a derived rule loses
 to one that states intent, so turn the result into `architecture-as-code`
 rules that name each edge and its reason, and let those carry the standing
 check. Positions belong in the repository as a reviewed artefact that fails
-the build when a component arrives unpositioned; never re-derive them per
+the build when a subsystem arrives unpositioned; never re-derive them per
 audit.
 
 Each proposed edge satisfies one clause per axis. The clauses need no observed
@@ -55,15 +55,15 @@ Two whole-graph clauses complete the check:
 
 None of this is sliceable. Each per-axis clause needs a position for both
 endpoints of every edge it judges, and acyclicity needs the whole dependency
-closure, so placing one component still means positioning what it touches.
+closure, so placing one subsystem still means positioning what it touches.
 
-A **composition root** — a module whose whole job is wiring everything together
-— is exempt from the domain and tier clauses by declaration. "One cohesive
-capability at one primary position" has no answer for a module built to be
-incohesive; name it as the composition root and move on rather than forcing a
-position it cannot have.
+A **composition root** — the subsystem whose only job is wiring the others
+together — is exempt from the domain and tier clauses by declaration. "One
+cohesive capability at one primary position" has no answer for a subsystem
+built to be incohesive; name it as the composition root and move on rather than
+forcing a position it cannot have.
 
-When domain, tier, or layer cannot be stated independently for a component,
+When domain, tier, or layer cannot be stated independently for a subsystem,
 the check cannot run: report **placement ambiguity** and resolve the position
 before continuing. The domain clause blocks the same way when a target domain
 publishes no inbound interface — declare the interface rather than reading

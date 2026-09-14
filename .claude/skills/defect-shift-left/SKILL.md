@@ -215,11 +215,11 @@ typecheck nobody runs is theatre — see §6.4.
 
 ### 6.2 ADR → executable architectural rule
 
-|            |                                                                                            |
-| ---------- | ------------------------------------------------------------------------------------------ |
-| **Shifts** | Forbidden imports, layering violations, banned API usage, accidental cross-module coupling |
-| **From**   | Stage 1 (design doc) or Stage 7+ (code review)                                             |
-| **To**     | Stage 2 (editor rule) + Stage 5 (blocking static analysis)                                 |
+|            |                                                                                               |
+| ---------- | --------------------------------------------------------------------------------------------- |
+| **Shifts** | Forbidden imports, layering violations, banned API usage, accidental cross-subsystem coupling |
+| **From**   | Stage 1 (design doc) or Stage 7+ (code review)                                                |
+| **To**     | Stage 2 (editor rule) + Stage 5 (blocking static analysis)                                    |
 
 Architectural rules expressed in prose are advice; rules expressed in lint
 config are enforcement. `eslint-plugin-boundaries`,

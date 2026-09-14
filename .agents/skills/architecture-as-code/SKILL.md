@@ -1,14 +1,14 @@
 ---
 name: architecture-as-code
 description: >-
-    Stack-agnostic pattern for declaring and enforcing component boundaries via
-    per-module architecture configs merged into import-graph linter rules.
+    Stack-agnostic pattern for declaring and enforcing subsystem boundaries via
+    per-subsystem architecture configs merged into import-graph linter rules.
     TRIGGER when designing/auditing dependency-rule enforcement, deciding what a
-    per-module file should say, placing a rule, debugging a forbidden edge, or
+    per-subsystem file should say, placing a rule, debugging a forbidden edge, or
     extending the assembler. Consume explicit `Enforcement` handoffs from
     `architecture-guidelines` or `morphogenetic-architecture` by turning
     enforceable dependency constraints into architecture config rules. SKIP
-    routine edits inside a governed module. For stack implementations see
+    routine edits inside a governed subsystem. For stack implementations see
     `architecture-as-code-javascript` or `architecture-as-code-python`.
 ---
 
@@ -24,40 +24,40 @@ description: >-
 
 > **Input Contract.** Consume only explicit `Enforcement` handoffs from
 > `architecture-guidelines` or `morphogenetic-architecture` (or an equivalent
-> architecture decision). Translate the named constraint into components and
-> forbidden edges. Do not restate or reinterpret architecture doctrine here;
+> architecture decision). Translate the named constraint into `components`
+> entries and forbidden edges. Do not restate or reinterpret architecture doctrine here;
 > if a constraint is not enforceable as an import/dependency rule, return
 > `Decision: Defer` or `Reject rule`.
 
 > **Core Directives**
 >
-> 1. **Module = directory** (or a single-file unit for a facade). Files belong
->    to a module by living under its path / dotted path.
-> 2. **One optional config file per module** — declaratively lists this
->    module's components and its outbound rules. Repo root has one too, same
->    structure.
-> 3. **A module knows itself, not its context.** Its own file governs
+> 1. **Subsystem = directory** (or a single file for a facade). Files belong
+>    to a subsystem by living under its path / dotted path.
+> 2. **One optional config file per subsystem** — declaratively lists the
+>    subsystems it contains (its `components` entries) and its outbound rules.
+>    Repo root has one too, same structure.
+> 3. **A subsystem knows itself, not its context.** Its own file governs
 >    internals (sub-tiers, layering) and outbound dependencies ("what I
 >    import") — never inbound ("who imports me") or its place in the wider
 >    system, which it does not and should not know. Mechanically: only
 >    `<own-prefix>-*`, specific `<own-prefix>-x` names, and the anonymous `*`
->    may appear; any other module name is a violation.
+>    may appear; any other subsystem name is a violation.
 > 4. **Composition lives on the level that does the composing.** Constraints
->    between a module and its peers (afferent — "who may import me" — and
->    cross-module sibling-isolation) live higher up. Constraints among a
->    module's own sub-tiers (internal layering, sub-tier sibling-isolation)
+>    between a subsystem and its peers (afferent — "who may import me" — and
+>    cross-subsystem sibling-isolation) live higher up. Constraints among a
+>    subsystem's own sub-tiers (internal layering, sub-tier sibling-isolation)
 >    live in its own file. Higher-level rules accumulate.
-> 5. **Every module with rules ends with a catch-all bucket.** Files matching
->    no component are invisible to the linter and silently bypass forbidden
+> 5. **Every subsystem with rules ends with a catch-all bucket.** Files matching
+>    no declared subsystem are invisible to the linter and silently bypass forbidden
 >    edges. A `<dir>/**` (or whole-package) entry MUST be last in
->    `components`. This holds *inside* a module, where the siblings it must
+>    `components`. This holds *inside* a subsystem, where the siblings it must
 >    not shadow sit at the same depth.
 > 6. **The same catch-all at the repository root inverts.** Most import-graph
 >    linters match a pattern against a file's path *ancestors* by default, so
 >    a root-level `**` matches at the shallowest segment and claims files that
->    deeper, more specific components already own. Declaration order does not
+>    deeper, more specific subsystems already own. Declaration order does not
 >    break the tie — the catch-all wins from last position against dozens of
->    specific components. Declare the root's real files explicitly with
+>    specific subsystems. Declare the root's real files explicitly with
 >    exact-file matching (`mode: 'file'`, `single = true`) instead.
 > 7. **Coverage is two independent gates: the registry and the rule's file
 >    scope.** A registry that classifies every file proves nothing when the
@@ -67,7 +67,7 @@ description: >-
 > 8. **A file-existence rule is what catches an undeclared directory.**
 >    Dependency rules judge edges; a file with no imports, or one reached only
 >    from a script tag, template, or config, has no edge to judge. Emit the
->    stack's "every file must match a declared component" rule at error
+>    stack's "every file must match a declared subsystem" rule at error
 >    severity next to the dependency rules.
 > 9. **Recursion via discovery.** Assembler walks the tree; deeper files are
 >    processed first.
@@ -79,35 +79,35 @@ description: >-
 Each architecture config declares two optional top-level arrays:
 
 ```
-components: [ ... ]   # one entry per module
+components: [ ... ]   # one entry per subsystem
 forbidden:  [ ... ]   # one entry per dependency edge
 ```
 
 Concrete encoding (`.mjs`, `.toml`, `.yaml`, …) is stack-specific. Schema is
-not. Most modules don't need their own file — they're declared once in the
+not. Most subsystems don't need their own file — they're declared once in the
 `components` list higher up in the tree.
 
-> [!NOTE] `<own-prefix>` is the shared prefix of a module's component names
-> — e.g. `core-` for `core-facade`, `core-tier1`, `core-other`.
-> Single-component modules just use the bare name.
+> [!NOTE] `<own-prefix>` is the shared prefix of the subsystem names a config
+> file declares — e.g. `core-` for `core-facade`, `core-tier1`, `core-other`.
+> A single-entry subsystem just uses the bare name.
 
-## 2. Components — modules declared as patterns
+## 2. Components — subsystems declared as patterns
 
 | Field     | Required | Purpose                                                      |
 | --------- | -------- | ------------------------------------------------------------ |
-| `name`    | yes      | Module id referenced from `forbidden` edges.                 |
-| `pattern` | yes      | Selector for the module's files (stack-specific syntax).     |
+| `name`    | yes      | Subsystem id referenced from `forbidden` edges.                 |
+| `pattern` | yes      | Selector for the subsystem's files (stack-specific syntax).     |
 | `mode` / `single` | no | Switches from ancestor matching to exact-file / exact-module matching (a facade, a repository-root file). |
 | `capture` | no       | Path-segment captures for parametric rules.                  |
 
 Order matters within a file: narrowest first (file-mode → sub-directories →
-catch-all). Across files: deeper-first (so a module's own file overrides its
+catch-all). Across files: deeper-first (so a subsystem's own file overrides its
 ancestor's catch-all).
 
 > [!IMPORTANT] **Matching mode decides what ordering can do.** Order only
 > breaks ties between candidates the matcher considers together. Under the
 > default ancestor matching a shallow pattern wins at its own shallow segment,
-> before any deeper component is tried — so a shallower entry declared *last*
+> before any deeper subsystem is tried — so a shallower entry declared *last*
 > still beats a specific entry declared first. A file that a shallower pattern
 > would otherwise swallow needs exact-file matching, not a better position in
 > the list. Repository-root files always do.
@@ -120,11 +120,11 @@ ancestor's catch-all).
 
 | `from` / `to` accepts | Meaning                                            |
 | --------------------- | -------------------------------------------------- |
-| `"service"`           | Single module name.                                |
-| `["app", "service"]`  | Multiple module names.                             |
-| `"*"`                 | Every registered module.                           |
-| `"core-*"`            | Prefix wildcard — every module starting with `core-`. |
-| `{ captured = ... }`  | Parametric (uses captures from a `capture`-enabled component). |
+| `"service"`           | Single subsystem name.                                |
+| `["app", "service"]`  | Multiple subsystem names.                             |
+| `"*"`                 | Every registered subsystem.                           |
+| `"core-*"`            | Prefix wildcard — every subsystem starting with `core-`. |
+| `{ captured = ... }`  | Parametric (uses captures from a `capture`-enabled entry). |
 
 `except` subtracts from a wildcard `from`; `except_to` from a wildcard `to`.
 Strings in either may be prefix wildcards. `why` is the violation message
@@ -139,7 +139,7 @@ emitted to developers.
 
 # Efferent — own file. Self-contained.
 { from: 'core-*', to: '*', except_to: ['core-*'],
-  why: 'Core purity: no imports outside the core module.' }
+  why: 'Core purity: no imports outside the core subsystem.' }
 
 # Internal layering — own file. Sub-tier names share the prefix.
 { from: 'core-tier3', to: 'core-tier1',
@@ -148,7 +148,7 @@ emitted to developers.
 # Parametric — higher level. Sibling sub-domains may not import each other.
 { from: { type: 'domain-handler', captured: { domain: '*' } },
   to:   { type: 'domain-handler', captured: { domain: '!{from.captured.domain}' } },
-  why:  'Cross-domain import: extract shared helpers to a sibling shared/ module.' }
+  why:  'Cross-domain import: extract shared helpers to a sibling shared/ subsystem.' }
 ```
 
 ## 4. Where each rule lives
@@ -157,17 +157,17 @@ emitted to developers.
 | ------------------------------- | ------------------------- |
 | Afferent ("who may import me?") | Higher level (composer).  |
 | Efferent ("what may I import?") | Own file.                 |
-| Cross-module sibling-isolation  | Higher level (composer).  |
+| Cross-subsystem sibling-isolation  | Higher level (composer).  |
 | Internal layering               | Own file.                 |
 | Sub-tier sibling-isolation      | Own file.                 |
 
 Higher-level rules accumulate. Place each rule where the composition it
-expresses lives — sub-tier sibling-isolation in the module's own file (it
-composes its sub-tiers); encapsulation between the module and its peers
-higher up (where the module is composed with peers).
+expresses lives — sub-tier sibling-isolation in the subsystem's own file (it
+composes its sub-tiers); encapsulation between the subsystem and its peers
+higher up (where the subsystem is composed with peers).
 
-> [!IMPORTANT] A module's own file MUST reference only its own-prefix names
-> (`<own-prefix>-*` or `<own-prefix>-x`) and `*`. Naming any other module is
+> [!IMPORTANT] A subsystem's own file MUST reference only its own-prefix names
+> (`<own-prefix>-*` or `<own-prefix>-x`) and `*`. Naming any other subsystem is
 > a violation — that knowledge belongs higher up.
 
 ---
@@ -193,7 +193,7 @@ for f in files:
 
 # 3. Expand wildcards against the live registry.
 #    Turn a spec ('foo' | 'foo-*' | '*' | list | parametric) into
-#    a concrete list of component names, with `except` subtracted.
+#    a concrete list of subsystem names, with `except` subtracted.
 names = [c.name for c in components]
 def expand(spec, except_):
     if spec is parametric: return spec     # passthrough
@@ -202,14 +202,14 @@ def expand(spec, except_):
     return types
 
 # 4. Emit the stack's native lint config from `components` + expanded `forbidden`.
-#    4a. Forward EVERY field the component schema defines — name, pattern,
+#    4a. Forward EVERY field the subsystem schema defines — name, pattern,
 #        mode / single, capture. A field the emitter drops is unexpressible in
 #        every architecture file in the repo; `mode` is the usual casualty, and
 #        it is the one the repository root needs (Directive 6).
 #    4b. Scope the emitted rule block to the ENTIRE linted source set — never a
 #        subdirectory allowlist (Directive 7).
 #    4c. Emit the file-existence rule ("every file matches a declared
-#        component") at error severity alongside the dependency rules
+#        subsystem") at error severity alongside the dependency rules
 #        (Directive 8).
 
 # 5. Invoke the stack's lint tool against the emitted config.
@@ -219,18 +219,18 @@ The discovery + merge + wildcard-expansion pipeline is the same everywhere.
 Steps 4 and 5 are the only stack-specific parts.
 
 > [!NOTE] The generated lint config is a **build artifact** — git-ignored,
-> regenerated on every run. The source of truth is the per-module
+> regenerated on every run. The source of truth is the per-subsystem
 > architecture files.
 
 ---
 
-## 6. Timing — rules first for new modules
+## 6. Timing — rules first for new subsystems
 
-When introducing a new module on a stack that supports this pattern, write
+When introducing a new subsystem on a stack that supports this pattern, write
 its architecture file (plus any afferent rules in the parent) **before**
 its implementation code. Catching the first wrong import on day 1 is the
 point; retrofitted rules either rubber-stamp accidents or trigger
-unbounded refactors. The PR that adds the module contains the rules first,
+unbounded refactors. The PR that adds the subsystem contains the rules first,
 the implementation second.
 
 **Spike escape-hatch.** Code explicitly marked as a spike or throwaway
@@ -245,24 +245,24 @@ code that never gets the gate.
 
 | Anti-pattern                                  | Fix                                                        |
 | --------------------------------------------- | ---------------------------------------------------------- |
-| A module's own file names another module.     | Move higher, or rewrite with `<own-prefix>-*` + `*`.       |
-| Hardcoded list of "all other modules".        | Use `'*'` + `except` / `except_to`.                        |
-| Renaming a module without updating consumers. | Use prefix wildcards (`<prefix>-*`) so renames stay local. |
-| Module has rules but no catch-all bucket.     | Add the whole-module entry as the last `components` row.   |
+| A subsystem's own file names another subsystem.     | Move higher, or rewrite with `<own-prefix>-*` + `*`.       |
+| Hardcoded list of "all other subsystems".        | Use `'*'` + `except` / `except_to`.                        |
+| Renaming a subsystem without updating consumers. | Use prefix wildcards (`<prefix>-*`) so renames stay local. |
+| Subsystem has rules but no catch-all bucket.     | Add the whole-subsystem entry as the last `components` row.   |
 | Dynamic / unresolved imports evade rules.     | Make imports static and resolvable, or document the loophole and ban the dynamic style where possible. |
 | Rule block scoped to a subset of the linted source set. | Apply the rule to every linted source file; the registry cannot fire on a file the rule never sees. |
-| A `**` catch-all at repository root in ancestor/folder matching mode. | It captures files at the shallowest segment and overrides specific components regardless of order. Declare the root's files with file-mode components instead. |
+| A `**` catch-all at repository root in ancestor/folder matching mode. | It captures files at the shallowest segment and overrides specific subsystems regardless of order. Declare the root's files with file-mode entries instead. |
 | Relying on dependency rules to catch an undeclared directory. | Use the file-existence rule; a file with no imports has no edge to judge. |
-| Assembler maps a subset of the schema's component fields. | Forward every field, `mode` included — a dropped field silently deletes that part of the schema. |
+| Assembler maps a subset of the schema's subsystem fields. | Forward every field, `mode` included — a dropped field silently deletes that part of the schema. |
 
 Before merge:
 
-- [ ] No other-module name appears in any module's own architecture file.
-- [ ] `components` ordered narrowest-first; constrained modules end with a
+- [ ] No other-subsystem name appears in any subsystem's own architecture file.
+- [ ] `components` ordered narrowest-first; constrained subsystems end with a
       catch-all.
 - [ ] The emitted rule block's file scope equals the linted source set.
-- [ ] Every file at repository root belongs to a declared component.
-- [ ] The assembler forwards every field the component schema defines, `mode`
+- [ ] Every file at repository root belongs to a declared subsystem.
+- [ ] The assembler forwards every field the subsystem schema defines, `mode`
       included.
 - [ ] Lint violation count matches baseline (or new violations reflect
       intentional changes).
@@ -275,7 +275,7 @@ Before merge:
 > classifies and compare that with the file count of the linted source set.
 > Reading the lint result proves nothing about either gate.
 
-> [!NOTE] The "no other-module name" check is mechanical — a small AST/TOML
+> [!NOTE] The "no other-subsystem name" check is mechanical — a small AST/TOML
 > walk over each architecture file could enforce it as a meta-lint. Until
 > then, the manual checklist is the gate.
 
@@ -286,12 +286,12 @@ Before merge:
 When designing or auditing rules, emit a coder-facing decision record:
 
 ```
-Scope:          <repo / package / module path>
+Scope:          <repo / package / subsystem path>
 Stack:          JavaScript | Python | Other
 Input:          <Enforcement handoff consumed, or none>
 Decision:       Add config | Update config | Reject rule | Defer | Blocked
 Config files:   <eslint.architecture.mjs / architecture.toml / generated config>
-Components:     <component names or patterns added/changed>
+Components:     <subsystem names or patterns added/changed>
 Forbidden edges:<from -> to rules added/changed>
 Verification:   <lint command / meta-lint / Not run + reason>
 Next action:    <specific edit, rule, test, or owner question>
@@ -308,7 +308,7 @@ sibling skills:
 | Python     | `architecture.toml`       | `import-linter` (over Grimp)           | `architecture-as-code-python`     |
 
 Adapting to a new stack: pick an import-graph linter that supports forbidden
-edges between named module sets, then write a small assembler that emits its
+edges between named subsystem sets, then write a small assembler that emits its
 native config. Everything in §§ 1–6 transfers; only step 4 of §5 (emit) and
 step 5 (invoke) are stack-specific.
 

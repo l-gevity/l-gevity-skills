@@ -13,7 +13,7 @@
 <!-- ============ HERO ============ -->
 <rect x="40" y="40" width="40" height="3" fill="#534AB7" rx="1.5"/>
 <text x="40" y="74" font-size="22" font-weight="500" fill="#2C2C2A">Architecture-as-code</text>
-<text x="40" y="100" font-size="14" fill="#5F5E5A">Declare which modules may import which. Violations fail the build.</text>
+<text x="40" y="100" font-size="14" fill="#5F5E5A">Declare which subsystems may import which. Violations fail the build.</text>
 <text x="40" y="120" font-size="12" fill="#888780">Architecture rot is tangled imports nobody dares touch. Make the rules enforceable.</text>
 
 <!-- ============ THE LAYER DIAGRAM ============ -->
@@ -28,7 +28,7 @@
 <line x1="290" y1="254" x2="250" y2="284" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#arrow)"/>
 <line x1="390" y1="254" x2="430" y2="284" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#arrow)"/>
 
-<!-- Layer: Business (middle) — two independent modules -->
+<!-- Layer: Business (middle) — two independent subsystems -->
 <rect x="130" y="290" width="160" height="44" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
 <text x="210" y="316" font-size="14" font-weight="500" fill="#085041" text-anchor="middle" dominant-baseline="central">Orders</text>
 
@@ -72,7 +72,7 @@
 <!-- Principle 1 -->
 <rect x="40" y="548" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
 <text x="56" y="578" font-size="14" font-weight="500" fill="#2C2C2A">Dependencies flow one way</text>
-<text x="56" y="600" font-size="12" fill="#5F5E5A">Cycles couple modules. Changes</text>
+<text x="56" y="600" font-size="12" fill="#5F5E5A">Cycles couple subsystems. Changes</text>
 <text x="56" y="616" font-size="12" fill="#5F5E5A">ripple unpredictably. One-way</text>
 <text x="56" y="632" font-size="12" fill="#5F5E5A">flow keeps the graph acyclic.</text>
 
@@ -87,7 +87,7 @@
 <rect x="40" y="668" width="290" height="110" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
 <text x="56" y="698" font-size="14" font-weight="500" fill="#2C2C2A">Boundaries enable local reasoning</text>
 <text x="56" y="720" font-size="12" fill="#5F5E5A">Constrained imports let you</text>
-<text x="56" y="736" font-size="12" fill="#5F5E5A">change a module without holding</text>
+<text x="56" y="736" font-size="12" fill="#5F5E5A">change a subsystem without holding</text>
 <text x="56" y="752" font-size="12" fill="#5F5E5A">the whole system in your head.</text>
 
 <!-- Principle 4 -->

@@ -13,18 +13,18 @@ record must still pass `check_topology_report.py --samples`.
 
 ## (a) Prospective complexity report — new abstraction
 
-**Scenario.** A `billing/rate-limiter` component is being introduced. Three
-existing components (`billing/gateway`, `billing/cache-front`, `billing/config-loader`)
+**Scenario.** A `billing/rate-limiter` subsystem is being introduced. Three
+existing subsystems (`billing/gateway`, `billing/cache-front`, `billing/config-loader`)
 currently each implement ad-hoc throttling. The refactor extracts a shared
 rate-limiter all three will use.
 
 ```
 Subject:              billing/rate-limiter — extract shared throttling
 Decision:             Proceed
-Component-kinds Δ:    +1     (RateLimiter is a new component type; 3 concrete callers identified)
+Subsystem-kinds Δ:    +1     (RateLimiter is a new subsystem type; 3 concrete callers identified)
 Dependency-edges Δ:   +3     (RateLimiter ↔ Gateway, Cache-Front, Config-Loader; replaces 3 ad-hoc paths)
 Max-chain-depth Δ:    +1     (callers now route through one extra hop)
-Module-count Δ:       +2     (rate-limiter/ and rate-limiter-tests/)
+Subsystem-count Δ:    +2     (rate-limiter/ and rate-limiter-tests/)
 Cycle:                Pass
 Non-structural gates: Pass
 Trade-off:            §6 row "Add abstraction tier — ≥3 concrete instances" — Proceed (§7a Conformance)
@@ -32,13 +32,13 @@ Rationale:            Three named concrete callers satisfy the Rule of Three.
                       The +1 chain-hop is the cost of the shared abstraction;
                       the dependency-edge net is unchanged (3 ad-hoc edges
                       collapse into 3 shared edges).
-Next action:          Extract shared component and wire the three callers.
+Next action:          Extract shared subsystem and wire the three callers.
 Verification:         Run unit tests for the three callers and architecture lint.
 ```
 
 ---
 
-## (b) Retrospective audit report — module under review for removal
+## (b) Retrospective audit report — subsystem under review for removal
 
 **Scenario.** Audit of `core/plugin-registry/` — a generic registry built six
 months ago "to support future plugin types." The single current registration
@@ -47,26 +47,26 @@ is the email-template plugin, which is loaded statically at boot.
 ```
 Subject:              core/plugin-registry — retrospective audit
 Decision:             DELETE
-Component-kinds Δ:    -1     (PluginRegistry type removed; no second concrete plugin ever landed)
+Subsystem-kinds Δ:    -1     (PluginRegistry type removed; no second concrete plugin ever landed)
 Dependency-edges Δ:   -4     (registry ↔ boot, email-template, type-registry, manifest-loader)
 Max-chain-depth Δ:    -2     (boot → registry → manifest-loader → plugin collapses to boot → plugin)
-Module-count Δ:       -3     (plugin-registry/, plugin-registry-tests/, manifest-loader/)
+Subsystem-count Δ:    -3     (plugin-registry/, plugin-registry-tests/, manifest-loader/)
 Cycle:                Pass
 Non-structural gates: Pass
 Trade-off:            §1 (necessity) — generality without instantiation; Rule of Three not met after 6 months
 Rationale:            One registered plugin in six months; no second instance
                       named or probable. Inlining the email-template
-                      registration removes one component-type and three
-                      modules with no caller-visible behavior change.
+                      registration removes one subsystem-type and three
+                      subsystems with no caller-visible behavior change.
 Next action:          Inline the email-template registration and delete registry files/tests after callers pass.
 Verification:         Run caller tests and architecture lint after deletion.
 ```
 
 ---
 
-## (c) Placement report — new component, morphogenetic topology
+## (c) Placement report — new subsystem, morphogenetic topology
 
-**Scenario.** A new `auth-token-validator` component is being introduced.
+**Scenario.** A new `auth-token-validator` subsystem is being introduced.
 It verifies signed bearer tokens for inbound HTTP requests in the
 `identity` domain.
 
@@ -74,7 +74,7 @@ It verifies signed bearer tokens for inbound HTTP requests in the
 Subject:             identity/auth-token-validator
 Mode:                Design
 Analysis mode:       Rapid
-Selection reason:    One bounded component placement with proposed static
+Selection reason:    One bounded subsystem placement with proposed static
                      edges and no restructuring candidate.
 Decision:            PLACE
 Declared topology:   identity / primitive / infrastructure
@@ -90,7 +90,7 @@ Boundary evidence:   Token verification belongs to identity; proposed callers
                      and callees remain within the identity boundary.
 Enforcement:         add architecture rule: forbid auth-token-validator ->
                      billing/*, orders/*, and undeclared infrastructure
-Next action:         Add the component and its inbound interface at
+Next action:         Add the subsystem and its inbound interface at
                      identity / primitive / infrastructure.
 Verification:        Run architecture lint and focused identity tests.
 ```
@@ -136,7 +136,7 @@ Second candidate:    Exposed risk (natural lens — segmentation): a split
                      and shapes the enforcement rule. A manual layer cut was
                      also attempted and produced nothing distinct: edits
                      inside each cluster cross the application/infrastructure
-                     line, so it leaves both change reasons in one component.
+                     line, so it leaves both change reasons in one subsystem.
 Static cycle:        Pass
 Runtime cycles:      none observed
 Boundary evidence:   Payment authorization and shipment reservation have
@@ -149,8 +149,8 @@ Prediction:          Cluster-local change stays >= 80% over the next 20
                      commerce/checkout.
 Enforcement:         add architecture rule: checkout entry may depend on the
                      two new inbound interfaces, not their internals
-Measurement:         Proceed — Component-kinds Δ=0; Dependency-edges Δ=-2;
-                     Max-chain-depth Δ=0; Module-count Δ=+1; non-structural
+Measurement:         Proceed — Subsystem-kinds Δ=0; Dependency-edges Δ=-2;
+                     Max-chain-depth Δ=0; Subsystem-count Δ=+1; non-structural
                      gates pass.
 Next action:         Split the orchestrator along the two accepted
                      responsibilities and retain one checkout entry facade.
@@ -220,8 +220,8 @@ Prediction:          Cluster-local change reaches >= 80% over merges 1–20 afte
                      notifications/*.
 Enforcement:         add architecture rule: forbid notifications/dispatcher ->
                      notifications/schedule-store
-Measurement:         Proceed — Component-kinds Δ=+1; Dependency-edges Δ=0;
-                     Max-chain-depth Δ=+1; Module-count Δ=0; non-structural
+Measurement:         Proceed — Subsystem-kinds Δ=+1; Dependency-edges Δ=0;
+                     Max-chain-depth Δ=+1; Subsystem-count Δ=0; non-structural
                      gates pass.
 Next action:         Add the scheduling contract, enable the co-change report,
                      and promote the new architecture rule from warn to error
@@ -238,8 +238,8 @@ A reader who has never opened the internal model (`structural-simplification`
 §§1–7 or `morphogenetic-architecture` §§1–3) should be able to, for each of
 the five reports:
 
-1. State what each labelled field means (e.g. "Component-kinds Δ = how
-   many new component types were added; positive means more diversity").
+1. State what each labelled field means (e.g. "Subsystem-kinds Δ = how
+   many new subsystem types were added; positive means more diversity").
 2. Decide whether the decision follows from the deltas.
 
 If any field requires consulting §1 of either skill to interpret, that
@@ -251,7 +251,7 @@ templates should produce the same five reports and re-pass the test.
 
 ## (f) Summary-led report
 
-**Scenario.** A new component placed with `morphogenetic-architecture`, as the
+**Scenario.** A new subsystem placed with `morphogenetic-architecture`, as the
 report reaches the reader: four plain-language blocks first, then the record.
 
 **What I found.** You are adding `notifications/email-sender`, and it belongs
@@ -259,24 +259,24 @@ here (the record calls this PLACE): the notifications domain, one job, the
 application layer. Its only outbound call is to the mail adapter, and nothing
 in another domain imports it.
 
-**Why it matters.** A component with a clear address is one a future change can
+**Why it matters.** A subsystem with a clear address is one a future change can
 find and reason about. Placing it now costs one line in the architecture
 config; moving it later costs every import that grows around it.
 
 **Do this first.**
 1. Add `notifications/email-sender` to `eslint.architecture.mjs` for the
-   notifications module, with `mail-adapter` as its only allowed outbound edge.
+   notifications subsystem, with `mail-adapter` as its only allowed outbound edge.
 2. Run the architecture lint and confirm it passes with the new entry.
 
 **What I did not check.** Runtime calls and change history; placing a new
-component does not need them. The architecture lint did not run; run
+subsystem does not need them. The architecture lint did not run; run
 `npm run lint:architecture` to confirm.
 
 ```text
-Subject:             notifications/email-sender — new component
+Subject:             notifications/email-sender — new subsystem
 Mode:                Design
 Analysis mode:       Rapid
-Selection reason:    bounded static check — new component placement
+Selection reason:    bounded static check — new subsystem placement
 Decision:            PLACE
 Declared topology:   notifications / capability / application; inbound send(message); outbound mail-adapter
 Position legality:   Pass
@@ -285,7 +285,7 @@ Runtime cycles:      none
 Observed fields:     static = checked; runtime, change, data, failure = Not measured
 Boundary evidence:   domain reason — notifications owns delivery; no cross-domain import observed
 Enforcement:         add architecture rule: notifications/email-sender -> mail-adapter only
-Next action:         Add the component entry and the outbound rule to eslint.architecture.mjs.
+Next action:         Add the subsystem entry and the outbound rule to eslint.architecture.mjs.
 Verification:        Not run — architecture lint; run npm run lint:architecture
 ```
 

@@ -32,7 +32,7 @@ a message field, an API body, and a file format.
 
 ## Every change is three changes
 
-A database refactoring is one unit with three parts: the schema change, the
+A database refactoring is one indivisible bundle: the schema change, the
 data migration for existing records, and the access-code change in
 *everything* that reads or writes the shape. That last word is the trap.
 Code coupling is visible in an import graph; data coupling is not. A
@@ -94,8 +94,8 @@ is — this concept supplies the staged path that makes it reversible at all;
 coexisting version still works; [shift-left](READ-defect-shift-left.md) and
 [reliable pipelines](READ-ci-cd-reliability-architecture.md) place and gate
 the dry-run, the deploy order, and the rollback. The operational reference —
-inventory, change taxonomy, staged path, migration units, data contract, and
+inventory, change taxonomy, staged path, migration increments, data contract, and
 decision rules — lives in
 [SKILL.md](../.claude/skills/evolutionary-database-design/SKILL.md).*
 
-<!-- skill-revision: e10f958469c4 -->
+<!-- skill-revision: 1383e8648363 -->

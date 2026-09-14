@@ -48,10 +48,10 @@ work to undo later.
    careful requirement edits scored like any change, and gate edits with real
    external trade-offs as explicit product decisions (see
    `functionality-complexity-tradeoff` §1e).
-2. **Probe deletion.** Try removing the step, file, stage, or component behind
+2. **Probe deletion.** Try removing the step, file, stage, or subsystem behind
    a reversible branch, feature flag, dry run, or narrow rollout. Restore
    anything proven load-bearing; keep only deletions backed by evidence.
-3. **Simplify what remains.** Only optimize parts that survived deletion.
+3. **Simplify what remains.** Only optimize subsystems that survived deletion.
 4. **Speed it up.** Parallelize, cache, batch — but only after simplification,
    and only within the limits parallelism actually returns (§7).
 5. **Automate last.** Automating an unnecessary or unsimplified process locks in
@@ -297,7 +297,7 @@ For identifying constraints, waste, and root causes in operational analysis:
 When applying this skill, emit a coder-facing optimization decision record:
 
 ```
-Scope:          <repo / pipeline / workflow / module / time window>
+Scope:          <repo / pipeline / workflow / subsystem / time window>
 Constraint:     <measured bottleneck or Not measured + reason>
 Decision:       Delete | Simplify | Stabilize | Optimize | Automate | Defer | Reject
 Flow signal:    <WIP / cycle time / utilization / flow efficiency / variation class, or Not measured>

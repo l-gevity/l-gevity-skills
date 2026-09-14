@@ -1,7 +1,7 @@
 # Boundary Enforcement in JavaScript: What the Linter Can See
 
 Suppose your team has decided that production code may never import test
-helpers, and that only the orchestrator may touch the core module's
+helpers, and that only the orchestrator may touch the core subsystem's
 internals. In a JavaScript or TypeScript repo, those decisions can be
 enforced — automatically, on every commit, in the editor as you type. This
 document explains how that enforcement actually works in the JS ecosystem,
@@ -9,7 +9,7 @@ and — just as important — the specific ways it can silently *not* work.
 
 It assumes you've read the
 [architecture-as-code concept](READ-architecture-as-code.md): rules live in
-small per-module files, an assembler merges them, a linter enforces the
+small per-subsystem files, an assembler merges them, a linter enforces the
 merged result. Here we cover the JavaScript half: what the tooling really
 does under the hood.
 
@@ -21,10 +21,10 @@ turn that path into a concrete file. That's enough to reconstruct the
 **import graph**: which file depends on which. Boundary plugins (the
 established one is `eslint-plugin-boundaries`) build on exactly this:
 
-1. **Classification.** Glob patterns map files to named components:
+1. **Classification.** Glob patterns map files to named subsystems:
    everything under `packages/core/tier1/**` is `core-tier1`;
    `packages/core/index.js` alone is the `core-facade`.
-2. **Rules over pairs.** Each rule forbids edges between components:
+2. **Rules over pairs.** Each rule forbids edges between subsystems:
    *`core-*` may import nothing outside `core-*`*; *nobody but the
    orchestrator may import `core-facade`*. Every rule carries a message
    explaining *why* — that message is what a developer sees at the moment
@@ -35,11 +35,11 @@ established one is `eslint-plugin-boundaries`) build on exactly this:
    the rules. A match on a forbidden edge is a lint error, in the editor
    and in CI.
 
-The per-module rule files (`eslint.architecture.mjs` — one per governed
-directory, declaring only that module's own components and outbound rules)
+The per-subsystem rule files (`eslint.architecture.mjs` — one per governed
+directory, declaring only the subsystems it contains and its outbound rules)
 are merged by a small assembler script at lint startup into one ESLint
 flat-config. The merged config is a throwaway build artifact; the
-per-module files are the source of truth, versioned next to the code they
+per-subsystem files are the source of truth, versioned next to the code they
 govern.
 
 ## The four ways enforcement silently fails
@@ -57,20 +57,20 @@ resolver (e.g. an alias resolver mapping `/js` to its real directory) so
 every real dependency is visible. The test: if you can't jump-to-definition
 through an import, the linter probably can't follow it either.
 
-**2. Unmatched files are invisible.** A file that matches no component
+**2. Unmatched files are invisible.** A file that matches no subsystem
 pattern doesn't exist as far as the rules are concerned — imports from it
-and to it are unjudged. This is why every governed module's component list
+and to it are unjudged. This is why every governed directory's subsystem list
 must end with a catch-all pattern (`packages/core/**`, last, after the
-narrower patterns): it sweeps every file into *some* component, so nothing
+narrower patterns): it sweeps every file into *some* subsystem, so nothing
 sits outside the law. Patterns are matched in order, narrowest first —
 the facade's exact file path before tier directories before the catch-all
 — so each file lands in its most specific classification.
 
 Two caveats on that catch-all, both learned expensively. It belongs *inside*
-a module, where the parts sit at one depth. At the repository root the same
-`**` matches at the shallowest folder and steals files from the specific
-components below it, whatever its position in the list — so the root's loose
-files get declared individually, as exact file paths. And a catch-all only
+a subsystem, where the declared subsystems sit at one depth. At the repository
+root the same `**` matches at the shallowest folder and steals files from the
+specific subsystems below it, whatever its position in the list — so the
+root's loose files get declared individually, as exact file paths. And a catch-all only
 makes a file *classified*; to make an unclassified file *fail*, switch on the
 plugin's unknown-file rule. That rule is also the only one that can flag a
 file with no imports at all — a dependency rule needs an edge to judge, and
@@ -79,7 +79,7 @@ such a file has none.
 **3. Unlinted files are invisible — and this one hides in the config.** The
 others are gaps in what the plugin can *see*; this is a gap in where it is
 *pointed*. The boundaries rule lives in a flat-config block with a `files`
-glob, and that glob is a second gate, independent of every component pattern:
+glob, and that glob is a second gate, independent of every subsystem pattern:
 a file outside it is never handed to the rule. A scope that started as
 `packages/**` and grew into a hand-kept list of directories will eventually
 miss a new one, and the lint output won't change by a character — the count
@@ -108,12 +108,12 @@ from a green check.
 ## Ecosystem idioms worth knowing
 
 - **Facade as a single file.** JavaScript's natural public-API idiom is an
-  index/entry file. Declaring it as a single-file component (exact path,
+  index/entry file. Declaring it as a single-file subsystem (exact path,
   `mode: 'file'`, no glob) lets rules like "outsiders may import the
-  facade and nothing else in the module" match precisely.
+  facade and nothing else in the subsystem" match precisely.
 - **Test/production separation.** Declare test files
-  (`src/**/*.test.ts`, `test/**`) as their own components *before* the
-  production catch-all, then forbid the production component from
+  (`src/**/*.test.ts`, `test/**`) as their own subsystems *before* the
+  production catch-all, then forbid the production subsystem from
   importing them. One direction only: tests may import production code;
   production importing test code is the bug.
 - **`.mjs` for the rule files.** The architecture files are ES modules the
@@ -125,8 +125,8 @@ from a green check.
   run it at `warn` until the backlog clears. Don't: a rule at `warn` is a
   report, not a boundary — the build stays green while the edge it forbids
   ships. Register it at `error`, and if the repository cannot pass yet,
-  narrow the rule's scope through declared components (declare the legacy
-  area as its own component and allow only the edges it already has), never
+  narrow the rule's scope through declared subsystems (declare the legacy
+  area as its own subsystem and allow only the edges it already has), never
   by softening the severity. The debt then sits in the architecture file
   where a review can see it shrink.
 
@@ -137,7 +137,7 @@ linter blocks an import, read the `why` message before reaching for a
 workaround — the rule is a design decision talking to you, and the correct
 responses are "route through the public interface" or "challenge the rule
 in review", never "find a path the resolver can't see." And when you *add*
-a module, add its architecture file in the same change — a component the
+a subsystem, add its architecture file in the same change — a subsystem the
 rules don't know is not exempt so much as invisible, which is worse.
 
 ---
@@ -151,4 +151,4 @@ full operational reference — assembler code, recipes, and gotchas — lives
 in
 [SKILL.md](../.claude/skills/architecture-as-code-javascript/SKILL.md).*
 
-<!-- skill-revision: 4c31e698ccfc -->
+<!-- skill-revision: d46716d22a0c -->

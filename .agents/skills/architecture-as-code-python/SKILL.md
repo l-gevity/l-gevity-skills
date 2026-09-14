@@ -27,7 +27,7 @@ description: >-
 - Pattern syntax: dotted module paths (`mypkg.core.tier1`). The package and
   all submodules match by default; set `single = true` to match only the
   exact module.
-- Component patterns may overlap (e.g. `mypkg.core` and `mypkg.core.tier1`
+- Subsystem patterns may overlap (e.g. `mypkg.core` and `mypkg.core.tier1`
   both match files under `mypkg/core/tier1/`). That's fine — import-linter
   checks each contract independently; there's no first-match-wins.
 
@@ -78,7 +78,7 @@ The assembler emits `forbidden` contracts by default. For two common shapes
 import-linter offers more specific contract types that produce cleaner
 violations:
 
-- **Sibling-isolation across N components** → one `independence` contract
+- **Sibling-isolation across N subsystems** → one `independence` contract
   listing the N module patterns.
 - **Strict tier ordering** (e.g. `tier1 < tier2 < tier3`, where higher tiers
   may import lower) → a `layers` contract. Optional — explicit `[[forbidden]]`
@@ -227,7 +227,7 @@ project's virtualenv to import the analyzed packages.
 When applying this implementation, emit:
 
 ```
-Scope:          <repo / package / module path>
+Scope:          <repo / package / subsystem path>
 Decision:       Add architecture.toml | Update assembler | Update import-linter config | Blocked
 Generated config:<path, if any>
 Contracts changed:<forbidden / layers / independence contracts>
@@ -241,7 +241,7 @@ Next action:    <specific file edit, package install, cache clear, or unresolved
 > `import` and `from ... import` statements via Grimp. Imports through
 > `importlib.import_module(...)`, `__import__`, or string-based dispatch
 > don't appear in the graph. If a package uses dynamic imports for plugin
-> loading, mark the entry-point as a single-module component
+> loading, mark the entry-point as a single-module declared subsystem
 > (`single = true`) so its rules are explicit, and consider banning the
 > dynamic style elsewhere.
 
@@ -258,7 +258,7 @@ Next action:    <specific file edit, package install, cache clear, or unresolved
 
 > [!NOTE] **import-linter `*` is single-segment.** In `forbidden_modules` and
 > similar fields, `mypkg.*` matches `mypkg.foo` but **not** `mypkg.foo.bar`.
-> The pattern's prefix wildcards (`core-*`) operate on *component names* and
+> The pattern's prefix wildcards (`core-*`) operate on *subsystem names* and
 > are expanded by the assembler before contracts are emitted, so they don't
 > hit this limit. But if you write raw module patterns yourself, mind the
 > difference.
@@ -271,8 +271,8 @@ Next action:    <specific file edit, package install, cache clear, or unresolved
 > root package to walk it. Make sure `pip install -e .` (or equivalent) has
 > been run in the active venv before invoking the assembler.
 
-> [!NOTE] **Mixing pattern-level and component-level wildcards.** A single
+> [!NOTE] **Mixing pattern-level and subsystem-level wildcards.** A single
 > rule that uses both `mypkg.*` (single-segment, import-linter native) and
-> `core-*` (multi-match, assembler-expanded) will surprise you. Component-
+> `core-*` (multi-match, assembler-expanded) will surprise you. Subsystem-
 > name wildcards are the assembler's domain; raw `*` in import-linter
 > patterns is single-segment only. Don't mix in one rule.

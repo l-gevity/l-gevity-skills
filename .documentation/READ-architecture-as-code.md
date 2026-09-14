@@ -17,11 +17,11 @@ and tests are, rather than remembered.
 
 ![Architecture as Code](architecture_as_code.svg)
 
-## The enforceable slice of architecture
+## The enforceable subset of architecture
 
 Not everything called "architecture" can be automated. What *can* be —
 completely, cheaply, deterministically — is the **import graph**: which
-modules are allowed to depend on which. That slice is worth automating
+subsystems are allowed to depend on which. That subset is worth automating
 because most architectural erosion is exactly this: dependency arrows
 appearing where the design says none should exist. Layer skips, domain
 logic reaching into infrastructure, two sibling features quietly importing
@@ -30,12 +30,12 @@ graph, and machines are excellent at checking edges.
 
 The recipe has three ingredients:
 
-1. **Name the components.** Declare that files under `billing/` are the
-   `billing` module, that `core/facade.ts` is the `core-facade`, and so
-   on — patterns mapping the directory tree onto named parts.
+1. **Name the subsystems.** Declare that files under `billing/` are the
+   `billing` subsystem, that `core/facade.ts` is the `core-facade`, and so
+   on — patterns mapping the directory tree onto named subsystems.
 2. **Declare the forbidden edges.** `domain` may not import
    `infrastructure`. Nobody but the `orchestrator` may import
-   `core-facade`. Sibling feature modules may not import each other.
+   `core-facade`. Sibling feature subsystems may not import each other.
 3. **Check every commit.** An import-graph linter (they exist for every
    major ecosystem) evaluates the actual imports against the declared
    rules and fails the build on violation.
@@ -49,51 +49,51 @@ No meeting, no memory, no code-review vigilance required.
 ## The design discipline: who is allowed to know what
 
 The naive version of this idea is one giant rules file at the repo root —
-and it rots just like any other centralized registry: every module change
+and it rots just like any other centralized registry: every subsystem change
 edits the same file, the file grows into an unreadable tangle, and after a
 while nobody knows which rules still reflect intent. The pattern that
 scales rests on a principle worth knowing beyond this context, because
-it's the same principle that makes modules themselves work:
+it's the same principle that makes subsystems themselves work:
 
-> **A module may know itself. It may not know its context.**
+> **A subsystem may know itself. It may not know its context.**
 
-Concretely, every module (directory) may carry its own small architecture
+Concretely, every subsystem (directory) may carry its own small architecture
 file, and that file may declare only two kinds of things:
 
-- **Its internals** — the module's own sub-parts and layering: "my tier-3
+- **Its internals** — the subsystems it contains and their layering: "my tier-3
   code may not reach directly into my tier-1 code."
 - **Its outbound rules** — what *it* imports: "core imports nothing outside
   core."
 
-What a module's own file may *never* declare is anything requiring
+What a subsystem's own file may *never* declare is anything requiring
 knowledge of the wider world: who is allowed to import it, how it relates
-to siblings, its place in the system. Those are **composition** concerns,
+to siblings, its place in the system. Those are **composition** questions,
 and they live one level up — in the architecture file of the directory
-that composes the modules together. "Only the orchestrator may import the
-core facade" is knowledge about how the composer arranged its parts, so
+that composes the subsystems together. "Only the orchestrator may import the
+core facade" is knowledge about how the composer arranged its subsystems, so
 the composer's file says it.
 
-The mechanical tell is memorable: *a module's own architecture file never
-contains another module's name.* The moment it does, knowledge is leaking
+The mechanical tell is memorable: *a subsystem's own architecture file never
+contains another subsystem's name.* The moment it does, knowledge is leaking
 across a boundary — the same smell as a class hardcoding its callers'
 names, appearing one level up.
 
 An assembler script walks the tree, gathers every architecture file, and
 merges them into one configuration for the linter. Two conventions do
 disproportionate work here. **Wildcards over enumerations**: writing "any
-module except the orchestrator" as `* except orchestrator` rather than
-listing modules means new modules are governed the moment they're created,
+subsystem except the orchestrator" as `* except orchestrator` rather than
+listing subsystems means new subsystems are governed the moment they're created,
 instead of silently ungoverned until someone remembers the list. And a
-**catch-all pattern last in every governed module**: any file matching no
-declared component is *invisible* to the linter, and invisible files bypass
+**catch-all pattern last in every governed subsystem**: any file matching no
+declared subsystem is *invisible* to the linter, and invisible files bypass
 every rule — the catch-all closes the gap that would otherwise make the
 whole system quietly optional. The merged linter config itself is a build
-artifact — generated, git-ignored, never hand-edited; the per-module files
+artifact — generated, git-ignored, never hand-edited; the per-subsystem files
 are the single source of truth.
 
 ## The two ways coverage fails quietly
 
-Naming the components is only the first of two gates, and the second is the
+Naming the subsystems is only the first of two gates, and the second is the
 one that gets missed: the rule also has a *scope* — the set of files the
 linter runs it against. A registry that classifies every file in the
 repository still enforces nothing on a path the rule never visits. Teams
@@ -108,10 +108,10 @@ The second failure is subtler, and it is the catch-all advice above turning
 against itself. Most import-graph linters match a pattern against a file's
 parent *folders* rather than its full path, which means a `**` catch-all
 matches at the shallowest folder and claims files that more specific
-components already own — no matter how far down the list it sits. Inside a
-module, where the parts sit at one depth, the catch-all does what it
-promises. At the repository root it swallows everything. The root's loose
-files need to be declared as exact files, one by one.
+subsystems already own — no matter how far down the list it sits. Inside a
+subsystem, where the declared subsystems sit at one depth, the catch-all does
+what it promises. At the repository root it swallows everything. The root's
+loose files need to be declared as exact files, one by one.
 
 Both failures share a signature worth recognizing anywhere: the tool's only
 signal is a number that stays at zero, and a green check reads the same
@@ -123,12 +123,12 @@ the gap between "no forbidden edge found" and "no edge was ever examined."
 
 ## Rules before code
 
-A timing rule with an outsized effect: when creating a new module, write
+A timing rule with an outsized effect: when creating a new subsystem, write
 its architecture file **before** its implementation, in the same change.
 
 The reasoning is about what each ordering produces. Rules-first means the
 very first wrong import fails immediately — the boundary is real from day
-one, and the module grows inside it. Rules-later means the rules are
+one, and the subsystem grows inside it. Rules-later means the rules are
 written to describe whatever dependencies have already accumulated — and
 retrofitted rules face an ugly pair of options: rubber-stamp the accidents
 (making the "architecture" a photograph of the mess) or declare war on
@@ -139,7 +139,7 @@ crossed.
 Honest exception: genuine throwaway spikes may skip rules — exploration
 shouldn't fight scaffolding. The condition is that spike code never
 crosses into the main branch ungoverned; it gets deleted, or rewritten
-rules-first. "We'll add the rules later" is how permanent modules end up
+rules-first. "We'll add the rules later" is how permanent subsystems end up
 permanently ungoverned.
 
 ## What this pattern is not
@@ -190,4 +190,4 @@ implementations exist for
 reference — file schema, rule placement, assembler, and audit checklist —
 lives in [SKILL.md](../.claude/skills/architecture-as-code/SKILL.md).*
 
-<!-- skill-revision: eed5f90d40a6 -->
+<!-- skill-revision: 221a6f8d9a4d -->

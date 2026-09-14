@@ -9,11 +9,11 @@ Record every field independently:
 
 | Field | Nodes | Edges | Useful weight |
 | --- | --- | --- | --- |
-| Static dependency | Components | Import/package/build edge | Count, direction, forbidden/allowed |
-| Runtime flow | Services/components | Call/message route | Volume, latency, criticality |
-| Change affinity | Files/components | Co-change relation | Shared commits over a stated window |
-| Shared data | Components/datasets | Read/write/ownership relation | Access mode, transaction dependence |
-| Failure propagation | Components | Causal incident edge | Frequency, impact, recovery time |
+| Static dependency | Subsystems | Import/package/build edge | Count, direction, forbidden/allowed |
+| Runtime flow | Services/subsystems | Call/message route | Volume, latency, criticality |
+| Change affinity | Files/subsystems | Co-change relation | Shared commits over a stated window |
+| Shared data | Subsystems/datasets | Read/write/ownership relation | Access mode, transaction dependence |
+| Failure propagation | Subsystems | Causal incident edge | Frequency, impact, recovery time |
 
 For every dataset, record its source, time window, coverage, known blind spots,
 and confidence. Mark absent evidence **Not measured**.
@@ -27,7 +27,7 @@ authority, however strong its numbers are.
 | --- | --- | --- |
 | Static dependency | Direction, reachability, forbidden cycles, layer/tier violations, adapter and SDK ownership | Whether an allowed edge is used, how often, or what it costs |
 | Runtime flow | Which edges carry load, where latency and criticality concentrate, which declared edge is dead in production | Semantic ownership, or permission for a static cycle |
-| Change affinity | Which components currently share a reason to change inside the declared window | Causality, ownership, or that the coupling will persist |
+| Change affinity | Which subsystems currently share a reason to change inside the declared window | Causality, ownership, or that the coupling will persist |
 | Shared data | Write ownership, transaction and schema coupling, migration cost | That co-located data implies one domain |
 | Failure propagation | Blast radius, single points of failure, recovery dependence | That a rare incident justifies permanent restructuring |
 

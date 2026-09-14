@@ -56,7 +56,7 @@ once for the unchanged candidate, and E remains blocked until that final
 topology decision.
 
 Focused aliases stay focused; report missing prerequisites instead of silently running the
-full pipeline. Only `READY`, or `PARTLY-READY` as a bounded reversible slice, may enter A.
+full pipeline. Only `READY`, or `PARTLY-READY` as a bounded reversible increment, may enter A.
 `NOT-GROUNDED`, `BLOCKED`, and `NOT-READY` stop or return to the failed stage. Audits start
 at the read-only `C₀` structural baseline and recover requirements only when current intent
 is missing, stale, contradictory, or disputed.
@@ -67,7 +67,7 @@ impact. When impact is decision-relevant, measured hypothesis evidence flows to 
 the build, keep, simplify, defer, drop, obsolete, and removal verdicts. An authoritative obligation
 may mark the outcome hypothesis not applicable and must not wait for a value test.
 
-Once an admitted slice enters implementation, use `requirements-traceability` to maintain
+Once an admitted increment enters implementation, use `requirements-traceability` to maintain
 bidirectional links between canonical IDs, implementation anchors, and executed evidence.
 Traceability is follow-through, not a new qualification stage or gate; `READY` never means
 implemented, and a code anchor never means verified.
@@ -86,20 +86,20 @@ and stimulus. H places the check, CI/CD owns pipeline execution triggers and gat
 traceability owns executed-evidence state. Collapse to a Combined pass only for stable
 accepted architecture. Test Strategy is not a new qualification stage, gate, or letter.
 
-When a slice changes persisted or serialized data shape — a schema, event or message
+When an increment changes persisted or serialized data shape — a schema, event or message
 payload, API body, or file format — use `evolutionary-database-design` as a two-pass
 task-matched companion:
 `Readiness → Compatibility pass → A/L/C/E → Transition pass → Test Strategy Portfolio pass → H`.
 The Compatibility pass inventories readers, writers, the coexistence window, and the
 obligations that bind the data, classifies the change, and supplies the data facts L
 grades reversibility from; the Transition pass consumes accepted architecture to fix the
-staged expand/contract path, migration units, backfill, contract trigger, and reversal
+staged expand/contract path, migration increments, backfill, contract trigger, and reversal
 step per stage. Expand and contract never ship in one deployable, and the contract step
 is gated on evidence, not a date. It is not a new qualification stage, gate, or letter.
 
 **Qualification and Gates 1–4 shape the design; 5–6 enforce it; 7 optimizes a stable, measured
 baseline, so it runs in the iteration after the increment ships (iteration 2).** Enforcement
-files for new modules are **written before** their
+files for new subsystems are **written before** their
 implementation code, not retrofitted — both ship in the same PR. Spike/throwaway code is
 the only exception, and must not cross the merge boundary without rules.
 
@@ -109,7 +109,7 @@ the only exception, and must not cross the merge boundary without rules.
 | 2 | First principles | [`architecture-guidelines`](.../architecture-guidelines) | Smallest correct design |
 | 3 | Topology | [`morphogenetic-architecture`](.../morphogenetic-architecture) | Rapid/Full mode selection plus a final topology decision, or one candidate requiring Gate 4 measurement; a probationary acceptance carries its expiry, instrumentation, and prediction recheck into the trail, placed at Gate 6 |
 | 4 | Complexity | [`structural-simplification`](.../structural-simplification) | Structural deltas, then Gate 3 acceptance when restructuring |
-| 5 | Enforcement | [`architecture-as-code`](.../architecture-as-code) + [`-javascript`](.../architecture-as-code-javascript) / [`-python`](.../architecture-as-code-python) | Per-module config |
+| 5 | Enforcement | [`architecture-as-code`](.../architecture-as-code) + [`-javascript`](.../architecture-as-code-javascript) / [`-python`](.../architecture-as-code-python) | Per-subsystem config |
 | 6 | Shift-left | [`defect-shift-left`](.../defect-shift-left) | Each error path → earliest stage |
 | 7 | Optimize (iter 2) | [`system-optimization`](.../system-optimization) | Constraint analysis |
 

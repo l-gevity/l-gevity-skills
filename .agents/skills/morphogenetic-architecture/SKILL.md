@@ -4,16 +4,16 @@ description: >-
     Design and audit evolving, evidence-weighted software topology. Start with
     a rapid declared-topology scan; escalate to full analysis for
     restructuring, multi-field evidence, broad scope, ambiguity, or a deep
-    audit. Place components by domain, abstraction tier, and layer; preserve
+    audit. Place subsystems by domain, abstraction tier, and layer; preserve
     directed interfaces; compare imports, runtime flow, co-change, shared data,
     and failure propagation; then place, keep, move, split, merge, or introduce
-    a boundary. TRIGGER when placing a module/service/layer, refactoring
+    a boundary. TRIGGER when placing a subsystem/service/layer, refactoring
     dependency topology, discovering bounded contexts, diagnosing cycles,
-    god-components, cross-domain tangles, or hidden runtime coupling, or
+    god-subsystems, cross-domain tangles, or hidden runtime coupling, or
     comparing observed behavior with declared architecture, or revisiting a
     closed prediction window. SKIP for routine
     in-boundary logic, isolated bug fixes, content/CSS edits, dependency bumps,
-    and trivial renames. Use `architecture-guidelines` for component internals,
+    and trivial renames. Use `architecture-guidelines` for subsystem internals,
     `structural-simplification` for complexity deltas, and
     `architecture-as-code` for enforceable dependency rules.
 ---
@@ -38,7 +38,7 @@ that software is literally alive.
 2. **Keep projections distinct.** Keep static imports, runtime interaction,
    change affinity, shared data, and failure propagation as separate graphs.
    Never hide an invalid static edge inside an acceptable runtime cycle.
-3. **Prefer local rules.** Make each component depend on a small, named neighbor
+3. **Prefer local rules.** Make each subsystem depend on a small, named neighbor
    set through explicit inbound and outbound interfaces.
 4. **Evolve from evidence.** Move, split, or merge only when domain meaning and
    observed pressure support the same change. Treat algorithms as candidate-cut
@@ -82,7 +82,7 @@ Apply this deterministic selector:
 
 1. Start in **Full** when the user explicitly requests a `full topology`
    analysis, `deep architecture` audit, evidence-driven redesign, or a
-   subsystem/service-graph architecture audit. A bare Alchemy `FULL` dispatch
+   whole-graph or service-graph architecture audit. A bare Alchemy `FULL` dispatch
    traverses gates but does not override this skill's selector.
 2. Otherwise start in **Rapid** and read
    [references/rapid-topology-scan.md](references/rapid-topology-scan.md).
@@ -92,7 +92,7 @@ Apply this deterministic selector:
    - a decision depends on runtime pressure, co-change, shared data, failure
      propagation, weighting, or graph partitioning rather than merely
      declaring one bounded runtime loop;
-   - the scope crosses several domains/components or a material ownership,
+   - the scope crosses several domains/subsystems or a material ownership,
      security, compliance, or failure boundary;
    - placement is ambiguous, observed signals conflict, or the Rapid result
      cannot be justified from declared topology and hard invariants alone.
@@ -109,7 +109,7 @@ rerun checks already completed unless Full requires a broader evidence scope.
 
 Use coder-facing terms in every report:
 
-| Concern | Coder-facing field |
+| Meaning | Coder-facing field |
 | --- | --- |
 | Business placement | **Domain** — a bounded context; allow nested paths such as `commerce/payments` |
 | Responsibility scale | **Abstraction tier** — orchestrator → capability → primitive |
@@ -122,10 +122,10 @@ Use coder-facing terms in every report:
 | Measured relationships | **Observed fields** |
 | Repeated evidence against a boundary | **Boundary pressure** |
 | Low-pressure candidate separation | **Candidate boundary** |
-| Thing being placed | **Component** |
+| Thing being placed | **Subsystem** — a part of the system produced by decomposition; where change lands |
 | Its declared address | **Position** |
 
-Keep **layer** and **abstraction tier** separate. Keep **component** (the thing)
+Keep **layer** and **abstraction tier** separate. Keep **subsystem** (the thing)
 and **position** (where it belongs) separate.
 
 ## Living-System Translation
@@ -139,7 +139,7 @@ that could affect the decision escalates to Full.
 | **Genetic scaffold** | Declared topology, invariants, and allowed interfaces |
 | **Morphogen fields** | Static, runtime, change, data, and failure pressure |
 | **Differentiation** | PLACE, MOVE, or SPLIT into a clearer responsibility |
-| **Remodeling / pruning** | MERGE, remove an edge, or retire an obsolete component |
+| **Remodeling / pruning** | MERGE, remove an edge, or retire an obsolete subsystem |
 | **Homeostasis** | Bounded feedback, observability, verification, and enforcement |
 
 A natural mechanism reaches the report only as a §4 **second candidate** with
@@ -152,7 +152,7 @@ contributes nothing and is not reported.
 
 ## 1. Declare the Skeleton
 
-Assign every component a position:
+Assign every subsystem a position:
 
 ```text
 Domain / abstraction tier / layer
@@ -164,14 +164,14 @@ Apply these placement rules:
 - Model subdomains as nested domain paths; do not force a naturally nested
   capability into a flat domain list.
 - Connect an outbound interface only to an allowed inbound interface.
-- Expose internals only through the component's inbound interface.
+- Expose internals only through the subsystem's inbound interface.
 
 Preserve dependency inversion: source-code imports may point toward an
 abstraction even when runtime control flows toward infrastructure.
 
 ### Position Legality
 
-Check the edges of the component being placed: a design-time check on a
+Check the edges of the subsystem being placed: a design-time check on a
 proposed or changed position, a handful of edges at a time, never a
 whole-codebase audit from three axes. Each proposed edge satisfies one clause
 per axis — **layer** (ordinal: same layer, one step toward infrastructure, or
@@ -195,8 +195,8 @@ Define the projection before judging a cycle:
 
 | Projection | Required shape | Typical evidence |
 | --- | --- | --- |
-| Static dependency | Directed, acyclic per component, shallow | Imports, package edges, build references |
-| Ownership / authority | Directed, acyclic per concern | Declared owners, handoffs, decision records |
+| Static dependency | Directed, acyclic per subsystem, shallow | Imports, package edges, build references |
+| Ownership / authority | Directed, acyclic per aspect | Declared owners, handoffs, decision records |
 | Runtime request flow | Directed; cycles allowed only when named and bounded | Traces, RPC calls, message routes |
 | State transition / feedback | Cycles allowed with explicit semantics | State machines, retries, event loops |
 | Change affinity | Undirected weighted evidence | Co-change history |
@@ -204,15 +204,15 @@ Define the projection before judging a cycle:
 | Failure propagation | Directed weighted evidence | Incidents, retry storms, cascading errors |
 
 Reject every forbidden static cycle. For an intentional runtime cycle, name its
-termination condition, retry/iteration bound, owner, and observability. Do not
+termination condition, retry/loop bound, owner, and observability. Do not
 use a queue, registry, callback, or event bus to conceal static ownership.
 
-Authority is acyclic **per concern**, not per component. Two components may
-each defer to the other on a different concern — one owning meaning while
+Authority is acyclic **per aspect**, not per subsystem. Two subsystems may
+each defer to the other on a different aspect — one owning meaning while
 the other owns measurement, say — and that is a clean partition, not a
-cycle. Name the concern on every authority edge; a cycle exists only when two
-components claim authority over the same one. Import cycles have no such
-escape: a build cannot order them however the concerns are split.
+cycle. Name the aspect on every authority edge; a cycle exists only when two
+subsystems claim authority over the same one. Import cycles have no such
+escape: a build cannot order them however the aspects are split.
 
 ## 3. Observe Pressure
 
@@ -240,7 +240,7 @@ Collect:
   boundary.
 - **Runtime-flow pressure** — traffic volume, latency, or coordination across
   positions.
-- **Change pressure** — files or components that repeatedly change together.
+- **Change pressure** — files or subsystems that repeatedly change together.
 - **Data pressure** — shared schemas, state, transactions, or write ownership.
 - **Failure pressure** — faults that propagate across boundaries or depend on a
   single critical path.
@@ -318,11 +318,11 @@ The findings below need observed evidence. Use these names and tests:
 
 | Finding | Test |
 | --- | --- |
-| **god component** | One component owns unrelated edge clusters or multiple independent change reasons |
+| **god subsystem** ("god component") | One subsystem owns unrelated edge clusters or multiple independent change reasons |
 | **hidden runtime coupling** | A bus, registry, callback, global, or shared state creates an undeclared edge |
 | **boundary-pressure mismatch** | Multiple observed fields repeatedly cross a declared boundary |
-| **false boundary** | Components share purpose, lifecycle, and strong affinity but are separated without an independent reason |
-| **resilience bottleneck** | One component or edge carries disproportionate failure impact without an explicit recovery path |
+| **false boundary** | Subsystems share purpose, lifecycle, and strong affinity but are separated without an independent reason |
+| **resilience bottleneck** | One subsystem or edge carries disproportionate failure impact without an explicit recovery path |
 | **topology drift** | Declared rules and current static/runtime evidence no longer agree |
 
 Treat a single noisy signal as a review prompt. Require a domain reason plus an
@@ -394,10 +394,10 @@ Select one decision:
 
 | Decision | Apply when |
 | --- | --- |
-| **PLACE** | A new component has one clear position, interface, and allowed neighbor set |
+| **PLACE** | A new subsystem has one clear position, interface, and allowed neighbor set |
 | **KEEP** | Declared placement and observed evidence agree |
-| **MOVE** | One component has a clear primary position elsewhere |
-| **SPLIT** | Independent capability/change/failure clusters occupy one component |
+| **MOVE** | One subsystem has a clear primary position elsewhere |
+| **SPLIT** | Independent capability/change/failure clusters occupy one subsystem |
 | **MERGE** | A boundary separates one purpose and lifecycle without reducing coupling or risk |
 | **INTRODUCE-BOUNDARY** | Cross-position access needs one explicit contract or adapter |
 | **DECLARE-RUNTIME-CYCLE** | A legitimate feedback loop lacks bounds, ownership, or observability |
@@ -411,14 +411,14 @@ unavailable, remain in Full and emit DEFER with the missing proof in
 
 Apply these growth rules:
 
-- Attach a new component to the nearest semantically coherent parent whose
+- Attach a new subsystem to the nearest semantically coherent parent whose
   public contract can own the relationship.
 - Preserve sibling symmetry by default; specialize only when lifecycle,
   constraints, or measured pressure differ.
 - Split along the axis that explains the strongest independent clusters:
   domain, abstraction tier, or layer.
 - Prune an edge only after checking reachability, callers, and relevant history.
-- Retire a component through an explicit removal signal — deprecation marker,
+- Retire a subsystem through an explicit removal signal — deprecation marker,
   reachability proof, owner, and cleanup path — never by leaving it unreferenced.
 - Prefer one explicit boundary over multiple peer-to-peer exceptions.
 - Prefer a probationary acceptance with instrumentation over an indefinite
@@ -429,15 +429,15 @@ Apply these growth rules:
 - When reversibility is Unknown, DEFER the end state but independently grade
   any smaller precursor that could safely establish the missing facts.
 - Reassess after material domain, ownership, or deployment changes, and when
-  component count, team count, traffic, or data volume changes by an order of
+  subsystem count, team count, traffic, or data volume changes by an order of
   magnitude.
 
 ## 7. Measure and Enforce
 
 Before accepting MOVE, SPLIT, MERGE, or INTRODUCE-BOUNDARY:
 
-1. Use `structural-simplification` to report Component-kinds Δ,
-   Dependency-edges Δ, Max-chain-depth Δ, and Module-count Δ.
+1. Use `structural-simplification` to report Subsystem-kinds Δ,
+   Dependency-edges Δ, Max-chain-depth Δ, and Subsystem-count Δ.
 2. Reject a forbidden cycle even when another complexity axis improves.
 3. Hand every static dependency constraint to `architecture-as-code`, §1's
    position-legality clauses first — they are rules, not report rows.
@@ -459,7 +459,7 @@ Use this handoff shape:
 
 ```text
 Principle:   <locality | direction | interface | SDK ownership>
-Constraint:  <component-pattern> may/must not depend on <component-pattern>
+Constraint:  <subsystem-pattern> may/must not depend on <subsystem-pattern>
 Enforcement: add/update architecture rule: <exact constraint>
 ```
 
@@ -492,7 +492,7 @@ Keep drift detection standing rather than event-driven:
   co-change outliers, expired predictions, and static rules still at `warn` —
   gets a scheduled declared-vs-observed comparison with a named owner; place
   it with `defect-shift-left` and leave pipeline execution to CI/CD.
-- The §6 reassessment triggers (order-of-magnitude changes in components,
+- The §6 reassessment triggers (order-of-magnitude changes in subsystems,
   teams, traffic, or data) feed that standing check; they are not prose to
   remember.
 
@@ -501,13 +501,13 @@ Keep drift detection standing rather than event-driven:
 For a simple PLACE with no finding, omit the findings table. Otherwise, emit one
 row per finding:
 
-| Component / edge | Declared position | Observed pressure | Finding | Evidence / confidence | Decision | Next action | Verification |
+| Subsystem / edge | Declared position | Observed pressure | Finding | Evidence / confidence | Decision | Next action | Verification |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 
 Then emit:
 
 ```text
-Subject:             <module / service / dependency graph>
+Subject:             <subsystem / service / dependency graph>
 Mode:                Design | Audit
 Analysis mode:       Rapid | Full | Rapid → Full
 Selection reason:    <bounded static check | explicit Full request | exact escalation condition>
@@ -557,7 +557,7 @@ evidence window and residual judgment.
 
 ## See Also
 
-- **`architecture-guidelines`** — decide what belongs inside a component.
+- **`architecture-guidelines`** — decide what belongs inside a subsystem.
 - **`structural-simplification`** — measure whether an evolution is simpler.
 - **`architecture-as-code`** — enforce static dependency constraints.
 - **`defect-shift-left`** — move each topology defect to its earliest reliable check.

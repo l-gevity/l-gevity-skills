@@ -211,7 +211,7 @@ Boundary evidence:   probationary - separate owners and retry semantics; change
 Reversibility:       medium - three internal call sites share the contract.
 Prediction:          Cluster-local change reaches >= 80% over merges 1-20.
 Enforcement:         add architecture rule: forbid dispatcher -> schedule-store
-Measurement:         Proceed - Component-kinds +1; Dependency-edges 0.
+Measurement:         Proceed - Subsystem-kinds +1; Dependency-edges 0.
 Next action:         Add the contract and enable the co-change report.
 Verification:        Architecture lint plus the expiry comparison.
 """.strip()
@@ -222,7 +222,7 @@ SELF_TEST_CASES = (
     ("R9", ("Runtime cycles:      none", "Transfer:            mechanism\nRuntime cycles:      none")),
     ("R2", ("Decision:            INTRODUCE-BOUNDARY", "Decision:            REORGANIZE")),
     ("R3", ("Prediction:          Cluster-local change reaches >= 80% over merges 1-20.\n", "")),
-    ("R5", ("Measurement:         Proceed - Component-kinds +1; Dependency-edges 0.",
+    ("R5", ("Measurement:         Proceed - Subsystem-kinds +1; Dependency-edges 0.",
             "Measurement:         Not required - nothing to measure.")),
     ("R6", ("affinity cannot be measured at 7 of 20 merges; expiry at",
             "affinity was skipped; expiry at")),

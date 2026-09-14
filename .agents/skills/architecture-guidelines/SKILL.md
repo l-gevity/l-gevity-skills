@@ -1,14 +1,14 @@
 ---
 name: architecture-guidelines
 description: >-
-    First-principles architectural rules for module/service/abstraction design:
-    minimalism, modularity, functional core, resilience, layer self-sufficiency,
-    integration, naming, and concurrency. TRIGGER when introducing a
-    module/service/abstraction, refactoring across module boundaries, applying
-    SOLID, deciding whether a control may rely on the layer beneath it,
-    designing an integration edge between applications or services, or
-    reviewing architectural concerns (purity, idempotency, naming, fail-fast).
-    SKIP for bug fixes within an existing module, content/copy edits, CSS-only
+    First-principles architectural rules for subsystem/service/abstraction
+    design: minimalism, modularity, functional core, resilience, layer
+    self-sufficiency, integration, naming, and concurrency. TRIGGER when
+    introducing a subsystem/service/abstraction, refactoring across subsystem
+    boundaries, applying SOLID, deciding whether a control may rely on the layer
+    beneath it, designing an integration edge between applications or services,
+    or reviewing architectural properties (purity, idempotency, naming,
+    fail-fast). SKIP for bug fixes within an existing subsystem, content/copy edits, CSS-only
     changes, dependency bumps, and trivial renames. Emits an `Enforcement`
     handoff to `architecture-as-code` when a design decision yields an
     enforceable dependency constraint.
@@ -47,10 +47,10 @@ description: >-
 
 ## 2. Consistency & Coupling
 
-- **Eventual Consistency by Default**: Strong consistency couples components.
+- **Eventual Consistency by Default**: Strong consistency couples subsystems.
   Accept idempotency / compensation to preserve modularity.
 - **Full Migration**: When adopting a new pattern, migrate all sibling
-  components in the same PR — but **always ask the user** and pick a pattern
+  subsystems in the same PR — but **always ask the user** and pick a pattern
   that fits both new and existing logic.
 - **Dependency Inversion**: Domain logic depends on abstractions, never concrete
   implementations.
@@ -64,25 +64,27 @@ description: >-
 
 ## 4. Modularity
 
-- **SoC**: One concern per module; cross-cutting concerns are extracted, not
+- **SoC**: One responsibility per subsystem; aspects (properties that hold
+  across many subsystems) are extracted into their own subsystem, not
   interleaved.
-- **SRP**: One reason to change per module. Two forces of change → split.
-- **Capability Boundary = Module Boundary**: A capability with its own domain
-  name, lifecycle, dependency surface, test surface, or reason to change gets
-  its own module directory. Do not group multiple atomic capabilities in one
-  subsystem directory unless they form a higher-level capability with a single
-  public interface and shared change reason.
+- **SRP**: One reason to change per subsystem. Two forces of change → split.
+- **Capability Boundary = Subsystem Boundary**: A capability with its own
+  domain name, lifecycle, dependency surface, test surface, or reason to change
+  gets its own subsystem directory. Do not group multiple atomic capabilities
+  in one parent subsystem unless together they form a higher-level capability
+  with a single public interface and shared change reason.
 - **High Cohesion, Loose Coupling**: Internals tightly related; external
   dependencies minimized and abstracted.
 - **Interface Discipline**:
     - _Caller_: depend on the contract, never the implementation.
-    - _Module_: internals encapsulated; the interface is the only access point.
+    - _Subsystem_: internals encapsulated; the interface is the only access
+      point.
     - _Designer_: expose everything every caller needs and only what every
       caller needs.
 
 **Review check:** If a directory contains multiple named capabilities, require
 one of: a single facade/interface proving they are one higher-level capability,
-or a split into capability-named module directories.
+or a split into capability-named subsystem directories.
 
 ## 5. Resilience
 
@@ -153,7 +155,7 @@ data store, team, or lifecycle.
   applications couples every party to every change; do not introduce one.
 - **No peer internals**: An application reaches another only through that
   application's published contract (API, event, queue, file exchange), never
-  its database, file system, or internal modules. Reaching past the contract
+  its database, file system, or internal subsystems. Reaching past the contract
   is the integration form of the interface violation in §4.
 - **Untrusted network**: Every cross-application edge is designed for the
   open internet. The receiving endpoint authenticates, authorizes, and
@@ -198,18 +200,18 @@ Examples:
 ```
 Principle:   DI / functional core
 Constraint:  domain must not import infrastructure
-Enforcement: add architecture rule: forbid <domain-component> -> <infra-component>
+Enforcement: add architecture rule: forbid <domain-subsystem> -> <infra-subsystem>
 ```
 
 ```
 Principle:   interface discipline
 Constraint:  external callers use the facade only
-Enforcement: add architecture rule: forbid * -> <module-internal-*>, except <module-*>
+Enforcement: add architecture rule: forbid * -> <subsystem-internal-*>, except <subsystem-*>
 ```
 
 ```
 Principle:   integration discipline
-Constraint:  no module reaches a peer application's internals
+Constraint:  no subsystem reaches a peer application's internals
 Enforcement: add architecture rule: forbid * -> <peer-storage-client | peer-internal-*>, except <integration-adapter-*>
 ```
 
@@ -220,7 +222,7 @@ omitting it:
 Principle:   layer self-sufficiency
 Constraint:  the control holds with the layer below absent
 Enforcement: none - not an import or dependency edge; verify by exercising the
-             component without that layer (`defect-shift-left`)
+             subsystem without that layer (`defect-shift-left`)
 ```
 
 ## 11. Output Contract
@@ -229,7 +231,7 @@ When this skill changes or rejects a design, emit a coder-facing decision
 record:
 
 ```
-Subject:        <module / service / abstraction / PR / code path>
+Subject:        <subsystem / service / abstraction / PR / code path>
 Decision:       Proceed | Simplify | Split | Inline | Reject | Defer
 Principle:      <YAGNI | Rule of 3 | DRY | SoC | SRP | capability-boundary | DI | fail-fast | idempotency | atomicity | integration | layer-self-sufficiency | naming | concurrency>
 Evidence:       <callers, imports, tests, runtime invariant, or file paths checked>

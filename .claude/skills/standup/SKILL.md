@@ -94,7 +94,7 @@ deadlines configured: say so instead of inventing one.
 ### 3.4 Architectural debt
 
 Check the open issues (reuse the 3.2 query) for structural debt — not
-individual features: shared components with low adoption, performance or cost
+individual features: shared subsystems with low adoption, performance or cost
 problems in the infrastructure, a model or API without a screen, data-model
 gaps. Usually labeled `enhancement`. Max. 3 bullets, only the heaviest per
 theme, with issue number and link, freshly checked rather than carried over.
@@ -107,8 +107,9 @@ Close with one sentence: increasing, stable, or decreasing.
   exists: one line saying drift is unmeasured.
 - Report the totals from the coverage artifact (or whatever coverage matrix or
   requirement register the gate maintains) in one line: requirements done x/y,
-  admitted and tested criteria x/y, plus the one or two modules with the largest
-  gap — admitted without an implementation anchor, or with untested criteria.
+  admitted and tested criteria x/y, plus the one or two subsystems with the
+  largest gap — admitted without an implementation anchor, or with untested
+  criteria.
 - Leave out static context (admission breakdowns, blocked-decision lists,
   tooling caveats) unless it changed. State a trend only when figures from an
   earlier standup are actually available.
@@ -148,7 +149,7 @@ Architectural debt
 
 Requirements drift
 - Gate <name>: green | red (<what is broken>) | not configured — drift unmeasured
-- Requirements done <x/y>, tested criteria <x/y>; largest gap: <module(s)>
+- Requirements done <x/y>, tested criteria <x/y>; largest gap: <subsystem(s)>
 
 Proposal for today
 - <1-3 items, biggest risk first>

@@ -41,11 +41,11 @@ pyramid ratio, coverage target, or preferred tool.
 
 ## Boundary
 
-Use this skill after a requirement or remediation slice has usable completion
-conditions, or retrospectively when an existing behavior, incident, or test
-portfolio provides a bounded subject. In Design mode, use two passes when
-architecture can change boundaries, dependency semantics, deployment topology,
-or observability:
+Use this skill after a requirement or remediation increment has usable
+completion conditions, or retrospectively when an existing behavior, incident,
+or test portfolio provides a bounded subject. In Design mode, use two passes
+when architecture can change boundaries, dependency semantics, deployment
+topology, or observability:
 
 1. **Obligation pass — after readiness, before A.** Define risks, failure
    modes, oracles, and required confidence without freezing architecture-
@@ -121,7 +121,7 @@ Select a mode:
 In Design mode, also select the strategy pass defined under Boundary:
 Obligation, Portfolio, or Combined.
 
-Define the subject as a requirement slice, component, contract, workflow,
+Define the subject as a requirement increment, subsystem, contract, workflow,
 change, release risk, or bounded system. Do not strategize for “the whole
 application” when no risk or decision boundary is stated.
 
@@ -298,7 +298,7 @@ Emit one row per material obligation:
 Then emit:
 
 ```text
-Subject:              <requirement, slice, component, change, or system>
+Subject:              <requirement, increment, subsystem, change, or system>
 Mode:                 Design | Audit
 Strategy pass:        Obligation | Portfolio | Combined
 Decision:             ADEQUATE | PARTIAL | NOT-ADEQUATE | DEFER

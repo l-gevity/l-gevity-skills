@@ -10,7 +10,7 @@ description: >-
     a restructuring, or deciding whether a proposed change makes a system
     simpler or more complex. SKIP for: trivial renames, content edits,
     dependency bumps, isolated bug fixes that touch no structure. For
-    module-level design discipline see `architecture-guidelines`; for placement
+    subsystem-level design discipline see `architecture-guidelines`; for placement
     and evidence-weighted dependency-topology constraints see
     `morphogenetic-architecture`.
 ---
@@ -24,7 +24,7 @@ description: >-
 > 2. **Compare before and after.** Intuition is not a metric.
 > 3. **Conform when semantics match.** Reusing an existing pattern shrinks D
 >    globally only when the semantics, lifecycle, and constraints actually fit.
-> 4. **Remove over mitigate, safely.** Removing a part or special case beats
+> 4. **Remove over mitigate, safely.** Removing a subsystem or special case beats
 >    handling it when functionality, migration, rollback, and external
 >    constraints permit removal.
 
@@ -38,10 +38,10 @@ names below in every emit block, gate table, and cross-skill citation.
 
 | Internal symbol  | Coder-facing field used in reports                                    |
 | ---------------- | --------------------------------------------------------------------- |
-| `ΔD` (diversity) | **Component-kinds Δ** — distinct component/interface/pattern types added or removed |
+| `ΔD` (diversity) | **Subsystem-kinds Δ** — distinct subsystem/interface/pattern types added or removed |
 | `ΔK` (coupling)  | **Dependency-edges Δ** — imports, calls, package edges, or runtime links added or removed |
 | `ΔP` (depth)     | **Max-chain-depth Δ** — longest import/call/build chain before vs after |
-| `Δn` (quantity)  | **Module-count Δ** — files, modules, jobs, services, or instances added or removed |
+| `Δn` (quantity)  | **Subsystem-count Δ** — files, subsystems, jobs, services, or instances added or removed |
 
 **Naming guardrails.** `P` is **max-chain-depth**, never "depth" alone — bare "depth" collides with the layer field in `morphogenetic-architecture`. Symbols appear in exactly three places: inside a formula, inside this table, and inside §§1–7 (the internal model). Anywhere else in narrative, use the coder-facing field name.
 
@@ -54,10 +54,12 @@ names below in every emit block, gate table, and cross-skill citation.
 | **Diversity** | `D`    | Distinct patterns, shapes, concepts | Count distinct patterns / vocabulary items in the structure           |
 | **Coupling**  | `K`    | Relationship count and density      | Count edges, then compute density (`edges / (n × (n−1))` for directed graphs where `n > 1`) after defining edge kind and direction |
 | **Depth**     | `P`    | Longest chain from source to sink   | Longest path from any origin to any terminus in the DAG               |
-| **Quantity**  | `n`    | Total number of parts               | Direct count of parts (use §2 to identify parts in your domain)       |
+| **Quantity**  | `n`    | Total number of subsystems          | Direct count of subsystems (use §2 to identify them in your domain)   |
 
-Domain-agnostic. *Parts* = any discrete unit; *relationships* = any
-connection (dependency, flow, sequence, authority). Multi-axis interactions
+Domain-agnostic. *Subsystem* = any discrete node of the structure under
+review — §2 names it per domain (a function, a service, a screen, a role, a
+step); *relationships* = any connection (dependency, flow, sequence,
+authority). Multi-axis interactions
 usually cost more than any single-axis change alone; verify against the
 domain's actual constraints.
 
@@ -75,9 +77,9 @@ domain's actual constraints.
 
 ## 2. Domain Mapping
 
-| Domain                | Parts (nodes)                                       | Relationships (edges)                                                       |
+| Domain                | Subsystems (nodes)                                  | Relationships (edges)                                                       |
 | --------------------- | --------------------------------------------------- | --------------------------------------------------------------------------- |
-| Code                  | Components, modules, functions                      | Dependencies, calls, imports                                                |
+| Code                  | Subsystems, functions                               | Dependencies, calls, imports                                                |
 | Project organization  | Repos, packages, workspaces, build targets          | Package dependencies, version constraints, build-time references, ownership |
 | Runtime / deployment  | Services, processes, containers, instances, threads | RPC/HTTP calls, message flows, network paths, replication, lifecycle order  |
 | Data model            | Entities, fields, types                             | References, joins, constraints                                              |
@@ -99,9 +101,9 @@ Fast proxies — not substitutes for measurement.
 | **Boundary**     | Fewer relationships crossing boundaries                 | K↓            |
 | **Cycle broken** | Dependency cycle eliminated                             | K↓ + §1 fault |
 | **Chain**        | Fewer hops source-to-sink                               | P↓            |
-| **Count**        | Fewer parts                                             | n↓            |
-| **Ripple**       | Typical change in this area touches many parts          | K             |
-| **Consistency points** | Each public unit (route, right, config key) drags N hand-maintained artifacts — handler, guard, contract entry, registry row, tests; removing the unit deletes them all | n, K |
+| **Count**        | Fewer subsystems                                        | n↓            |
+| **Ripple**       | Typical change in this area touches many subsystems     | K             |
+| **Consistency points** | Each public element (route, right, config key) drags N hand-maintained artifacts — handler, guard, contract entry, registry row, tests; removing the element deletes them all | n, K |
 
 ---
 
@@ -115,10 +117,10 @@ Fast proxies — not substitutes for measurement.
 | **Normalization**  | Reduce variants to a single canonical form                                 |
 | **Generalization** | Replace N specific cases with one general case                             |
 | **Abstraction**    | Hide variation behind a common interface                                   |
-| **Symmetrization** | Impose mirror structure so parts become interchangeable                    |
+| **Symmetrization** | Impose mirror structure so subsystems become interchangeable               |
 | **Deduplication**  | Eliminate redundant copies                                                 |
 | **Patternization** | Apply a recurring structure — differences become instances, not exceptions |
-| **Cohesion**       | Group what changes together; the unit expresses one concept                |
+| **Cohesion**       | Group what changes together; the subsystem expresses one concept           |
 
 > [!WARNING] **Unification guardrail — referencing-list uniformity.** Merging
 > vocabulary items (rights, routes, types, statuses, config keys) is safe only
@@ -134,7 +136,7 @@ Fast proxies — not substitutes for measurement.
 | Operation               | Mechanism                                                             |
 | ----------------------- | --------------------------------------------------------------------- |
 | **Encapsulation**       | Hide internals so others cannot form dependencies on them             |
-| **Indirection**         | Insert a mediator — two parts no longer reference each other directly |
+| **Indirection**         | Insert a mediator — two subsystems no longer reference each other directly |
 | **Inversion**           | Flip a dependency (depend on abstraction, not concretion)             |
 | **Stratification**      | Impose directed acyclic ordering (layering)                           |
 | **Temporal decoupling** | Replace synchronous direct binding with asynchronous mediation        |
@@ -154,16 +156,16 @@ Fast proxies — not substitutes for measurement.
 
 | Operation       | Mechanism                                                           |
 | --------------- | ------------------------------------------------------------------- |
-| **Elimination** | Remove a part entirely — absolute edge count can drop with every deleted incident edge; recompute both edge count and density |
-| **Merging**     | Collapse two parts into one (may raise internal K — verify product) |
+| **Elimination** | Remove a subsystem entirely — absolute edge count can drop with every deleted incident edge; recompute both edge count and density |
+| **Merging**     | Collapse two subsystems into one (may raise internal K — verify product) |
 
 ### Multi-axis — Reduce Simultaneously
 
 | Operation                  | Mechanism                                                    |
 | -------------------------- | ------------------------------------------------------------ |
 | **Decomposition**          | Split along natural seams → K↓, D↓, P↓ in local subgraphs    |
-| **Factoring**              | Extract common part → D↓ (dedup) + K↓ (N deps collapse to 1) |
-| **Separation of concerns** | One responsibility per unit → D↓ internal + K↓ external      |
+| **Factoring**              | Extract common subsystem → D↓ (dedup) + K↓ (N deps collapse to 1) |
+| **Separation of concerns** | One responsibility per subsystem → D↓ internal + K↓ external |
 
 ---
 
@@ -172,7 +174,7 @@ Fast proxies — not substitutes for measurement.
 Treat a dependency structure as a directed topology with explicit positions,
 interfaces, locality, and separately measured relationship fields. Bounded
 public surfaces and local neighbor sets cap K, directional static edges cap P,
-cohesive positions bound n, and consistent component forms cap D. Decompose
+cohesive positions bound n, and consistent subsystem forms cap D. Decompose
 along domain, abstraction-tier, or layer seams only when the proposed cut
 improves the measured vector.
 
@@ -195,12 +197,12 @@ moves apply to any structure.
 | Add abstraction tier — ≥3 concrete instances        | ↑   | ↓        | ↑       | ↑   | Candidate proceed (§7a Conformance); verify semantics match   |
 | Add abstraction tier — <3 instances or speculative  | ↑   | ↑        | ↑       | ↑   | Candidate reject — Rule of 3; verify no external constraint   |
 | Add facade — over a 4-step chain                    | ↑   | —        | hides P | ↑   | Keep only if K↓ measurable; never claim P↓ (§4 warning)       |
-| Flatten — intermediate part has no independent role | —   | ↑        | ↓       | ↓   | Candidate proceed; verify internal K and invariants bounded   |
-| Extract common part — ≥3 dependents                 | ↓   | ↓        | —       | ↑   | Candidate proceed; verify lifecycle and ownership match       |
-| Bypass a part — bypassed has no independent role    | —   | ↑        | ↓       | ↓   | Candidate proceed; verify no boundary or policy is bypassed   |
-| Introduce mediator between 2 parts                  | ↑   | ↑        | ↑       | ↑   | Candidate reject unless it enforces a boundary or decouples time |
-| Merge two cohesive parts                            | ↓   | within ↑ | ↓       | ↓   | Candidate proceed; verify internal K stays bounded            |
-| Split overloaded part along an SoC seam             | ↓   | ↓        | ↑       | ↑   | Candidate proceed; verify caller paths remain understandable  |
+| Flatten — intermediate subsystem has no independent role | — | ↑      | ↓       | ↓   | Candidate proceed; verify internal K and invariants bounded   |
+| Extract common subsystem — ≥3 dependents            | ↓   | ↓        | —       | ↑   | Candidate proceed; verify lifecycle and ownership match       |
+| Bypass a subsystem — the bypassed one has no independent role | — | ↑ | ↓       | ↓   | Candidate proceed; verify no boundary or policy is bypassed   |
+| Introduce mediator between 2 subsystems             | ↑   | ↑        | ↑       | ↑   | Candidate reject unless it enforces a boundary or decouples time |
+| Merge two cohesive subsystems                       | ↓   | within ↑ | ↓       | ↓   | Candidate proceed; verify internal K stays bounded            |
+| Split overloaded subsystem along an SoC seam        | ↓   | ↓        | ↑       | ↑   | Candidate proceed; verify caller paths remain understandable  |
 
 ---
 
@@ -212,7 +214,7 @@ Cases where net axis effect is positive despite local cost.
 
 Accept local structural cost to eliminate a unique shape from D only when the
 standard pattern fits the same semantics, lifecycle, ownership, and external
-constraints. One snowflake among ten uniform parts can inflate D
+constraints. One snowflake among ten uniform subsystems can inflate D
 disproportionately, but a real domain distinction should be named and preserved.
 
 ### 7b. Scope Reduction (Deletion)
@@ -220,7 +222,7 @@ disproportionately, but a real domain distinction should be named and preserved.
 Remove or deprecate special functionality if its structural footprint exceeds
 its utility and the `functionality-complexity-tradeoff` verdict allows safe
 removal. Special cases are complexity multipliers: D↑ (unique patterns), K↑
-(conditional paths), P↑ (extended chains), n↑ (supporting parts). The cost of
+(conditional paths), P↑ (extended chains), n↑ (supporting subsystems). The cost of
 a feature includes every special case it forces elsewhere, plus the migration
 and compatibility work needed to remove it safely.
 
@@ -252,7 +254,7 @@ first.
 3. **Answer the forcing questions in writing** (one line each):
     - **D:** What unique pattern does this introduce that no sibling uses?
       *(Name the 2nd concrete instance; absence = Rule-of-3 violation.)*
-    - **K:** Which previously-independent parts does this link?
+    - **K:** Which previously-independent subsystems does this link?
     - **P:** How long is the longest dependency chain a typical change
       traverses? *(>3 hops → max-chain-depth is itself the cost.)*
     - **n:** If deleted, what would dependents do? *(If "use the thing it
@@ -274,13 +276,13 @@ first.
 6. **Emit a coder-facing decision record** (see Reporting Vocabulary for the symbol mapping):
 
     ```
-    Subject:              <structure / module / refactor under review>
+    Subject:              <structure / subsystem / refactor under review>
     Decision:             Proceed | Redesign | Reject
                           (retrospective: KEEP | SIMPLIFY | DELETE)
-    Component-kinds Δ:    <±n>   (evidence: novel pattern, 2nd concrete instance)
+    Subsystem-kinds Δ:    <±n>   (evidence: novel pattern, 2nd concrete instance)
     Dependency-edges Δ:   <±n>   (evidence: what newly couples to what)
     Max-chain-depth Δ:    <±n>   (evidence: longest path before → after)
-    Module-count Δ:       <±n>   (evidence: parts added / removed)
+    Subsystem-count Δ:    <±n>   (evidence: subsystems added / removed)
     Cycle:                Pass | Fail
     Non-structural gates: Pass | Fail | Not evaluated
     Trade-off:            <§6 row matched; §7 sub-section if asymmetric>
@@ -290,8 +292,8 @@ first.
     ```
 
 > [!IMPORTANT] If no axis improves, state: *"Complexity Warning:
-> Component-kinds Δ [X], Dependency-edges Δ [Y], Max-chain-depth Δ [Z],
-> Module-count Δ [W]. A simpler alternative is [...]."*
+> Subsystem-kinds Δ [X], Dependency-edges Δ [Y], Max-chain-depth Δ [Z],
+> Subsystem-count Δ [W]. A simpler alternative is [...]."*
 
 ---
 

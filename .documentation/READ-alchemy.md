@@ -19,7 +19,7 @@ answer trustworthy. This document explains all three.
 
 ## The questions, and why their order is fixed
 
-Structural work — new modules, cross-boundary refactors, consolidations —
+Structural work — new subsystems, cross-boundary refactors, consolidations —
 walks a sequence of gates. Each gate is a question, and the sequence is
 arranged so that **every question is meaningless until the one before it
 has passed**:
@@ -32,7 +32,7 @@ has passed**:
    something that shouldn't exist.
 2. **What is the smallest correct design?** — the
    [first-principles question](READ-architecture-guidelines.md): one
-   concern per module, pure core, minimal abstraction.
+   responsibility per subsystem, pure core, minimal abstraction.
 3. **Where does it belong?** — the
    [placement question](READ-morphogenetic-architecture.md): which domain,
    tier, and layer, with which allowed neighbors — declared structure
@@ -95,7 +95,7 @@ alter?**
   caught earlier?" is the shift-left question alone. One question, one
   gate, done.
 - **Adaptive** — structure genuinely moves: responsibilities shift,
-  boundaries change, a new module appears. Walk the *smallest set of gates
+  boundaries change, a new subsystem appears. Walk the *smallest set of gates
   the change actually implicates*, in order.
 - **Full** — the complete traversal, reserved for when someone explicitly
   asks for it, typically a deep audit. Uncertainty is *not* a reason to go
@@ -176,4 +176,4 @@ full operational reference — command grammar, dispatch rules, gate
 handshakes, and the decision-trail format — lives in
 [SKILL.md](../.claude/skills/alchemy/SKILL.md).*
 
-<!-- skill-revision: 62d98781cf30 -->
+<!-- skill-revision: 7f686da6cc2f -->

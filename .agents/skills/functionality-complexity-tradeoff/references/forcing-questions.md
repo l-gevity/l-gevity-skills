@@ -18,7 +18,7 @@ is a candidate for OBSOLETE / DROP-as-non-problem.
   deployment topology, type system, and runtime guarantees of this stack?
 - **Construct one concrete real-world sequence** that activates this code
   without violating an architectural invariant. Can you?
-- **Is the concern owned by another layer** (framework, middleware, type
+- **Is the aspect owned by another layer** (framework, middleware, type
   system, deployment topology, network boundary)? Is that layer already
   enforcing it?
 - **Do the prerequisites of the pattern this implements hold here**
@@ -38,14 +38,14 @@ is a candidate for OBSOLETE / DROP-as-non-problem.
 - **What is the simplest alternative** that would satisfy 80% of the need?
   (CLI, config, docs, external tool, manual process, nothing at all.)
 - **What evidence — not opinion** — supports the `V` estimate?
-- **What is the smallest useful slice** we could ship and still claim the
+- **What is the smallest useful increment** we could ship and still claim the
   win?
 
 ### Cost interrogation
 
 - What **new vocabulary** — concepts, abstractions, types — does this add?
-  (Component-kinds Δ)
-- What currently-independent parts does this **link**? (Dependency-edges Δ)
+  (Subsystem-kinds Δ)
+- What currently-independent subsystems does this **link**? (Dependency-edges Δ)
 - How long is the **dependency chain** a typical change traverses once this
   exists? (Max-chain-depth Δ)
 - How many tests — including error paths, edge cases, and integration —

@@ -39,8 +39,8 @@ to this code path.
 
 Some features have high local `C` because they are the seam holding a
 correct abstraction in place. Removing them would **raise global complexity**
-elsewhere. Measure net **Component-kinds Δ, Dependency-edges Δ,
-Max-chain-depth Δ, Module-count Δ** across the whole system before
+elsewhere. Measure net **Subsystem-kinds Δ, Dependency-edges Δ,
+Max-chain-depth Δ, Subsystem-count Δ** across the whole system before
 committing to DELETE or SIMPLIFY. A local reduction that increases global
 complexity is not a simplification (see `structural-simplification` Core
 Directive 5).

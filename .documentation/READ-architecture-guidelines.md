@@ -1,9 +1,9 @@
-# The Shape of a Good Module
+# The Shape of a Good Subsystem
 
 Two codebases can implement the same product, pass the same tests, and feel
 completely different to work in. In one, adding a field to an invoice means
 editing one directory. In the other, it means edits to nine files across four
-directories, two of which surprise you, and a test failure in a module you've
+directories, two of which surprise you, and a test failure in a subsystem you've
 never heard of.
 
 The difference is not talent or effort. It is *structure* — and the
@@ -25,21 +25,21 @@ so every structural principle answers the same underlying question:
 
 Everything below is that question, applied at different points.
 
-## Modules exist to contain change
+## Subsystems exist to contain change
 
-A module — a directory, a package, a service — is a *blast wall*. Its
+A subsystem — a directory, a package, a service — is a *blast wall*. Its
 purpose is to guarantee that a category of change stays inside it. From
 that purpose, the classical rules follow directly rather than needing to be
 taken on authority:
 
-- **One concern per module** (separation of concerns): if a module handles
+- **One responsibility per subsystem** (separation of concerns): if a subsystem handles
   both invoice math and email formatting, a change to either forces a
   reader to understand — and risk breaking — the other.
 - **One reason to change** (single responsibility): "responsibility" is
   best read as *a source of change*. If pricing rules and tax rules evolve
-  on different schedules, driven by different stakeholders, a module
+  on different schedules, driven by different stakeholders, a subsystem
   containing both will be changed twice as often, by people who each care
-  about only half of it. Two forces of change → two modules.
+  about only half of it. Two forces of change → two subsystems.
 - **High cohesion, loose coupling**: the classic phrase compresses both
   directions of the same rule. Things that change together should live
   together (cohesion — otherwise one logical change scatters across the
@@ -48,18 +48,18 @@ taken on authority:
 
 The practical test for a boundary is a *capability*: something with its
 own domain name, its own lifecycle, its own reason to change. One
-capability, one module. A directory holding three unrelated capabilities is
+capability, one subsystem. A directory holding three unrelated capabilities is
 a blast wall around nothing.
 
-## Interfaces: the deal between a module and the world
+## Interfaces: the deal between a subsystem and the world
 
 A boundary works only if everyone honors the same three-way deal:
 
 - **The caller** depends on the contract, never on the implementation. The
-  moment a caller reaches past the interface into a module's internals,
-  the module can no longer change freely — the whole point of the boundary
+  moment a caller reaches past the interface into a subsystem's internals,
+  the subsystem can no longer change freely — the whole point of the boundary
   is forfeit.
-- **The module** keeps its internals private. What isn't exposed can't be
+- **The subsystem** keeps its internals private. What isn't exposed can't be
   depended on, and what can't be depended on can be rewritten on a Tuesday
   without a meeting.
 - **The designer** exposes everything every caller needs and *only* what
@@ -68,7 +68,7 @@ A boundary works only if everyone honors the same three-way deal:
 
 ## Integrations: the same deal, between applications
 
-When the boundary separates two applications rather than two modules, the
+When the boundary separates two applications rather than two subsystems, the
 deal holds with the stakes raised, because the other side changes on its own
 schedule and cannot be refactored with you. The pipe between them — gateway,
 queue, bus — only carries; every decision (validate, transform, enrich,
@@ -76,16 +76,16 @@ authorize) belongs to an endpoint, or it becomes invisible logic nobody owns. Th
 consumer translates into its own model — a shared "canonical" model sounds
 like order and is actually a coupling that makes every party pay for every
 change. And nothing reaches past the published contract into a peer's
-database or internals: the integration form of grabbing a module's private
+database or internals: the integration form of grabbing a subsystem's private
 field. Because the wire is not yours, design each edge as if it crossed the
 open internet, and prefer asynchronous exchange wherever the caller doesn't
 need the answer to continue.
 
 ## Dependencies: directed, acyclic, shallow
 
-Draw every module as a dot and every "A imports B" as an arrow. That
+Draw every subsystem as a dot and every "A imports B" as an arrow. That
 picture — the dependency graph — has three health criteria, each protecting
-the same thing: your ability to reason about one part without holding the
+the same thing: your ability to reason about one subsystem without holding the
 whole system in your head.
 
 - **Directed**: know which way the arrows are supposed to point. Stable,
@@ -96,7 +96,7 @@ whole system in your head.
   dependency inversion, and it's what keeps a database swap from becoming
   a domain rewrite.
 - **Acyclic**: a cycle (A → B → C → A) means none of the three can be
-  understood, tested, or replaced alone — they've fused into one unit that
+  understood, tested, or replaced alone — they've fused into one subsystem that
   happens to be spread across three names. Cycles are not "high coupling";
   they are boundary failure, full stop.
 - **Shallow**: every hop in the chain a change must traverse is another
@@ -203,7 +203,7 @@ precisely — naming trouble is design feedback.
 ## The habit
 
 The principles compress into questions to ask of any design, new or
-inherited: *What forces of change does this module contain — one, or
+inherited: *What forces of change does this subsystem contain — one, or
 several? Could its internals be rewritten without any caller noticing?
 Which way do the arrows point, and is there a cycle? Can the business logic
 be tested without mocks? Is this abstraction paying rent today, or is it a
@@ -220,10 +220,10 @@ code is a thing people change, and structure is how you make change cheap.
 [structural simplification](READ-structural-simplification.md) turns
 "simpler" from a feeling into a four-axis measurement;
 [morphogenetic architecture](READ-morphogenetic-architecture.md) governs
-where modules belong and how boundaries evolve under evidence; and
+where subsystems belong and how boundaries evolve under evidence; and
 [architecture-as-code](READ-architecture-as-code.md) turns the dependency
 rules above into build-failing lint checks. The full operational reference
 for this concept lives in
 [SKILL.md](../.claude/skills/architecture-guidelines/SKILL.md).*
 
-<!-- skill-revision: 5362db25cdb0 -->
+<!-- skill-revision: c94ab81f9419 -->

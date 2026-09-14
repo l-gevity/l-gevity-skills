@@ -62,7 +62,7 @@ this skill. Do not copy generic workflow into the profile and do not move projec
 facts into this skill.
 
 Do not introduce graph edges, domain entities, APIs, services, ADRs, or
-implementation slices here. Record them only as questions for later stages.
+implementation increments here. Record them only as questions for later stages.
 
 ## Operating Modes
 
@@ -178,7 +178,7 @@ as findings instead.
    Place each item in this scope, another scope, or outside scope.
 5. **Choose the boundary**: classify the subject as a problem scope or a shared
    foundation capability. Split when owner, lifecycle, outcome, or test surface
-   materially differs. Do not call a requirements scope a module unless the
+   materially differs. Do not call a requirements scope a subsystem unless the
    project explicitly uses that domain term.
 6. **Identify actors**: name the actor served by each requirement. Split role
    differences that change the need or completion conditions.

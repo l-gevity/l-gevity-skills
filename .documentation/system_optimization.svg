@@ -33,7 +33,7 @@
 <text x="40" y="289" font-size="12" font-weight="500" fill="#888780" dominant-baseline="central">2</text>
 <text x="68" y="289" font-size="13" fill="#2C2C2A" dominant-baseline="central">Delete what you can</text>
 <rect x="270" y="280" width="188" height="18" fill="#1D9E75" rx="3"/>
-<text x="530" y="289" font-size="12" fill="#5F5E5A" dominant-baseline="central">Parts + all edges</text>
+<text x="530" y="289" font-size="12" fill="#5F5E5A" dominant-baseline="central">Subsystems + edges</text>
 <line x1="40" y1="307" x2="640" y2="307" stroke="#F1EFE8" stroke-width="0.5"/>
 
 <!-- Row 3: Simplify -->

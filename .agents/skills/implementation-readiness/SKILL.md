@@ -4,10 +4,10 @@ description: >-
     Determines whether graph-structured requirements are ready for architecture,
     development, and verification, then derives the smallest coherent
     build-preparation package without inventing requirement meaning. Use when
-    producing capability maps, epics or workstreams, implementation slices,
-    dependency sequencing, riskiest-assumption ordering, parallel-ready slices,
-    contract candidates, domain-model seeds, cross-cutting
-    constraints, acceptance-test references, ADR seeds, technical questions, or
+    producing capability maps, epics or workstreams, implementation increments,
+    dependency sequencing, riskiest-assumption ordering, parallel-ready
+    increments, contract candidates, domain-model seeds, aspects,
+    acceptance-test references, ADR seeds, technical questions, or
     explicit ready/partly-ready/not-ready decisions. Do not use for initial
     discovery or requirement graph normalization.
 ---
@@ -27,9 +27,9 @@ architects, QA engineers, and technical product owners can use to prepare a buil
 >    policy, privacy, security, and architecture decisions.
 > 4. **Graph edges guide sequence, not boundaries.** A dependency does not imply
 >    an API, event, service, or synchronous call.
-> 5. **Prefer the smallest coherent slice.** Prove an end-to-end outcome before
->    expanding implementation surface.
-> 6. **Riskiest assumption first.** Sequence experiments and slices so the
+> 5. **Prefer the smallest coherent increment.** Prove an end-to-end outcome
+>    before expanding implementation surface.
+> 6. **Riskiest assumption first.** Sequence experiments and increments so the
 >    assumption most likely to invalidate the plan is tested earliest, by the
 >    cheapest vehicle that can invalidate it.
 
@@ -44,7 +44,7 @@ Read project instructions, architecture constraints, domain glossaries, source
 catalogs, and policy files when present. Treat them as inputs; do not generalize
 their domain rules into this skill.
 
-After this skill admits a slice into implementation, use
+After this skill admits an increment into implementation, use
 `requirements-traceability` to maintain implementation anchors, executed test or
 operational evidence, reverse traceability, and stale-reference checks. Readiness
 defines the evidence obligation; traceability records whether later work fulfills
@@ -72,12 +72,12 @@ route to the missing stage.
    likely duplicates, must-have verification gaps, or ownerless prerequisites.
 2. Group requirements into cohesive capabilities and workstreams without changing
    meaning.
-3. Pull foundation capabilities, cross-cutting constraints, data ownership, and
-   evidence primitives early in the sequence.
+3. Pull foundation capabilities, aspects, data ownership, and evidence
+   primitives early in the sequence.
 4. Check every external prerequisite for an existing artifact or an explicit
    minimal contract. Mark dependent work partial or blocked when neither exists.
 5. Convert prerequisite edges into implementation order while keeping architecture
-   choices open. Within that order, place first the slice or experiment that
+   choices open. Within that order, place first the increment or experiment that
    tests the riskiest unvalidated assumption: the one most likely to be wrong,
    weighted by the cost of learning that late. Choose the cheapest vehicle that
    can invalidate it (see Assumption Vehicles).
@@ -85,14 +85,15 @@ route to the missing stage.
    points, data boundaries, and non-functional constraints.
 7. Identify ADR candidates where multiple viable designs or unresolved forces
    remain.
-8. Define the smallest coherent vertical slice that demonstrates the core outcome.
-   Mark a slice **parallel-ready** only on criteria readable from the
+8. Define the smallest coherent increment — one cut through every layer, so it
+   demonstrates the core outcome end to end (a vertical slice).
+   Mark an increment **parallel-ready** only on criteria readable from the
    artifacts: it is isolated (needs little context beyond its own scope),
    shares no unmerged prerequisite, carries no unresolved contract, is
-   mergeable on its own, and is independent of every other slice in its group.
-   Record parallel-ready groups in the implementation order. Who will pick a
-   slice up is a scheduling fact, not a property of the slice; it cannot be
-   read from any artifact and is not a criterion.
+   mergeable on its own, and is independent of every other increment in its
+   group. Record parallel-ready groups in the implementation order. Who will
+   pick an increment up is a scheduling fact, not a property of the increment;
+   it cannot be read from any artifact and is not a criterion.
 9. Reference grounding's complete-when conditions as acceptance tests; add only
    concrete fixtures, expected values, and edge cases still needed.
 10. Separate ready work, blockers, risks, and technical questions.
@@ -122,12 +123,12 @@ invalidation criterion is speculative build, not an experiment.
 reading the code, schema, configuration, or contract answers the question,
 answer it now and record the fact. Carrying a lookup as an open assumption
 inflates the risk list, and — because ordering is riskiest-first — displaces
-the assumption that actually needed the first slice. Only questions no
+the assumption that actually needed the first increment. Only questions no
 available artifact can settle earn a vehicle and a position in the order.
 
 ## Readiness Gate
 
-Mark a requirement or slice **ready** only when it has:
+Mark a requirement or increment **ready** only when it has:
 
 - stable, traceable requirement IDs;
 - usable complete-when conditions;
@@ -137,8 +138,8 @@ Mark a requirement or slice **ready** only when it has:
 - relevant security, privacy, accessibility, compliance, audit, and operational
   constraints;
 - no unresolved decision that changes the required outcome;
-- the retirement of every criterion the slice's mechanism replaces, admitted as
-  part of the slice;
+- the retirement of every criterion the increment's mechanism replaces,
+  admitted as part of the increment;
 - an accepted validation decision, or an explicitly reversible experiment.
 
 Mark it **partly ready** when a bounded implementation can proceed behind an
@@ -174,7 +175,7 @@ Capability:
 ```
 
 ```text
-Implementation slice:
+Implementation increment:
 - Outcome:
 - Requirement IDs:
 - Actor workflow:
@@ -214,7 +215,7 @@ ADR seed:
 ```
 
 These are design inputs, not automatic commitments. Use
-`architecture-guidelines` when turning them into module or service designs, and
+`architecture-guidelines` when turning them into subsystem or service designs, and
 use `functionality-complexity-tradeoff` when a proposed capability still needs a
 worth decision.
 
@@ -223,16 +224,16 @@ worth decision.
 Every application emits a decision record before any longer readiness package:
 
 ```text
-Subject:          <requirement scope, capability, or slice>
-Decision:         READY | PARTLY-READY | NOT-READY
-Requirement IDs:  <stable IDs covered by the decision>
-Prerequisites:    <ready, assumed, or missing>
-Blocking gaps:    <source, outcome, owner, data, permission, verification, or contract>
-Smallest slice:   <smallest coherent outcome supported now, or none>
-Open decisions:   <product / policy blockers versus architecture ADRs>
-Next action:      <build, decide, source, contract, split, or return upstream>
-Verification:     <readiness checks run, or Not run + reason>
-Revisit when:     <required for PARTLY-READY or NOT-READY>
+Subject:            <requirement scope, capability, or increment>
+Decision:           READY | PARTLY-READY | NOT-READY
+Requirement IDs:    <stable IDs covered by the decision>
+Prerequisites:      <ready, assumed, or missing>
+Blocking gaps:      <source, outcome, owner, data, permission, verification, or contract>
+Smallest increment: <smallest coherent outcome supported now, or none>
+Open decisions:     <product / policy blockers versus architecture ADRs>
+Next action:        <build, decide, source, contract, split, or return upstream>
+Verification:       <readiness checks run, or Not run + reason>
+Revisit when:       <required for PARTLY-READY or NOT-READY>
 ```
 
 A complete readiness package additionally contains:
@@ -246,8 +247,8 @@ Implementation readiness:
 - Capability map:
 - Workstreams or epics:
 - Implementation order:         # riskiest assumption first; parallel-ready groups marked
-- Smallest coherent slice:
-- Cross-cutting constraints:
+- Smallest coherent increment:
+- Aspects:
 - Data ownership and lifecycle:
 - Evidence and operational needs:
 - Contract candidates:
@@ -269,11 +270,12 @@ decision.
 - Do not invent payloads, entities, integrations, or non-functional targets that
   the requirements do not support.
 - Do not restate complete-when conditions as a competing acceptance-criteria set.
-- Do not admit a replacement without the retirement it implies. A slice that
-  removes or replaces a mechanism carries the lapsing criteria and closes them.
+- Do not admit a replacement without the retirement it implies. An increment
+  that removes or replaces a mechanism carries the lapsing criteria and closes
+  them.
 - Do not turn every graph edge into a contract or runtime dependency.
-- Do not mark a slice parallel-ready while it shares an unmerged prerequisite
-  or an unresolved contract with another slice in its group.
+- Do not mark an increment parallel-ready while it shares an unmerged
+  prerequisite or an unresolved contract with another increment in its group.
 - Do not schedule an assumption that reading an existing artifact would settle;
   resolve it and record the answer.
 - Do not bury product, domain, security, privacy, compliance, or source-currency

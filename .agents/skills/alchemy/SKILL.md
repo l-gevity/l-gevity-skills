@@ -6,8 +6,8 @@ description: >-
     A.L.C.H.E.M.Y. skills. Explicitly trigger with `/alchemy`, `$alchemy`, or
     natural phrases such as "do some alchemy", "run alchemy on this", "use
     alchemy", or "give this an alchemy pass". Use for architecture, complexity,
-    enforcement, shift-left, optimization, modules, vertical slices,
-    abstractions, cross-boundary refactors, consolidation, and over-engineering
+    enforcement, shift-left, optimization, subsystems, increments (vertical
+    slices), abstractions, cross-boundary refactors, consolidation, and over-engineering
     audits. Explicit invocation on a local bug fix, content or CSS edit,
     dependency bump, or trivial rename returns a cheap `SKIP` or `DIRECT`
     dispatch instead of loading every gate. Defines no new domain rules; routes
@@ -89,7 +89,7 @@ and skills selected by that route.
 | Dispatch | Select when | Core action |
 |:--|:--|:--|
 | `SKIP` | Local behavior stays inside one governed boundary and does not ask an Alchemy question: copy/CSS, trivial rename, routine dependency bump, or isolated bug fix | Load no Alchemy gate skill; continue with task-matched companion skills and normal verification |
-| `DIRECT` | A focused alias or one unambiguous concern maps to exactly one gate or triad skill | Load only that core sibling skill |
+| `DIRECT` | A focused alias or one unambiguous gate question maps to exactly one gate or triad skill | Load only that core sibling skill |
 | `ADAPTIVE` | Structure, responsibility, data flow, abstraction, multiple requirements, or boundaries may change | Select the smallest justified qualification and gate set |
 | `FULL` | The user explicitly requests `full`, `all`, `walk the gates`, or `complete alchemy` | Traverse every justified stage and record all skips |
 
@@ -101,7 +101,7 @@ Use this deterministic signal matrix when no alias is present:
 | Worth, dead code, speculative abstraction, or "should this exist?" | `DIRECT → M` |
 | Defect found late, check placement, or CI detection timing | `DIRECT → H` or `left` |
 | Structural refactor inside one boundary | `ADAPTIVE → M, C`; add A when responsibility or public contract changes, H when verification placement changes |
-| New module/service/library, cross-boundary dependency, vertical slice, or consolidation | `ADAPTIVE → qualification as needed, M, A, L, C, E, H` |
+| New subsystem/service/library, cross-boundary dependency, increment cut through every layer (vertical slice), or consolidation | `ADAPTIVE → qualification as needed, M, A, L, C, E, H` |
 | Existing-code over-engineering audit | `ADAPTIVE` Audit mode beginning at `C₀` |
 | Explicit full traversal | `FULL` |
 
@@ -124,7 +124,7 @@ the selected companion skill bodies.
 - Never hard-code project-specific companion names into this generic skill.
 
 Gate and triad aliases are authoritative. If an alias is present, use only that
-core gate or triad move, even when the subject mentions module boundaries.
+core gate or triad move, even when the subject mentions subsystem boundaries.
 Independently triggered companions may still apply. Expand the core route only
 when the user explicitly asks for `full`, `all`, `audit`, `walk the gates`, or
 `complete alchemy`.
@@ -190,11 +190,11 @@ Routing rules:
    or non-trivial sequencing. Skip it for one bounded independent requirement
    and record that rationale.
 5. **Readiness guards Architecture.** Only `READY`, or `PARTLY-READY` as a
-   bounded reversible slice whose unresolved requirements cannot change its
+   bounded reversible increment whose unresolved requirements cannot change its
    meaning or verification, may enter A. `NOT-GROUNDED`, `BLOCKED`, and
    `NOT-READY` stop or return to the named failed stage.
 6. **Keep graphs distinct.** Requirements topology models requirement
-   relationships. Morphogenetic Architecture places implementation components
+   relationships. Morphogenetic Architecture places implementation subsystems
    and compares declared topology with observed coupling fields.
 7. **Keep the solid path acyclic.** Rework is explicit:
    `PROVISIONAL → grounding`, `NEEDS-REFACTOR/BLOCKED → grounding`,
@@ -208,9 +208,9 @@ Decision hand-offs:
 | Requirements Grounding | `GROUNDED` | `PROVISIONAL`, `NOT-GROUNDED` | Grounded requirements, linked outcome hypotheses when relevant, evidence, assumptions, confirmation queue |
 | M — Minimum | `BUILD`, `KEEP`, `SIMPLIFY` | `DEFER`, `DROP`, `OBSOLETE` | Functionality/complexity decision per candidate |
 | Requirements Topology | `STABLE` | `NEEDS-REFACTOR`, `BLOCKED` | Atomic typed graph, stable IDs, conflicts, dependency order |
-| Implementation Readiness | `READY`, bounded `PARTLY-READY` | `NOT-READY` | Smallest coherent slice, verification obligations, blockers |
+| Implementation Readiness | `READY`, bounded `PARTLY-READY` | `NOT-READY` | Smallest coherent increment, verification obligations, blockers |
 
-After a slice passes readiness and enters architecture/implementation, use
+After an increment passes readiness and enters architecture/implementation, use
 `requirements-traceability` to connect canonical IDs to implementation and
 executed completion and outcome evidence. Traceability is implementation
 follow-through, not another qualification stage, A.L.C.H.E.M.Y. gate, acronym
@@ -242,7 +242,7 @@ stage, CI/CD owns pipeline execution triggers and gating, and traceability owns
 executed-evidence state. Test Strategy is not a qualification stage,
 A.L.C.H.E.M.Y. gate, acronym letter, or prerequisite for A.
 
-When an admitted slice changes persisted or serialized data shape — a schema,
+When an admitted increment changes persisted or serialized data shape — a schema,
 event or message payload, API body, or file format — use
 `evolutionary-database-design` as a two-pass task-matched companion:
 
@@ -259,7 +259,7 @@ The Compatibility pass inventories readers, writers, the coexistence window,
 and the obligations that bind the data, classifies the change, and supplies
 the data facts Gate 3 grades reversibility from before A. The Transition pass
 consumes final accepted architecture to fix the staged expand/contract path,
-migration units, backfill, contract trigger, and reversal step per stage
+migration increments, backfill, contract trigger, and reversal step per stage
 before the Test Strategy Portfolio pass and H. Collapse them into a Combined
 pass only for a stable accepted target shape. Gate 3 still owns placement and
 the reversibility grade, Gate H the earliest capable stage, CI/CD the deploy
@@ -281,8 +281,8 @@ or independent confirmation supports them.
 | 1 | Necessity check | `functionality-complexity-tradeoff` | BUILD / KEEP / SIMPLIFY or stop per candidate |
 | 2 | First principles | `architecture-guidelines` | Smallest correct design |
 | 3 | Morphogenetic topology | `morphogenetic-architecture` | Rapid/Full mode + declared Domain / tier / layer + final decision, or one restructuring candidate requiring measurement; probation expiry, instrumentation task, and prediction recheck ride the decision trail to Gate 6 |
-| 4 | Complexity measurement | `structural-simplification` | Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ; then Gate 3 acceptance when restructuring |
-| 5 | Architecture as code | `architecture-as-code` (pattern); `-javascript` / `-python` (impl) | Per-module architecture config |
+| 4 | Complexity measurement | `structural-simplification` | Subsystem-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Subsystem-count Δ; then Gate 3 acceptance when restructuring |
+| 5 | Architecture as code | `architecture-as-code` (pattern); `-javascript` / `-python` (impl) | Per-subsystem architecture config |
 | 6 | Shift defect detection left | `defect-shift-left` | Each error path → earliest catchable stage |
 | 7 | Optimize value stream | `system-optimization` | Constraint analysis (iteration 2: the iteration after the increment ships, from its stable, measured baseline) |
 
@@ -354,7 +354,7 @@ Core directives:
 7. When verification design is material, preserve the Test Strategy two-pass
    handshake. Architecture may refine the portfolio but must not silently erase
    an admitted risk or oracle.
-8. When a slice changes persisted or serialized data shape, preserve the
+8. When an increment changes persisted or serialized data shape, preserve the
    Evolutionary Database Design two-pass handshake. Expand and contract never
    ship in one deployable; the contract step is gated on evidence, not a date.
 
@@ -376,13 +376,13 @@ Core directives:
 - [ ] Data shape — Compatibility pass before A: readers, writers, coexistence
                     window, obligations, change class, and compatibility mode
 - [ ] Gate 2 — Smallest correct design (SoC + SRP + DI; pure core, I/O at edges)
-- [ ] Gate 3 — Rapid/Full mode and selection reason recorded; each component placed at Domain / Tier / Layer; allowed edges and observed fields recorded
-- [ ] Gate 4 — Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ computed for design vs status quo
+- [ ] Gate 3 — Rapid/Full mode and selection reason recorded; each subsystem placed at Domain / Tier / Layer; allowed edges and observed fields recorded
+- [ ] Gate 4 — Subsystem-kinds / Dependency-edges / Max-chain-depth / Subsystem-count Δ computed for design vs status quo
 - [ ] Gate 3 acceptance — MOVE / SPLIT / MERGE / INTRODUCE-BOUNDARY re-entered
                               once with Gate 4 measurement; final decision recorded
 - [ ] Gate 5 — eslint.architecture.mjs in the SAME PR as the code
 - [ ] Data shape — Transition pass after final A/L/C/E and before the Test
-                    strategy Portfolio pass: staged path, migration units,
+                    strategy Portfolio pass: staged path, migration increments,
                     backfill, contract trigger, and reversal step per stage
 - [ ] Test strategy — Portfolio pass after final A/L/C/E and before H: technique,
                        scope, fidelity, dependencies, data, environment, stimulus
@@ -406,11 +406,11 @@ contradictory, or disputed:
 
 | Step | Skill | Action |
 |:--|:--|:--|
-| 1 — `C₀` | `structural-simplification` | Score current Component-kinds / Dependency-edges / Max-chain-depth / Module-count — expose hot-spots and bound recovery |
+| 1 — `C₀` | `structural-simplification` | Score current Subsystem-kinds / Dependency-edges / Max-chain-depth / Subsystem-count — expose hot-spots and bound recovery |
 | 2 — conditional recovery | `requirements-grounding` | Recover provisional, evidence-linked intent only when trustworthy current requirements are absent |
 | 3 | `functionality-complexity-tradeoff` | Run the retrospective necessity decision on the bounded functionality |
 | 4 — conditional topology | `requirements-topology` | Structure remediation requirements when relationships are non-trivial |
-| 5 — conditional readiness | `implementation-readiness` | Identify the smallest coherent remediation slice that may enter Architecture |
+| 5 — conditional readiness | `implementation-readiness` | Identify the smallest coherent remediation increment that may enter Architecture |
 | 6 | Remaining A.L.C.H.E.M.Y. gates | Redesign, enforce, and shift left only as the remediation requires |
 
 ---
@@ -424,13 +424,13 @@ contradictory, or disputed:
 | Requirement order is prose-only, cyclic, or contradictory | Requirements Topology | Build the typed graph; return blocking conflicts or cycles to grounding |
 | Requirement text carries an old and a new decision at once | Requirements Topology — predecessor not retired | Retire it or mark it lapsing with an expiry in the same change; rerun the repository gate |
 | Architecture invents meaning, permissions, data, or acceptance criteria | Implementation Readiness | Stop at `NOT-READY`; resolve the named product or policy blocker |
-| `PARTLY-READY` work can be invalidated by an unresolved requirement | Implementation Readiness | Reject the slice; admit only bounded reversible work |
+| `PARTLY-READY` work can be invalidated by an unresolved requirement | Implementation Readiness | Reject the increment; admit only bounded reversible work |
 | Interface added "for the second implementation" but second never lands | 1 — Rule of 3 | Run pruner; collapse to one concrete |
 | Generic registry / plugin system with one entry | 1 — generality without instantiation | Inline the entry; remove the registry |
 | Empty config / config with one value across all envs | 1 — one-value config | Inline the value |
 | `if (impossible_state)` runtime guards | 1 — impossible-state guard | OBSOLETE; document the invariant elsewhere |
-| Cross-domain imports bypass the declared boundary | 3 — topology violated | Move the component or introduce one named boundary |
-| Refactor "felt simpler" but no measurement | 3–4 — topology candidate not accepted | Compute Component-kinds / Dependency-edges / Max-chain-depth / Module-count Δ, then re-enter Gate 3 once for final acceptance |
+| Cross-domain imports bypass the declared boundary | 3 — topology violated | Move the subsystem or introduce one named boundary |
+| Refactor "felt simpler" but no measurement | 3–4 — topology candidate not accepted | Compute Subsystem-kinds / Dependency-edges / Max-chain-depth / Subsystem-count Δ, then re-enter Gate 3 once for final acceptance |
 | Eslint rules added in follow-up PR | 5 — same-PR discipline broken | Block the follow-up; add rules to original PR |
 | Defects caught at runtime that types could express | 6 — left-shift not applied | Move the check upward; remove the runtime guard |
 | Architecture file disagrees with code | 5 — drift | Re-run lint; treat as a defect |
@@ -476,7 +476,7 @@ skipped; a skip without a rationale is a defect:
 Then state:
 
 ```
-Scope:          <module / service / refactor / PR>
+Scope:          <subsystem / service / refactor / PR>
 Mode:           Design | Refactor | Audit
 Dispatch:       SKIP | DIRECT | ADAPTIVE | FULL
 Companions:     <None | task-matched skills>

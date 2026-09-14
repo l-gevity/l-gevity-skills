@@ -159,7 +159,7 @@ feature, a library, a standard, a platform, or a service whose entire job is
 to maintain it, better than you can afford to.
 
 The signals are recognizable: "we have our own X" said slightly defensively;
-the same helper copy-pasted across repos with small mutations; the module
+the same helper copy-pasted across repos with small mutations; the subsystem
 everyone is afraid to touch that does something a lockfile dependency already
 does; the infrastructure your team babysits that a cloud provider offers as
 three lines of configuration. Each is commodity code living above its
@@ -175,4 +175,4 @@ maintained, reusable capability. The full operational reference for this
 concept — the complete scale, outsourcing triggers, and survey protocols —
 lives in [SKILL.md](../.claude/skills/bring-down/SKILL.md).*
 
-<!-- skill-revision: d5232318a8a0 -->
+<!-- skill-revision: b78756e4857e -->

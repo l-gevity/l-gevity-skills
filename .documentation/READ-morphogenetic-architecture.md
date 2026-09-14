@@ -2,9 +2,9 @@
 
 Every team has the diagram: boxes, arrows, clean layers, drawn eighteen
 months ago. And every team has the codebase, which has since grown opinions
-of its own. Two modules that the diagram says are strangers change together
+of its own. Two subsystems that the diagram says are strangers change together
 in every third commit. A "shared utilities" box has quietly become the most
-depended-upon component in the system. An import cycle connects three
+depended-upon subsystem in the system. An import cycle connects three
 services the diagram shows as a tidy one-way chain.
 
 The usual responses are denial (update nothing), or surrender (declare the
@@ -18,9 +18,9 @@ shape.
 
 ![Morphogenetic Architecture](morphogenetic_architecture.svg)
 
-## The skeleton: every component gets an address
+## The skeleton: every subsystem gets an address
 
-Structure starts with a declaration. Every component gets a position along
+Structure starts with a declaration. Every subsystem gets a position along
 three independent coordinates:
 
 - **Domain** — which part of the business it serves: `billing`,
@@ -34,26 +34,26 @@ three independent coordinates:
   inverted the hierarchy.
 - **Layer** — its distance from the outside world: consumer-facing code,
   application/domain logic, infrastructure. Crossing more than one layer
-  in a single step (a UI component reaching straight into the database) is
+  in a single step (a UI subsystem reaching straight into the database) is
   a *layer skip* — legitimate only through a named adapter that owns the
   transition.
 
 The coordinates are deliberately independent: "payments / capability /
 domain-layer" says what a thing is, what scale it works at, and how far
-from the edge it sits — and a component whose address you *cannot* state is
-itself a finding, usually the first symptom of a module doing several jobs.
+from the edge it sits — and a subsystem whose address you *cannot* state is
+itself a finding, usually the first symptom of a subsystem doing several jobs.
 
-Around the address go local rules: each component exposes one **inbound
+Around the address go local rules: each subsystem exposes one **inbound
 interface** (the contract callers use — everything else is private),
 declares its **outbound** dependencies, and talks to a small, *named* set
 of neighbors. Cross-domain access goes through the target domain's public
 contract, never around it. Local rules are the whole trick — no one
-component needs the global picture, yet a coherent global shape emerges
-from every component keeping its own neighborhood honest. That is how
+subsystem needs the global picture, yet a coherent global shape emerges
+from every subsystem keeping its own neighborhood honest. That is how
 organisms manage it, too.
 
 Those local rules are worth stating as one check rather than three habits,
-because together they are **decidable**. Given every component's address and
+because together they are **decidable**. Given every subsystem's address and
 the import graph, you can compute whether an edge is legal: layer and
 abstraction tier are ordered, so "more than one step without a named adapter"
 means something precise; domain is not ordered, so the only question there is
@@ -64,9 +64,9 @@ touched only inside its adapter.
 That decidability is the point, with one honest limit on it. It needs no
 telemetry and no history, so it works on day one of a greenfield system — but
 it is not judgement-free, because *assigning* the addresses is judgement, and
-on real code a stubborn fraction of modules resist a single one. So use it
+on real code a stubborn fraction of subsystems resist a single one. So use it
 where the judgement is already happening: on the handful of edges belonging to
-a component you are placing right now. Run it across a whole existing
+a subsystem you are placing right now. Run it across a whole existing
 codebase and you get a flood of flags for edges the axes were never told how
 to classify. What belongs in the build is the *output* — named edges, each
 with a written reason — not the derivation.
@@ -113,24 +113,24 @@ Now the interesting part. Overlay the observed graphs on the declared
 skeleton and look for **boundary pressure** — evidence repeatedly straining
 against a declared line:
 
-- Two components in *different* declared domains that change together
+- Two subsystems in *different* declared domains that change together
   constantly, share data, and fail together — the boundary between them
   may be drawn through the middle of one real thing.
-- One component whose edges fan out to several unrelated clusters, with
-  several independent reasons to change — a god component, two or three
+- One subsystem whose edges fan out to several unrelated clusters, with
+  several independent reasons to change — a god subsystem, two or three
   real things wearing one name.
 - A declared boundary that *no* evidence ever crosses — possibly a false
   boundary, ceremony separating things that belong together.
 
 Pressure is information, not instruction. A single noisy signal — one
-co-change burst from a cross-cutting rename, one traffic spike — is a
+co-change burst from a repo-wide rename, one traffic spike — is a
 prompt to look, nothing more. The standard for actually moving a boundary
 is deliberately conjunctive: **a domain-meaning reason and independent
 observed evidence, agreeing on the same change.** Evidence without meaning
 over-fits history; meaning without evidence is opinion with a diagram.
 
 And the required weight of evidence scales with **reversibility**. Renaming
-a module one team owns, with no published contract? Cheap to undo — decide
+a subsystem one team owns, with no published contract? Cheap to undo — decide
 on light evidence. Splitting a service with external consumers, a
 versioned API, and a data migration? Expensive to undo — demand multiple
 independent lines of evidence, a staged path, and an explicit reversal
@@ -160,9 +160,9 @@ structural decision is *nameable* and *recorded*:
 | Move | When |
 | ---- | ---- |
 | **Keep** | Declaration and evidence agree — record that, too; it's what makes the next audit cheap |
-| **Place** | A new component gets its address, interface, and neighbor set — the everyday case |
-| **Move** | A component's evidence says it lives in the wrong domain, tier, or layer |
-| **Split** | Independent change/failure clusters share one component |
+| **Place** | A new subsystem gets its address, interface, and neighbor set — the everyday case |
+| **Move** | A subsystem's evidence says it lives in the wrong domain, tier, or layer |
+| **Split** | Independent change/failure clusters share one subsystem |
 | **Merge** | A boundary separates one purpose without buying any decoupling |
 | **Introduce a boundary** | Cross-domain access needs one explicit contract instead of ad-hoc reaches |
 | **Declare a runtime cycle** | A real feedback loop exists; give it bounds, an owner, observability |
@@ -232,14 +232,14 @@ edges. When evidence strains a boundary, require meaning *and* measurement
 before moving it, with proof proportional to the cost of being wrong. Make
 the smallest change that relieves the pressure, then encode it so it
 holds. And re-examine whenever the ground shifts by an order of magnitude
-— team count, traffic, data, components — because a shape that fit the old
+— team count, traffic, data, subsystems — because a shape that fit the old
 scale is under no obligation to fit the new one.
 
 ---
 
 *Related concepts:
 [architecture guidelines](READ-architecture-guidelines.md) governs what
-happens *inside* a component — this concept governs where components sit
+happens *inside* a subsystem — this concept governs where subsystems sit
 and how boundaries between them evolve;
 [structural simplification](READ-structural-simplification.md) provides the
 four-axis measurement every restructuring move must pass; and
@@ -249,4 +249,4 @@ reference — analysis modes, evidence fields, finding taxonomy, and the
 decision record — lives in
 [SKILL.md](../.claude/skills/morphogenetic-architecture/SKILL.md).*
 
-<!-- skill-revision: ec5f32eb57f1 -->
+<!-- skill-revision: 49bdaf0e8934 -->

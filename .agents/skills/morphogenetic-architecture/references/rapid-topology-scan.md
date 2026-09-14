@@ -8,9 +8,9 @@ change.
 
 Rapid may inspect:
 
-- one new or existing component;
+- one new or existing subsystem;
 - a small, named set of static imports, calls, or build references;
-- the component's Domain / abstraction tier / layer position;
+- the subsystem's Domain / abstraction tier / layer position;
 - its inbound and outbound interfaces and allowed caller, callee, and sibling
   relationships;
 - one already-identified runtime loop solely to declare its termination bound,
@@ -21,7 +21,7 @@ telemetry, partition a graph, or accept a restructuring decision.
 
 ## Procedure
 
-1. **State the subject.** Name the component or edges and whether the task is
+1. **State the subject.** Name the subsystem or edges and whether the task is
    Design or Audit.
 2. **Declare the position.** Record Domain / abstraction tier / layer,
    inbound interface, outbound interface, and allowed static neighbors.
@@ -50,7 +50,7 @@ the escalation record.
 
 | Rapid decision | Required condition |
 | --- | --- |
-| **PLACE** | One new component has a clear position, explicit interfaces, and allowed static neighbors |
+| **PLACE** | One new subsystem has a clear position, explicit interfaces, and allowed static neighbors |
 | **KEEP** | Existing placement and the bounded static evidence agree; no hard test fails |
 | **DECLARE-RUNTIME-CYCLE** | One legitimate loop has an explicit bound, owner, termination semantics, and observability |
 | **DEFER** | Placement or evidence is insufficient, contradictory, or requires a topology change |
@@ -66,10 +66,10 @@ Set `Analysis mode: Rapid → Full` and preserve completed checks when:
 - MOVE, SPLIT, MERGE, or INTRODUCE-BOUNDARY becomes a candidate;
 - runtime pressure, co-change, shared data, failure propagation, weighting, or
   graph partitioning must influence the decision;
-- the scope expands across several domains/components or a material ownership,
+- the scope expands across several domains/subsystems or a material ownership,
   security, compliance, or failure boundary;
 - placement remains ambiguous or evidence conflicts;
-- the user changes the request to a deep or subsystem/service-graph audit.
+- the user changes the request to a deep, whole-graph, or service-graph audit.
 
 Once escalated, remain in Full. Missing evidence produces DEFER plus an
 instrumentation or measurement action, or a probationary acceptance when

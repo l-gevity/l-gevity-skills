@@ -159,12 +159,12 @@ where such a check can run, never whether it runs.
 **Rules:**
 
 - Never force-stop running instances (drops in-flight connections)
-- Name the rollout shape honestly. Replacing two or more components of one
+- Name the rollout shape honestly. Replacing two or more subsystems of one
   release in parallel, each overwriting its predecessor where it stands, is an
-  **in-place component replace**: no slot to swap, no single switch to
-  reverse, and old and new components live together for the length of the
+  **in-place subsystem replace**: no slot to swap, no single switch to
+  reverse, and old and new subsystems live together for the length of the
   slowest job. It is zero-downtime only when every pair of coexisting
-  component versions is compatible across that window — an
+  subsystem versions is compatible across that window — an
   `evolutionary-database-design` question, not a deployment detail
 - Decouple deployment from release: where exposure is progressive, deploying
   an artifact and exposing its behavior to users are separate, separately
@@ -273,7 +273,7 @@ passes and the named operational owner accepts the handoff.
 Verification is a staged evidence system, not a single `test` job. Place each
 check at the earliest stage capable of detecting its defect, following
 `defect-shift-left`. Every applicable check is blocking. A pipeline may mark a
-check not applicable only when it records the component or risk evidence that
+check not applicable only when it records the subsystem or risk evidence that
 justifies the omission.
 
 | Stage / trigger | Required verification | Gate behavior |
@@ -312,7 +312,7 @@ Each gate declares and records:
 ```
 Check:          <category and command/tool>
 Stage/trigger:  <PR | preview | pre-deploy | deploy | canary | production>
-Scope:          <components, routes, contracts, or environment>
+Scope:          <subsystems, routes, contracts, or environment>
 Representativeness: <how the stage differs from production, measured; or n/a for a production check>
 Artifact:       <commit and immutable digest>
 Policy:         <threshold, baseline, compatibility rule, or expected result>
@@ -400,7 +400,7 @@ Test evidence:  <applicable gates, reports, exclusions, and results>
 Preflight:      <checks and results>
 Strategy:       <permanent | ephemeral | production-only progressive exposure>
 Representativeness: <measured drift of the verification stage from production, or unmeasured>
-Rollout:        <atomic | blue/green | canary | in-place component replace + health thresholds; exposure switch or re-promotion path>
+Rollout:        <atomic | blue/green | canary | in-place subsystem replace + health thresholds; exposure switch or re-promotion path>
 Zero-downtime:  <yes | no + why>
 Rollback:       <trigger, known-good artifact, result>
 Owner handoff:  <operational owner or missing>
@@ -413,4 +413,4 @@ Next action:    <specific workflow edit, test, policy, or owner question>
 
 - **`defect-shift-left`** — where each pipeline check belongs on the stage ladder.
 - **`system-optimization`** — value-stream optimization built on top of a reliable pipeline.
-- **`architecture-guidelines`** — first-principles rules out of scope here (idempotency etc. as system-level concerns).
+- **`architecture-guidelines`** — first-principles rules out of scope here (idempotency etc. as system-level properties).

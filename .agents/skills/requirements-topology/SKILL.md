@@ -38,15 +38,15 @@ meaning.
 Use `requirements-grounding` first when the problem, actor, basis, scope,
 priority, complete-when conditions, or validation decision is unclear. Use
 `implementation-readiness` after this skill when developers and architects need
-capabilities, slices, contracts, ADR seeds, tests, or a readiness decision.
+capabilities, increments, contracts, ADR seeds, tests, or a readiness decision.
 
 Read project instructions, domain glossaries, source catalogs, and policy files
 before structuring domain requirements. Preserve project terminology and source
 hierarchy, but keep domain policy out of this generic model.
 
-This topology describes requirement relationships, not component placement. Do
+This topology describes requirement relationships, not subsystem placement. Do
 not assign Domain / abstraction tier / layer coordinates here; use
-`morphogenetic-architecture` when software components need placement,
+`morphogenetic-architecture` when software subsystems need placement,
 observed-field analysis, or import constraints.
 
 ## Requirement Record
@@ -112,7 +112,7 @@ may exist, but they must not be disguised as static prerequisite cycles.
    lineage.
 6. Add typed edges supported by source evidence or an explicit inference note.
 7. Run graph checks before deriving order.
-8. Refine module boundaries by cohesion: data ownership, decision owner,
+8. Refine subsystem boundaries by cohesion: data ownership, decision owner,
    lifecycle, change reason, and test surface.
 9. Topologically sort the `depends_on` projection.
 10. Produce the smallest output mode that answers the user's decision.
@@ -147,7 +147,7 @@ blocking lineage issue, not a watch item.
 
 ## Repository Operationalization
 
-When requirements live in a repository, keep four concerns explicit:
+When requirements live in a repository, keep four responsibilities explicit:
 
 1. **Canonical inputs** own meaning and accepted relationships. Human-authored
    requirement text and structured metadata must agree or fail validation.
@@ -195,8 +195,8 @@ If the second consumer is speculative, keep the prerequisite local until the
 reuse is real.
 
 Use `structural-simplification` when a proposed regrouping claims to reduce
-complexity. Report its exact coder-facing fields: Component-kinds Δ,
-Dependency-edges Δ, Max-chain-depth Δ, and Module-count Δ. Do not substitute
+complexity. Report its exact coder-facing fields: Subsystem-kinds Δ,
+Dependency-edges Δ, Max-chain-depth Δ, and Subsystem-count Δ. Do not substitute
 visual neatness for those measurements.
 
 ## Modes

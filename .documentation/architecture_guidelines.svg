@@ -1,13 +1,13 @@
 <svg width="680" height="1230" viewBox="0 0 680 1230" role="img" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif">
 <title>Architecture guidelines infographic</title>
-<desc>Infographic explaining the architecture guidelines skill: a first-principles ruleset for module design covering minimalism, modularity, functional core, resilience, layer self-sufficiency, naming, and concurrency. Shows eight numbered sections as a ladder, five principles, and five benefits.</desc>
+<desc>Infographic explaining the architecture guidelines skill: a first-principles ruleset for subsystem design covering minimalism, modularity, functional core, resilience, layer self-sufficiency, naming, and concurrency. Shows eight numbered sections as a ladder, five principles, and five benefits.</desc>
 
 <rect width="680" height="1230" fill="#FFFFFF"/>
 
 <!-- ============ HERO ============ -->
 <rect x="40" y="40" width="40" height="3" fill="#534AB7" rx="1.5"/>
 <text x="40" y="74" font-size="22" font-weight="500" fill="#2C2C2A">Architecture guidelines</text>
-<text x="40" y="100" font-size="14" fill="#5F5E5A">A first-principles checklist for module design. Each principle is a yes/no question, not a vibe.</text>
+<text x="40" y="100" font-size="14" fill="#5F5E5A">First-principles checklist for subsystem design. Each principle is a yes/no question, not a vibe.</text>
 <text x="40" y="120" font-size="12" fill="#888780">The inverses produce the same failures in every codebase: speculative abstractions, tangled deps, untestable logic.</text>
 
 <!-- ============ THE EIGHT SECTIONS (LADDER) ============ -->
@@ -45,7 +45,7 @@
 <rect x="40" y="378" width="28" height="28" rx="6" fill="#CECBF6"/>
 <text x="54" y="392" font-size="13" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">§4</text>
 <text x="80" y="386" font-size="13" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Modularity</text>
-<text x="80" y="402" font-size="12" fill="#5F5E5A" dominant-baseline="central">One concern, one reason to change. Interface as the only access point.</text>
+<text x="80" y="402" font-size="12" fill="#5F5E5A" dominant-baseline="central">One responsibility, one reason to change. Interface as the only access point.</text>
 <line x1="40" y1="418" x2="640" y2="418" stroke="#F1EFE8" stroke-width="0.5"/>
 
 <!-- Row 5: Resilience -->
@@ -163,6 +163,6 @@
 <text x="380" y="1176" font-size="12" fill="#5F5E5A" dominant-baseline="central">Per-instance / tab / global.</text>
 
 <!-- Closing line -->
-<text x="340" y="1218" font-size="12" fill="#888780" text-anchor="middle">Module boundaries are where architecture lives. The guidelines keep them honest.</text>
+<text x="340" y="1218" font-size="12" fill="#888780" text-anchor="middle">Subsystem boundaries are where architecture lives. The guidelines keep them honest.</text>
 
 </svg>

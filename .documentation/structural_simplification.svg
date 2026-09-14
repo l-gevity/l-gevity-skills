@@ -43,8 +43,8 @@
 <rect x="521" y="216" width="32" height="32" rx="6" fill="#F5C4B3"/>
 <text x="537" y="232" font-size="18" font-weight="500" fill="#712B13" text-anchor="middle" dominant-baseline="central">n</text>
 <text x="521" y="268" font-size="14" font-weight="500" fill="#2C2C2A">Quantity</text>
-<text x="521" y="288" font-size="12" fill="#5F5E5A">How many parts</text>
-<text x="521" y="304" font-size="12" fill="#5F5E5A">to hold in mind.</text>
+<text x="521" y="288" font-size="12" fill="#5F5E5A">Subsystems to</text>
+<text x="521" y="304" font-size="12" fill="#5F5E5A">hold in mind.</text>
 
 <!-- Callout: cost mapping -->
 <rect x="40" y="340" width="600" height="38" rx="8" fill="#F1EFE8"/>
@@ -62,12 +62,12 @@
 <!-- Trade-off row 2 -->
 <rect x="40" y="510" width="600" height="50" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
 <text x="56" y="529" font-size="14" font-weight="500" fill="#2C2C2A">Reducing P usually raises K or D</text>
-<text x="56" y="548" font-size="12" fill="#5F5E5A">Flattening layers means buffered parts now talk directly — coupling rises.</text>
+<text x="56" y="548" font-size="12" fill="#5F5E5A">Flattening layers means buffered subsystems now talk directly — coupling rises.</text>
 
 <!-- Trade-off row 3 -->
 <rect x="40" y="568" width="600" height="50" rx="12" fill="#F8F7F2" stroke="#D3D1C7" stroke-width="0.5"/>
 <text x="56" y="587" font-size="14" font-weight="500" fill="#2C2C2A">Reducing n usually raises K or P internally</text>
-<text x="56" y="606" font-size="12" fill="#5F5E5A">Merging two parts pushes boundary logic inside a larger thing.</text>
+<text x="56" y="606" font-size="12" fill="#5F5E5A">Merging two subsystems pushes boundary logic inside a larger thing.</text>
 
 <!-- Callout: pure wins -->
 <rect x="40" y="636" width="600" height="38" rx="8" fill="#F1EFE8"/>

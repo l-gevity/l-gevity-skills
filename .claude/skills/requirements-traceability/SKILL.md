@@ -60,14 +60,14 @@ Require:
 - canonical requirement and acceptance-criterion IDs for completion tracing;
 - canonical outcome-hypothesis IDs and versions when outcome evidence is in
   scope;
-- the passing readiness decision and admitted slice;
+- the passing readiness decision and admitted increment;
 - the changed implementation, contract, decision, or operations artifacts;
 - the project's accepted anchor forms and executable verification sources;
 - commit, build, run, or environment identity when operational evidence is
   offered as proof.
 
 If canonical IDs or criterion references are unstable, return to
-`requirements-topology`. If the admitted slice or acceptance conditions are
+`requirements-topology`. If the admitted increment or acceptance conditions are
 unclear, return to `implementation-readiness`.
 
 ## Completion Evidence States
@@ -80,7 +80,7 @@ Classify every criterion independently:
 | `implemented` | Stable implementation anchor or executable test definition | That the behavior passed |
 | `verified` | Implemented anchor plus a passing test or accepted operational result for this revision | Continued correctness after later changes |
 | `blocked` | Named missing dependency, decision, environment, or evidence owner | That the requirement may be silently skipped |
-| `not-applicable` | Explicit scoped rationale approved by the requirement owner | A general waiver for other slices or actors |
+| `not-applicable` | Explicit scoped rationale approved by the requirement owner | A general waiver for other increments or actors |
 
 A passed test tag without a matching test definition is not verification. A test
 definition without a result is implementation evidence only. Operational
@@ -135,7 +135,7 @@ creates a new hypothesis version and invalidates dependent assessments.
 
 ## Workflow
 
-1. Resolve the canonical requirement set, version, and admitted slice.
+1. Resolve the canonical requirement set, version, and admitted increment.
 2. Inventory changed or planned artifacts at public boundaries: contracts,
    commands, events, exports, routes, domain rules, migrations, domain and data
    model views, tests, ADRs, runbooks, and deployment evidence.
@@ -165,7 +165,7 @@ creates a new hypothesis version and invalidates dependent assessments.
 | Domain or data model view | Stable entity/node identifier plus the requirement IDs that authorize it |
 | ADR or architecture record | Requirement IDs in the decision context |
 | Operations | Runbook/check identifier plus revision, environment, run, and outcome |
-| Issue or change record | Canonical IDs, admitted slice, evidence links, and named gaps |
+| Issue or change record | Canonical IDs, admitted increment, evidence links, and named gaps |
 
 Do not add long requirement prose to source files when the ID and a nearby
 contract or test already preserve the relationship.
@@ -194,11 +194,12 @@ Use repository markers according to the repository's existing convention:
 - a milestone groups multiple work items toward a shared objective; do not
   invent one for a single closeout unless the project explicitly uses that
   convention; and
-- keep unresolved release or production work separate from an accepted slice.
+- keep unresolved release or production work separate from an accepted
+  increment.
 
 ```text
 Completion record:
-- Subject: <capability or bounded slice>
+- Subject: <capability or bounded increment>
 - Decision: TRACEABLE | PARTIAL | BLOCKED
 - Canonical scope: <requirement and criterion IDs>
 - Completion boundary: <acceptance | release | production | other>
@@ -258,7 +259,7 @@ fields. Route gate placement through `defect-shift-left`.
 ## Output Contract
 
 ```text
-Subject:             <change, slice, release, or requirement scope>
+Subject:             <change, increment, release, or requirement scope>
 Decision:            TRACEABLE | PARTIAL | BLOCKED
 Canonical source:    <requirement set and version>
 Requirement IDs:     <IDs covered>
@@ -278,7 +279,7 @@ For implementation or review closeout, append a compact note:
 
 ```text
 Trace:
-- Source: <requirement set, issue, or admitted slice>
+- Source: <requirement set, issue, or admitted increment>
 - IDs: <requirement and criterion IDs>
 - Implementation: <stable artifacts>
 - Evidence: <executed tests or operational results>
@@ -311,5 +312,5 @@ Trace:
 - `requirements-grounding` — requirement meaning, source authority, and evidence.
 - `functionality-complexity-tradeoff` — worth decisions using current outcome evidence.
 - `requirements-topology` — stable IDs, lineage, graph semantics, and repository gates.
-- `implementation-readiness` — admitted implementation slice and verification obligations.
+- `implementation-readiness` — admitted implementation increment and verification obligations.
 - `defect-shift-left` — earliest blocking placement for trace checks.

@@ -36,13 +36,13 @@ cover nearly everything:
   set B. "Core purity: `mypkg.core` imports nothing outside itself."
 - **Independence** — N sibling packages may not import each other at all.
   One contract replaces N×(N−1) forbidden edges — the natural shape for
-  "feature modules stay isolated."
+  "feature subsystems stay isolated."
 - **Layers** — a strict ordering: `api` above `domain` above `storage`;
   higher may import lower, never the reverse. The whole layered
   architecture in one declaration.
 
 In the architecture-as-code arrangement, each governed package carries a
-plain-TOML `architecture.toml` naming its own components and outbound
+plain-TOML `architecture.toml` naming its own subsystems and outbound
 rules; an assembler script discovers them all, expands the wildcards, and
 generates the import-linter config as a git-ignored build artifact. The
 per-package files are the versioned source of truth — the generated config
@@ -85,7 +85,7 @@ your eyes.
 
 **Wildcard semantics.** In raw import-linter patterns, `mypkg.*` matches
 one level only — `mypkg.foo` but *not* `mypkg.foo.bar`. Meanwhile the
-assembler's component-name wildcards (`core-*`) expand across component
+assembler's subsystem-name wildcards (`core-*`) expand across subsystem
 names before contracts are generated, with no such limit. Two wildcard
 systems, different rules; mixing them in one rule produces contracts that
 check less than they appear to. When a contract seems to pass suspiciously
@@ -119,4 +119,4 @@ The full operational reference — assembler code, contract types, and
 gotchas — lives in
 [SKILL.md](../.claude/skills/architecture-as-code-python/SKILL.md).*
 
-<!-- skill-revision: fa898404cd3c -->
+<!-- skill-revision: d3cf4eb9ca64 -->
