@@ -148,6 +148,25 @@ SKILL_REQUIRED_TERMS = {
         "### 6.6 Hand-checked aspect coverage",
         "fitness-function runner",
     ),
+    "bring-down": (
+        "Bring down to the lowest responsible level",
+        "A move that keeps the same maintenance owner is not bring-down",
+        "no bring-down landing found",
+        "Do not emit `L4 CODE to L4 CODE` moves",
+    ),
+    "push-out": (
+        "Push work, not responsibility",
+        "Standardize before automating",
+        "Emit one action that advances exactly one rank",
+        "Prose repeats an executable source of truth",
+    ),
+    "system-optimization": (
+        "Question the requirement",
+        "Most constraints are **policy**, not physical capacity",
+        "cycle time = WIP / throughput",
+        "Stabilize Before Optimizing",
+        "is an iteration: its Check or Control",
+    ),
     "continuous-improvement": (
         "Consumer-to-Library Promotion",
         "Promote Before Repinning",
@@ -474,6 +493,69 @@ REFERENCE_REQUIRED_TERMS = {
             "record it as **Not applicable** with the reason",
             "Domain is categorical",
         ),
+        "references/graph-analysis.md": (
+            "Never reconstruct SCCs, Fiedler vectors, cuts, or sensitivity results by prose",
+            "`architecture_decision` is always `NOT_EVALUATED`",
+        ),
+        "references/rapid-topology-scan.md": (
+            "Rapid must not evaluate weighted fields",
+            "Do not emit MOVE, SPLIT, MERGE, or INTRODUCE-BOUNDARY as a final Rapid",
+        ),
+        "references/evidence-fields.md": (
+            "Never let a field decide outside its",
+            "When two fields disagree, do not average them",
+            "Low confidence is never eligible for probation",
+        ),
+        "references/natural-pattern-atlas.md": (
+            "## Candidate-Contribution Test",
+            "A symbolic form never supplies the domain",
+            "Mark them `inspiration only`",
+        ),
+    },
+    "functionality-complexity-tradeoff": {
+        "references/worth-signals.md": (
+            "**Churn × complexity is a strong empirical signal**",
+            "Usage silence and zero-everything signature look identical from",
+        ),
+        "references/common-patterns.md": (
+            "Assertion that documents an invariant nothing else captures",
+            "Compliance / audit / accessibility path",
+        ),
+        "references/forcing-questions.md": (
+            "Answers MUST be written, not",
+            "**Construct one concrete real-world sequence**",
+            "this is a **one-way door**",
+        ),
+        "references/asymmetric-tradeoffs.md": (
+            "**Raise the required `V` by one tier**",
+            "**fixed-high `U`**",
+            "**§8e is the inverse of the necessity gate.**",
+        ),
+    },
+    "ci-cd-reliability-architecture": {
+        "references/pipeline-patterns.md": (
+            "never copy verbatim",
+            "Always hash/checksum the definition",
+            "Delete-before-create is an exception for provider constraints, not the default",
+        ),
+    },
+    "requirements-grounding": {
+        "references/quality-model.md": (
+            "ISO/IEC 25010:2023",
+            "Close an `open` characteristic by recording the measurement it needs",
+        ),
+    },
+    "test-strategy": {
+        "references/technique-selection.md": (
+            "A sophisticated harness cannot repair an",
+            "Human does not mean informal; automated does not mean objective",
+            "Do not prescribe a universal unit/integration/E2E ratio",
+        ),
+        "references/portfolio-governance.md": (
+            "A green result obtained after enough retries is not reliability",
+            "Do not choose a universal coverage or mutation threshold",
+            "| Aspect coverage result |",
+        ),
     },
 }
 CONTRIBUTION_REQUIRED_TERMS = (
@@ -661,6 +743,26 @@ def validate_mirrors() -> None:
                 agents[name] / relative
             ).read_bytes():
                 fail(f"mirror mismatch for {name}/{relative.as_posix()}")
+
+
+def validate_pin_coverage() -> None:
+    # Aspect coverage for "rules pinned so drift fails the build": the pinned
+    # phrases themselves are checked per file by validate_skill(), but a skill
+    # or reference with no entry passes that check vacuously. This walks the
+    # registry and fails on every uncovered cell, which a green pin check can
+    # never report.
+    for path in skill_dirs(AGENT_SKILLS):
+        name = path.name
+        if not SKILL_REQUIRED_TERMS.get(name):
+            fail(f"{name}/SKILL.md has no pinned phrases; add a SKILL_REQUIRED_TERMS entry")
+        references_dir = path / "references"
+        if not references_dir.is_dir():
+            continue
+        pinned = REFERENCE_REQUIRED_TERMS.get(name, {})
+        for reference in sorted(references_dir.glob("*.md")):
+            key = f"references/{reference.name}"
+            if not pinned.get(key):
+                fail(f"{name}/{key} has no pinned phrases; add a REFERENCE_REQUIRED_TERMS entry")
 
 
 def validate_retired_skill_references() -> None:
@@ -1347,6 +1449,33 @@ def mutation_test() -> int:
 
     cases.append((Case("vocabulary: aspect extraction rule removed", guidelines, ("architecture-guidelines", "Aspects are extracted")), remove_aspect_rule))
 
+    # Pin coverage is a property of the registry, so the mutation lives in the
+    # copied validator: rename one skill's entry and that skill has no pins.
+    validator_copy = [copy / "scripts" / "validate-skills.py"]
+
+    def unpin_skill(files=validator_copy):
+        for path in files:
+            text, crlf = read_raw(path)
+            needle = '    "standup": ('
+            if needle not in text:
+                raise RuntimeError("standup pin entry not found in the validator copy")
+            write_raw(path, text.replace(needle, '    "standup-unpinned": (', 1), crlf)
+
+    cases.append((Case("coverage: skill left without pinned phrases", validator_copy, ("no pinned phrases",)), unpin_skill))
+
+    # Renaming the key would make validate_skill() demand a file by the new
+    # name first; deleting the whole entry leaves only the coverage failure.
+    entry = re.compile(r'        "references/graph-analysis\.md": \(\n(?:.*\n)*?        \),\n')
+
+    def unpin_reference(files=validator_copy, pattern=entry):
+        for path in files:
+            text, crlf = read_raw(path)
+            if not pattern.search(text):
+                raise RuntimeError("graph-analysis pin entry not found in the validator copy")
+            write_raw(path, pattern.sub("", text, count=1), crlf)
+
+    cases.append((Case("coverage: reference left without pinned phrases", validator_copy, ("graph-analysis.md has no pinned phrases",)), unpin_reference))
+
     try:
         code, output = run()
         if code != 0:
@@ -2029,6 +2158,7 @@ def main() -> int:
     validate_root(AGENT_SKILLS)
     validate_mirrors()
     validate_reference_links()
+    validate_pin_coverage()
     validate_retired_skill_references()
     validate_morphogenetic_mode_selection()
     validate_morphogenetic_graph_analyzer()

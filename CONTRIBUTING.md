@@ -70,6 +70,10 @@ A promoted rule must pass all of these:
 - [ ] `scripts/validate-skills.py` enforces the new invariant where practical,
       and the check is proved to fail on a deliberate violation before it lands:
       add that violation to `--mutation-test` so CI keeps proving it.
+- [ ] Every skill and every `references/*.md` carries at least one pinned
+      phrase (`SKILL_REQUIRED_TERMS`, `REFERENCE_REQUIRED_TERMS`); the
+      validator's pin-coverage check fails on a skill or reference without one,
+      because a rule nobody pins can be reworded without failing the build.
 - [ ] `npm run validate` and `npm run validate:mutation` pass.
 - [ ] `npm run test:installers` and, on Windows, `npm run test:installers:ps`
       pass when anything under `.install/` changed. Each family must stay
