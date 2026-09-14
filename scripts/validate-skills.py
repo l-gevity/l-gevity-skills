@@ -70,6 +70,12 @@ SKILL_REQUIRED_TERMS = {
         "Gate E remains blocked",
         "one candidate may re-enter Gate 3 only",
         "predecessor is retired or marked lapsing",
+        "### Change Primitives",
+        "**Subsystem**",
+        "**Aspect**",
+        "**Increment**",
+        "**Iteration**",
+        "Decomposition and aspect extraction are different cuts",
     ),
     "architecture-as-code": (
         "`architecture-guidelines` or `morphogenetic-architecture`",
@@ -1779,6 +1785,13 @@ def validate_alchemy_root_guidance() -> None:
         "NOT-READY",
         "C₀",
         "BUILD / KEEP / SIMPLIFY or stop",
+        # The four change primitives, pinned by their defining fragments: the
+        # bare words already occur elsewhere in the section and prove nothing.
+        "where change lands",
+        "which dimension is touched",
+        "what changes",
+        "starting from that measured baseline",
+        "runs in the iteration after the increment ships",
     )
     for term in required:
         if not contains(guidance, term):
@@ -1793,7 +1806,12 @@ def validate_alchemy_root_guidance() -> None:
 def validate_design_and_release_contracts() -> None:
     design = ROOT / "ALCHEMY-PIPELINE-DESIGN.md"
     text = design.read_text(encoding="utf-8")
-    required = ("Status: Implemented", "Blocking stage: None", "## Acceptance Criteria")
+    required = (
+        "Status: Implemented",
+        "Blocking stage: None",
+        "## Acceptance Criteria",
+        "defines the four change primitives",
+    )
     for term in required:
         if not contains(text, term):
             fail(f"{design.relative_to(ROOT)} missing finalization term '{term}'")

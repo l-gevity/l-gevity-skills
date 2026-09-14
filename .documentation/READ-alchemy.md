@@ -53,7 +53,8 @@ has passed**:
    mapped to the earliest stage that can catch it.
 7. **Where does the flow bottleneck?** — the
    [optimization question](READ-system-optimization.md), deliberately
-   deferred to the *second* iteration: optimizing before a design is
+   deferred to the *second* iteration — the one after the increment ships,
+   starting from its measured baseline: optimizing before a design is
    stable tunes what's about to change, and stabilization beats
    optimization every time they compete.
 
@@ -175,4 +176,4 @@ full operational reference — command grammar, dispatch rules, gate
 handshakes, and the decision-trail format — lives in
 [SKILL.md](../.claude/skills/alchemy/SKILL.md).*
 
-<!-- skill-revision: 7c2678017aa2 -->
+<!-- skill-revision: 62d98781cf30 -->

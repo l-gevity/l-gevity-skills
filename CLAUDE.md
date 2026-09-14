@@ -42,6 +42,14 @@ Requirements Grounding, when evidence or meaning is absent or stale
 → A — Architecture → L → C → E → H → Y
 ```
 
+Four primitives describe every change. A **subsystem** is a part produced by decomposition —
+*where change lands*. An **aspect** is a property that holds across a declared set of
+subsystems, with one obligation and one mechanism — *which dimension is touched*. An
+**increment** is the bounded unit of change admitted to implementation — *what changes*. An
+**iteration** is one cycle that admits an increment, realizes it, and measures the resulting
+baseline; "iteration 2" is the next iteration on the same subject, *starting from that measured
+baseline*. `alchemy` defines them; every skill's local term specializes exactly one.
+
 For `MOVE`, `SPLIT`, `MERGE`, or `INTRODUCE-BOUNDARY`, the L/C segment is the
 bounded `L candidate → C measurement → L acceptance` handshake. L re-enters
 once for the unchanged candidate, and E remains blocked until that final
@@ -89,8 +97,9 @@ staged expand/contract path, migration units, backfill, contract trigger, and re
 step per stage. Expand and contract never ship in one deployable, and the contract step
 is gated on evidence, not a date. It is not a new qualification stage, gate, or letter.
 
-**Qualification and Gates 1–4 shape the design; 5–6 enforce it; 7 optimizes a stable
-baseline in iteration 2.** Enforcement files for new modules are **written before** their
+**Qualification and Gates 1–4 shape the design; 5–6 enforce it; 7 optimizes a stable, measured
+baseline, so it runs in the iteration after the increment ships (iteration 2).** Enforcement
+files for new modules are **written before** their
 implementation code, not retrofitted — both ship in the same PR. Spike/throwaway code is
 the only exception, and must not cross the merge boundary without rules.
 

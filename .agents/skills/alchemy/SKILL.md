@@ -139,6 +139,24 @@ Focused aliases never silently run requirements qualification. If a focused
 gate lacks a prerequisite, report the missing decision artifact and stop at that
 gate unless the user asked for a broader pass.
 
+### Change Primitives
+
+Every stage describes change with four primitives. Each sibling skill names
+its own term as a specialization of exactly one and never redefines them.
+This is vocabulary, not a gate rule.
+
+| Primitive | Definition | Named specializations |
+|:--|:--|:--|
+| **Subsystem** | A part produced by decomposition: the thing a position is assigned to and a rule file governs. *Where change lands.* | L places it at a position; E governs it per directory; C counts subsystems (n) and their kinds (D); `bring-down` ranks the capability it can be replaced by. Requirements skills group requirements into *capabilities*; A decides when a capability becomes a subsystem boundary, and L places it. |
+| **Aspect** | A property that holds across a declared set of the units the stage knows — problem scopes at Grounding and Topology, capabilities at Readiness, subsystems from L onward; the scope → subsystem mapping is L's placement decision, never inferred upstream. One obligation (the rule) and one mechanism (the subsystem that implements it). *Which dimension is touched.* | Grounding records the scopes it holds across; Topology structures it as a constraint node; Readiness projects it onto capabilities; M names its single owner; A extracts it, never interleaves it; L places its mechanism; C measures the extraction; E enforces the mechanism's edges; H places the coverage check; Test Strategy designs its oracle; Traceability proves coverage. |
+| **Increment** | The bounded unit of change admitted to implementation; it adds, changes, or removes cells of the subsystem × aspect matrix. *What changes.* | Readiness admits it — a *vertical increment* realizes one outcome end to end through every layer it crosses; `evolutionary-database-design`: a *migration increment* per stage; `system-optimization`: a *batch* is the set of increments moved together; CI/CD: the *candidate artifact* is its built form. |
+| **Iteration** | One cycle that admits an increment, realizes it, and measures the resulting baseline: completion evidence plus the structural and flow measurements later windows compare against. Prediction windows, outcome-evidence windows, and revisit triggers are carried across iterations and close on their own trigger, re-entering L or M as a new bounded decision. "Iteration 2" is the next iteration on the same subject, *starting from that measured baseline*. | Completion evidence closes an iteration (`requirements-traceability`); outcome evidence does not. Y optimizes only a stable, measured baseline, so it *runs in the iteration after the increment ships*. A PDCA or DMAIC turn in `system-optimization` is an iteration whose Check or Control step is the measurement. |
+
+Decomposition and aspect extraction are different cuts. Decomposition splits
+one subsystem into several; extraction pulls one aspect out of several
+subsystems into one mechanism. A design that models an aspect as a subsystem,
+or copies its mechanism per subsystem, has confused the two.
+
 ---
 
 ## 2. Adaptive Requirements Qualification
@@ -266,7 +284,7 @@ or independent confirmation supports them.
 | 4 | Complexity measurement | `structural-simplification` | Component-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Module-count Δ; then Gate 3 acceptance when restructuring |
 | 5 | Architecture as code | `architecture-as-code` (pattern); `-javascript` / `-python` (impl) | Per-module architecture config |
 | 6 | Shift defect detection left | `defect-shift-left` | Each error path → earliest catchable stage |
-| 7 | Optimize value stream | `system-optimization` | Constraint analysis (deferred to iter 2) |
+| 7 | Optimize value stream | `system-optimization` | Constraint analysis (iteration 2: the iteration after the increment ships, from its stable, measured baseline) |
 
 For each qualification stage or gate selected, read the sibling skill's
 `SKILL.md` and follow its procedure and output contract. This file does not
@@ -324,8 +342,9 @@ Core directives:
    null hypothesis. If absent, DROP.
 3. Ship `eslint.architecture.mjs` with the code it governs. Follow-up PRs to
    "add the rules" are drift.
-4. Defer Gate 7 to iteration 2 unless the request is explicitly about an
-   existing bottleneck.
+4. Defer Gate 7 to iteration 2 — the iteration after the increment ships,
+   starting from its stable, measured baseline — unless the request is
+   explicitly about an existing bottleneck.
 5. Audit starts at `C₀`, conditionally recovers intent, then resumes the
    qualification phase and remaining gates from the earliest failed decision.
 6. Before deleting either of two duplicate implementations, inventory their
@@ -368,7 +387,8 @@ Core directives:
 - [ ] Test strategy — Portfolio pass after final A/L/C/E and before H: technique,
                        scope, fidelity, dependencies, data, environment, stimulus
 - [ ] Gate 6 — Every error path mapped to earliest catchable stage
-- [ ] Gate 7 — Deferred to iteration 2
+- [ ] Gate 7 — Deferred to iteration 2 (after the increment ships, from its
+            stable, measured baseline)
 - [ ] Follow-through — When implementation is in scope, hand admitted IDs and
                        completion and outcome-evidence obligations to
                        requirements-traceability

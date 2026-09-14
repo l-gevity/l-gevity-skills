@@ -175,6 +175,18 @@ flowchart LR
     Change --> Flow --> Evolution
 ```
 
+### Four change primitives
+
+Every stage describes change with the same four words. A **subsystem** is a
+part produced by decomposition — where change lands. An **aspect** is a
+property that holds across a declared set of subsystems, with one obligation
+and one mechanism — which dimension is touched. An **increment** is the bounded
+unit of change admitted to implementation — what changes. An **iteration** is
+one cycle that admits an increment, realizes it, and measures the resulting
+baseline; the next iteration on the same subject starts from that measured
+baseline. `alchemy` defines them; each skill's local term specializes exactly
+one.
+
 ### Living topology
 
 Functionally, "living" means the architecture is a standing hypothesis, not

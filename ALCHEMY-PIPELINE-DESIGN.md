@@ -161,8 +161,9 @@ Readiness → Evolutionary Database Design compatibility pass
 
 Topology is conditional. A single bounded requirement with no meaningful
 dependency relationships may move directly from M to implementation readiness.
-Y remains deferred to iteration 2 unless the request concerns an existing
-bottleneck.
+Y remains deferred to iteration 2 — the iteration after the increment ships,
+starting from its stable, measured baseline — unless the request concerns an
+existing bottleneck.
 
 ### Existing code or project
 
@@ -283,6 +284,10 @@ meaning or invalidate its verification.
     instruction file defines are derived from the completed decision trail
     after every verdict, skip rationale, and verification state is fixed, and
     the trail follows them unchanged.
+17. `alchemy` defines the four change primitives — subsystem, aspect,
+    increment, iteration; every other skill's structural, cross-cutting,
+    change, or cycle term names which primitive it specializes and never
+    redefines one.
 
 ## Complexity Assessment
 
