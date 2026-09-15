@@ -65,14 +65,7 @@ it matters, do this first, and what I did not check, and then the full record.
 The blocks name the record's verdict once, so its vocabulary is picked up on
 the way.
 
-Every other skill is invoked the same way. For example:
-
-```text
-/standup                          # Claude Code
-$standup                          # Codex
-```
-
-`standup` composes the daily standup from verified repository state only.
+Every other skill is invoked the same way, by name.
 
 ---
 
@@ -97,7 +90,6 @@ it works.
 | Linking requirements to implementation, executed verification, operations, and outcome evidence | [`requirements-traceability`](./.agents/skills/requirements-traceability/SKILL.md) |
 | Moving recurring toil out of human memory and replacing bespoke code with reusable capabilities | [`push-out`](./.agents/skills/push-out/SKILL.md), [`bring-down`](./.agents/skills/bring-down/SKILL.md) |
 | Finding bottlenecks, waste, and flow improvements across the software value stream | [`system-optimization`](./.agents/skills/system-optimization/SKILL.md) |
-| Reporting daily state — landed work, real blockers, deadline risk, debt trend, requirements drift — from verified evidence only | [`standup`](./.agents/skills/standup/SKILL.md) |
 | Improving the skill library itself when recurring agent mistakes expose a systemic gap | [`continuous-improvement`](./.agents/skills/continuous-improvement/SKILL.md) |
 
 ---
@@ -338,7 +330,6 @@ engineering idea to developers, independent of the skill machinery.
 | [`requirements-traceability`](./.claude/skills/requirements-traceability/SKILL.md) | [Read](./.documentation/READ-requirements-traceability.md) |
 | [`test-strategy`](./.claude/skills/test-strategy/SKILL.md) | [Read](./.documentation/READ-test-strategy.md) |
 | [`evolutionary-database-design`](./.claude/skills/evolutionary-database-design/SKILL.md) | [Read](./.documentation/READ-evolutionary-database-design.md) |
-| [`standup`](./.claude/skills/standup/SKILL.md) | [Read](./.documentation/READ-standup.md) |
 | [`continuous-improvement`](./.claude/skills/continuous-improvement/SKILL.md) | [Read](./.documentation/READ-continuous-improvement.md) |
 
 Grounding keeps **decision-relevant outcome hypotheses** separate from

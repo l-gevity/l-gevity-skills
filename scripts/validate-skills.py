@@ -33,7 +33,7 @@ SIZE_BUDGET_WORDS = {
     "bring-down": 2800,
     "ci-cd-reliability-architecture": 3500,
     "continuous-improvement": 1300,
-    "defect-shift-left": 3100,
+    "defect-shift-left": 2100,
     "evolutionary-database-design": 3300,
     "functionality-complexity-tradeoff": 4500,
     "implementation-readiness": 1900,
@@ -42,7 +42,6 @@ SIZE_BUDGET_WORDS = {
     "requirements-grounding": 3100,
     "requirements-topology": 2000,
     "requirements-traceability": 2500,
-    "standup": 1100,
     "structural-simplification": 2600,
     "system-optimization": 2600,
     "test-strategy": 2100,
@@ -50,7 +49,7 @@ SIZE_BUDGET_WORDS = {
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
 # session carries whether or not a skill is invoked.
-DESCRIPTION_BUDGET_CHARS = 13500
+DESCRIPTION_BUDGET_CHARS = 12900
 ALCHEMY_PIPELINE_STAGES = (
     "Requirements Grounding",
     "M — Minimum",
@@ -188,8 +187,9 @@ SKILL_REQUIRED_TERMS = {
     ),
     "defect-shift-left": (
         "Aspect coverage gap",
-        "### 6.6 Hand-checked aspect coverage",
-        "fitness-function runner",
+        "a check nobody runs has zero shift-left value",
+        "Use this only when the user asks for tooling recommendations",
+        "A tool that does not map to a rung on the ladder has no place in the output",
     ),
     "bring-down": (
         "Bring down to the lowest responsible level",
@@ -407,18 +407,6 @@ SKILL_REQUIRED_TERMS = {
         "The coexistence window does not end where the deployment ends",
         "names the consumers it covers",
     ),
-    "standup": (
-        "Verified only",
-        "Delta only",
-        "Method is generic, parameters are local",
-        "standup.profile.md",
-        "Never copy a value out of the profile into this skill",
-        "Never infer its result and never omit it silently.",
-        "Standup — <YYYY-MM-DD>",
-        "no deadlines configured",
-        "drift unmeasured",
-        "Not run: <check + reason | none>",
-    ),
 }
 STRUCTURAL_REPORT_FIELDS = (
     "Subject",
@@ -581,6 +569,19 @@ REFERENCE_REQUIRED_TERMS = {
             "**Raise the required `V` by one tier**",
             "**fixed-high `U`**",
             "**§8e is the inverse of the necessity gate.**",
+        ),
+    },
+    "defect-shift-left": {
+        "references/shift-patterns.md": (
+            "### 6.6 Hand-checked aspect coverage",
+            "The shift completes only when the strict typecheck is a **blocking gate**",
+            "Two hand-written sources checking the same shape are the same-scope duplication",
+            "This skill places the check; it does not design the oracle.",
+        ),
+        "references/tooling-survey.md": (
+            "fitness-function runner",
+            "Find specific options only on request",
+            "Do not propose a tool without naming the stage it staffs",
         ),
     },
     "ci-cd-reliability-architecture": {
@@ -1533,7 +1534,7 @@ def mutation_test() -> int:
     cases.append((Case("reference: file left unlinked from SKILL.md", pruner, ("common-patterns.md",)), unlink_reference))
 
     # Both trees get the same text so the mirror check cannot fire first.
-    retired = [copy / tree / "skills" / "standup" / "SKILL.md" for tree in (".agents", ".claude")]
+    retired = [copy / tree / "skills" / "push-out" / "SKILL.md" for tree in (".agents", ".claude")]
 
     def reintroduce_retired_term(files=retired):
         for path in files:
@@ -1563,10 +1564,10 @@ def mutation_test() -> int:
     def unpin_skill(files=validator_copy):
         for path in files:
             text, crlf = read_raw(path)
-            needle = '    "standup": ('
+            needle = '    "push-out": ('
             if needle not in text:
-                raise RuntimeError("standup pin entry not found in the validator copy")
-            write_raw(path, text.replace(needle, '    "standup-unpinned": (', 1), crlf)
+                raise RuntimeError("push-out pin entry not found in the validator copy")
+            write_raw(path, text.replace(needle, '    "push-out-unpinned": (', 1), crlf)
 
     cases.append((Case("coverage: skill left without pinned phrases", validator_copy, ("no pinned phrases",)), unpin_skill))
 
@@ -1604,7 +1605,7 @@ def mutation_test() -> int:
     # trip no pin, mirror, or retired-term check, so the ceiling is the only
     # check that can report the growth; both trees grow so the mirror check
     # cannot fire first.
-    grown = [copy / tree / "skills" / "standup" / "SKILL.md" for tree in (".agents", ".claude")]
+    grown = [copy / tree / "skills" / "push-out" / "SKILL.md" for tree in (".agents", ".claude")]
 
     def grow_skill(files=grown):
         for path in files:
@@ -1616,9 +1617,9 @@ def mutation_test() -> int:
     def unbudget_skill(files=validator_copy):
         for path in files:
             text, crlf = read_raw(path)
-            needle = '    "standup": 1100,\n'
+            needle = '    "push-out": 1300,\n'
             if needle not in text:
-                raise RuntimeError("standup size budget not found in the validator copy")
+                raise RuntimeError("push-out size budget not found in the validator copy")
             write_raw(path, text.replace(needle, "", 1), crlf)
 
     cases.append((Case("size: skill left without a budget", validator_copy, ("no size budget",)), unbudget_skill))
@@ -1626,20 +1627,20 @@ def mutation_test() -> int:
     def slacken_budget(files=validator_copy):
         for path in files:
             text, crlf = read_raw(path)
-            needle = '    "standup": 1100,\n'
+            needle = '    "push-out": 1300,\n'
             if needle not in text:
-                raise RuntimeError("standup size budget not found in the validator copy")
-            write_raw(path, text.replace(needle, '    "standup": 1300,\n', 1), crlf)
+                raise RuntimeError("push-out size budget not found in the validator copy")
+            write_raw(path, text.replace(needle, '    "push-out": 1500,\n', 1), crlf)
 
     cases.append((Case("size: budget left slack after a trim", validator_copy, ("which is slack",)), slacken_budget))
 
     def budget_ghost_skill(files=validator_copy):
         for path in files:
             text, crlf = read_raw(path)
-            needle = '    "standup": 1100,\n'
+            needle = '    "push-out": 1300,\n'
             if needle not in text:
-                raise RuntimeError("standup size budget not found in the validator copy")
-            write_raw(path, text.replace(needle, needle + '    "retired-skill": 1100,\n', 1), crlf)
+                raise RuntimeError("push-out size budget not found in the validator copy")
+            write_raw(path, text.replace(needle, needle + '    "retired-skill": 1300,\n', 1), crlf)
 
     cases.append((Case("size: budget kept for a skill that no longer exists", validator_copy, ("do not exist",)), budget_ghost_skill))
 
