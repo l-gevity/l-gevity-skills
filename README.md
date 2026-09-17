@@ -89,7 +89,7 @@ it works.
 | Designing or auditing reliable build, release, and deployment pipelines | [`ci-cd-reliability-architecture`](./.agents/skills/ci-cd-reliability-architecture/SKILL.md) |
 | Linking requirements to implementation, executed verification, operations, and outcome evidence | [`requirements-traceability`](./.agents/skills/requirements-traceability/SKILL.md) |
 | Moving recurring toil out of human memory and replacing bespoke code with reusable capabilities | [`push-out`](./.agents/skills/push-out/SKILL.md), [`bring-down`](./.agents/skills/bring-down/SKILL.md) |
-| Deciding which artifact owns a fact, decision, or document, so no two sources can disagree | [`zero-copy-requirements`](./.agents/skills/zero-copy-requirements/SKILL.md) |
+| Deciding which artifact owns a fact, decision, or document, and sweeping a tree for the documents no longer worth keeping | [`zero-copy-requirements`](./.agents/skills/zero-copy-requirements/SKILL.md) |
 | Finding bottlenecks, waste, and flow improvements across the software value stream | [`system-optimization`](./.agents/skills/system-optimization/SKILL.md) |
 | Improving the skill library itself when recurring agent mistakes expose a systemic gap | [`continuous-improvement`](./.agents/skills/continuous-improvement/SKILL.md) |
 

@@ -45,7 +45,7 @@ SIZE_BUDGET_WORDS = {
     "structural-simplification": 2600,
     "system-optimization": 2600,
     "test-strategy": 2100,
-    "zero-copy-requirements": 1700,
+    "zero-copy-requirements": 1800,
 }
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
@@ -420,6 +420,8 @@ SKILL_REQUIRED_TERMS = {
         "AUTHORITY | GENERATED-REPORT | EXCEPTION | DUPLICATE",
         "A document that needs two answers is two artifacts",
         "An artifact that fits no exception and duplicates an authority is waste",
+        "A claim no artifact carries is unowned, not redundant",
+        "| **Sweep** |",
     ),
 }
 STRUCTURAL_REPORT_FIELDS = (
@@ -523,6 +525,14 @@ CONSUMER_FORBIDDEN = (
 # A reference file is loaded on demand, so the rule it carries is pinned to
 # that file, and SKILL.md must link the file (validate_reference_links).
 REFERENCE_REQUIRED_TERMS = {
+    "zero-copy-requirements": {
+        "references/sweep.md": (
+            "Enumerate from version control, not the filesystem",
+            "Deleting an unowned claim destroys the only",
+            "The sweep's own result is a finding, not an artifact",
+            "state how many of the enumerated candidates were never opened",
+        ),
+    },
     "alchemy": {
         "references/failure-modes.md": (
             "| Symptom | Skipped gate | Recovery |",
