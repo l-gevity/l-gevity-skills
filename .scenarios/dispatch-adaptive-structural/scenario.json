@@ -1,0 +1,30 @@
+{
+  "request": "Run alchemy on this: we want to move the billing logic out of the orders module into its own service, because billing rules change every week while orders rarely changes.",
+  "skills": ["alchemy"],
+  "expect": [
+    {
+      "id": "selects-adaptive-route",
+      "criterion": "adaptive-dispatch #5: all stages run only when every stage is asked for",
+      "check": "field_in",
+      "field": "Dispatch",
+      "values": ["ADAPTIVE"]
+    },
+    {
+      "id": "runs-placement-and-complexity",
+      "criterion": "adaptive-dispatch #4: structural work runs the stages it needs",
+      "check": "guidance_includes",
+      "skills": ["morphogenetic-architecture", "structural-simplification"]
+    },
+    {
+      "id": "defers-flow-optimization",
+      "criterion": "adaptive-dispatch #4: structural work runs no stage it does not need",
+      "check": "guidance_excludes",
+      "skills": ["system-optimization"]
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}

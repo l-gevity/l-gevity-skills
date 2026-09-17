@@ -74,6 +74,8 @@ task context runs the preflight.
 | `alchemy left ...` | Invoke `defect-shift-left`. |
 | `alchemy out ...`, `alchemy push-out ...` | Invoke `push-out`. |
 | `alchemy zero-copy ...`, `alchemy source-of-truth ...` | Invoke `zero-copy-requirements`. |
+| `alchemy deps ...`, `alchemy dependency ...` | Invoke `dependency-lifecycle`. |
+| `alchemy signal ...`, `alchemy observability ...` | Invoke `observability-design`. |
 | `alchemy down ...`, `alchemy bring-down ...` | Invoke `bring-down`. |
 
 ### Dispatch Preflight
@@ -89,7 +91,7 @@ and skills selected by that route.
 
 | Dispatch | Select when | Core action |
 |:--|:--|:--|
-| `SKIP` | Local behavior stays inside one governed boundary and does not ask an Alchemy question: copy/CSS, trivial rename, routine dependency bump, or isolated bug fix | Load no Alchemy gate skill; continue with task-matched companion skills and normal verification |
+| `SKIP` | Local behavior stays inside one governed boundary and does not ask an Alchemy question: copy/CSS, trivial rename, contract-preserving dependency bump, or isolated bug fix | Load no Alchemy gate skill; continue with task-matched companion skills and normal verification |
 | `DIRECT` | A focused alias or one unambiguous gate question maps to exactly one gate or triad skill | Load only that core sibling skill |
 | `ADAPTIVE` | Structure, responsibility, data flow, abstraction, multiple requirements, or boundaries may change | Select the smallest justified qualification and gate set |
 | `FULL` | The user explicitly requests `full`, `all`, `walk the gates`, or `complete alchemy` | Traverse every justified stage and record all skips |
@@ -98,7 +100,7 @@ Use this deterministic signal matrix when no alias is present:
 
 | Change signal | Dispatch / minimum core route |
 |:--|:--|
-| Copy, CSS, trivial rename, routine dependency bump, isolated in-boundary fix | `SKIP` |
+| Copy, CSS, trivial rename, contract-preserving dependency bump, isolated in-boundary fix | `SKIP` |
 | Worth, dead code, speculative abstraction, or "should this exist?" | `DIRECT → M` |
 | Defect found late, check placement, or CI detection timing | `DIRECT → H` or `left` |
 | Structural refactor inside one boundary | `ADAPTIVE → M, C`; add A when responsibility or public contract changes, H when verification placement changes |
@@ -125,6 +127,13 @@ the selected companion skill bodies.
   executable source, and `requirements-traceability` anchors evidence once the
   location exists. None of the three is a qualification stage, gate, or acronym
   letter.
+- When a trigger names a dependency this system already owns — an advisory,
+  drift, abandonment, a license change, or an end-of-life date — select
+  `dependency-lifecycle`. It classifies the bump that dispatch depends on: only
+  a contract-preserving bump is `SKIP`.
+- When a risk survives verification into production, or an alert, dashboard, or
+  telemetry set is under review, select `observability-design`. It designs the
+  production signal; `defect-shift-left` owns how early that signal could move.
 - `SKIP` skips only the Alchemy core; it never suppresses a matching companion.
 - `DIRECT` keeps the core route focused while allowing independently triggered
   companions.

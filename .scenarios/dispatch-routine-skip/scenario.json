@@ -1,0 +1,32 @@
+{
+  "request": "Run alchemy on this: the login button uses the colour #2255CC and should use the brand blue #1B675E instead. It is a one-line change in one stylesheet.",
+  "skills": ["alchemy"],
+  "expect": [
+    {
+      "id": "reaches-router",
+      "criterion": "adaptive-dispatch #1: a routine local change selects no stage",
+      "check": "guidance_includes",
+      "skills": ["alchemy"]
+    },
+    {
+      "id": "selects-no-stage",
+      "criterion": "adaptive-dispatch #1: a routine local change selects no stage",
+      "check": "field_in",
+      "field": "Dispatch",
+      "values": ["SKIP"]
+    },
+    {
+      "id": "names-no-route",
+      "criterion": "adaptive-dispatch #1: a routine local change selects no stage",
+      "check": "field_in",
+      "field": "Core route",
+      "values": ["None"]
+    },
+    {
+      "id": "reads-no-stage-guidance",
+      "criterion": "adaptive-dispatch #1: the agent reads no stage guidance",
+      "check": "guidance_within",
+      "skills": ["alchemy"]
+    }
+  ]
+}

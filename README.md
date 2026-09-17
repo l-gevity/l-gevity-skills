@@ -90,6 +90,8 @@ it works.
 | Linking requirements to implementation, executed verification, operations, and outcome evidence | [`requirements-traceability`](./.agents/skills/requirements-traceability/SKILL.md) |
 | Moving recurring toil out of human memory and replacing bespoke code with reusable capabilities | [`push-out`](./.agents/skills/push-out/SKILL.md), [`bring-down`](./.agents/skills/bring-down/SKILL.md) |
 | Deciding which artifact owns a fact, decision, or document, and sweeping a tree for the documents no longer worth keeping | [`zero-copy-requirements`](./.agents/skills/zero-copy-requirements/SKILL.md) |
+| Deciding what to do about a dependency already in the tree when an advisory, drift, abandonment, or an end-of-life date names it | [`dependency-lifecycle`](./.agents/skills/dependency-lifecycle/SKILL.md) |
+| Designing what a change must emit to be detectable in production, and pruning the alerts and telemetry that no longer earn their keep | [`observability-design`](./.agents/skills/observability-design/SKILL.md) |
 | Finding bottlenecks, waste, and flow improvements across the software value stream | [`system-optimization`](./.agents/skills/system-optimization/SKILL.md) |
 | Improving the skill library itself when recurring agent mistakes expose a systemic gap | [`continuous-improvement`](./.agents/skills/continuous-improvement/SKILL.md) |
 
@@ -306,7 +308,7 @@ Gate H.
 <details>
 <summary><strong>What is included</strong></summary>
 
-The library contains 21 composable skills. Each has an operational `SKILL.md`
+The library contains 23 composable skills. Each has an operational `SKILL.md`
 and a primer: a standalone concept explainer that teaches the underlying
 engineering idea to developers, independent of the skill machinery.
 
@@ -333,6 +335,8 @@ engineering idea to developers, independent of the skill machinery.
 | [`evolutionary-database-design`](./.claude/skills/evolutionary-database-design/SKILL.md) | [Read](./.documentation/READ-evolutionary-database-design.md) |
 | [`continuous-improvement`](./.claude/skills/continuous-improvement/SKILL.md) | [Read](./.documentation/READ-continuous-improvement.md) |
 | [`zero-copy-requirements`](./.claude/skills/zero-copy-requirements/SKILL.md) | [Read](./.documentation/READ-zero-copy-requirements.md) |
+| [`dependency-lifecycle`](./.claude/skills/dependency-lifecycle/SKILL.md) | [Read](./.documentation/READ-dependency-lifecycle.md) |
+| [`observability-design`](./.claude/skills/observability-design/SKILL.md) | [Read](./.documentation/READ-observability-design.md) |
 
 Grounding keeps **decision-relevant outcome hypotheses** separate from
 acceptance criteria, avoiding **confusing impact with completion**. Traceability
@@ -345,9 +349,17 @@ routes current evidence back to the Minimum gate for a bounded worth decision.
 <summary><strong>Installation details</strong></summary>
 
 Installers are provided for Claude Code, Codex, Gemini CLI, and Grok CLI on
-Windows, Linux, and macOS. They install the shared skills under
-`.claude/skills/`, add the agent's root instruction file, and record provenance
-in `l-gevity-skills.lock.json`.
+Windows, Linux, and macOS. Each installs the shared skills into its agent's
+skills tree, adds the agent's root instruction file, and records provenance in
+`l-gevity-skills.lock.json`. When the project already keeps the other skills
+tree, that tree is updated as well.
+
+| Agent | Skills tree | Root instruction file |
+|---|---|---|
+| Claude Code | `.claude/skills/` | `CLAUDE.md` |
+| Codex | `.agents/skills/` | `AGENTS.md` |
+| Gemini CLI | `.agents/skills/` | `GEMINI.md` |
+| Grok CLI | `.agents/skills/` | `GROK.md` |
 
 An existing root instruction file is preserved; the L-GEVITY version is written
 beside it with a `.l-gevity` suffix for manual merging. Locally added skills are

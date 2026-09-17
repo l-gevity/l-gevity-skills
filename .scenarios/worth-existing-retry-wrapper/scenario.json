@@ -1,0 +1,37 @@
+{
+  "request": "Should we keep this? Our HTTP client wraps every outgoing request in withRetry(fn, 3), which retries three times with a fixed one-second delay. It was added two years ago after an outage. Since then all traffic goes through an internal API gateway that already retries failed calls twice.",
+  "skills": ["functionality-complexity-tradeoff"],
+  "expect": [
+    {
+      "id": "applies-worth-guidance",
+      "criterion": "worth-verdict #2: existing code gets a keep, simplify, or remove verdict",
+      "check": "guidance_includes",
+      "skills": ["functionality-complexity-tradeoff"]
+    },
+    {
+      "id": "gives-retrospective-verdict",
+      "criterion": "worth-verdict #2: existing code gets a keep, simplify, or remove verdict",
+      "check": "field_in",
+      "field": "Decision",
+      "values": ["KEEP", "SIMPLIFY", "QUARANTINE", "DEPRECATE", "DELETE", "OBSOLETE"]
+    },
+    {
+      "id": "judges-existing-code",
+      "criterion": "worth-verdict #2: existing code gets a keep, simplify, or remove verdict",
+      "check": "field_in",
+      "field": "Mode",
+      "values": ["Retrospective"]
+    },
+    {
+      "id": "gives-rationale",
+      "criterion": "worth-verdict #2: the verdict names the evidence behind it",
+      "check": "field_present",
+      "field": "Rationale"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}

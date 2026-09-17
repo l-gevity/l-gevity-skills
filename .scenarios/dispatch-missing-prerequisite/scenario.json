@@ -1,0 +1,32 @@
+{
+  "request": "Run alchemy E on this, enforcement only: write the dependency rules for a new notifications subsystem. Where that subsystem sits in the architecture has not been decided yet.",
+  "skills": ["alchemy", "architecture-as-code"],
+  "expect": [
+    {
+      "id": "selects-one-stage",
+      "criterion": "adaptive-dispatch #3: a named stage with a missing prerequisite runs nothing else",
+      "check": "field_in",
+      "field": "Dispatch",
+      "values": ["DIRECT"]
+    },
+    {
+      "id": "names-enforcement",
+      "criterion": "adaptive-dispatch #3: a named stage with a missing prerequisite runs nothing else",
+      "check": "field_in",
+      "field": "Core route",
+      "values": ["E"]
+    },
+    {
+      "id": "runs-nothing-else",
+      "criterion": "adaptive-dispatch #3: a named stage with a missing prerequisite runs nothing else",
+      "check": "guidance_within",
+      "skills": ["alchemy", "architecture-as-code"]
+    },
+    {
+      "id": "names-missing-placement",
+      "criterion": "adaptive-dispatch #3: the result names the missing prerequisite",
+      "check": "text_matches",
+      "pattern": "placement|placed"
+    }
+  ]
+}

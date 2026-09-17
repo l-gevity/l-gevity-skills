@@ -71,6 +71,27 @@ waste. `push-out` prunes prose already covered by an executable source, and
 Requirements is not a qualification stage, gate, acronym letter, or prerequisite
 for Architecture.
 
+When an advisory, version drift, abandonment, a license change, or an
+end-of-life date names a dependency this system already owns,
+`dependency-lifecycle` is an independently matched single-pass companion. It
+grades reachability and returns one response — upgrade, pin, patch, isolate,
+replace, vendor, accept, or remove — each carrying a guard that ends it. It also
+classifies the version bump that dispatch itself depends on: only a
+contract-preserving bump is `SKIP`. `bring-down` owns whether to depend on an
+external capability at all, `defect-shift-left` owns which stage the scan runs
+at, and CI/CD owns whether the finding blocks. Dependency Lifecycle is not a
+qualification stage, gate, acronym letter, or prerequisite for Architecture.
+
+When a risk survives verification into production, or an alert, dashboard, or
+telemetry set is under review, `observability-design` is an independently
+matched single-pass companion. It consumes the residual risk left by the Test
+Strategy Portfolio pass and returns the production signal that detects,
+diagnoses, or verifies it, with the actor and first action that make an alert
+actionable. H owns how early that signal could instead be caught, CI/CD owns
+what a health probe blocks, and `requirements-traceability` owns outcome
+evidence. Observability Design is not a qualification stage, gate, acronym
+letter, or prerequisite for Architecture.
+
 ## Pipeline
 
 ```mermaid

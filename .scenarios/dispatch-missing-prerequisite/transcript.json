@@ -1,0 +1,61 @@
+{
+  "scenario": "dispatch-missing-prerequisite",
+  "revision": "b08d7b89050b",
+  "recorded_with": "claude-code 2.1.234, model claude-opus-5[1m]",
+  "skills_available": [
+    "alchemy",
+    "architecture-as-code",
+    "architecture-as-code-javascript",
+    "architecture-as-code-python",
+    "architecture-guidelines",
+    "artifact-capabilities",
+    "artifact-design",
+    "artifact-diagramming",
+    "batch",
+    "bring-down",
+    "ci-cd-reliability-architecture",
+    "claude-api",
+    "code-review",
+    "continuous-improvement",
+    "dataviz",
+    "debug",
+    "deep-research",
+    "defect-shift-left",
+    "dependency-lifecycle",
+    "design",
+    "design-sync",
+    "doctor",
+    "evolutionary-database-design",
+    "fewer-permission-prompts",
+    "functionality-complexity-tradeoff",
+    "implementation-readiness",
+    "loop",
+    "morphogenetic-architecture",
+    "observability-design",
+    "push-out",
+    "requirements-grounding",
+    "requirements-topology",
+    "requirements-traceability",
+    "run",
+    "run-skill-generator",
+    "schedule",
+    "simplify",
+    "structural-simplification",
+    "system-optimization",
+    "test-strategy",
+    "update-config",
+    "verify",
+    "zero-copy-requirements"
+  ],
+  "skills_invoked": [
+    "alchemy"
+  ],
+  "files_read": [
+    ".claude/skills/architecture-as-code/SKILL.md"
+  ],
+  "paths_searched": [
+    "."
+  ],
+  "turns": 5,
+  "output": "**What I found**\n\nGate E can't produce rules for this subsystem yet — the record calls this `Blocked`. Two facts decide it:\n\n1. `architecture-as-code` consumes *only* an explicit `Enforcement` handoff from `architecture-guidelines` (A) or `morphogenetic-architecture` (L). \"Placement undecided\" means that handoff doesn't exist, and alchemy §3 holds E shut until Gate 3 records final acceptance. Every dependency rule E writes — what notifications may import, who may import it — *is* the placement decision written in linter syntax.\n2. This directory has no source tree, manifest, or existing architecture config — only `.claude/skills/` and `CLAUDE.md`. So there is no stack, no subsystem paths, and no assembler to extend even if the handoff existed.\n\n**Why it matters**\n\nWriting the rules now means guessing a position and then enforcing the guess. §6 of the pattern is right that rules ship before implementation, but rules-first presupposes the position is *decided*, not assumed; a guessed rule set either rubber-stamps whatever imports appear first or triggers an unbounded refactor when L lands somewhere else. Not acting costs only decision latency — no notifications code exists yet, so nothing is currently drifting ungoverned.\n\n**Do this first**\n\n1. Run `/alchemy L notifications subsystem` — `morphogenetic-architecture` returns Domain / tier / layer plus allowed edges, which is the `Enforcement` handoff E needs.\n2. Settle subsystem vs. aspect *before* L. If \"notifications\" is one mechanism other subsystems route through, its coverage obligation is never an edge rule — E returns `Reject rule` and routes the coverage check to `defect-shift-left`; only its exclusivity edges (`from: '*', except: ['notifications-mechanism'], to: 'notifications-internal-*'`) are enforceable here.\n3. Name the stack — it selects `eslint.architecture.mjs` (`architecture-as-code-javascript`) or `architecture.toml` (`architecture-as-code-python`).\n\n**What I did not check**\n\nDid not run A or L — out of scope for \"enforcement only\", and I won't decide placement on L's behalf. Did not detect a stack beyond the file listing (`Glob **/*` returned 41 skill files and `CLAUDE.md`, nothing else); no existing architecture configs exist to audit.\n\n---\n\n```\nDispatch:   DIRECT\nCore route: E\nCompanions: None\nVerdict:    Defer\nReason:     E's input contract requires an Enforcement handoff from A or L; placement\n            is undecided, so no handoff exists and Gate 3 has recorded no acceptance.\nNext:       /alchemy L notifications subsystem\n```\n\n```\nScope:           new notifications subsystem, path undetermined\nStack:           Other — none detected in this worktree\nInput:           none (no Enforcement handoff)\nDecision:        Blocked\nConfig files:    none written\nSubsystems:      none declared\nForbidden edges: none\nVerification:    Not run — no assembler, no lint config, no source set\nNext action:     obtain from L, then re-enter E:\n                 (1) position — domain / abstraction tier / layer, which fixes the\n                     efferent rule in the subsystem's own file;\n                 (2) inbound edges — which subsystems may import it, and the\n                     directory that composes it, since afferent rules live there,\n                     not in the subsystem's own file;\n                 (3) internal decomposition — sub-tiers such as dispatch, channel\n                     adapters, templating, which fix internal layering, sub-tier\n                     sibling-isolation, and the mandatory trailing catch-all entry.\n```\n\nGive me those three plus the stack and E produces the config file and the parent's afferent rules in one pass."
+}

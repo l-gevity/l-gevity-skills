@@ -87,6 +87,11 @@ iteration 2 is the next cycle on the same subject, *starting from that measured 
   in question: code and tests own behavior, history owns what changed, issues own decisions
   and open questions, and the requirement register owns what should be built. Everything else
   is a generated report, a bounded exception, or waste.
+- Two further single-pass companions own what decays without a commit:
+  `dependency-lifecycle`, whenever an advisory, drift, abandonment, a license change, or an
+  end-of-life date names an owned dependency — only a contract-preserving bump is `SKIP` —
+  and `observability-design`, whenever a risk survives verification into production, or an
+  alert or telemetry set is under review.
 
 ## 7. Define success; checkpoint
 Strong success criteria let you loop independently. After each significant step, summarize

@@ -87,9 +87,9 @@ is *earned by the change, not owed by the process*. Before anything else,
 a change is classified by one question: **how much structure could this
 alter?**
 
-- **Skip** — copy edits, CSS tweaks, routine dependency bumps, an isolated
-  bug fix inside one governed boundary. Structural risk: none. Process:
-  none. Fix the thing.
+- **Skip** — copy edits, CSS tweaks, a dependency bump that changes no
+  contract anything here depends on, an isolated bug fix inside one governed
+  boundary. Structural risk: none. Process: none. Fix the thing.
 - **Direct** — the change poses exactly one clear question. "Should this
   dead code exist?" is the worth question alone. "Could this have been
   caught earlier?" is the shift-left question alone. One question, one
@@ -174,8 +174,13 @@ enforcing what isn't designed, and never optimizing what isn't stable.
 pipeline for detection timing, operational toil, and code altitude, and
 [zero-copy-requirements](READ-zero-copy-requirements.md) answers which
 artifact owns a fact when the subject is where something should be written
-down. The full operational reference — command grammar, dispatch rules, gate
+down. Two companions cover what decays with time rather than with a commit:
+[dependency-lifecycle](READ-dependency-lifecycle.md) when an advisory, drift,
+or an end-of-life date names something already in the tree — it also decides
+whether a version bump is routine enough to skip — and
+[observability-design](READ-observability-design.md) when a risk survives into
+production or a signal set needs pruning. The full operational reference — command grammar, dispatch rules, gate
 handshakes, and the decision-trail format — lives in
 [SKILL.md](../.claude/skills/alchemy/SKILL.md).*
 
-<!-- skill-revision: c521ad7b0529 -->
+<!-- skill-revision: 7af5d329bc1c -->

@@ -1,0 +1,37 @@
+{
+  "request": "Is this defensive check necessary? The function is private to one TypeScript module compiled with strict null checks, and its only two callers build the Order object themselves a few lines above the call: function totalOf(order: Order): number { if (order === null || order === undefined) { throw new Error('missing order'); } return order.lines.reduce((sum, line) => sum + line.amount, 0); }",
+  "skills": ["functionality-complexity-tradeoff"],
+  "expect": [
+    {
+      "id": "applies-worth-guidance",
+      "criterion": "worth-verdict #3: a guard against a state that cannot occur is flagged for removal",
+      "check": "guidance_includes",
+      "skills": ["functionality-complexity-tradeoff"]
+    },
+    {
+      "id": "fails-necessity",
+      "criterion": "worth-verdict #3: a guard against a state that cannot occur is flagged for removal",
+      "check": "field_in",
+      "field": "Necessity",
+      "values": ["Fail"]
+    },
+    {
+      "id": "marks-obsolete",
+      "criterion": "worth-verdict #3: a guard against a state that cannot occur is flagged for removal",
+      "check": "field_in",
+      "field": "Decision",
+      "values": ["OBSOLETE"]
+    },
+    {
+      "id": "skips-scoring",
+      "criterion": "worth-verdict #3: the removal is not scored as a trade-off",
+      "check": "field_absent",
+      "field": "V scores"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}

@@ -51,6 +51,29 @@ A promoted rule must pass all of these:
 - It replaces or tightens an existing rule when possible instead of duplicating
   authority.
 
+## Behavior scenarios
+
+A scenario checks what an agent produces once a skill is loaded, not whether
+the skill triggers. Each `.scenarios/<name>/` folder holds:
+
+- `scenario.json`: the request, the skills whose text the expectations depend
+  on, and expectations that code can check. Each expectation names the
+  requirement criterion it covers, as in `adaptive-dispatch #1: ...`.
+- `transcript.json`: one recorded run, written by
+  `python scripts/validate-skills.py --record-scenario <name>`. The run uses a
+  throwaway project that holds only this library, read-only tools, and a
+  signed-in `claude` CLI. Without names, every missing or stale transcript is
+  recorded.
+- `project/`, optional: files copied into the throwaway project before the run,
+  for a scenario whose request is about code.
+
+CI never calls a model. It fails when a transcript is missing, when the
+request, the fixture project, `CLAUDE.md`, or a named skill changed after
+the transcript was recorded, when an expectation is not met, and when an entry in
+`known_failures` passes again. Code checks structure; read the transcript diff
+to judge the reasoning. Before a release, re-record the scenarios for must
+requirements by name, even when their transcripts are current.
+
 ## Change checklist
 
 - [ ] Generic skill method changed in `.agents/skills/<name>/SKILL.md`.
@@ -80,6 +103,10 @@ A promoted rule must pass all of these:
       raises it only with the rationale in the commit message. A section an
       agent needs only on some paths moves to `references/*.md`, which carries
       no budget.
+- [ ] Every scenario whose request, named skills, or `CLAUDE.md` changed is
+      re-recorded with `python scripts/validate-skills.py --record-scenario`,
+      the transcript diff was read, and an expectation that still fails is
+      listed under `known_failures` with its reason.
 - [ ] `npm run validate` and `npm run validate:mutation` pass.
 - [ ] `npm run test:installers` and, on Windows, `npm run test:installers:ps`
       pass when anything under `.install/` changed. Each family must stay

@@ -1,0 +1,44 @@
+{
+  "request": "Run alchemy on this: we are thinking about adding a plugin system to our command-line tool so new output formats can be added later. Today it has one output format, JSON, and nobody has asked for another. Is it worth building?",
+  "skills": ["alchemy", "functionality-complexity-tradeoff"],
+  "expect": [
+    {
+      "id": "selects-one-stage",
+      "criterion": "adaptive-dispatch #2: one clear question runs only that stage",
+      "check": "field_in",
+      "field": "Dispatch",
+      "values": ["DIRECT"]
+    },
+    {
+      "id": "routes-to-worth",
+      "criterion": "adaptive-dispatch #2: one clear question runs only that stage",
+      "check": "field_in",
+      "field": "Core route",
+      "values": ["M"]
+    },
+    {
+      "id": "reads-only-worth-guidance",
+      "criterion": "adaptive-dispatch #2: one clear question runs only that stage",
+      "check": "guidance_within",
+      "skills": ["alchemy", "functionality-complexity-tradeoff"]
+    },
+    {
+      "id": "gives-prospective-verdict",
+      "criterion": "worth-verdict #1: proposed functionality gets a build, defer, or drop verdict",
+      "check": "field_in",
+      "field": "Decision",
+      "values": ["BUILD", "BUILD-minimal", "NEGOTIATE", "DEFER", "DROP"]
+    },
+    {
+      "id": "gives-rationale",
+      "criterion": "worth-verdict #1: the verdict names the problem and the cost of carrying it",
+      "check": "field_present",
+      "field": "Rationale"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}

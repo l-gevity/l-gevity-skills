@@ -1,6 +1,7 @@
 from pathlib import Path
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -24,7 +25,7 @@ MAX_DESCRIPTION = 1024
 # with the rationale in the commit message.
 SIZE_BUDGET_GRAIN = 100
 SIZE_BUDGET_WORDS = {
-    "CLAUDE.md": 1200,
+    "CLAUDE.md": 1300,
     "alchemy": 4600,
     "architecture-as-code": 2700,
     "architecture-as-code-javascript": 2200,
@@ -34,10 +35,12 @@ SIZE_BUDGET_WORDS = {
     "ci-cd-reliability-architecture": 3500,
     "continuous-improvement": 1300,
     "defect-shift-left": 2100,
+    "dependency-lifecycle": 2000,
     "evolutionary-database-design": 3300,
     "functionality-complexity-tradeoff": 4500,
     "implementation-readiness": 1900,
     "morphogenetic-architecture": 4700,
+    "observability-design": 1800,
     "push-out": 1300,
     "requirements-grounding": 3100,
     "requirements-topology": 2000,
@@ -50,7 +53,7 @@ SIZE_BUDGET_WORDS = {
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
 # session carries whether or not a skill is invoked.
-DESCRIPTION_BUDGET_CHARS = 13500
+DESCRIPTION_BUDGET_CHARS = 15000
 ALCHEMY_PIPELINE_STAGES = (
     "Requirements Grounding",
     "M — Minimum",
@@ -114,6 +117,8 @@ SKILL_REQUIRED_TERMS = {
         "**Iteration**",
         "Decomposition and aspect extraction are different cuts",
         "select `zero-copy-requirements`",
+        "select `dependency-lifecycle`",
+        "select `observability-design`",
     ),
     "architecture-as-code": (
         "`architecture-guidelines` or `morphogenetic-architecture`",
@@ -423,6 +428,36 @@ SKILL_REQUIRED_TERMS = {
         "A claim no artifact carries is unowned, not redundant",
         "| **Sweep** |",
     ),
+    "dependency-lifecycle": (
+        "Adoption transfers the maintenance, never the responsibility",
+        "Standing still is a change",
+        "A scan produces evidence, not a decision",
+        "Exposure is reachability, not presence",
+        "Every acceptance expires",
+        "Routine is a property of the contract, not the version number",
+        "`dependency-lifecycle` is a task-matched Alchemy companion",
+        "REACHED | PRESENT-UNREACHED | BUILD-ONLY | UNKNOWN",
+        "Treat it as `REACHED` until the analysis is done",
+        "UPGRADE | PIN | PATCH | ISOLATE | REPLACE | VENDOR | ACCEPT | REMOVE",
+        "Vendoring without that is abandonment with extra steps",
+        "Classify before dispatching, because the classification is the dispatch",
+        "A dependency with no current decision is itself the finding",
+    ),
+    "observability-design": (
+        "A failure nobody can observe has no severity, no frequency, and no owner",
+        "Undetected is undefined",
+        "The signal ships with the change",
+        "Every alert names an actor and a first action",
+        "Detect on aggregates, diagnose on particulars",
+        "Alert sets only grow",
+        "`observability-design` is a task-matched Alchemy companion",
+        "Its residual risk",
+        "A residual risk with no detection path is not covered",
+        "it is unobserved",
+        "is a guess with a pager attached",
+        "An untested alert is not coverage",
+        "ADD | KEEP | RETARGET | DEMOTE | DELETE | UNOBSERVED",
+    ),
 }
 STRUCTURAL_REPORT_FIELDS = (
     "Subject",
@@ -540,6 +575,8 @@ REFERENCE_REQUIRED_TERMS = {
             "Split the deployable; gate the contract step on evidence and a snapshot",
             "DROP unless second use is named and probable",
             "a second authority cannot be kept in sync by discipline",
+            "bump classified by version number",
+            "which is unobserved rather than accepted",
         ),
     },
     "morphogenetic-architecture": {
@@ -641,6 +678,7 @@ CONTRIBUTION_REQUIRED_TERMS = (
     "Publish, then repin",
     "project overlay",
     "SIZE_BUDGET_WORDS",
+    "--record-scenario",
 )
 PUBLIC_DOC_FORBIDDEN = {
     "bring-down old public model": {
@@ -1421,6 +1459,339 @@ def stamp_primers() -> int:
     return 0
 
 
+# Behavior scenarios. A scenario is a stored request, the skills whose text
+# its expectations depend on, and properties of the result that code can
+# check. The agent run happens in the change, through --record-scenario; CI
+# reads only the committed transcript, so it calls no model and needs no key.
+# Code checks structure; the reasoning is reviewed in the transcript diff.
+SCENARIOS = ROOT / ".scenarios"
+# The run may read and search but never edit, so a recording cannot change the
+# project it inspects or start work the transcript does not show.
+SCENARIO_TOOLS = ("Read", "Glob", "Grep", "Skill")
+SCENARIO_CHECKS = {
+    "field_in": {"field": str, "values": list},
+    "field_present": {"field": str},
+    "field_absent": {"field": str},
+    "guidance_includes": {"skills": list},
+    "guidance_within": {"skills": list},
+    "guidance_excludes": {"skills": list},
+    "blocks_in_order": {},
+    "text_matches": {"pattern": str},
+}
+SCENARIO_CRITERION_RE = re.compile(r"^[a-z][a-z0-9-]* #\d+: \S")
+SCENARIO_TRANSCRIPT_KEYS = {
+    "scenario": str,
+    "revision": str,
+    "skills_invoked": list,
+    "files_read": list,
+    "paths_searched": list,
+    "output": str,
+}
+
+
+def scenario_fixture(directory: Path) -> Path | None:
+    """Files a scenario needs in the project it is recorded against: a request
+    about code cannot be judged in an empty directory."""
+    fixture = directory / "project"
+    return fixture if fixture.is_dir() else None
+
+
+def scenario_revision(directory: Path, scenario: dict) -> str:
+    """What a transcript is valid for: the request, the fixture project, the
+    root instruction file, and every skill the scenario names."""
+    digest = hashlib.sha256()
+    digest.update(scenario["request"].encode("utf-8") + b"\0")
+    digest.update((ROOT / "CLAUDE.md").read_bytes().replace(b"\r\n", b"\n"))
+    for name in sorted(scenario["skills"]):
+        digest.update(b"\0" + name.encode("utf-8") + b"\0")
+        digest.update(skill_revision(CLAUDE_SKILLS / name).encode("ascii"))
+    fixture = scenario_fixture(directory)
+    if fixture is not None:
+        for path in sorted(fixture.rglob("*"), key=lambda item: item.as_posix()):
+            if path.is_file():
+                digest.update(b"\0" + path.relative_to(fixture).as_posix().encode("utf-8") + b"\0")
+                digest.update(path.read_bytes().replace(b"\r\n", b"\n"))
+    return digest.hexdigest()[:12]
+
+
+def load_scenario(directory: Path) -> tuple[dict, dict | None]:
+    """Schema-check a scenario and return it with its transcript, or None when
+    nothing has been recorded yet."""
+    label = f".scenarios/{directory.name}"
+
+    def read_json(path: Path) -> dict:
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            fail(f"{label}/{path.name} is not valid JSON: {error}")
+        if not isinstance(value, dict):
+            fail(f"{label}/{path.name} must hold one JSON object")
+        return value
+
+    def known_skill(name: object) -> bool:
+        return isinstance(name, str) and (CLAUDE_SKILLS / name / "SKILL.md").is_file()
+
+    if not (directory / "scenario.json").is_file():
+        fail(f"{label} has no scenario.json")
+    scenario = read_json(directory / "scenario.json")
+    for key, kind in (("request", str), ("skills", list), ("expect", list)):
+        if not isinstance(scenario.get(key), kind) or not scenario[key]:
+            fail(f"{label}/scenario.json needs a non-empty '{key}'")
+    for name in scenario["skills"]:
+        if not known_skill(name):
+            fail(f"{label} depends on unknown skill {name!r}")
+    ids = []
+    for expectation in scenario["expect"]:
+        ident = expectation.get("id") if isinstance(expectation, dict) else None
+        if not isinstance(ident, str) or not ident:
+            fail(f"{label} has an expectation without an id")
+        arguments = SCENARIO_CHECKS.get(expectation.get("check"))
+        if arguments is None:
+            fail(f"{label} expectation '{ident}' has unknown check {expectation.get('check')!r}")
+        if not SCENARIO_CRITERION_RE.match(str(expectation.get("criterion", ""))):
+            fail(f"{label} expectation '{ident}' needs a criterion like 'requirement-id #1: text'")
+        for argument, kind in arguments.items():
+            if not isinstance(expectation.get(argument), kind) or not expectation[argument]:
+                fail(f"{label} expectation '{ident}' needs a non-empty '{argument}'")
+        for name in expectation.get("skills", []):
+            if not known_skill(name):
+                fail(f"{label} expectation '{ident}' names unknown skill {name!r}")
+        if "pattern" in arguments:
+            try:
+                re.compile(expectation["pattern"])
+            except re.error as error:
+                fail(f"{label} expectation '{ident}' pattern does not compile: {error}")
+        ids.append(ident)
+    if len(ids) != len(set(ids)):
+        fail(f"{label} repeats an expectation id")
+    known = scenario.get("known_failures", {})
+    if not isinstance(known, dict):
+        fail(f"{label} known_failures must map expectation ids to reasons")
+    for ident, reason in known.items():
+        if ident not in ids:
+            fail(f"{label} lists known failure '{ident}', which is not an expectation")
+        if not isinstance(reason, str) or not reason.strip():
+            fail(f"{label} known failure '{ident}' needs a reason")
+
+    if not (directory / "transcript.json").is_file():
+        return scenario, None
+    transcript = read_json(directory / "transcript.json")
+    for key, kind in SCENARIO_TRANSCRIPT_KEYS.items():
+        if not isinstance(transcript.get(key), kind):
+            fail(f"{label}/transcript.json needs '{key}'")
+    return scenario, transcript
+
+
+def scenario_values(output: str, field: str) -> list[str]:
+    """Every value the output gives a record field, whatever markdown wraps the
+    line: a run can print the same field in more than one record."""
+    pattern = re.compile(rf"^[ \t>*_-]*{re.escape(field)}\**:\**[ \t]*(.*)$", re.M)
+    return [match.group(1).strip() for match in pattern.finditer(output)]
+
+
+def scenario_guidance(transcript: dict) -> set[str]:
+    """Skills whose guidance the run took in: invoked through the Skill tool, or
+    with any file read or searched inside the skill's own folder."""
+    seen = {str(name).rsplit(":", 1)[-1] for name in transcript["skills_invoked"]}
+    for path in transcript["files_read"] + transcript["paths_searched"]:
+        parts = str(path).split("/")
+        if len(parts) >= 3 and parts[:2] == [".claude", "skills"]:
+            seen.add(parts[2])
+    return seen
+
+
+def scenario_passes(expectation: dict, transcript: dict) -> bool:
+    check, output = expectation["check"], transcript["output"]
+    if check in ("field_in", "field_present", "field_absent"):
+        values = scenario_values(output, expectation["field"])
+        if check == "field_present":
+            return any(values)
+        if check == "field_absent":
+            return not values
+        tokens = [re.search(r"[A-Za-z]+(?:-[A-Za-z]+)*", value) for value in values]
+        return any(token is not None and token.group(0) in expectation["values"] for token in tokens)
+    if check.startswith("guidance_"):
+        seen, named = scenario_guidance(transcript), set(expectation["skills"])
+        if check == "guidance_includes":
+            return named <= seen
+        if check == "guidance_within":
+            return seen <= named
+        return not seen & named
+    if check == "blocks_in_order":
+        positions = []
+        for block in REPORT_BLOCKS:
+            match = re.search(rf"^[ \t>#*_-]*{re.escape(block)}\b", output, re.M)
+            positions.append(match.start() if match else -1)
+        return -1 not in positions and positions == sorted(positions)
+    return re.search(expectation["pattern"], output, re.I) is not None
+
+
+def validate_scenarios() -> None:
+    """Every scenario has a transcript recorded against the text it depends on
+    now, and the transcript meets each expectation not listed as a known
+    failure. known_failures is a ratchet: an entry that passes again fails the
+    build until it is removed, so the list holds only failures that exist."""
+    directories = sorted(path for path in SCENARIOS.iterdir() if path.is_dir()) if SCENARIOS.is_dir() else []
+    if not directories:
+        fail(".scenarios holds no scenarios; behavior is checked only through recorded transcripts")
+    for directory in directories:
+        label = f".scenarios/{directory.name}"
+        record = f"python scripts/validate-skills.py --record-scenario {directory.name}"
+        scenario, transcript = load_scenario(directory)
+        if transcript is None:
+            fail(f"{label} has no transcript; record one with {record}")
+        if transcript["scenario"] != directory.name:
+            fail(f"{label}/transcript.json was recorded for scenario '{transcript['scenario']}'")
+        revision = scenario_revision(directory, scenario)
+        if transcript["revision"] != revision:
+            fail(
+                f"{label} transcript was recorded against revision {transcript['revision']}, "
+                f"but the text it depends on is now {revision}; re-record with {record}"
+            )
+        known = scenario.get("known_failures", {})
+        for expectation in scenario["expect"]:
+            passes = scenario_passes(expectation, transcript)
+            if not passes and expectation["id"] not in known:
+                fail(
+                    f"{label} expectation '{expectation['id']}' not met "
+                    f"({expectation['criterion']}); fix the skill and re-record, "
+                    "or list it under known_failures with the reason"
+                )
+            if passes and expectation["id"] in known:
+                fail(f"{label} known failure '{expectation['id']}' now passes; remove it from known_failures")
+
+
+def project_relative(value: str, project: Path) -> str:
+    """A path the run touched, relative to the throwaway project. Anything
+    outside it is redacted, so no machine path lands in a transcript."""
+    root = os.path.abspath(project)
+    full = os.path.abspath(os.path.join(root, value))
+    if os.path.normcase(full) == os.path.normcase(root):
+        return "."
+    if not os.path.normcase(full).startswith(os.path.normcase(root) + os.sep):
+        return "<outside project>"
+    return Path(os.path.relpath(full, root)).as_posix()
+
+
+def scenario_transcript(directory: Path, scenario: dict, stream: str, project: Path) -> tuple[dict | None, str]:
+    """Reduce a stream-json run to what the checks read. Returns the transcript,
+    or None and the reason the run failed."""
+    init, result, texts = {}, None, []
+    invoked, read, searched = [], [], []
+    for line in stream.splitlines():
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(event, dict):
+            continue
+        if event.get("type") == "system" and event.get("subtype") == "init":
+            init = event
+        elif event.get("type") == "result":
+            result = event
+        elif event.get("type") == "assistant":
+            for block in (event.get("message") or {}).get("content") or []:
+                if not isinstance(block, dict):
+                    continue
+                arguments = block.get("input") or {}
+                if block.get("type") == "text":
+                    texts.append(str(block.get("text", "")))
+                elif block.get("type") != "tool_use":
+                    continue
+                elif block.get("name") == "Skill":
+                    invoked.append(str(arguments.get("skill", "")))
+                elif block.get("name") == "Read":
+                    read.append(project_relative(str(arguments.get("file_path", "")), project))
+                elif block.get("name") in ("Glob", "Grep"):
+                    searched.append(project_relative(str(arguments.get("path") or "."), project))
+    if result is None:
+        return None, "the run ended without a result event"
+    if result.get("is_error"):
+        return None, str(result.get("result") or "the run reported an error")
+    output = "\n\n".join(texts)
+    replacements = {str(project): ".", project.as_posix(): ".", str(Path.home()): "~", Path.home().as_posix(): "~"}
+    for form in sorted(replacements, key=len, reverse=True):
+        output = output.replace(form, replacements[form])
+    return {
+        "scenario": directory.name,
+        "revision": scenario_revision(directory, scenario),
+        "recorded_with": f"claude-code {init.get('claude_code_version', 'unknown')}, model {init.get('model', 'unknown')}",
+        "skills_available": sorted(init.get("skills") or []),
+        "skills_invoked": invoked,
+        "files_read": read,
+        "paths_searched": searched,
+        "turns": result.get("num_turns"),
+        "output": output,
+    }, ""
+
+
+def record_scenarios(names: list[str]) -> int:
+    """Run scenarios through headless Claude Code in a throwaway project that
+    holds only this library, and write each transcript. Named scenarios are
+    always re-recorded; with no names, every missing or stale transcript is.
+    Needs a signed-in claude CLI on PATH. CI never records."""
+    claude = shutil.which("claude")
+    if claude is None:
+        print("ERROR: the claude CLI is not on PATH")
+        return 1
+    directories = sorted(path for path in SCENARIOS.iterdir() if path.is_dir()) if SCENARIOS.is_dir() else []
+    unknown = sorted(set(names) - {path.name for path in directories})
+    if unknown:
+        print(f"ERROR: unknown scenario(s): {', '.join(unknown)}")
+        return 1
+    if names:
+        directories = [path for path in directories if path.name in names]
+    else:
+        pending = []
+        for directory in directories:
+            scenario, transcript = load_scenario(directory)
+            if transcript is None or transcript["revision"] != scenario_revision(directory, scenario):
+                pending.append(directory)
+        directories = pending
+    if not directories:
+        print("every transcript is current")
+        return 0
+    environment = {key: value for key, value in os.environ.items() if key != "CLAUDECODE"}
+    tools = ",".join(SCENARIO_TOOLS)
+    status = 0
+    for directory in directories:
+        scenario, _ = load_scenario(directory)
+        project = Path(tempfile.mkdtemp(prefix="l-gevity-scenario-")).resolve()
+        try:
+            shutil.copytree(CLAUDE_SKILLS, project / ".claude" / "skills", ignore=shutil.ignore_patterns(*SCRATCH_IGNORE))
+            shutil.copyfile(ROOT / "CLAUDE.md", project / "CLAUDE.md")
+            fixture = scenario_fixture(directory)
+            if fixture is not None:
+                shutil.copytree(fixture, project, dirs_exist_ok=True)
+            command = [
+                claude, "-p", scenario["request"],
+                "--output-format", "stream-json", "--verbose",
+                # Project settings only: the recorder's own skills, plugins,
+                # and MCP servers stay out of the run.
+                "--setting-sources", "project", "--strict-mcp-config",
+                "--no-session-persistence", "--tools", tools, "--allowedTools", tools,
+            ]
+            try:
+                run = subprocess.run(command, cwd=project, env=environment, capture_output=True, timeout=1800)
+            except subprocess.TimeoutExpired:
+                transcript, reason = None, "the run did not finish within 30 minutes"
+            else:
+                stream = run.stdout.decode("utf-8", errors="replace")
+                transcript, reason = scenario_transcript(directory, scenario, stream, project)
+        finally:
+            shutil.rmtree(project, ignore_errors=True)
+        if transcript is None:
+            print(f"ERROR: {directory.name}: the run failed: {reason.encode('ascii', 'replace').decode('ascii')}")
+            status = 1
+            continue
+        write_raw(directory / "transcript.json", json.dumps(transcript, indent=2, ensure_ascii=False) + "\n", False)
+        missed = [expectation for expectation in scenario["expect"] if not scenario_passes(expectation, transcript)]
+        print(f"recorded {directory.name}: {len(scenario['expect']) - len(missed)} of {len(scenario['expect'])} expectations met")
+        for expectation in missed:
+            print(f"  not met: {expectation['id']} ({expectation['criterion']})")
+    return status
+
+
 def validate_asset_references() -> None:
     """An image nobody links is dead weight in every install archive."""
     def in_scope(path: Path) -> bool:
@@ -1669,6 +2040,75 @@ def mutation_test() -> int:
 
     cases.append((Case("size: budget kept for a skill that no longer exists", validator_copy, ("do not exist",)), budget_ghost_skill))
 
+    # A stated count and the install table drift without touching any skill,
+    # so each is proven with the README defect that once shipped: a count one
+    # higher than the tree, and the Codex row naming the Claude Code tree.
+    readme = copy / "README.md"
+
+    def overstate_skill_count(path=readme):
+        text, crlf = read_raw(path)
+        stated = SKILL_COUNT_RE.search(text)
+        if not stated:
+            raise RuntimeError("no stated skill count found in README.md")
+        write_raw(path, text[:stated.start(1)] + str(int(stated.group(1)) + 1) + text[stated.end(1):], crlf)
+
+    cases.append((Case("docs: README skill count left stale", [readme], ("the library has",)), overstate_skill_count))
+
+    def misstate_install_tree(path=readme):
+        text, crlf = read_raw(path)
+        row = "| `.agents/skills/` | `AGENTS.md` |"
+        if row not in text:
+            raise RuntimeError("Codex install row not found in README.md")
+        write_raw(path, text.replace(row, "| `.claude/skills/` | `AGENTS.md` |", 1), crlf)
+
+    cases.append((Case("docs: README install table names the wrong tree", [readme], ("no row for codex",)), misstate_install_tree))
+
+    # A scenario transcript fails four ways, each proven on its own. The last
+    # two take their subject from the recorded outcomes, so they hold whichever
+    # expectations the baseline meets or misses.
+    scenario_root = copy / ".scenarios"
+    scenario_dirs = sorted(path for path in scenario_root.iterdir() if path.is_dir()) if scenario_root.is_dir() else []
+    if scenario_dirs:
+        subject = [scenario_dirs[0] / "scenario.json", scenario_dirs[0] / "transcript.json"]
+
+        def remove_transcript(files=subject):
+            files[1].unlink()
+
+        cases.append((Case("scenario: transcript missing", subject, ("has no transcript",)), remove_transcript))
+
+        def age_transcript(files=subject):
+            record = json.loads(files[1].read_text(encoding="utf-8"))
+            record["revision"] = "000000000000"
+            write_raw(files[1], json.dumps(record, indent=2) + "\n", False)
+
+        cases.append((Case("scenario: transcript older than the text it depends on", subject, ("was recorded against revision",)), age_transcript))
+
+        def empty_transcript(files=subject):
+            spec = json.loads(files[0].read_text(encoding="utf-8"))
+            spec.pop("known_failures", None)
+            write_raw(files[0], json.dumps(spec, indent=2) + "\n", False)
+            record = json.loads(files[1].read_text(encoding="utf-8"))
+            record.update(output="", skills_invoked=["mutation-foreign-skill"], files_read=[], paths_searched=[])
+            write_raw(files[1], json.dumps(record, indent=2) + "\n", False)
+
+        cases.append((Case("scenario: transcript emptied and known failures cleared", subject, ("not met",)), empty_transcript))
+
+        specs = [path / "scenario.json" for path in scenario_dirs]
+
+        def list_passing_as_known(files=specs):
+            for path in files:
+                spec = json.loads(path.read_text(encoding="utf-8"))
+                record = json.loads((path.parent / "transcript.json").read_text(encoding="utf-8"))
+                known = spec.get("known_failures", {})
+                passing = [e["id"] for e in spec["expect"] if e["id"] not in known and scenario_passes(e, record)]
+                if passing:
+                    spec["known_failures"] = {**known, passing[0]: "mutation: listed while it passes"}
+                    write_raw(path, json.dumps(spec, indent=2) + "\n", False)
+                    return
+            raise RuntimeError("no scenario meets an expectation that could be listed as a known failure")
+
+        cases.append((Case("scenario: known failure that passes again", specs, ("now passes",)), list_passing_as_known))
+
     try:
         code, output = run()
         if code != 0:
@@ -1727,12 +2167,43 @@ def validate_readme_index() -> None:
             fail(f"README.md missing primer link for {name}")
 
 
+# A number directly before "skills", with at most one word between them.
+SKILL_COUNT_RE = re.compile(r"\b(\d+)\s+(?:[A-Za-z-]+\s+)?skills\b", re.I)
+
+
 def validate_overview_skill_count() -> None:
+    count = len(skill_dirs(CLAUDE_SKILLS))
     path = ROOT / "alchemy-overview.svg"
     text = path.read_text(encoding="utf-8")
-    expected = f"{len(skill_dirs(CLAUDE_SKILLS))} SKILLS"
+    expected = f"{count} SKILLS"
     if not contains(text, expected):
         fail(f"{path.relative_to(ROOT)} must report '{expected}'")
+    # The image is not the only place a count goes stale: README.md said 21
+    # composable skills for a release after a skill was removed. Every count
+    # stated in public prose must match the tree as well.
+    for doc in (*sorted(ROOT.glob("*.md")), *sorted(DOCS.glob("*.md"))):
+        for stated in SKILL_COUNT_RE.finditer(flatten(doc.read_text(encoding="utf-8"))):
+            if int(stated.group(1)) != count:
+                fail(
+                    f"{doc.relative_to(ROOT)} states '{stated.group(0)}' "
+                    f"but the library has {count} skills"
+                )
+
+
+def validate_readme_install_table() -> None:
+    """Each installer profile must appear as one README row pairing its skills
+    tree with its instruction file. README.md once said every installer used
+    .claude/skills while three of the four install into .agents/skills."""
+    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    start = text.find("<strong>Installation details</strong>")
+    end = text.find("</details>", start)
+    if start < 0 or end < 0:
+        fail("README.md is missing its Installation details block")
+    block = text[start:end]
+    for agent, (memfile, primary) in INSTALLER_PROFILES.items():
+        row = f"| `{primary}/` | `{memfile}` |"
+        if not contains(block, row):
+            fail(f"README.md Installation details has no row for {agent}: '{row}'")
 
 
 def validate_test_strategy_contract() -> None:
@@ -2344,6 +2815,8 @@ def main() -> int:
         return stamp_primers()
     if "--mutation-test" in sys.argv[1:]:
         return mutation_test()
+    if "--record-scenario" in sys.argv[1:]:
+        return record_scenarios(sys.argv[sys.argv.index("--record-scenario") + 1 :])
     validate_matcher()
     validate_installers()
     validate_ci_wiring()
@@ -2368,6 +2841,7 @@ def main() -> int:
     validate_asset_references()
     validate_readme_index()
     validate_overview_skill_count()
+    validate_readme_install_table()
     validate_test_strategy_contract()
     validate_requirements_grounding_contract()
     validate_evolutionary_database_design_contract()
@@ -2381,6 +2855,7 @@ def main() -> int:
     validate_design_and_release_contracts()
     validate_contribution_contract()
     validate_public_doc_drift()
+    validate_scenarios()
     print("Skills validated")
     return 0
 

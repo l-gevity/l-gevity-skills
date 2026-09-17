@@ -1,0 +1,24 @@
+{
+  "request": "Should we put a StorageProvider interface in front of our S3 client so we could switch storage vendors later? S3 is our only store, and nobody has planned or asked for another one.",
+  "skills": ["functionality-complexity-tradeoff"],
+  "expect": [
+    {
+      "id": "applies-worth-guidance",
+      "criterion": "worth-verdict #4: an abstraction whose further uses are only anticipated is not built",
+      "check": "guidance_includes",
+      "skills": ["functionality-complexity-tradeoff"]
+    },
+    {
+      "id": "does-not-build",
+      "criterion": "worth-verdict #4: an abstraction whose further uses are only anticipated is not built",
+      "check": "field_in",
+      "field": "Decision",
+      "values": ["DROP", "DEFER"]
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}
