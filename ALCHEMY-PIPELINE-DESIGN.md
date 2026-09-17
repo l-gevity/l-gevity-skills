@@ -61,6 +61,16 @@ and gating, and `requirements-traceability` owns the migration anchor and
 evidence state. Evolutionary Database Design is not a qualification stage,
 gate, acronym letter, or prerequisite for Architecture.
 
+When the subject decides where a fact, decision, or document belongs,
+`zero-copy-requirements` is an independently matched single-pass companion. It
+names the artifact that owns the question — code and its tests, version-control
+history, the issue tracker, or the requirement register — and classifies
+everything else as a generated report, one of three bounded exceptions, or
+waste. `push-out` prunes prose already covered by an executable source, and
+`requirements-traceability` anchors evidence once the location exists. Zero-Copy
+Requirements is not a qualification stage, gate, acronym letter, or prerequisite
+for Architecture.
+
 ## Pipeline
 
 ```mermaid
@@ -196,7 +206,7 @@ confirmation.
   full-traversal language.
 - Task-matched companion skills remain independent: a core skip or focused
   route never suppresses a project, domain, stack, UX, security,
-  accessibility, API, release, or evidence skill.
+  accessibility, API, release, evidence, or documentation-architecture skill.
 - `$alchemy <subject>` selects the smallest useful path and resumes from the
   latest trustworthy decision artifact, one whose decisions name what they
   supersede and whose predecessors are retired or lapsing.

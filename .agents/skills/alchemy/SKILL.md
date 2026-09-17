@@ -73,6 +73,7 @@ task context runs the preflight.
 | `alchemy Y ...`, `alchemy yield ...`, `alchemy optimize ...` | Invoke `system-optimization`. |
 | `alchemy left ...` | Invoke `defect-shift-left`. |
 | `alchemy out ...`, `alchemy push-out ...` | Invoke `push-out`. |
+| `alchemy zero-copy ...`, `alchemy source-of-truth ...` | Invoke `zero-copy-requirements`. |
 | `alchemy down ...`, `alchemy bring-down ...` | Invoke `bring-down`. |
 
 ### Dispatch Preflight
@@ -117,6 +118,13 @@ the selected companion skill bodies.
 
 - A project profile may require companion skills for its domain, stack, UX,
   security, accessibility, API, release, or evidence rules.
+- When the subject decides where a fact, decision, or document belongs — a
+  proposed document, a decision record, an architecture note, a status page, or
+  a documentation-tree audit — select `zero-copy-requirements`. It names the
+  artifact that owns the question; `push-out` prunes prose already covered by an
+  executable source, and `requirements-traceability` anchors evidence once the
+  location exists. None of the three is a qualification stage, gate, or acronym
+  letter.
 - `SKIP` skips only the Alchemy core; it never suppresses a matching companion.
 - `DIRECT` keeps the core route focused while allowing independently triggered
   companions.

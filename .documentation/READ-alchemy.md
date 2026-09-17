@@ -171,9 +171,11 @@ enforcing what isn't designed, and never optimizing what isn't stable.
 *Each gate's underlying concept has its own explainer, linked above; the
 [shift-left](READ-defect-shift-left.md) / [push-out](READ-push-out.md) /
 [bring-down](READ-bring-down.md) improvement trio runs alongside the
-pipeline for detection timing, operational toil, and code altitude. The
-full operational reference — command grammar, dispatch rules, gate
+pipeline for detection timing, operational toil, and code altitude, and
+[zero-copy-requirements](READ-zero-copy-requirements.md) answers which
+artifact owns a fact when the subject is where something should be written
+down. The full operational reference — command grammar, dispatch rules, gate
 handshakes, and the decision-trail format — lives in
 [SKILL.md](../.claude/skills/alchemy/SKILL.md).*
 
-<!-- skill-revision: a7e7b5968380 -->
+<!-- skill-revision: c521ad7b0529 -->

@@ -25,7 +25,7 @@ MAX_DESCRIPTION = 1024
 SIZE_BUDGET_GRAIN = 100
 SIZE_BUDGET_WORDS = {
     "CLAUDE.md": 1200,
-    "alchemy": 4500,
+    "alchemy": 4600,
     "architecture-as-code": 2700,
     "architecture-as-code-javascript": 2200,
     "architecture-as-code-python": 1500,
@@ -45,11 +45,12 @@ SIZE_BUDGET_WORDS = {
     "structural-simplification": 2600,
     "system-optimization": 2600,
     "test-strategy": 2100,
+    "zero-copy-requirements": 1700,
 }
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
 # session carries whether or not a skill is invoked.
-DESCRIPTION_BUDGET_CHARS = 12900
+DESCRIPTION_BUDGET_CHARS = 13500
 ALCHEMY_PIPELINE_STAGES = (
     "Requirements Grounding",
     "M — Minimum",
@@ -112,6 +113,7 @@ SKILL_REQUIRED_TERMS = {
         "**Increment**",
         "**Iteration**",
         "Decomposition and aspect extraction are different cuts",
+        "select `zero-copy-requirements`",
     ),
     "architecture-as-code": (
         "`architecture-guidelines` or `morphogenetic-architecture`",
@@ -407,6 +409,18 @@ SKILL_REQUIRED_TERMS = {
         "The coexistence window does not end where the deployment ends",
         "names the consumers it covers",
     ),
+    "zero-copy-requirements": (
+        "No artifact may exist whose content is fully reconstructable",
+        "One question, one authority",
+        "Decisions close where they were raised",
+        "Sign-off is immutable",
+        "Reports are compiled, never authored",
+        "Frozen records are closed, not maintained",
+        "`zero-copy-requirements` is a task-matched Alchemy companion",
+        "PRIMITIVE | GENERATED-REPORT | EXCEPTION | DUPLICATE",
+        "A document that needs two answers is two artifacts",
+        "An artifact that fits no exception and duplicates a primitive is waste",
+    ),
 }
 STRUCTURAL_REPORT_FIELDS = (
     "Subject",
@@ -515,6 +529,7 @@ REFERENCE_REQUIRED_TERMS = {
             "then re-enter Gate 3 once for final acceptance",
             "Split the deployable; gate the contract step on evidence and a snapshot",
             "DROP unless second use is named and probable",
+            "a second authority cannot be kept in sync by discipline",
         ),
     },
     "morphogenetic-architecture": {

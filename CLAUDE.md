@@ -83,6 +83,10 @@ iteration 2 is the next cycle on the same subject, *starting from that measured 
   Compatibility pass before A and Transition pass before the Portfolio pass. Expand and
   contract never ship in one deployable, and the contract step is gated on evidence, not a
   date.
+- `zero-copy-requirements` is a single-pass companion, matched whenever an artifact's home is
+  in question: code and tests own behavior, history owns what changed, issues own decisions
+  and open questions, and the requirement register owns what should be built. Everything else
+  is a generated report, a bounded exception, or waste.
 
 ## 7. Define success; checkpoint
 Strong success criteria let you loop independently. After each significant step, summarize
