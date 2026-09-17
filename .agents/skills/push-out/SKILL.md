@@ -127,7 +127,9 @@ lives, and which external constraint or trade-off is not visible from the code.
 
 When the move concerns deployment safety, apply `ci-cd-reliability-architecture`.
 When the move concerns check placement, apply `defect-shift-left`. When the
-move concerns duplicated custom implementation, apply `bring-down`.
+move concerns duplicated custom implementation, apply `bring-down`. When the
+question is which artifact owns the fact rather than whether prose duplicates
+an executable source, apply `zero-copy-requirements`.
 
 ---
 
@@ -178,4 +180,5 @@ Gaps:
 - **`bring-down`** - move bespoke code down into reusable capability.
 - **`system-optimization`** - bottleneck and waste analysis before improvement.
 - **`ci-cd-reliability-architecture`** - pipeline safety and deployment reliability patterns.
+- **`zero-copy-requirements`** - which artifact owns a fact, before pruning the duplicate.
 - **`continuous-improvement`** - promotion of recurring findings into skills, checks, or templates.

@@ -125,6 +125,11 @@ constraint or trade-off shaped it, what to know when rolling back — plus a
 link to the executable source. A ten-line README pointing at the pipeline
 beats a three-page runbook describing it.
 
+That division settles what prose may still say once an executable source
+exists. It does not settle which artifact owned the fact to begin with —
+whether it belonged in the code, the commit, an issue, or a requirement.
+That question is [zero-copy-requirements](READ-zero-copy-requirements.md).
+
 ## Higher is not always better
 
 The ladder has six rungs, but not every task should climb to the top. A
@@ -161,4 +166,4 @@ into maintained, reusable capability. The full operational reference for this
 concept — the complete ladder, target-rank heuristics, and move patterns —
 lives in [SKILL.md](../.claude/skills/push-out/SKILL.md).*
 
-<!-- skill-revision: 286c272aa0bc -->
+<!-- skill-revision: 94936c4d09ec -->

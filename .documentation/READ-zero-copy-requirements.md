@@ -47,7 +47,7 @@ each fact go?" — because facts don't stop existing when you delete the page
 that held them. There are exactly four homes, and each one answers a different
 question:
 
-| The primitive | Answers | Because |
+| The authority | Answers | Because |
 | --- | --- | --- |
 | **Code and its tests** | *What does the system do?* | It is the system. It cannot be out of date with itself. |
 | **Version-control history** | *What changed, when, and why that change?* | Each commit is welded to a diff and immutable afterwards. |
@@ -72,7 +72,7 @@ Most teams place three of these correctly by instinct. Nobody argues that code
 belongs in code. The one that goes wrong is decisions.
 
 A decision starts as a question — *should the export run at 02:00 or 03:00?* —
-and questions live in the issue tracker, because that's the only primitive that
+and questions live in the issue tracker, because that's the only authority that
 can hold one. The temptation, once it's settled, is to promote the answer into
 a document: an ADR file, a decision log, a page in the wiki. It feels like
 respect for the decision. What it actually does is separate the answer from the
@@ -97,7 +97,7 @@ to prove it wasn't changed.
 "Every fact in one place" seems to forbid the status page, the coverage
 summary, the quarterly compliance pack. It doesn't. It forbids *writing* them.
 
-A report that is assembled from the four primitives by a command is not a
+A report that is assembled from the four authorities by a command is not a
 second authority — it's a view, and it's as true as its inputs at the moment it
 ran. The same document typed by hand is a second authority that was true once.
 The distinction is not what the document contains; it's whether the document
@@ -106,7 +106,7 @@ committed copy differs from a fresh run.
 
 This gives a sharp diagnostic. If a generated report contains a fact that
 exists nowhere else, that fact is a bug: someone hand-patched the output rather
-than fixing the source. Move it into whichever primitive owns the question, and
+than fixing the source. Move it into whichever authority owns the question, and
 regenerate.
 
 ## Three documents that are allowed to exist
@@ -118,11 +118,11 @@ survive the rule.
 **Onboarding and tooling documents** explain how to work *on* the system rather
 than what the system does — which command to run, which conventions apply,
 where things live. They're describing the team's practice, not the system's
-behavior, so there's no primitive they duplicate. They earn their keep until
+behavior, so there's no authority they duplicate. They earn their keep until
 the tooling says it itself, at which point delete them.
 
 **Compliance deliverables for an external audience** exist because someone
-outside the team requires a document in a particular shape. The primitives are
+outside the team requires a document in a particular shape. The authorities are
 the source; the deliverable is the format. Generate it if you possibly can —
 a hand-written one that gets re-typed every cycle is the anti-pattern, not the
 exception.
@@ -142,7 +142,7 @@ The concept compresses to one question, asked before creating any document:
 *can someone reconstruct this from what already exists?*
 
 If yes, either delete it or generate it. If no, it answers exactly one of the
-four questions above, and belongs in that primitive. If it seems to answer two,
+four questions above, and belongs in that authority. If it seems to answer two,
 it's two artifacts wearing one filename, and splitting it is the whole job.
 
 The signals that the question is overdue are easy to spot: two documents
@@ -158,8 +158,8 @@ keep.
 documentation advice in [push-out](READ-push-out.md) — which prunes prose that
 an executable source already covers — and ahead of
 [requirements-traceability](READ-requirements-traceability.md), which anchors
-evidence once a location exists. The full operational reference — the primitive
+evidence once a location exists. The full operational reference — the authority
 table, the generated-report rules, the three exceptions, and the litmus test —
 lives in [SKILL.md](../.claude/skills/zero-copy-requirements/SKILL.md).*
 
-<!-- skill-revision: 17c7d8216b87 -->
+<!-- skill-revision: 8ca232c1b4ca -->

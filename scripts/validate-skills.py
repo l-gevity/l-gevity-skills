@@ -417,9 +417,9 @@ SKILL_REQUIRED_TERMS = {
         "Reports are compiled, never authored",
         "Frozen records are closed, not maintained",
         "`zero-copy-requirements` is a task-matched Alchemy companion",
-        "PRIMITIVE | GENERATED-REPORT | EXCEPTION | DUPLICATE",
+        "AUTHORITY | GENERATED-REPORT | EXCEPTION | DUPLICATE",
         "A document that needs two answers is two artifacts",
-        "An artifact that fits no exception and duplicates a primitive is waste",
+        "An artifact that fits no exception and duplicates an authority is waste",
     ),
 }
 STRUCTURAL_REPORT_FIELDS = (
