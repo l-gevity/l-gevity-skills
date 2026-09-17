@@ -24,7 +24,7 @@ a second authority that will disagree with the first.
 >
 > 1. **One question, one authority.** Each fact has exactly one owning
 >    artifact. Every other mention is a reference to it, never a restatement.
-> 2. **Four primitives carry the system.** Behavior, history, decisions, and
+> 2. **Four authorities carry the system.** Behavior, history, decisions, and
 >    specification. An artifact that is none of them is a generated report, a
 >    bounded exception, or waste.
 > 3. **Decisions close where they were raised.** Record a decision as a comment
@@ -33,7 +33,7 @@ a second authority that will disagree with the first.
 > 4. **Sign-off is immutable.** Compliance-grade approval lands in a merged
 >    commit or change request, not in a mutable comment or an editable page.
 > 5. **Reports are compiled, never authored.** Anything assembled from the
->    primitives is regenerated from them and read-only.
+>    authorities is regenerated from them and read-only.
 > 6. **Reference by identifier.** A dependent artifact names the ID of what it
 >    depends on; it does not copy that artifact's text.
 > 7. **Frozen records are closed, not maintained.** A historical or migration
@@ -61,9 +61,9 @@ whether the work is worth doing, or whether evidence proves it.
 Apply a project profile for concrete paths, tracker names, schemas, identifier
 formats, and validation commands. Keep none of those here.
 
-## 1. The Four Primitives
+## 1. The Four Authorities
 
-| # | Primitive | Sole authority for | Must not absorb |
+| # | Authority | Sole owner of | Must not absorb |
 | --- | --- | --- | --- |
 | 1 | **Code and its tests** | What the system does now, and the conditions under which it is correct | Why a change was made, what is still undecided, what is merely planned |
 | 2 | **Version-control history** | What changed, when, by whom, and — via the commit message — the immediate why of that specific change | Standing policy, open questions, the specification of unbuilt work |
@@ -84,30 +84,30 @@ Wiring between them:
 
 ## 2. The Generated-Report Layer
 
-Anything compiled from the primitives is a report, not a primitive.
+Anything compiled from the authorities is a report, not an authority.
 
 - Regenerate it from a command; never hand-author or hand-patch it.
 - Mark it read-only, and fail the build when a committed report differs from a
   fresh regeneration.
 - A report may be an external-audience deliverable — a coverage matrix, a status
   board, a compliance pack assembled from requirements and issues — but its
-  content still originates entirely in the primitives.
+  content still originates entirely in the authorities.
 - If a report carries a fact that exists nowhere else, that fact is the defect:
-  move it into the primitive that owns the question, then regenerate.
+  move it into the authority that owns the question, then regenerate.
 
 ## 3. Bounded Exceptions
 
-Exactly three kinds of artifact may exist outside the primitives and the report
+Exactly three kinds of artifact may exist outside the authorities and the report
 layer.
 
 | Exception | Admission test | Guard |
 | --- | --- | --- |
 | **Onboarding / tooling meta-documentation** | Explains how to work *on* the system — setup, conventions, which command to run, which skill to route through — rather than what the system does or what was decided | Delete it when the tooling carries the instruction itself; see the documentation-pruning pattern in `push-out` |
-| **Compliance-mandated external-audience deliverable** | An external obligation names the artifact and its audience, and the primitives are not a deliverable form for that audience | Restructure as a generated report as soon as its content is reconstructable; hand-authoring it each cycle is the anti-pattern |
+| **Compliance-mandated external-audience deliverable** | An external obligation names the artifact and its audience, and the authorities are not a deliverable form for that audience | Restructure as a generated report as soon as its content is reconstructable; hand-authoring it each cycle is the anti-pattern |
 | **Frozen historical or migration record** | Closed and dated; describes a completed transition, a superseded model, or a one-time import whose provenance is still cited | Never backfilled, never updated to stay current, never the authority for anything live |
 
-An artifact that fits no exception and duplicates a primitive is waste. Fold its
-content into the owning primitive and delete it.
+An artifact that fits no exception and duplicates an authority is waste. Fold its
+content into the owning authority and delete it.
 
 ## 4. Litmus Test
 
@@ -122,7 +122,9 @@ Run in order for any existing or proposed document. Stop at the first match.
    → Version-control history.
 4. Does it answer "what is undecided, what was decided, or what is planned
    but unbuilt?"
-   → An issue; a decision closes as that issue's comment or closing note.
+   → An issue; a decision closes as that issue's comment or closing note,
+     unless it must later be proved unaltered — then it closes in a merged
+     commit or change request (Directive 4).
 5. Does it answer "what should be built, and when is it done?"
    → The requirement register, citing the deciding issue.
 6. Is it compiled from 2-5?
@@ -145,19 +147,19 @@ A document that needs two answers is two artifacts. Split it before keeping it.
 | Architecture or design note narrating what the code already does | Point at the module, contract, or enforcement rule |
 | Triage, investigation, or incident write-up committed as a repository file | It is an issue and its comments |
 | Requirement text restating a dependency's acceptance conditions | Reference the criterion identifier |
-| Compliance deliverable hand-authored every cycle | Compile it from the primitives; the deliverable is a report |
+| Compliance deliverable hand-authored every cycle | Compile it from the authorities; the deliverable is a report |
 | Compliance sign-off recorded in an editable comment or page | Land it in a merged commit or change request |
-| A frozen record edited to stay current | Either freeze it or promote its content into a primitive; it cannot be both |
-| "Documentation debt" resolved by writing more prose | Locate the owning primitive first; prose that duplicates it increases the debt |
+| A frozen record edited to stay current | Either freeze it or promote its content into an authority; it cannot be both |
+| "Documentation debt" resolved by writing more prose | Locate the owning authority first; prose that duplicates it increases the debt |
 
 ## 6. Output Contract
 
 ```text
 Subject:              <document, tree, or proposed artifact>
-Classification:       PRIMITIVE | GENERATED-REPORT | EXCEPTION | DUPLICATE
-Owning primitive:     <code+tests | history | issues | requirements | none>
+Classification:       AUTHORITY | GENERATED-REPORT | EXCEPTION | DUPLICATE
+Owning authority:     <code+tests | history | issues | requirements | none>
 Reconstructable from: <artifacts that already carry the content, or none>
-Decision:             Keep | Fold into <primitive> | Generate | Freeze | Delete
+Decision:             Keep | Fold into <authority> | Generate | Freeze | Delete
 Exception:            <onboarding/tooling | compliance deliverable | frozen record | none>
 Guard:                <condition that ends or freezes the exception, or none>
 Next action:          <one concrete action>
@@ -166,7 +168,7 @@ Next action:          <one concrete action>
 For an audit of several artifacts, emit one row per artifact:
 
 ```text
-| Artifact | Classification | Owning primitive | Reconstructable from | Decision | Guard |
+| Artifact | Classification | Owning authority | Reconstructable from | Decision | Guard |
 | -------- | -------------- | ---------------- | -------------------- | -------- | ----- |
 ```
 
