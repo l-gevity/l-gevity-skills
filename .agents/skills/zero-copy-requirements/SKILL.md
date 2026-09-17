@@ -61,6 +61,21 @@ whether the work is worth doing, or whether evidence proves it.
 Apply a project profile for concrete paths, tracker names, schemas, identifier
 formats, and validation commands. Keep none of those here.
 
+## Select the Mode
+
+| Mode | Use for | Emits |
+| --- | --- | --- |
+| **Targeted** | One named or proposed artifact | One output contract |
+| **Sweep** | No artifact named: find every redundant document in a tree | One ranked row per artifact opened, plus the unreached remainder |
+
+With no artifact named, start in Sweep and read
+[references/sweep.md](references/sweep.md). Both modes decide with the same
+litmus test (§4); Sweep adds discovery, an evidence bar, and ranking. Sweep
+classifies nothing `DUPLICATE` without naming the artifact that already carries
+each claim. A claim no artifact carries is unowned, not redundant: move it,
+never delete it. Establish neither and the row is `Defer`, naming what is
+missing.
+
 ## 1. The Four Authorities
 
 | # | Authority | Sole owner of | Must not absorb |
@@ -159,18 +174,21 @@ Subject:              <document, tree, or proposed artifact>
 Classification:       AUTHORITY | GENERATED-REPORT | EXCEPTION | DUPLICATE
 Owning authority:     <code+tests | history | issues | requirements | none>
 Reconstructable from: <artifacts that already carry the content, or none>
-Decision:             Keep | Fold into <authority> | Generate | Freeze | Delete
+Decision:             Keep | Fold into <authority> | Generate | Freeze | Delete | Defer
 Exception:            <onboarding/tooling | compliance deliverable | frozen record | none>
 Guard:                <condition that ends or freezes the exception, or none>
 Next action:          <one concrete action>
 ```
 
-For an audit of several artifacts, emit one row per artifact:
+In Sweep, emit one ranked row per artifact opened, then the unreached count:
 
 ```text
-| Artifact | Classification | Owning authority | Reconstructable from | Decision | Guard |
-| -------- | -------------- | ---------------- | -------------------- | -------- | ----- |
+| Artifact | Classification | Owning authority | Carried by | Decision | Guard |
+| -------- | -------------- | ---------------- | ---------- | -------- | ----- |
 ```
+
+`Carried by` names what already holds the content: file and symbol, commit,
+issue ID, or requirement ID. Empty means unowned, not redundant.
 
 ## 7. See Also
 

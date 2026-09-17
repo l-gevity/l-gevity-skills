@@ -145,6 +145,14 @@ If yes, either delete it or generate it. If no, it answers exactly one of the
 four questions above, and belongs in that authority. If it seems to answer two,
 it's two artifacts wearing one filename, and splitting it is the whole job.
 
+Asked across a whole documentation tree at once, the question needs one guard.
+“Reconstructable” has to be shown, not assumed: point at the code, the commit,
+the issue, or the requirement that already carries the claim. Where nothing
+does, the claim is not redundant — it is *unowned*, and the tree you were about
+to prune holds the only copy of it. Those two look identical from the outside,
+and telling them apart is what stops a documentation cleanup from becoming a
+data loss. Redundant content gets deleted; unowned content gets moved.
+
 The signals that the question is overdue are easy to spot: two documents
 describing the same subsystem, a decision document whose issue was closed
 silently, a status page someone updates by hand every Friday, an architecture
@@ -162,4 +170,4 @@ evidence once a location exists. The full operational reference — the authorit
 table, the generated-report rules, the three exceptions, and the litmus test —
 lives in [SKILL.md](../.claude/skills/zero-copy-requirements/SKILL.md).*
 
-<!-- skill-revision: 8ca232c1b4ca -->
+<!-- skill-revision: 01cfa6aadab5 -->
