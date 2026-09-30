@@ -47,8 +47,6 @@ A promoted rule must pass all of these:
 - It does not assume a package manager, CI provider, cloud, UI framework, branch
   strategy, or domain taxonomy unless the skill explicitly targets that stack.
 - It names the decision owner and the earliest enforceable check.
-- Every criterion it sets can be decided from an artifact, not from memory or
-  goodwill.
 - It names the observed failure it prevents: a correction, transcript,
   incident, or scenario. "An agent could…" is a proposal, not a rule.
 - Its output contract lets another agent prove whether the method was applied.

@@ -121,13 +121,6 @@ forgotten question can't even be found. And **narrow questions get narrow
 answers**: asking the placement question alone doesn't license a full
 traversal — scope creep in process is still scope creep.
 
-One more rule closes the loop. The gates shape a design *before* it is
-built, so when the same task also builds it, the gates look once more at
-the finished change: did the structure come out as measured, does each
-enforcement rule actually fail on a planted violation, are the new error
-paths caught early? The design was a prediction; the close-out checks it
-against what shipped.
-
 ## Resume; don't relitigate
 
 The third idea, easily overlooked: the gates produce **decision records**
@@ -190,4 +183,4 @@ production or a signal set needs pruning. The full operational reference — com
 handshakes, and the decision-trail format — lives in
 [SKILL.md](../.claude/skills/alchemy/SKILL.md).*
 
-<!-- skill-revision: 65d677bc5881 -->
+<!-- skill-revision: 421420eca7a1 -->

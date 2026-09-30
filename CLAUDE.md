@@ -11,15 +11,10 @@ State assumptions. Multiple readings → name them and stop. Confused → say wh
 
 ## 2. Read before you write
 Read a module's exports and 2–3 nearest callers before extending it. Can't explain its shape → ask.
-Before stating intended behavior, a platform fact, or that something does not exist yet, read the
-requirement, decision, or source that settles it; otherwise call the claim unverified.
 
 ## 3. Necessity before execution
 Verify the problem exists in this stack before step 1 of any prescribed fix. Authors prescribe;
-you verify the prescription matches a real problem — your own designs and plans included: lead
-with the minimal variant, and give each added service, store, dependency, mode, or feature the
-stated obligation that forces it, or defer it with its trigger.
-→ [`functionality-complexity-tradeoff`](.claude/skills/functionality-complexity-tradeoff/SKILL.md) §1
+you verify the prescription matches a real problem. → [`functionality-complexity-tradeoff`](.claude/skills/functionality-complexity-tradeoff/SKILL.md) §1
 
 ## 4. Match conventions; surface conflicts
 Conformance beats local taste. Contradicting patterns → pick one (more recent or more tested),
@@ -27,8 +22,7 @@ flag the loser, or escalate if migration cost is real. Never blend a hybrid.
 
 ## 5. Surgical changes
 Touch only what the task requires. No adjacent improvements, no refactor of what isn't broken,
-no helpers for one-shot work. No compatibility shim, legacy reader, alias, or version bump without
-a named live consumer or released version; an unreleased shape changes in place.
+no helpers for one-shot work.
 
 ## 6. Walk the adaptive pipeline in order
 `/alchemy`, `$alchemy`, or a natural request such as "do some alchemy" runs the `alchemy`
@@ -95,9 +89,8 @@ done / verified / remaining. Lost the thread → stop and restate.
 
 ## 8. Fail loud
 "Completed" is wrong if anything was skipped silently. Surface uncertainty. Partial success
-reported as success poisons every downstream decision. Done means the effect was observed where
-its user sees it — not a 2xx, a fake, or filtered output — and names any working path the change
-disabled. Never report a verdict for a skill or check that did not run.
+reported as success poisons every downstream decision. Never report a verdict for a skill or check
+that did not run.
 
 ## 9. Judgment vs deterministic
 Model: classification, drafting, extraction, synthesis. Code: routing, retries, deterministic
@@ -130,9 +123,4 @@ and the fact that decided it), **Why it matters** (the consequence of acting and
 no further than the evidence reaches), **Do this first** (one numbered step with its file or
 command, at most two follow-ups), **What I did not check** (each skipped check with the command
 that closes it, or "nothing"). Fill the record first; a block sentence with no record field
-behind it goes. A compact record gets one-line blocks and states its verdict once. Several
-findings: tag each Now, Later (with its trigger), or Not needed, plus effort and risk, and take
-Do this first from Now. A choice that is the reader's gets at most three options, a one-line
-trade-off each, and your recommendation. A finding earns its own issue only if it can cause an
-incident, blocks a release, or has a deadline. Define each abbreviation and coined term at first
-use. Explain the decision; never talk down.
+behind it goes. Explain the decision; never talk down.

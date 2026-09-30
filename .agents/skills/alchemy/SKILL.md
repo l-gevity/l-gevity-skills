@@ -100,10 +100,8 @@ Use this deterministic signal matrix when no alias is present:
 
 | Change signal | Dispatch / minimum core route |
 |:--|:--|
-| Copy, CSS, trivial rename, contract-preserving dependency bump, isolated in-boundary fix, or version-control, status, and release housekeeping | `SKIP` |
+| Copy, CSS, trivial rename, contract-preserving dependency bump, isolated in-boundary fix | `SKIP` |
 | Worth, dead code, speculative abstraction, or "should this exist?" | `DIRECT → M` |
-| A design, plan, or proposal about to be presented, or a new service, store, dependency, or data flow | `DIRECT → M` per proposed component, before A |
-| "Is it simpler now?" about a finished change | `DIRECT → C` on the diff, before vs after; add L only when a boundary moved |
 | Defect found late, check placement, or CI detection timing | `DIRECT → H` or `left` |
 | Structural refactor inside one boundary | `ADAPTIVE → M, C`; add A when responsibility or public contract changes, H when verification placement changes |
 | New subsystem/service/library, cross-boundary dependency, increment cut through every layer (vertical slice), consolidation, or an aspect added or changed across several subsystems (auth, audit, logging, retry, i18n) | `ADAPTIVE → qualification as needed, M, A, L, C, E, H` |
@@ -359,8 +357,8 @@ Core directives:
 3. Ship the architecture rules with the code they govern. Follow-up PRs to
    "add the rules" are drift.
 4. Defer Gate 7 to iteration 2 — the iteration after the increment ships,
-   starting from its stable, measured baseline — unless the request, or an
-   audit's own measurement, names an existing bottleneck.
+   starting from its stable, measured baseline — unless the request is
+   explicitly about an existing bottleneck.
 5. Audit starts at `C₀`, conditionally recovers intent, then resumes the
    qualification phase and remaining gates from the earliest failed decision.
 6. Before deleting either of two duplicate implementations, inventory their
@@ -371,12 +369,8 @@ Core directives:
    handshake. Architecture may refine the portfolio but must not silently erase
    an admitted risk or oracle.
 8. When an increment changes persisted or serialized data shape, preserve the
-   Evolutionary Database Design two-pass handshake.
-9. Close out what you implement. When the same task implements an `ADAPTIVE`
-   or `FULL` route, run the selected gates once more against the finished diff
-   before reporting done: C re-measures and states predicted vs measured, each
-   enforcement claim is shown failing on a planted violation, and H places the
-   new error paths. A mismatch is a defect, not a note.
+   Evolutionary Database Design two-pass handshake. Expand and contract never
+   ship in one deployable; the contract step is gated on evidence, not a date.
 
 ---
 
@@ -411,8 +405,6 @@ Core directives:
 - [ ] Gate 6 — Every error path mapped to earliest catchable stage
 - [ ] Gate 7 — Deferred to iteration 2 (after the increment ships, from its
             stable, measured baseline)
-- [ ] Close-out — When implemented here: C predicted vs measured on the diff,
-                   enforcement claims seen red, new error paths placed
 - [ ] Follow-through — When implementation is in scope, hand admitted IDs and
                        completion and outcome-evidence obligations to
                        requirements-traceability
@@ -436,7 +428,6 @@ contradictory, or disputed:
 | 4 — conditional topology | `requirements-topology` | Structure remediation requirements when relationships are non-trivial |
 | 5 — conditional readiness | `implementation-readiness` | Identify the smallest coherent remediation increment that may enter Architecture |
 | 6 | Remaining A.L.C.H.E.M.Y. gates | Redesign, enforce, and shift left only as the remediation requires |
-| 7 — before reporting | owning gate | Verify each finding: cite the search for intent (decisions and rejected proposals, commits, tests that pin the behavior, criteria) and for equivalent enforcement under other names, and name a reachable trigger; otherwise report it as unverified. Name the committed script or command behind every count |
 
 ---
 
@@ -512,9 +503,6 @@ output alone.
 - **Claim only what ran.** `Core route` and the trail name a stage's decision
   only when its `SKILL.md` was read in this task; a selected stage that did not
   run appears in the trail as `Not run` with the reason.
-- **Follow-ups inherit the route.** "Fix it", "continue", or "do all" reuses the
-  last dispatch and the bodies already read; read another body only when the
-  route gains a stage.
 - **Companions remain independent.** A core skip or focused alias must not hide
   a task-matched domain, stack, security, UX, accessibility, or evidence skill.
 - **When a gate is consistently skipped across tasks**, that's a signal for

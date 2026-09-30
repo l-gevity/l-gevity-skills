@@ -68,10 +68,6 @@ Require:
 - commit, build, run, or environment identity when operational evidence is
   offered as proof.
 
-A project without a requirement register traces against the identifiers its
-governing authority already carries — specification section numbers, issue
-checklist items — read-only, and classifies each touched one the same way.
-
 If canonical IDs or criterion references are unstable, return to
 `requirements-topology`. If the admitted increment or acceptance conditions are
 unclear, return to `implementation-readiness`.
@@ -83,7 +79,7 @@ Classify every criterion independently:
 | State | Required evidence | What it does not prove |
 | --- | --- | --- |
 | `unmapped` | No accepted implementation or verification anchor | Whether work is planned elsewhere |
-| `implemented` | Stable implementation anchor that a named production entry point (route, job, UI action) reaches, or an executable test definition | That the behavior passed |
+| `implemented` | Stable implementation anchor or executable test definition | That the behavior passed |
 | `verified` | Implemented anchor plus a passing test or accepted operational result for this revision | Continued correctness after later changes |
 | `blocked` | Named missing dependency, decision, environment, or evidence owner | That the requirement may be silently skipped |
 | `not-applicable` | Explicit scoped rationale approved by the requirement owner | A general waiver for other increments or actors |
@@ -91,9 +87,7 @@ Classify every criterion independently:
 A passed test tag without a matching test definition is not verification. A test
 definition without a result is implementation evidence only. Operational
 evidence without revision and run identity is an observation, not reproducible
-proof. A result counts only as the named command's own exit status on a clean
-tree at the recorded revision; filtered, piped, or truncated output is an
-observation.
+proof.
 
 ## Outcome Evidence States
 
@@ -195,11 +189,6 @@ Close the record only when it preserves:
 - evidence freshness when the operational proof can expire; and
 - named gaps, deferrals, and owners without implying a broader completion state.
 
-When the implementing change lands with executed evidence, close the
-authorizing issue with that evidence, or state what keeps it open, without
-being asked; post the child's status and the remaining work on any parent or
-tracking issue.
-
 Use repository markers according to the repository's existing convention:
 
 - an immutable checkpoint or tag is optional when the exact source snapshot
@@ -233,7 +222,6 @@ Completion record:
 | `missing-requirement` | Work may be justified but has no canonical requirement or accepted rationale |
 | `missing-implementation` | Requirement exists but no implementation anchor covers it |
 | `missing-test` | Implementation exists but no executable verification covers it |
-| `unreachable-implementation` | An anchor exists, but no production entry point reaches it |
 | `aspect-uncovered` | The aspect's coverage check is absent, unexecuted, or reports a governed subsystem without the mechanism for the current revision |
 | `stale-reference` | Anchor targets an unknown, replaced, or removed ID or criterion |
 | `scope-deferred` | Work is intentionally later and cites an accepted deferral |

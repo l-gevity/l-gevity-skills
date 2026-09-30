@@ -3,14 +3,14 @@ name: functionality-complexity-tradeoff
 description: >-
     Decides whether functionality solves a real problem and is worth its
     complexity cost. Use in prospective mode to build, defer, or drop proposed
-    capabilities, including each component of a design or plan before it is
-    presented, and in retrospective mode to keep, simplify, deprecate, delete,
-    or mark existing code obsolete. Trigger for feature triage, backlog
-    grooming, PR scope review, dead-code audits, tech-debt reviews, "is this
-    worth it?", "should we remove this?", "is this defensive check
-    necessary?", impossible-state guards, redundant validation, cargo-culted
-    patterns, phantom requirements, requirement-pinned mechanism, unused
-    generality, and evidence-driven revisits of outcome hypotheses.
+    capabilities, and in retrospective mode to keep, simplify, deprecate,
+    delete, or mark existing code obsolete. Trigger for feature triage,
+    backlog grooming, PR scope review, dead-code audits, tech-debt reviews,
+    "is this worth it?", "should we remove this?", "is this defensive check
+    necessary?", and cases involving impossible-state guards, redundant
+    validation, cargo-culted patterns, phantom requirements, requirement-pinned
+    mechanism, or unused
+    generality, and evidence-driven revisits of outcome hypotheses after release.
 ---
 
 # Functionality pruner
@@ -237,9 +237,7 @@ Applied to tickets, specs, PRDs, loose ideas, or PR scope **before
 implementation**. All inputs are estimates; record confidence explicitly.
 
 1. State the functionality in one sentence: _"This allows [who] to [do what] so
-   that [outcome]."_ For a design or plan, do this per component — service,
-   store, dependency, integration, environment, mode, UI surface — and run
-   steps 2–5 on each; what no stated obligation forces is DEFER with a trigger.
+   that [outcome]."_
 2. **Run the necessity gate (§1).** Confirm the failure mode addressed is
    reachable in the target stack and is not already owned by another layer.
    A prospective necessity failure is rare but consequential: it stops a
@@ -248,10 +246,7 @@ implementation**. All inputs are estimates; record confidence explicitly.
    analytics of the workaround, competitor behavior. Opinions are not
    evidence. Unsupported opinions are not enough evidence for high-confidence
    build decisions. Cite linked outcome hypotheses when present; before release
-   they express expected value, not observed impact. A request, your own plan,
-   a roadmap line, or an unprioritized requirement is not evidence of `F` or
-   `R`: before release both are unmeasured, so score them against the
-   project's stated stage and scale and keep Confidence V at Low.
+   they express expected value, not observed impact.
 4. Score `C` axes against a **concrete implementation sketch**: files
    touched, new abstractions or dependencies introduced, tests required,
    failure modes created.
@@ -399,11 +394,6 @@ outcome hypothesis.
 | **DEPRECATE**  | Marginal or negative worth; removal is non-trivial. Announce, migrate callers, remove on schedule.                                                                                            |
 | **DELETE**     | Negative worth, removal is feasible. Prefer removal over patching, but migrate callers, preserve compatibility promises, and keep rollback possible. |
 | **OBSOLETE**   | Necessity gate (§1) fails: the problem this code addresses cannot occur in this context. Remove or deprecate the code without scoring worth. Rationale is structural, not budgetary, so the verdict resists re-litigation. If the code documents an invariant nothing else captures, downgrade to **SIMPLIFY** instead (§1c). |
-
-A BUILD-minimal, SIMPLIFY, DEPRECATE, or DELETE verdict names the path by
-which the stated actor still completes the outcome. A user-visible removal,
-or steps and tools the actor must now supply, is a product decision to
-surface, not a simplification.
 
 > [!WARNING] "Interesting", "clever", and "elegant" are not verdicts.
 > Cleverness imposes cost but rarely contributes measurable value. If a

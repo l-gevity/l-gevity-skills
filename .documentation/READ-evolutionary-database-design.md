@@ -30,13 +30,6 @@ data), *forward* (old code reads new data), *full* (both). A rollout that
 can overlap its own rollback needs full. The same rule holds for a column,
 a message field, an API body, and a file format.
 
-The exception proves the rule. A shape that has never left the repository —
-no released client, no data anyone must keep — has no second version to
-survive. Change it in place, update its readers in the same commit, and
-reseed; a legacy reader for data that never existed is the cost of this
-discipline with none of its benefit. So the first question is always the
-same: **has anything outside this repository ever read this shape?**
-
 ## Every change is three changes
 
 A database refactoring is one indivisible bundle: the schema change, the
@@ -105,4 +98,4 @@ inventory, change taxonomy, staged path, migration increments, data contract, an
 decision rules — lives in
 [SKILL.md](../.claude/skills/evolutionary-database-design/SKILL.md).*
 
-<!-- skill-revision: 19a57869612b -->
+<!-- skill-revision: 1383e8648363 -->

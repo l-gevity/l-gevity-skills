@@ -274,13 +274,7 @@ Verification is a staged evidence system, not a single `test` job. Place each
 check at the earliest stage capable of detecting its defect, following
 `defect-shift-left`. Every applicable check is blocking. A pipeline may mark a
 check not applicable only when it records the subsystem or risk evidence that
-justifies the omission. A check fed by data that changes without a commit —
-advisory feeds, end-of-life dates, license databases — blocks only on findings
-the change introduces; ambient findings go to a scheduled
-`dependency-lifecycle` decision and never hold the trunk red. A path filter on
-a deploy trigger covers every build input — lockfiles, shared packages,
-templates, generated sources — or is dropped, and each deployment confirms that
-the deployed revision is the merged one.
+justifies the omission.
 
 | Stage / trigger | Required verification | Gate behavior |
 | --- | --- | --- |

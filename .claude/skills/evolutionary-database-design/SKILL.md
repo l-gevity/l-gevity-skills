@@ -165,16 +165,9 @@ database" when no change or incident bounds the work.
 
 ### 2. Inventory the shape and its parties
 
-Settle release status first, and ask the owner once when it is unknown: must
-any data, client, or record outlive this change? A shape never published
-outside the repository, with no data that must survive, has an empty
-coexistence window. Change it in place in one step, update every in-repo
-reader and writer in the same change, reset or reseed the data, and write no
-legacy reader, alias, or version; Directives 2–5 apply from first publication.
-Otherwise, for each element that changes, record:
+For each element that changes, record:
 
 ```text
-Release status:     <never published: in-repo readers only, disposable data | published since <when>, with evidence>
 Element:            <store.table.column | topic.field | contract.path | file.field>
 Current shape:      <type, nullability, constraints, encoding, semantics>
 Writer:             <owning subsystem, or unowned>

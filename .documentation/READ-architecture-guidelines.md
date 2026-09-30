@@ -124,13 +124,6 @@ are telling you about the architecture. Purity also composes with
 resilience for free — a pure decision can be retried, replayed, or run
 twice without harm; only the effectful edges need idempotency care.
 
-Purity says nothing about *where* the core runs. A pure eligibility check
-compiled into a browser bundle is still a decision made by a client that
-anyone can edit. Each decision runs in the deployable that is authoritative
-for it, and the client only shows the answer. The same holds for a core made
-stateless: it stops owning the storage, not the decision — the prior state
-comes in as an argument and the next state goes out as a result.
-
 ## Minimalism: the discipline of not building
 
 The cheapest structure is the one that doesn't exist, which makes restraint
@@ -233,4 +226,4 @@ rules above into build-failing lint checks. The full operational reference
 for this concept lives in
 [SKILL.md](../.claude/skills/architecture-guidelines/SKILL.md).*
 
-<!-- skill-revision: bdfbcce4798f -->
+<!-- skill-revision: d3ffd304628d -->

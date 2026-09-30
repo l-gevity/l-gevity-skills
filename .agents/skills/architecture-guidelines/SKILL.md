@@ -61,11 +61,6 @@ description: >-
   free, environment-agnostic. External systems live at the edges.
 - **Testability**: A pure core is unit-testable without mocks. If the domain
   needs mocks, purity has been violated.
-- **Pure is not placed**: each business decision — authorization, eligibility,
-  workflow transition, calculation — runs in the deployable authoritative for
-  it; an untrusted client renders the decision and never re-derives it. A
-  stateless core owns no storage but keeps the decision: prior state comes in,
-  next state goes out. Recheck this map whenever deployables split or merge.
 
 ## 4. Modularity
 

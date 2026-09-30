@@ -205,8 +205,7 @@ as findings instead.
 12. **Record decisions**: capture source, assumption, owner, date, watch item, and
     revisit trigger for every consequential choice, and what the choice
     supersedes: earlier decisions, requirement candidates, or criteria, or
-    `none`. Cite where the owner decided — an issue, message, or document; a
-    decision nobody can point to is an assumption and is recorded as one.
+    `none`.
 
 ## Problem Check
 

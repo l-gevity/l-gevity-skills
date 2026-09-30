@@ -107,9 +107,6 @@ encountering:
 | **Process Break**    | Recurring CI/CD failures or linter bottlenecks indicating a broken foundational rule. |
 | **Skill Optimization** | User asks to optimize, prune, audit, or increase efficiency of the skill library itself. |
 
-One correction that exposes a missing principle is enough to promote it; the
-Rule of 3 governs code abstractions, not rules.
-
 ## 2. Analyze Root Cause
 
 Determine the underlying reason before writing a new rule. Ask:
@@ -160,8 +157,6 @@ When applying this skill, emit:
 ```
 Subject:        <skill / test / linter / schema / template>
 Trigger:        <correction | regression | new pattern | systemic failure | process break | skill optimization>
-Evidence:       <the correction, transcript, incident, or scenario showing the failure>
-Scope:          <generic library | project overlay>
 Root cause:     <missing/ambiguous | conflict | ignored rule | technical constraint | ownership gap>
 Owner:          <skill/test/linter/schema/template that should own the fix>
 Automation:     <implemented | infeasible | deferred> - <reason>
