@@ -17,7 +17,10 @@ description: >-
 > 1. **Prevent over detect.** Make invalid states unrepresentable before adding
 >    a check.
 > 2. **Earliest possible stage is mandatory.** If a check _can_ run at stage N,
->    running it at N+1 is a regression.
+>    running it at N+1 is a regression. A check whose measured runtime breaks
+>    a stage's time budget (seconds before commit, minutes per pull request)
+>    cannot run there; it belongs at the earliest stage whose budget admits it,
+>    path-filtered or scheduled.
 > 3. **Replace same-scope duplicates.** When shifting a check earlier, remove
 >    any later check that covers the same scope. Keep a later backstop only
 >    when it covers a broader or less-bypassable scope.
@@ -136,12 +139,15 @@ unrepresentable?_ If yes, the check belongs at Stage 0.
 4. **Compute rank distance** = current rank − earliest rank.
 5. **Prioritize** by rank distance × frequency × blast radius.
 6. **Move the check** to the earliest feasible stage.
-7. **Gate it.** A correct-stage check that does not block is still a detection
-   gap.
+7. **Gate it, then see it fail.** A correct-stage check that does not block is
+   still a detection gap. Record what the gate inspects — declarations or
+   behavior, and any name, path, or file filter — plant one violation per
+   population it claims, and record the red run under Verification. A gate
+   never seen failing is a hypothesis.
 8. **Remove later same-scope duplicates** once the earlier gate is proven. Keep
    only broader or less-bypassable backstops.
-9. **Audit every escaped defect:** find its earliest possible stage and place a
-   gate there.
+9. **Audit every escaped defect:** find its earliest possible stage, place a
+   gate there, and run it against the escaped state.
 
 | Situation                                      | Action                                         |
 | ---------------------------------------------- | ---------------------------------------------- |

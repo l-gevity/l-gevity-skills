@@ -32,7 +32,10 @@ pyramid ratio, coverage target, or preferred tool.
 4. **Evidence over percentages.** Coverage locates unexecuted code; it does not
    prove useful assertions, satisfied requirements, or acceptable residual risk.
 5. **Real boundaries where semantics matter.** A fast double cannot prove
-   database, wire, framework, migration, or provider compatibility.
+   database, wire, framework, migration, or provider compatibility. A fixed
+   user-visible defect is verified by its observed effect where the user saw
+   it — the local full stack first, then the shared environment — never by an
+   API acknowledgment or a green fake alone.
 6. **Reliability is part of validity.** A flaky or order-dependent result is not
    trustworthy verification.
 7. **Keep unknowns visible.** Record untested risks, manual obligations, missing

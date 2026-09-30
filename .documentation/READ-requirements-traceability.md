@@ -23,7 +23,7 @@ For each acceptance criterion of each requirement, the honest question is
 | State | What it means | What it does **not** mean |
 | ----- | ------------- | ------------------------- |
 | **Unmapped** | No known implementation or verification | — |
-| **Implemented** | A stable anchor points at code or a test *definition* | That it passes, or ever ran |
+| **Implemented** | A stable anchor points at code a production entry point reaches, or at a test *definition* | That it passes, or ever ran |
 | **Verified** | An **executed, passing** result exists for this revision | That it still passes after later changes |
 | **Blocked** | A named missing dependency or decision, with an owner | That it can be quietly skipped |
 | **Not applicable** | An explicit, scoped, owner-approved rationale | A general waiver |
@@ -176,4 +176,4 @@ evidence states, anchor placement, gap taxonomy, and build-gate checks —
 lives in
 [SKILL.md](../.claude/skills/requirements-traceability/SKILL.md).*
 
-<!-- skill-revision: 1021cd9b3af7 -->
+<!-- skill-revision: 3058aa539bbb -->

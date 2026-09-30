@@ -115,20 +115,20 @@ walks the complete route.
 flowchart TD
     Input(["External request or evidence<br/>(not a persisted artifact)"])
 
-    Req0["Document — grounded requirement"]
-    Req1["Document — approved requirement"]
-    Graph["Document — requirement dependency graph"]
-    Increment["Document — delivery increment"]
+    Req0["Requirement register — grounded requirement"]
+    Req1["Requirement register — approved requirement"]
+    Graph["Requirement register — dependency graph"]
+    Increment["Issue — admitted delivery increment"]
 
-    Design["Document — architecture/design"]
-    Topology["Document — topology and complexity record"]
+    Design["Issue or PR — design decision"]
+    Topology["Issue or PR — topology and complexity decision"]
     Rules["Configuration — architecture boundary rules"]
 
     Test["Code — acceptance test"]
     Source["Code — production source"]
     TestRun["Evidence — focused test result"]
     CIRun["Evidence — CI run report"]
-    Trace["Document — traceability record"]
+    Trace["Issue closeout — traceability record"]
     Outcome["Evidence — outcome measurement"]
 
     Input -->|"requirements-grounding"| Req0

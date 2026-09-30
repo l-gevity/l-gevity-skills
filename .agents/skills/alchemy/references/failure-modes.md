@@ -15,14 +15,14 @@ pipeline.
 | Requirement text carries an old and a new decision at once | Requirements Topology — predecessor not retired | Retire it or mark it lapsing with an expiry in the same change; rerun the repository gate |
 | Architecture invents meaning, permissions, data, or acceptance criteria | Implementation Readiness | Stop at `NOT-READY`; resolve the named product or policy blocker |
 | `PARTLY-READY` work can be invalidated by an unresolved requirement | Implementation Readiness | Reject the increment; admit only bounded reversible work |
-| Interface added "for the second implementation" but second never lands | 1 — Rule of 3 | Run pruner; collapse to one concrete |
+| Interface added "for the second implementation" but second never lands | 1 — Rule of 3 | Run `functionality-complexity-tradeoff`; collapse to one concrete |
 | Generic registry / plugin system with one entry | 1 — generality without instantiation | Inline the entry; remove the registry |
 | Empty config / config with one value across all envs | 1 — one-value config | Inline the value |
 | `if (impossible_state)` runtime guards | 1 — impossible-state guard | OBSOLETE; document the invariant elsewhere |
 | Cross-domain imports bypass the declared boundary | 3 — topology violated | Move the subsystem or introduce one named boundary |
 | Aspect hand-wired per subsystem (n copies of auth, audit, or logging) | 2 — aspect extraction skipped | Re-run A with the aspect's holds-across set; C measures the n → 1 extraction |
 | Refactor "felt simpler" but no measurement | 3–4 — topology candidate not accepted | Compute Subsystem-kinds / Dependency-edges / Max-chain-depth / Subsystem-count Δ, then re-enter Gate 3 once for final acceptance |
-| Eslint rules added in follow-up PR | 5 — same-PR discipline broken | Block the follow-up; add rules to original PR |
+| Architecture rules added in a follow-up PR | 5 — same-PR discipline broken | Block the follow-up; add rules to original PR |
 | Defects caught at runtime that types could express | 6 — left-shift not applied | Move the check upward; remove the runtime guard |
 | Architecture file disagrees with code | 5 — drift | Re-run lint; treat as a defect |
 | Many tests or high coverage but no risk or oracle rationale | Test Strategy companion | Run `test-strategy`; map material risks to credible evidence and remove false-confidence metrics |
@@ -43,3 +43,12 @@ pipeline.
 | Duplicate implementations are unified but retain separate behavior tests | 6 — integration / contract | Add one shared conformance suite and real-boundary coverage for backend-specific semantics before deleting either copy |
 | "Just in case" extension point with one user | 1 — speculative optionality | DROP unless second use is named and probable |
 | Premature performance optimization | 7 — applied before baseline | Revert; re-apply after stability |
+| A plan leads with its complete variant and the owner strikes components one by one | 1 — necessity not run on an authored design | Run M per proposed component; present the forced set first and defer the rest with triggers |
+| After an implementation the owner asks "did you use alchemy?" and a second pass finds defects | Close-out skipped | Re-run the selected gates on the finished diff before reporting done: predicted vs measured, enforcement seen red, new error paths placed |
+| A gate is green but a planted violation passes too: an unknown subsystem name, a pattern matching no file, a filter that skips part of the population, or a later config block replacing the rule | 5–6 — gate never seen failing | Plant one violation per governed file class and fix the gate before counting it as enforcement |
+| An audit files a deliberate absence, or a proposal the owner already rejected, as a defect | Retrospective step 7 — findings not verified | Search decisions, rejected proposals, commits, and pinning tests; re-grade or withdraw the finding where it was published |
+| A count published by an audit does not reproduce | Retrospective step 7 — measurement without a committed script | Rerun it from a committed script; correct the number where it was published |
+| Compatibility shims, legacy readers, or a version bump for a shape nothing outside the repository has read | Evolutionary Database Design — release status not settled | Settle release status first; change an unreleased shape in place and update its in-repo readers in the same change |
+| A check in a local hook or on every commit costs more than that stage's time budget | 6 — stage chosen without the check's cost | Place it at the earliest stage whose budget admits it, path-filtered or scheduled; record its measured runtime |
+| The trunk turns red with no code change | CI/CD — a blocking gate reads data that changes without a commit | Block only on findings the change introduces; route ambient findings to a scheduled `dependency-lifecycle` decision |
+| A criterion is marked implemented or verified for code no production entry point reaches | Implementation follow-through | Name the route, job, or UI action that reaches it, or record `unreachable-implementation` |

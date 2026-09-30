@@ -11,10 +11,15 @@ State assumptions. Multiple readings → name them and stop. Confused → say wh
 
 ## 2. Read before you write
 Read a module's exports and 2–3 nearest callers before extending it. Can't explain its shape → ask.
+Before stating intended behavior, a platform fact, or that something does not exist yet, read the
+requirement, decision, or source that settles it; otherwise call the claim unverified.
 
 ## 3. Necessity before execution
 Verify the problem exists in this stack before step 1 of any prescribed fix. Authors prescribe;
-you verify the prescription matches a real problem. → [`functionality-complexity-tradeoff`](.../functionality-complexity-tradeoff) §1
+you verify the prescription matches a real problem — your own designs and plans included: lead
+with the minimal variant, and give each added service, store, dependency, mode, or feature the
+stated obligation that forces it, or defer it with its trigger.
+→ [`functionality-complexity-tradeoff`](.claude/skills/functionality-complexity-tradeoff/SKILL.md) §1
 
 ## 4. Match conventions; surface conflicts
 Conformance beats local taste. Contradicting patterns → pick one (more recent or more tested),
@@ -22,7 +27,8 @@ flag the loser, or escalate if migration cost is real. Never blend a hybrid.
 
 ## 5. Surgical changes
 Touch only what the task requires. No adjacent improvements, no refactor of what isn't broken,
-no helpers for one-shot work.
+no helpers for one-shot work. No compatibility shim, legacy reader, alias, or version bump without
+a named live consumer or released version; an unreleased shape changes in place.
 
 ## 6. Walk the adaptive pipeline in order
 `/alchemy`, `$alchemy`, or a natural request such as "do some alchemy" runs the `alchemy`
@@ -76,22 +82,12 @@ iteration 2 is the next cycle on the same subject, *starting from that measured 
   Retrospective mode; do not restart the pipeline.
 - After readiness, `requirements-traceability` links canonical IDs to implementation anchors
   and executed evidence. `READY` never means implemented; a code anchor never means verified.
-- Two two-pass task-matched companions bracket A/L/C/E: `test-strategy`, when verification
-  design is material, with its Obligation pass before A and Portfolio pass before H, where H
-  places each check and CI/CD owns pipeline execution triggers and gating; and
-  `evolutionary-database-design`, when persisted or serialized data shape changes, with its
-  Compatibility pass before A and Transition pass before the Portfolio pass. Expand and
-  contract never ship in one deployable, and the contract step is gated on evidence, not a
-  date.
-- `zero-copy-requirements` is a single-pass companion, matched whenever an artifact's home is
-  in question: code and tests own behavior, history owns what changed, issues own decisions
-  and open questions, and the requirement register owns what should be built. Everything else
-  is a generated report, a bounded exception, or waste.
-- Two further single-pass companions own what decays without a commit:
-  `dependency-lifecycle`, whenever an advisory, drift, abandonment, a license change, or an
-  end-of-life date names an owned dependency — only a contract-preserving bump is `SKIP` —
-  and `observability-design`, whenever a risk survives verification into production, or an
-  alert or telemetry set is under review.
+- Task-matched companions keep their own triggers, and `alchemy` owns their order.
+  `test-strategy` and `evolutionary-database-design` are two-pass, each bracketing A/L/C/E.
+  Expand and contract never ship in one deployable, and the contract step is gated on
+  evidence, not a date. `zero-copy-requirements` decides where a fact lives: code and tests
+  own behavior, history owns what changed, issues own decisions and open questions.
+  `dependency-lifecycle` and `observability-design` own what decays without a commit.
 
 ## 7. Define success; checkpoint
 Strong success criteria let you loop independently. After each significant step, summarize
@@ -99,7 +95,9 @@ done / verified / remaining. Lost the thread → stop and restate.
 
 ## 8. Fail loud
 "Completed" is wrong if anything was skipped silently. Surface uncertainty. Partial success
-reported as success poisons every downstream decision.
+reported as success poisons every downstream decision. Done means the effect was observed where
+its user sees it — not a 2xx, a fake, or filtered output — and names any working path the change
+disabled. Never report a verdict for a skill or check that did not run.
 
 ## 9. Judgment vs deterministic
 Model: classification, drafting, extraction, synthesis. Code: routing, retries, deterministic
@@ -108,7 +106,7 @@ transforms. Stochastic answers to deterministic questions are a category error.
 ## 10. Fix the rule, not the instance
 Recurring mistake = missing, ambiguous, or contradicted rule. Promote the fix to SKILL layer.
 Before writing prose, try to encode it as a lint check, type, test, or build-time gate —
-manual rules drift, encoded ones don't. → [`continuous-improvement`](.../continuous-improvement)
+manual rules drift, encoded ones don't. → [`continuous-improvement`](.claude/skills/continuous-improvement/SKILL.md)
 
 ## 11. Find root cause; don't bypass
 Investigate obstacles. Never bypass with `--force`, `--no-verify`, `--no-gpg-sign`, or
@@ -127,9 +125,14 @@ problem, not who caused it. Disagree when warranted; don't soften with qualifier
 ## 14. Report
 Lead every decision record with four plain-language blocks, then the record unchanged:
 **What I found** (the subject, the decision in plain words with the record's word once, as in
-"keep it, but let nothing new depend on it (the record calls this QUARANTINE)", and the fact
-that decided it), **Why it matters** (the consequence of acting and of not acting, no further
-than the evidence reaches), **Do this first** (one numbered step with its file or command, at
-most two follow-ups), **What I did not check** (each skipped check with the command that closes
-it, or "nothing"). Fill the record first; a block sentence with no record field behind it goes.
-Explain the decision; never talk down.
+"keep it, count who uses it, and decide again in six weeks (the record calls this QUARANTINE)",
+and the fact that decided it), **Why it matters** (the consequence of acting and of not acting,
+no further than the evidence reaches), **Do this first** (one numbered step with its file or
+command, at most two follow-ups), **What I did not check** (each skipped check with the command
+that closes it, or "nothing"). Fill the record first; a block sentence with no record field
+behind it goes. A compact record gets one-line blocks and states its verdict once. Several
+findings: tag each Now, Later (with its trigger), or Not needed, plus effort and risk, and take
+Do this first from Now. A choice that is the reader's gets at most three options, a one-line
+trade-off each, and your recommendation. A finding earns its own issue only if it can cause an
+incident, blocks a release, or has a deadline. Define each abbreviation and coined term at first
+use. Explain the decision; never talk down.

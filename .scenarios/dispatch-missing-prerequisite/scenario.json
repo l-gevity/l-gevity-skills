@@ -27,6 +27,11 @@
       "criterion": "adaptive-dispatch #3: the result names the missing prerequisite",
       "check": "text_matches",
       "pattern": "placement|placed"
+    },
+    {
+      "id": "claims-only-loaded-stages",
+      "criterion": "claim-only-what-ran #1: every stage and companion the run names was loaded",
+      "check": "route_loaded"
     }
   ]
 }

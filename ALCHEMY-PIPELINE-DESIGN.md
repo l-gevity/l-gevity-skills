@@ -238,9 +238,9 @@ confirmation.
   Qualification Phase.
 - A focused gate reports missing prerequisites in its decision record rather
   than invoking them without request authority.
-- Full traversal is reserved for non-trivial work, cross-boundary change, or an
-  explicit request for `full`, `all`, `audit`, `walk the gates`, or `complete
-  alchemy`.
+- Full traversal requires an explicit request for `full`, `all`, `audit`,
+  `walk the gates`, or `complete alchemy`; non-trivial and cross-boundary work
+  takes the smallest `ADAPTIVE` route.
 - Re-entry starts at the earliest failed decision, not at the beginning of the
   pipeline.
 
@@ -249,7 +249,7 @@ confirmation.
 | Stage | Passing decisions | Non-passing decisions | Hand-off artifact |
 |:--|:--|:--|:--|
 | Requirements Grounding | `GROUNDED` | `PROVISIONAL`, `NOT-GROUNDED` | Grounded requirement set, linked outcome hypotheses when relevant, evidence map, assumptions, confirmation queue |
-| M — Minimum | `BUILD`, `KEEP`, `SIMPLIFY` | `DEFER`, `DROP`, `OBSOLETE` | Functionality/complexity decision per candidate |
+| M — Minimum | `BUILD`, `BUILD-minimal`, `KEEP`, `SIMPLIFY`, `QUARANTINE` | `NEGOTIATE`, `DEFER`, `DROP`, `DEPRECATE`, `DELETE`, `OBSOLETE` | Functionality/complexity decision per candidate |
 | Requirements Topology | `STABLE` | `NEEDS-REFACTOR`, `BLOCKED` | Atomic typed graph, stable IDs, dependencies, conflicts, dependency order |
 | Implementation Readiness | `READY`, bounded `PARTLY-READY` | `NOT-READY` | Smallest coherent increment, verification obligations, unresolved blockers |
 | A — Architecture | Gate-specific pass | Redesign, reject, or defer | First-principles design record |

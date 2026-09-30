@@ -203,7 +203,9 @@ directions:
 - **When adding a check:** *is this the earliest stage this defect is
   detectable?* If a rule can run in the editor, putting it only in CI wastes
   every feedback loop in between. If a type can prevent it, no check is
-  needed at all.
+  needed at all. And before counting the new gate, feed it one known
+  violation and watch it fail: a gate that has never failed may be looking
+  at the wrong files, or at declarations instead of behavior.
 
 Teams that ask this consistently drift toward a recognizable shape: strict
 types, one schema per boundary, architecture rules encoded as lint config
@@ -221,4 +223,4 @@ reusable capability. The full operational reference for this concept — the
 complete 12-stage ladder, a defect-class-to-stage taxonomy, and an audit
 protocol — lives in [SKILL.md](../.claude/skills/defect-shift-left/SKILL.md).*
 
-<!-- skill-revision: 5ef9560320ba -->
+<!-- skill-revision: a33a251a6211 -->

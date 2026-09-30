@@ -343,6 +343,16 @@ Next action:    <specific file edit, dependency install, or unresolved question>
 > `boundaries/dependencies` form. `dependency-cruiser`'s `required` rules can
 > express it over the same registry; `defect-shift-left` places that check.
 
+> [!IMPORTANT] **Flat config replaces a rule's options per rule id.** Two
+> blocks whose `files` overlap and that both set `no-restricted-syntax` or
+> `no-restricted-imports` leave only the later block's entries active, and lint
+> still passes. Merge the entries in the assembler.
+
+> [!NOTE] **Emitted options are copied for every linted file.** One selector
+> per category can grow the boundaries options to megabytes and most of the lint
+> time. Group element names per rule, measure uncached lint time after an
+> assembler change, and guard the emitted size with a test.
+
 > [!NOTE] **Facade-as-file pattern.** JavaScript idiomatically exposes a
 > facade as a single index/entry file. Use `mode: 'file'` plus an exact-path
 > `pattern` (no glob) so the facade is matched alone.

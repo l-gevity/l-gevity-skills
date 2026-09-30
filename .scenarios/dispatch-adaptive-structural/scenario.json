@@ -25,6 +25,11 @@
       "id": "opens-with-report-blocks",
       "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
       "check": "blocks_in_order"
+    },
+    {
+      "id": "claims-only-loaded-stages",
+      "criterion": "claim-only-what-ran #1: every stage and companion the run names was loaded",
+      "check": "route_loaded"
     }
   ]
 }

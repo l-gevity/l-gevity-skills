@@ -55,8 +55,10 @@ systemic, root-cause adjustments, without growing bloated.
 
 When the subject is the skills themselves, optimize in this order:
 
-1. Define the behavioral failure, bottleneck, or drift risk; do not start from
-   preferred wording.
+1. Name the observed failure the change prevents — a correction, transcript,
+   incident, or scenario. Preferred wording, or a request to extend or
+   complete a skill, is not one; without it, return a proposal with an M
+   verdict instead of editing.
 2. Check whether validation can catch it: mirror sync, frontmatter, primer
    backlinks, output contract presence, owner/routing conflicts, or template
    shape.
@@ -105,6 +107,9 @@ encountering:
 | **Process Break**    | Recurring CI/CD failures or linter bottlenecks indicating a broken foundational rule. |
 | **Skill Optimization** | User asks to optimize, prune, audit, or increase efficiency of the skill library itself. |
 
+One correction that exposes a missing principle is enough to promote it; the
+Rule of 3 governs code abstractions, not rules.
+
 ## 2. Analyze Root Cause
 
 Determine the underlying reason before writing a new rule. Ask:
@@ -128,12 +133,9 @@ When generating the actual update to the relevant `SKILL.md` file:
 - **Eliminate Outdated Logic**: Replace or delete previous rules only when they
   contradict, overlap with, or are made obsolete by the new learning. Preserve
   useful exceptions and migration notes.
-- **Maintain Mirrors**: When this library has both `.agents/skills` and
-  `.claude/skills` copies, keep the matching `SKILL.md` files synchronized and
-  align the corresponding `.documentation/READ-*.md` primer and any affected
-  `README.md` skill-index text.
-- **Validate Shape**: Run the repo's skill validator after edits; extend it
-  when a drift pattern can be detected mechanically.
+- **Maintain Mirrors and Validate**: keep mirrors, primers, and the index
+  aligned as Optimization Mode steps 4–5 require; extend the validator when a
+  drift pattern can be detected mechanically.
 
 ## 4. Verification & Notification
 
@@ -143,7 +145,10 @@ Ensure the learning "sticks":
   perform an audit showing the previous mistake is now caught earlier or made
   less likely. Do not claim structural impossibility unless an enforced gate
   guarantees it. For skill-library changes, run
-  `python scripts/validate-skills.py`.
+  `python scripts/validate-skills.py`. A changed decision rule is a behavioral
+  hypothesis: record the originating miss as a scenario that fails before the
+  change and passes after, and apply the new rule to the change itself before
+  calling it ready.
 - **Notify**: Conclude the improvement sequence with a concise summary back to
   the user:
     > _"Updated [Skill/Test] to prevent [issue] by mandating [new practice]."_
@@ -155,6 +160,8 @@ When applying this skill, emit:
 ```
 Subject:        <skill / test / linter / schema / template>
 Trigger:        <correction | regression | new pattern | systemic failure | process break | skill optimization>
+Evidence:       <the correction, transcript, incident, or scenario showing the failure>
+Scope:          <generic library | project overlay>
 Root cause:     <missing/ambiguous | conflict | ignored rule | technical constraint | ownership gap>
 Owner:          <skill/test/linter/schema/template that should own the fix>
 Automation:     <implemented | infeasible | deferred> - <reason>

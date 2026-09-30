@@ -151,4 +151,4 @@ reference for this concept — triggers, root-cause analysis, and the update
 protocol — lives in
 [SKILL.md](../.claude/skills/continuous-improvement/SKILL.md).*
 
-<!-- skill-revision: f3cc7223077c -->
+<!-- skill-revision: 20bbd1aaf2ef -->

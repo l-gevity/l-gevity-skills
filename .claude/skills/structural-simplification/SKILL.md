@@ -53,7 +53,7 @@ names below in every emit block, gate table, and cross-skill citation.
 | ------------- | ------ | ----------------------------------- | --------------------------------------------------------------------- |
 | **Diversity** | `D`    | Distinct patterns, shapes, concepts | Count distinct patterns / vocabulary items in the structure           |
 | **Coupling**  | `K`    | Relationship count and density      | Count edges, then compute density (`edges / (n × (n−1))` for directed graphs where `n > 1`) after defining edge kind and direction |
-| **Depth**     | `P`    | Longest chain from source to sink   | Longest path from any origin to any terminus in the DAG               |
+| **Depth**     | `P`    | Longest chain from source to sink   | Longest path from any origin to any terminus in the DAG, over declared subsystems and the edges that carry behavior at runtime (in code: type-only imports out, re-exports resolved to their source); name the path |
 | **Quantity**  | `n`    | Total number of subsystems          | Direct count of subsystems (use §2 to identify them in your domain)   |
 
 Domain-agnostic. *Subsystem* = any discrete node of the structure under
@@ -292,6 +292,8 @@ first.
     Rationale:            <1–3 sentences tying the four deltas and forcing-Q answers → decision>
     Next action:          <edit, test, lint rule, measurement, or smaller alternative>
     Verification:         <command / graph check / review evidence, or Not run + reason>
+    Measured by:          <committed script or command @ revision; a count nobody can rerun is an estimate>
+    Change footprint:     <files ±, production lines ±, test lines ±; context only, never a verdict input>
     ```
 
 > [!IMPORTANT] If no axis improves, state: *"Complexity Warning:

@@ -47,6 +47,10 @@ A promoted rule must pass all of these:
 - It does not assume a package manager, CI provider, cloud, UI framework, branch
   strategy, or domain taxonomy unless the skill explicitly targets that stack.
 - It names the decision owner and the earliest enforceable check.
+- Every criterion it sets can be decided from an artifact, not from memory or
+  goodwill.
+- It names the observed failure it prevents: a correction, transcript,
+  incident, or scenario. "An agent could…" is a proposal, not a rule.
 - Its output contract lets another agent prove whether the method was applied.
 - It replaces or tightens an existing rule when possible instead of duplicating
   authority.
@@ -74,6 +78,12 @@ the transcript was recorded, when an expectation is not met, and when an entry i
 to judge the reasoning. Before a release, re-record the scenarios for must
 requirements by name, even when their transcripts are current.
 
+A `route_loaded` expectation fails when a run names a gate in `Core route`, or
+a companion in `Companions`, whose `SKILL.md` it never read: a decision
+attributed to a skill that did not load is a claim, not a result.
+`SCENARIO_UNCOVERED` in the validator lists the skills no scenario names yet;
+it only shrinks, and a new skill ships with a scenario.
+
 ## Change checklist
 
 - [ ] Generic skill method changed in `.agents/skills/<name>/SKILL.md`.
@@ -81,7 +91,13 @@ requirements by name, even when their transcripts are current.
 - [ ] Detail an agent needs only on some paths lives in `references/*.md`,
       linked from `SKILL.md` with a stub that keeps the section number and
       the essentials; the validator requires every reference file to be
-      linked and every link to resolve.
+      linked and every link to resolve. Only lookup and recognition material
+      moves: text that sends an agent looking, such as forcing questions or
+      pattern lists used to find problems, stays in `SKILL.md` unless a
+      scenario shows the move loses nothing.
+- [ ] A change to a decision rule, verdict set, or evidence bar adds or updates
+      a scenario that fails without the change, or lists the unmet expectation
+      under `known_failures` with its reason.
 - [ ] `.documentation/READ-<name>.md` matches the public role, was re-read
       against the skill diff, and was then restamped with
       `python scripts/validate-skills.py --stamp-primers`. The stamp records

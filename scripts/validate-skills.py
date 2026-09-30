@@ -25,26 +25,26 @@ MAX_DESCRIPTION = 1024
 # with the rationale in the commit message.
 SIZE_BUDGET_GRAIN = 100
 SIZE_BUDGET_WORDS = {
-    "CLAUDE.md": 1300,
+    "CLAUDE.md": 1400,
     "alchemy": 4600,
-    "architecture-as-code": 2700,
+    "architecture-as-code": 2800,
     "architecture-as-code-javascript": 2200,
     "architecture-as-code-python": 1500,
     "architecture-guidelines": 1900,
     "bring-down": 2800,
     "ci-cd-reliability-architecture": 3500,
-    "continuous-improvement": 1300,
-    "defect-shift-left": 2100,
+    "continuous-improvement": 1400,
+    "defect-shift-left": 2200,
     "dependency-lifecycle": 2000,
     "evolutionary-database-design": 3300,
-    "functionality-complexity-tradeoff": 4500,
+    "functionality-complexity-tradeoff": 4600,
     "implementation-readiness": 1900,
     "morphogenetic-architecture": 4700,
     "observability-design": 1800,
     "push-out": 1300,
     "requirements-grounding": 3100,
     "requirements-topology": 2000,
-    "requirements-traceability": 2500,
+    "requirements-traceability": 2600,
     "structural-simplification": 2600,
     "system-optimization": 2600,
     "test-strategy": 2100,
@@ -119,6 +119,11 @@ SKILL_REQUIRED_TERMS = {
         "select `zero-copy-requirements`",
         "select `dependency-lifecycle`",
         "select `observability-design`",
+        'Close out what you implement',
+        '**Claim only what ran.**',
+        '**Follow-ups inherit the route.**',
+        'Verify each finding',
+        '`DIRECT → M` per proposed component',
     ),
     "architecture-as-code": (
         "`architecture-guidelines` or `morphogenetic-architecture`",
@@ -133,6 +138,7 @@ SKILL_REQUIRED_TERMS = {
         # rule stays documented until the contract step removes it.
         "`components` is accepted as a deprecated alias for `subsystems`",
         "rejects a file that carries both",
+        'resolves to no registered subsystem',
     ),
     "architecture-as-code-javascript": (
         "no-restricted-syntax",
@@ -154,6 +160,7 @@ SKILL_REQUIRED_TERMS = {
         "Prove it red first",
         "`boundaries/external` still works and is deprecated in v7",
         "m.default.subsystems ?? m.default.components ?? []",
+        "Flat config replaces a rule's options per rule id",
     ),
     "architecture-as-code-python": (
         "The graph root is the coverage gate",
@@ -174,6 +181,7 @@ SKILL_REQUIRED_TERMS = {
         "after the caller's own write",
         "Aspects are extracted, not interleaved",
         "Principle:   aspect coverage",
+        '**Pure is not placed**',
     ),
     "ci-cd-reliability-architecture": (
         "Release and Production Promotion",
@@ -191,12 +199,16 @@ SKILL_REQUIRED_TERMS = {
         "Representativeness:",
         "in-place subsystem replace",
         "Zero-downtime:  <yes | no + why>",
+        'blocks only on findings the change introduces',
+        'covers every build input',
     ),
     "defect-shift-left": (
         "Aspect coverage gap",
         "a check nobody runs has zero shift-left value",
         "Use this only when the user asks for tooling recommendations",
         "A tool that does not map to a rung on the ladder has no place in the output",
+        'A gate never seen failing is a hypothesis',
+        'the earliest stage whose budget admits it',
     ),
     "bring-down": (
         "Bring down to the lowest responsible level",
@@ -223,6 +235,9 @@ SKILL_REQUIRED_TERMS = {
         "consumer project",
         "a hypothesis, not a safeguard",
         "the observed failure without the rule",
+        'Scope:          <generic library | project overlay>',
+        'the Rule of 3 governs code abstractions, not rules',
+        'return a proposal with an M verdict',
     ),
     "requirements-grounding": (
         "requirements-topology",
@@ -244,6 +259,7 @@ SKILL_REQUIRED_TERMS = {
         "coverage finding, not evidence that none apply",
         "Quality coverage:",
         "Holds across:",
+        'a decision nobody can point to is an assumption',
     ),
     "requirements-topology": (
         "requirements-grounding",
@@ -364,6 +380,9 @@ SKILL_REQUIRED_TERMS = {
         "representation gaps carry expiry",
         "lapsing",
         "`aspect-uncovered`",
+        '`unreachable-implementation`',
+        "the named command's own exit status on a clean",
+        'close the authorizing issue with that evidence',
     ),
     "functionality-complexity-tradeoff": (
         "Outcome evidence informs worth; it is not the verdict",
@@ -372,9 +391,14 @@ SKILL_REQUIRED_TERMS = {
         "Outcome evidence:",
         "no hypothesis state automatically",
         "Authoritative floors",
+        'including each component of a design or plan',
+        'is not evidence of `F` or',
+        'names the path by which the stated actor',
     ),
     "structural-simplification": (
         "enforceable static constraints to `architecture-as-code`",
+        'Measured by:',
+        'Change footprint:',
     ),
     "test-strategy": (
         "Risk before test type",
@@ -390,6 +414,7 @@ SKILL_REQUIRED_TERMS = {
         "An Obligation pass is provisional by design and cannot emit `ADEQUATE`",
         "pipeline execution triggers",
         "quarantined test cannot count as verified evidence",
+        'never by an API acknowledgment or a green fake alone',
     ),
     "evolutionary-database-design": (
         "Every change is a refactoring, not an edit",
@@ -413,6 +438,8 @@ SKILL_REQUIRED_TERMS = {
         "Coexisting clients:",
         "The coexistence window does not end where the deployment ends",
         "names the consumers it covers",
+        'Settle release status first',
+        'Release status:',
     ),
     "zero-copy-requirements": (
         "No artifact may exist whose content is fully reconstructable",
@@ -577,6 +604,12 @@ REFERENCE_REQUIRED_TERMS = {
             "a second authority cannot be kept in sync by discipline",
             "bump classified by version number",
             "which is unobserved rather than accepted",
+            "| Close-out skipped |",
+            "gate never seen failing",
+        ),
+        "references/change-primitives.md": (
+            "# Change Primitives — Named Specializations",
+            "adds no rule of its own",
         ),
     },
     "morphogenetic-architecture": {
@@ -681,6 +714,21 @@ CONTRIBUTION_REQUIRED_TERMS = (
     "--record-scenario",
 )
 PUBLIC_DOC_FORBIDDEN = {
+    # The router and root file are stack-neutral; each stack skill names its
+    # own enforcement file (architecture-as-code maps them).
+    "stack-specific router text": {
+        "files": (
+            ROOT / "CLAUDE.md",
+            *(ROOT / tree / "skills" / "alchemy" / name
+              for tree in (".agents", ".claude")
+              for name in ("SKILL.md", "references/failure-modes.md")),
+        ),
+        "patterns": (
+            "eslint.architecture.mjs",
+            "architecture.toml",
+            "Eslint rules",
+        ),
+    },
     "bring-down old public model": {
         "files": (
             ROOT / "README.md",
@@ -1477,7 +1525,44 @@ SCENARIO_CHECKS = {
     "guidance_excludes": {"skills": list},
     "blocks_in_order": {},
     "text_matches": {"pattern": str},
+    "route_loaded": {},
 }
+ROUTE_SKILLS = {
+    "M": "functionality-complexity-tradeoff",
+    "A": "architecture-guidelines",
+    "L": "morphogenetic-architecture",
+    "C": "structural-simplification",
+    "E": "architecture-as-code",
+    "H": "defect-shift-left",
+    "Y": "system-optimization",
+    "left": "defect-shift-left",
+    "out": "push-out",
+    "down": "bring-down",
+}
+# Skills no scenario names yet. The list may only shrink: a skill leaves it
+# when a scenario covers it, and a new skill needs a scenario to ship.
+SCENARIO_UNCOVERED = (
+    "architecture-as-code-javascript",
+    "architecture-as-code-python",
+    "architecture-guidelines",
+    "bring-down",
+    "ci-cd-reliability-architecture",
+    "continuous-improvement",
+    "defect-shift-left",
+    "dependency-lifecycle",
+    "evolutionary-database-design",
+    "implementation-readiness",
+    "morphogenetic-architecture",
+    "observability-design",
+    "push-out",
+    "requirements-grounding",
+    "requirements-topology",
+    "requirements-traceability",
+    "structural-simplification",
+    "system-optimization",
+    "test-strategy",
+    "zero-copy-requirements",
+)
 SCENARIO_CRITERION_RE = re.compile(r"^[a-z][a-z0-9-]* #\d+: \S")
 SCENARIO_TRANSCRIPT_KEYS = {
     "scenario": str,
@@ -1600,8 +1685,52 @@ def scenario_guidance(transcript: dict) -> set[str]:
     return seen
 
 
+def scenario_loaded(transcript: dict) -> set[str]:
+    """Skills whose SKILL.md body the run read or invoked; a reference file
+    alone does not count as loading the gate."""
+    loaded = {str(name).rsplit(":", 1)[-1] for name in transcript["skills_invoked"]}
+    for path in transcript["files_read"]:
+        parts = str(path).split("/")
+        if len(parts) == 4 and parts[:2] == [".claude", "skills"] and parts[3] == "SKILL.md":
+            loaded.add(parts[2])
+    return loaded
+
+
+NOT_RUN_RE = re.compile(r"\b(?:not run|not triggered|deferred|skipped|blocked)\b", re.I)
+
+
+def scenario_route(output: str) -> set[str]:
+    """Skills a run names as routed: Core route stages and Companions. A stage
+    annotated as not run, as in "E (Not run)" or "(Y deferred)", and any
+    parenthesized aside are notes, not claims."""
+    named = set()
+    for value in scenario_values(output, "Core route"):
+        value = re.sub(r"\b[A-Za-z][A-Za-z-]*\s*\([^)]*\)", lambda m: "" if NOT_RUN_RE.search(m.group(0)) else m.group(0), value)
+        for token in re.findall(r"[A-Za-z][A-Za-z-]*", re.sub(r"\([^)]*\)", "", value)):
+            if token in ROUTE_SKILLS:
+                named.add(ROUTE_SKILLS[token])
+    for value in scenario_values(output, "Companions"):
+        for token in re.findall(r"[a-z][a-z0-9-]+", re.sub(r"\([^)]*\)", "", value)):
+            if (CLAUDE_SKILLS / token / "SKILL.md").is_file():
+                named.add(token)
+    return named
+
+
+def scenario_route_loaded(transcript: dict) -> bool:
+    """Every routed skill was loaded, or the output reports it as not run on a
+    line that names it: a decision attributed to an unloaded skill fails."""
+    output, loaded = transcript["output"], scenario_loaded(transcript)
+    lines = output.splitlines()
+    return all(
+        any(skill in line and NOT_RUN_RE.search(line) for line in lines)
+        for skill in scenario_route(output) - loaded
+    )
+
+
 def scenario_passes(expectation: dict, transcript: dict) -> bool:
     check, output = expectation["check"], transcript["output"]
+    if check == "route_loaded":
+        return scenario_route_loaded(transcript)
     if check in ("field_in", "field_present", "field_absent"):
         values = scenario_values(output, expectation["field"])
         if check == "field_present":
@@ -1626,6 +1755,19 @@ def scenario_passes(expectation: dict, transcript: dict) -> bool:
     return re.search(expectation["pattern"], output, re.I) is not None
 
 
+def validate_scenario_coverage(directories: list[Path]) -> None:
+    covered = set()
+    for directory in directories:
+        scenario, _ = load_scenario(directory)
+        covered.update(scenario["skills"])
+    for skill in skill_dirs(AGENT_SKILLS):
+        name = skill.name
+        if name in covered and name in SCENARIO_UNCOVERED:
+            fail(f"{name} is now covered by a scenario; remove it from SCENARIO_UNCOVERED")
+        if name not in covered and name not in SCENARIO_UNCOVERED:
+            fail(f"{name} has no behavior scenario; add one under .scenarios/")
+
+
 def validate_scenarios() -> None:
     """Every scenario has a transcript recorded against the text it depends on
     now, and the transcript meets each expectation not listed as a known
@@ -1634,6 +1776,7 @@ def validate_scenarios() -> None:
     directories = sorted(path for path in SCENARIOS.iterdir() if path.is_dir()) if SCENARIOS.is_dir() else []
     if not directories:
         fail(".scenarios holds no scenarios; behavior is checked only through recorded transcripts")
+    validate_scenario_coverage(directories)
     for directory in directories:
         label = f".scenarios/{directory.name}"
         record = f"python scripts/validate-skills.py --record-scenario {directory.name}"
@@ -2040,6 +2183,47 @@ def mutation_test() -> int:
 
     cases.append((Case("size: budget kept for a skill that no longer exists", validator_copy, ("do not exist",)), budget_ghost_skill))
 
+    # The router and root file stay stack-neutral.
+    router_files = [copy / tree / "skills" / "alchemy" / "SKILL.md" for tree in (".agents", ".claude")]
+
+    def name_stack_file(files=router_files):
+        for path in files:
+            text, crlf = read_raw(path)
+            write_raw(path, text + "\nShip eslint.architecture.mjs with the code.\n", crlf)
+
+    cases.append((Case("genericity: router names one stack's enforcement file", router_files, ("stack-specific router text",)), name_stack_file))
+
+    # Every relative link in published markdown resolves.
+    root_file = copy / "CLAUDE.md"
+
+    def break_link(path=root_file):
+        text, crlf = read_raw(path)
+        write_raw(path, text + "\nSee [the missing skill](.claude/skills/no-such-skill/SKILL.md).\n", crlf)
+
+    cases.append((Case("links: root file links a path that does not exist", [root_file], ("does not resolve",)), break_link))
+
+    # The router classifies every verdict the worth gate can return.
+    def drop_verdict(files=router_files):
+        for path in files:
+            text, crlf = read_raw(path)
+            needle = "`SIMPLIFY`, `QUARANTINE` |"
+            if needle not in text:
+                raise RuntimeError(f"M hand-off row not found in {path}")
+            write_raw(path, text.replace(needle, "`SIMPLIFY` |", 1), crlf)
+
+    cases.append((Case("verdicts: router hand-off drops an M verdict", router_files, ("does not classify M verdict",)), drop_verdict))
+
+    # The scenario-coverage list may only shrink.
+    def uncover_skill(files=validator_copy):
+        for path in files:
+            text, crlf = read_raw(path)
+            needle = '    "zero-copy-requirements",\n)'
+            if needle not in text:
+                raise RuntimeError("SCENARIO_UNCOVERED tail not found in the validator copy")
+            write_raw(path, text.replace(needle, ")", 1), crlf)
+
+    cases.append((Case("scenarios: a skill left without a scenario", validator_copy, ("has no behavior scenario",)), uncover_skill))
+
     # A stated count and the install table drift without touching any skill,
     # so each is proven with the README defect that once shipped: a count one
     # higher than the tree, and the Codex row naming the Claude Code tree.
@@ -2216,12 +2400,10 @@ def validate_test_strategy_contract() -> None:
             fail(f"{(skill / relative).relative_to(ROOT)} is required")
 
     contracts = {
+        # Routing detail lives in alchemy; the root file keeps the invariant.
         ROOT / "CLAUDE.md": (
             "test-strategy",
-            "two-pass task-matched companion",
-            "Obligation pass",
-            "Portfolio pass",
-            "pipeline execution triggers",
+            "two-pass",
         ),
         AGENT_SKILLS / "alchemy" / "SKILL.md": (
             "`test-strategy`",
@@ -2262,7 +2444,7 @@ def validate_test_strategy_contract() -> None:
         "Readiness — READY or bounded reversible PARTLY-READY before Architecture",
         "Test strategy — Obligation pass before A",
         "Gate 2 — Smallest correct design",
-        "Gate 5 — eslint.architecture.mjs in the SAME PR as the code",
+        "Gate 5 — architecture rules in the SAME PR as the code",
         "Test strategy — Portfolio pass after final A/L/C/E and before H",
         "Gate 6 — Every error path mapped to earliest catchable stage",
     )
@@ -2306,8 +2488,6 @@ def validate_evolutionary_database_design_contract() -> None:
         ROOT / "CLAUDE.md": (
             "evolutionary-database-design",
             "two-pass",
-            "Compatibility pass",
-            "Transition pass",
             "Expand and contract never ship in one deployable",
             "gated on evidence, not a date",
         ),
@@ -2357,7 +2537,7 @@ def validate_evolutionary_database_design_contract() -> None:
         "Test strategy — Obligation pass before A",
         "Data shape — Compatibility pass before A",
         "Gate 2 — Smallest correct design",
-        "Gate 5 — eslint.architecture.mjs in the SAME PR as the code",
+        "Gate 5 — architecture rules in the SAME PR as the code",
         "Data shape — Transition pass after final A/L/C/E",
         "Test strategy — Portfolio pass after final A/L/C/E and before H",
         "Gate 6 — Every error path mapped to earliest catchable stage",
@@ -2691,6 +2871,45 @@ def validate_contribution_contract() -> None:
         fail("package.json files must exclude '!**/__pycache__/' or npm pack ships .pyc caches")
 
 
+MARKDOWN_LINK_RE = re.compile(r"\]\(([^)\s]+)\)")
+
+
+def validate_markdown_links() -> None:
+    """Every relative link in published markdown resolves. A broken link in
+    the root file survived months because only references/ links were checked."""
+    paths = [
+        *ROOT.glob("*.md"),
+        *DOCS.glob("*.md"),
+        *(md for path in skill_dirs(AGENT_SKILLS) for md in sorted(path.rglob("*.md"))),
+        *(md for path in skill_dirs(CLAUDE_SKILLS) for md in sorted(path.rglob("*.md"))),
+    ]
+    for path in paths:
+        text = re.sub(r"```.*?```", "", path.read_text(encoding="utf-8"), flags=re.S)
+        for target in MARKDOWN_LINK_RE.findall(text):
+            if re.match(r"^[a-z][a-z0-9+.-]*:", target) or target.startswith("#"):
+                continue
+            relative = target.split("#", 1)[0]
+            if relative and not (path.parent / relative).exists():
+                fail(f"{path.relative_to(ROOT)} links {target}, which does not resolve")
+
+
+def validate_verdict_classification() -> None:
+    """The router classifies every verdict the worth gate can return; an enum
+    copied by hand falls behind the gate that owns it."""
+    gate = AGENT_SKILLS / "functionality-complexity-tradeoff" / "SKILL.md"
+    enum = re.search(r"^Decision:\s+<([^>]+)>", gate.read_text(encoding="utf-8"), re.M)
+    if not enum:
+        fail(f"{gate.relative_to(ROOT)} output contract has no Decision enum")
+    verdicts = [value.strip() for value in enum.group(1).split("|")]
+    router = AGENT_SKILLS / "alchemy" / "SKILL.md"
+    row = re.search(r"^\| M — Minimum \|(.*)$", router.read_text(encoding="utf-8"), re.M)
+    if not row:
+        fail(f"{router.relative_to(ROOT)} has no M — Minimum hand-off row")
+    for verdict in verdicts:
+        if f"`{verdict}`" not in row.group(1):
+            fail(f"{router.relative_to(ROOT)} hand-off does not classify M verdict {verdict}")
+
+
 def validate_public_doc_drift() -> None:
     for rule, config in PUBLIC_DOC_FORBIDDEN.items():
         for path in config["files"]:
@@ -2827,6 +3046,9 @@ def main() -> int:
     validate_pin_coverage()
     validate_size_budget()
     validate_retired_skill_references()
+    # Before primer revisions: a mutation in a skill body must reach these.
+    validate_public_doc_drift()
+    validate_verdict_classification()
     validate_morphogenetic_mode_selection()
     validate_morphogenetic_graph_analyzer()
     validate_morphogenetic_pattern_atlas()
@@ -2854,7 +3076,7 @@ def main() -> int:
     validate_alchemy_root_guidance()
     validate_design_and_release_contracts()
     validate_contribution_contract()
-    validate_public_doc_drift()
+    validate_markdown_links()
     validate_scenarios()
     print("Skills validated")
     return 0

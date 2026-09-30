@@ -1,0 +1,25 @@
+{
+  "request": "Do some alchemy on this: the fix is merged. Is everything pushed, and can the feature branch be deleted?",
+  "skills": [
+    "alchemy"
+  ],
+  "expect": [
+    {
+      "id": "selects-skip",
+      "criterion": "adaptive-dispatch #1: routine housekeeping skips the core gates",
+      "check": "field_in",
+      "field": "Dispatch",
+      "values": [
+        "SKIP"
+      ]
+    },
+    {
+      "id": "loads-no-gate",
+      "criterion": "adaptive-dispatch #2: a skip loads no gate skill",
+      "check": "guidance_within",
+      "skills": [
+        "alchemy"
+      ]
+    }
+  ]
+}

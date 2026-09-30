@@ -100,8 +100,10 @@ Use this deterministic signal matrix when no alias is present:
 
 | Change signal | Dispatch / minimum core route |
 |:--|:--|
-| Copy, CSS, trivial rename, contract-preserving dependency bump, isolated in-boundary fix | `SKIP` |
+| Copy, CSS, trivial rename, contract-preserving dependency bump, isolated in-boundary fix, or version-control, status, and release housekeeping | `SKIP` |
 | Worth, dead code, speculative abstraction, or "should this exist?" | `DIRECT → M` |
+| A design, plan, or proposal about to be presented, or a new service, store, dependency, or data flow | `DIRECT → M` per proposed component, before A |
+| "Is it simpler now?" about a finished change | `DIRECT → C` on the diff, before vs after; add L only when a boundary moved |
 | Defect found late, check placement, or CI detection timing | `DIRECT → H` or `left` |
 | Structural refactor inside one boundary | `ADAPTIVE → M, C`; add A when responsibility or public contract changes, H when verification placement changes |
 | New subsystem/service/library, cross-boundary dependency, increment cut through every layer (vertical slice), consolidation, or an aspect added or changed across several subsystems (auth, audit, logging, retry, i18n) | `ADAPTIVE → qualification as needed, M, A, L, C, E, H` |
@@ -127,13 +129,11 @@ the selected companion skill bodies.
   executable source, and `requirements-traceability` anchors evidence once the
   location exists. None of the three is a qualification stage, gate, or acronym
   letter.
-- When a trigger names a dependency this system already owns — an advisory,
-  drift, abandonment, a license change, or an end-of-life date — select
-  `dependency-lifecycle`. It classifies the bump that dispatch depends on: only
-  a contract-preserving bump is `SKIP`.
-- When a risk survives verification into production, or an alert, dashboard, or
-  telemetry set is under review, select `observability-design`. It designs the
-  production signal; `defect-shift-left` owns how early that signal could move.
+- When an advisory, drift, abandonment, license change, or end-of-life date
+  names an owned dependency, select `dependency-lifecycle`; it classifies the
+  bump, and only a contract-preserving bump is `SKIP`.
+- When a risk survives verification into production, or alerts or telemetry
+  are under review, select `observability-design`.
 - `SKIP` skips only the Alchemy core; it never suppresses a matching companion.
 - `DIRECT` keeps the core route focused while allowing independently triggered
   companions.
@@ -159,15 +159,16 @@ gate unless the user asked for a broader pass.
 ### Change Primitives
 
 Every stage describes change with four primitives. Each sibling skill names
-its own term as a specialization of exactly one and never redefines them.
-This is vocabulary, not a gate rule.
+its own term as a specialization of exactly one and never redefines them;
+[references/change-primitives.md](references/change-primitives.md) maps each
+sibling term to its primitive. This is vocabulary, not a gate rule.
 
-| Primitive | Definition | Named specializations |
-|:--|:--|:--|
-| **Subsystem** | A part produced by decomposition: the thing a position is assigned to and a rule file governs. *Where change lands.* | L places it at a position; E governs it per directory; C counts subsystems (n) and their kinds (D); `bring-down` ranks the capability it can be replaced by. Requirements skills group requirements into *capabilities*; A decides when a capability becomes a subsystem boundary, and L places it. |
-| **Aspect** | A property that holds across a declared set of the units the stage knows — problem scopes at Grounding and Topology, capabilities at Readiness, subsystems from L onward; the scope → subsystem mapping is L's placement decision, never inferred upstream. One obligation (the rule) and one mechanism (the subsystem that implements it). *Which dimension is touched.* | Grounding: a requirement with `Holds across`; Topology: a `constraint` node with `holds_across` and the `Aspect coverage` check; Readiness: a row of the aspect matrix; M: the aspect-owner map; A: extracted, never interleaved; L: the mechanism's position plus `Holds across`; C: the aspect-extraction delta; E: the mechanism's exclusivity edges; H: placement of the coverage check; Test Strategy: its oracle; Traceability: the `aspect-uncovered` gap. |
-| **Increment** | The bounded unit of change admitted to implementation; it adds, changes, or removes cells of the subsystem × aspect matrix. *What changes.* | Readiness admits it — a *vertical increment* realizes one outcome end to end through every layer it crosses; `evolutionary-database-design`: a *migration increment* per stage; `system-optimization`: a *batch* is the set of increments moved together; CI/CD: the *candidate artifact* is its built form. |
-| **Iteration** | One cycle that admits an increment, realizes it, and measures the resulting baseline: completion evidence plus the structural and flow measurements later windows compare against. Prediction windows, outcome-evidence windows, and revisit triggers are carried across iterations and close on their own trigger, re-entering L or M as a new bounded decision. "Iteration 2" is the next iteration on the same subject, *starting from that measured baseline*. | Completion evidence closes an iteration (`requirements-traceability`); outcome evidence does not. Y optimizes only a stable, measured baseline, so it *runs in the iteration after the increment ships*. A PDCA or DMAIC turn in `system-optimization` is an iteration whose Check or Control step is the measurement. |
+| Primitive | Definition |
+|:--|:--|
+| **Subsystem** | A part produced by decomposition: the thing a position is assigned to and a rule file governs. *Where change lands.* |
+| **Aspect** | A property that holds across a declared set of the units the stage knows — problem scopes at Grounding and Topology, capabilities at Readiness, subsystems from L onward; the scope → subsystem mapping is L's placement decision, never inferred upstream. One obligation (the rule) and one mechanism (the subsystem that implements it). *Which dimension is touched.* |
+| **Increment** | The bounded unit of change admitted to implementation; it adds, changes, or removes cells of the subsystem × aspect matrix. *What changes.* |
+| **Iteration** | One cycle that admits an increment, realizes it, and measures the resulting baseline: completion evidence plus the structural and flow measurements later windows compare against. Prediction windows, outcome-evidence windows, and revisit triggers are carried across iterations and close on their own trigger, re-entering L or M as a new bounded decision. "Iteration 2" is the next iteration on the same subject, *starting from that measured baseline*. |
 
 Decomposition and aspect extraction are different cuts. Decomposition splits
 one subsystem into several; extraction pulls one aspect out of several
@@ -200,8 +201,8 @@ Routing rules:
 2. **Ground conditionally.** Route a new or stale ungrounded request through
    `requirements-grounding`. Route current grounded requirements directly to M.
 3. **M owns worth.** Grounding validates evidence and meaning and may supply
-   linked outcome hypotheses as value evidence; M alone decides `BUILD`,
-   `KEEP`, `SIMPLIFY`, `DEFER`, `DROP`, or `OBSOLETE`.
+   linked outcome hypotheses as value evidence; M alone issues the worth
+   verdict.
 4. **Topology is conditional.** Use `requirements-topology` when multiple
    requirements have prerequisites, constraints, conflicts, shared foundations,
    or non-trivial sequencing. Skip it for one bounded independent requirement
@@ -223,15 +224,15 @@ Decision hand-offs:
 | Stage | Passing decisions | Blocking decisions | Required hand-off |
 |:--|:--|:--|:--|
 | Requirements Grounding | `GROUNDED` | `PROVISIONAL`, `NOT-GROUNDED` | Grounded requirements, linked outcome hypotheses when relevant, evidence, assumptions, confirmation queue |
-| M — Minimum | `BUILD`, `KEEP`, `SIMPLIFY` | `DEFER`, `DROP`, `OBSOLETE` | Functionality/complexity decision per candidate |
+| M — Minimum | `BUILD`, `BUILD-minimal`, `KEEP`, `SIMPLIFY`, `QUARANTINE` | `NEGOTIATE`, `DEFER`, `DROP`, `DEPRECATE`, `DELETE`, `OBSOLETE` | Functionality/complexity decision per candidate |
 | Requirements Topology | `STABLE` | `NEEDS-REFACTOR`, `BLOCKED` | Atomic typed graph, stable IDs, conflicts, dependency order |
 | Implementation Readiness | `READY`, bounded `PARTLY-READY` | `NOT-READY` | Smallest coherent increment, verification obligations, blockers |
 
 After an increment passes readiness and enters architecture/implementation, use
 `requirements-traceability` to connect canonical IDs to implementation and
-executed completion and outcome evidence. Traceability is implementation
-follow-through, not another qualification stage, A.L.C.H.E.M.Y. gate, acronym
-letter, or prerequisite for A.
+executed completion and outcome evidence. Traceability, Test Strategy, and
+Evolutionary Database Design are follow-through or companions, never a
+qualification stage, A.L.C.H.E.M.Y. gate, acronym letter, or prerequisite for A.
 
 When current outcome evidence reaches a revisit trigger, route the bounded
 functionality back to M in Retrospective mode. This is a new worth decision over
@@ -256,8 +257,7 @@ and enforcement to finalize technique, scope, fidelity, dependencies, data,
 environment, and stimulus before H. Collapse them into a Combined pass only
 for stable accepted architecture. Gate H still owns the earliest capable
 stage, CI/CD owns pipeline execution triggers and gating, and traceability owns
-executed-evidence state. Test Strategy is not a qualification stage,
-A.L.C.H.E.M.Y. gate, acronym letter, or prerequisite for A.
+executed-evidence state.
 
 When an admitted increment changes persisted or serialized data shape — a schema,
 event or message payload, API body, or file format — use
@@ -282,8 +282,7 @@ pass only for a stable accepted target shape. Gate 3 still owns placement and
 the reversibility grade, Gate H the earliest capable stage, CI/CD the deploy
 order and gating, and traceability the migration anchor. Expand and contract
 never ship in one deployable, and the contract step is gated on evidence, not
-a date. Evolutionary Database Design is not a qualification stage,
-A.L.C.H.E.M.Y. gate, acronym letter, or prerequisite for A.
+a date.
 
 For an existing project, implementation is evidence rather than intent.
 Code-derived requirements remain `PROVISIONAL` until an authoritative artifact
@@ -357,11 +356,11 @@ Core directives:
    the Gate 3–4 handshake.
 2. Name the second instance before writing an abstraction. Rule of 3 is the
    null hypothesis. If absent, DROP.
-3. Ship `eslint.architecture.mjs` with the code it governs. Follow-up PRs to
+3. Ship the architecture rules with the code they govern. Follow-up PRs to
    "add the rules" are drift.
 4. Defer Gate 7 to iteration 2 — the iteration after the increment ships,
-   starting from its stable, measured baseline — unless the request is
-   explicitly about an existing bottleneck.
+   starting from its stable, measured baseline — unless the request, or an
+   audit's own measurement, names an existing bottleneck.
 5. Audit starts at `C₀`, conditionally recovers intent, then resumes the
    qualification phase and remaining gates from the earliest failed decision.
 6. Before deleting either of two duplicate implementations, inventory their
@@ -372,8 +371,12 @@ Core directives:
    handshake. Architecture may refine the portfolio but must not silently erase
    an admitted risk or oracle.
 8. When an increment changes persisted or serialized data shape, preserve the
-   Evolutionary Database Design two-pass handshake. Expand and contract never
-   ship in one deployable; the contract step is gated on evidence, not a date.
+   Evolutionary Database Design two-pass handshake.
+9. Close out what you implement. When the same task implements an `ADAPTIVE`
+   or `FULL` route, run the selected gates once more against the finished diff
+   before reporting done: C re-measures and states predicted vs measured, each
+   enforcement claim is shown failing on a planted violation, and H places the
+   new error paths. A mismatch is a defect, not a note.
 
 ---
 
@@ -399,7 +402,7 @@ Core directives:
 - [ ] Gate 4 — Subsystem-kinds / Dependency-edges / Max-chain-depth / Subsystem-count Δ computed for design vs status quo
 - [ ] Gate 3 acceptance — MOVE / SPLIT / MERGE / INTRODUCE-BOUNDARY re-entered
                               once with Gate 4 measurement; final decision recorded
-- [ ] Gate 5 — eslint.architecture.mjs in the SAME PR as the code
+- [ ] Gate 5 — architecture rules in the SAME PR as the code
 - [ ] Data shape — Transition pass after final A/L/C/E and before the Test
                     strategy Portfolio pass: staged path, migration increments,
                     backfill, contract trigger, and reversal step per stage
@@ -408,6 +411,8 @@ Core directives:
 - [ ] Gate 6 — Every error path mapped to earliest catchable stage
 - [ ] Gate 7 — Deferred to iteration 2 (after the increment ships, from its
             stable, measured baseline)
+- [ ] Close-out — When implemented here: C predicted vs measured on the diff,
+                   enforcement claims seen red, new error paths placed
 - [ ] Follow-through — When implementation is in scope, hand admitted IDs and
                        completion and outcome-evidence obligations to
                        requirements-traceability
@@ -431,16 +436,16 @@ contradictory, or disputed:
 | 4 — conditional topology | `requirements-topology` | Structure remediation requirements when relationships are non-trivial |
 | 5 — conditional readiness | `implementation-readiness` | Identify the smallest coherent remediation increment that may enter Architecture |
 | 6 | Remaining A.L.C.H.E.M.Y. gates | Redesign, enforce, and shift left only as the remediation requires |
+| 7 — before reporting | owning gate | Verify each finding: cite the search for intent (decisions and rejected proposals, commits, tests that pin the behavior, criteria) and for equivalent enforcement under other names, and name a reachable trigger; otherwise report it as unverified. Name the committed script or command behind every count |
 
 ---
 
 ## 6. Failure-Mode Diagnostics
 
-A symptom, skipped gate, and recovery table for a run whose result looks
-wrong, an audit of existing code, or a decision trail with an unexplained skip.
-Read [references/failure-modes.md](references/failure-modes.md) when a subject
-shows one of its symptoms, then route the recovery to the named stage instead
-of rerunning every gate. Two symptoms recur often enough to stay here: a
+Read [references/failure-modes.md](references/failure-modes.md) when a run's
+result looks wrong, an audit shows a symptom, or a trail has an unexplained
+skip; route the recovery to the named stage instead of rerunning every gate.
+Two symptoms recur often enough to stay here: a
 capability shipped or acceptance passed is reported as outcome success
 (Requirements Grounding skipped; separate completion evidence from the linked
 outcome hypothesis and measure impact after representative use), and stale or
@@ -482,7 +487,7 @@ Mode:           Design | Refactor | Audit
 Dispatch:       SKIP | DIRECT | ADAPTIVE | FULL
 Companions:     <None | task-matched skills>
 Blocking stage: <first non-passing qualification decision or gate, or None>
-Decision:       Proceed | Redesign | Reject | Defer
+Decision:       Proceed | Redesign | Drop | Defer
 Verification:   <commands, lint rules, tests, or Not run + reason>
 ```
 
@@ -504,6 +509,12 @@ output alone.
   discovery; inspection begins only after the route bounds what to read.
 - **Natural language stays adaptive.** "Do some alchemy" never means `FULL`
   without explicit full-traversal language.
+- **Claim only what ran.** `Core route` and the trail name a stage's decision
+  only when its `SKILL.md` was read in this task; a selected stage that did not
+  run appears in the trail as `Not run` with the reason.
+- **Follow-ups inherit the route.** "Fix it", "continue", or "do all" reuses the
+  last dispatch and the bodies already read; read another body only when the
+  route gains a stage.
 - **Companions remain independent.** A core skip or focused alias must not hide
   a task-matched domain, stack, security, UX, accessibility, or evidence skill.
 - **When a gate is consistently skipped across tasks**, that's a signal for

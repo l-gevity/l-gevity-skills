@@ -210,6 +210,9 @@ for f in files:
 # 3. Expand wildcards against the live registry.
 #    Turn a spec ('foo' | 'foo-*' | '*' | list | parametric) into
 #    a concrete list of subsystem names, with `except` subtracted.
+#    Fail when a spec or `except` resolves to no registered subsystem, or a
+#    subsystem pattern matches no file: an unknown name expands to an empty
+#    set and drops its rule while lint stays green.
 names = [c.name for c in subsystems]
 def expand(spec, except_):
     if spec is parametric: return spec     # passthrough
@@ -283,6 +286,8 @@ Before merge:
 - [ ] Every file at repository root belongs to a declared subsystem.
 - [ ] The assembler forwards every field the subsystem schema defines, `mode`
       included.
+- [ ] Every name in `forbidden` resolves to a registered subsystem, and every
+      subsystem pattern matches at least one file.
 - [ ] Lint violation count matches baseline (or new violations reflect
       intentional changes).
 - [ ] The subsystem registry the assembler builds lists every governed

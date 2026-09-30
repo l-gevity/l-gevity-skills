@@ -173,4 +173,4 @@ operational reference — measurement recipes, operation catalogues, the
 trade-off matrix, and the decision record — lives in
 [SKILL.md](../.claude/skills/structural-simplification/SKILL.md).*
 
-<!-- skill-revision: fe9419631269 -->
+<!-- skill-revision: f0b8e12ad9ca -->
