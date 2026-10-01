@@ -187,7 +187,9 @@ the editor and the build rather than in review — this pattern is its
 implementations exist for
 [JavaScript/TypeScript](READ-architecture-as-code-javascript.md) and
 [Python](READ-architecture-as-code-python.md). The full operational
-reference — file schema, rule placement, assembler, and audit checklist —
-lives in [SKILL.md](../.claude/skills/architecture-as-code/SKILL.md).*
+reference — file schema, rule placement, and audit checklist — lives in
+[SKILL.md](../.claude/skills/architecture-as-code/SKILL.md); the assembler
+pipeline, needed only to build or change one, lives in
+[assembler.md](../.claude/skills/architecture-as-code/references/assembler.md).*
 
-<!-- skill-revision: 44aadeece557 -->
+<!-- skill-revision: d4e419dabe1a -->

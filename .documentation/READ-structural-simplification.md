@@ -169,8 +169,10 @@ quantify; [worth evaluation](READ-functionality-complexity-tradeoff.md)
 consumes these measurements as the cost side of its ledger;
 [morphogenetic architecture](READ-morphogenetic-architecture.md) decides
 where boundaries belong before this model measures the move. The full
-operational reference — measurement recipes, operation catalogues, the
-trade-off matrix, and the decision record — lives in
-[SKILL.md](../.claude/skills/structural-simplification/SKILL.md).*
+operational reference — measurement recipes, the trade-off matrix, and the
+decision record — lives in
+[SKILL.md](../.claude/skills/structural-simplification/SKILL.md); the
+operation catalogue used to propose a simpler alternative lives in
+[reduction-operations.md](../.claude/skills/structural-simplification/references/reduction-operations.md).*
 
-<!-- skill-revision: fe9419631269 -->
+<!-- skill-revision: a8ecde14b484 -->

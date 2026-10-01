@@ -42,5 +42,8 @@
       "criterion": "topology-record #2: a multi-gate run emits each stage's own record, not only the trail",
       "check": "topology_records"
     }
-  ]
+  ],
+  "known_failures": {
+    "emits-placement-record": "Every recorded run since the router's record rule emitted its placement record; this run accepted the MOVE probationarily without saying why the missing field cannot be measured (R6), as 2 of the last 6 billing runs did one way or another."
+  }
 }

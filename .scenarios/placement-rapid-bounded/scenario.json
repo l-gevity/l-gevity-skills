@@ -53,5 +53,8 @@
       "criterion": "topology-record #1: every placement record carries the fields its decision requires",
       "check": "topology_records"
     }
-  ]
+  ],
+  "known_failures": {
+    "complete-record": "Since the section 8 template fix, 12 of 13 recorded placement records conformed; this run's PLACE record still carried the Decision policy and Graph analysis lines that a PLACE omits (R4)."
+  }
 }

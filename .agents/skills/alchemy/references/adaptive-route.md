@@ -126,7 +126,7 @@ or independent confirmation supports them.
 | 2 | First principles | `architecture-guidelines` | Smallest correct design |
 | 3 | Morphogenetic topology | `morphogenetic-architecture` | Rapid/Full mode + declared Domain / tier / layer + final decision, or one restructuring candidate requiring measurement; probation expiry, instrumentation task, and prediction recheck ride the decision trail to Gate 6 |
 | 4 | Complexity measurement | `structural-simplification` | Subsystem-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Subsystem-count Δ; then Gate 3 acceptance when restructuring |
-| 5 | Architecture as code | `architecture-as-code` (pattern); `-javascript` / `-python` (impl) | Per-subsystem architecture config |
+| 5 | Architecture as code | `architecture-as-code` (pattern); `-javascript` / `-python` (impl) only when rule files are written or changed | Per-subsystem constraints, in the pattern's encoding-neutral form until the stack's files are written |
 | 6 | Shift defect detection left | `defect-shift-left` | Each error path → earliest catchable stage |
 | 7 | Optimize value stream | `system-optimization` | Constraint analysis (iteration 2: the iteration after the increment ships, from its stable, measured baseline) |
 

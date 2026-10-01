@@ -45,7 +45,7 @@ empty command with no active subject returns only this table.
 | `A`, `architecture`, `first-principles` | `architecture-guidelines` — sound design? |
 | `L`, `locality`, `placement` | `morphogenetic-architecture` — where does it belong? |
 | `C`, `complexity`, `simplify` | `structural-simplification` — simpler? |
-| `E`, `enforcement`, `architecture-as-code` | `architecture-as-code`, plus `-javascript` or `-python` when the stack is known — rules as code? |
+| `E`, `enforcement`, `architecture-as-code` | `architecture-as-code`, plus `-javascript` or `-python` only when rule files are written or changed — rules as code? |
 | `H`, `hermetic`, `shift-left` | `defect-shift-left`, plus `ci-cd-reliability-architecture` for pipeline reliability — catch earlier? |
 | `Y`, `yield`, `optimize` | `system-optimization` — optimize flow? |
 | `left` | `defect-shift-left` — detect defects earlier |

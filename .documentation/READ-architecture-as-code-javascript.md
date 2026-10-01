@@ -147,8 +147,9 @@ design, audit checklist — is defined in the
 [architecture-as-code concept](READ-architecture-as-code.md); the Python
 counterpart is
 [architecture-as-code-python](READ-architecture-as-code-python.md). The
-full operational reference — assembler code, recipes, and gotchas — lives
-in
-[SKILL.md](../.claude/skills/architecture-as-code-javascript/SKILL.md).*
+operational reference — file format, recipes, and gotchas — lives in
+[SKILL.md](../.claude/skills/architecture-as-code-javascript/SKILL.md); the
+assembler code, needed only to set up or change `eslint.config.js`, lives in
+[assembler.md](../.claude/skills/architecture-as-code-javascript/references/assembler.md).*
 
-<!-- skill-revision: 4e9c7a12ca8a -->
+<!-- skill-revision: 5085c24ad338 -->

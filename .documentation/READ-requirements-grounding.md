@@ -156,8 +156,9 @@ immediately which kind of wrong it is and which decision to reopen.
 grounded requirements into a dependency graph, and
 [worth evaluation](READ-functionality-complexity-tradeoff.md), which
 decides whether a grounded capability justifies its cost. The full
-operational reference — modes, recovery protocol, record shapes, and the
-validation gate — lives in
-[SKILL.md](../.claude/skills/requirements-grounding/SKILL.md).*
+operational reference — modes, record shapes, and the validation gate —
+lives in [SKILL.md](../.claude/skills/requirements-grounding/SKILL.md); the
+recovery protocol for existing projects lives in
+[recovery-mode.md](../.claude/skills/requirements-grounding/references/recovery-mode.md).*
 
-<!-- skill-revision: 49777b1203a7 -->
+<!-- skill-revision: a5b9bab2da59 -->

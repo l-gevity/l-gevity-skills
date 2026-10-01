@@ -27,8 +27,8 @@ SIZE_BUDGET_GRAIN = 100
 SIZE_BUDGET_WORDS = {
     "CLAUDE.md": 900,
     "alchemy": 2000,
-    "architecture-as-code": 2800,
-    "architecture-as-code-javascript": 2200,
+    "architecture-as-code": 2500,
+    "architecture-as-code-javascript": 1800,
     "architecture-as-code-python": 1500,
     "architecture-guidelines": 1900,
     "bring-down": 2800,
@@ -42,10 +42,10 @@ SIZE_BUDGET_WORDS = {
     "morphogenetic-architecture": 2800,
     "observability-design": 1800,
     "push-out": 1300,
-    "requirements-grounding": 3100,
+    "requirements-grounding": 2700,
     "requirements-topology": 2000,
     "requirements-traceability": 2500,
-    "structural-simplification": 2600,
+    "structural-simplification": 2100,
     "system-optimization": 2600,
     "test-strategy": 2100,
     "zero-copy-requirements": 1800,
@@ -118,6 +118,9 @@ SKILL_REQUIRED_TERMS = {
         "select `observability-design`",
         '**Claim only what ran.**',
         "Load each stage when the route reaches it",
+        # A design pass records constraints in the pattern's neutral form; the
+        # stack skill was loaded in 5 of 7 recorded ADAPTIVE runs regardless.
+        "only when rule files are written or changed",
         "A blocking decision in the route's hand-off table ends the route",
         # Multi-gate runs summarised L in the trail and dropped its record.
         "it never replaces a stage's record",
@@ -127,7 +130,6 @@ SKILL_REQUIRED_TERMS = {
         "Coverage is two independent gates",
         "A file-existence rule is what catches an undeclared directory",
         "The same catch-all at the repository root inverts",
-        "Forward EVERY field the subsystem schema defines",
         "The emitted rule block's file scope equals the linted source set.",
         "Every file at repository root belongs to a declared subsystem.",
         "A passing lint is not evidence of coverage.",
@@ -135,17 +137,12 @@ SKILL_REQUIRED_TERMS = {
         # rule stays documented until the contract step removes it.
         "`components` is accepted as a deprecated alias for `subsystems`",
         "rejects a file that carries both",
-        'resolves to no registered subsystem',
     ),
     "architecture-as-code-javascript": (
         "no-restricted-syntax",
         "ImportExpression",
         "Production code must not import test-only code.",
         "files: ['**/*.{js,jsx,mjs,ts,tsx}'],",
-        "'boundaries/no-unknown-files': 'error',",
-        "'boundaries/dependencies': ['error', { default: 'allow', rules }],",
-        "a dependency rule at `warn` is a report rather than a boundary",
-        "The broad glob is the point, not an accident",
         "second, independent gate",
         "decides what a pattern matches, and the default is",
         "partialMatch: false",
@@ -156,7 +153,6 @@ SKILL_REQUIRED_TERMS = {
         "subjects every package to the block's `default`",
         "Prove it red first",
         "`boundaries/external` still works and is deprecated in v7",
-        "m.default.subsystems ?? m.default.components ?? []",
         "Flat config replaces a rule's options per rule id",
     ),
     "architecture-as-code-python": (
@@ -558,6 +554,29 @@ CONSUMER_FORBIDDEN = (
 # A reference file is loaded on demand, so the rule it carries is pinned to
 # that file, and SKILL.md must link the file (validate_reference_links).
 REFERENCE_REQUIRED_TERMS = {
+    "structural-simplification": {
+        "references/reduction-operations.md": (
+            "# Structural Simplification — Reduction Operations",
+            "Unification guardrail — referencing-list uniformity",
+        ),
+    },
+    "architecture-as-code-javascript": {
+        "references/assembler.md": (
+            "# Architecture as Code (JavaScript) — The Assembler",
+            "'boundaries/no-unknown-files': 'error',",
+            "'boundaries/dependencies': ['error', { default: 'allow', rules }],",
+            "a dependency rule at `warn` is a report rather than a boundary",
+            "The broad glob is the point, not an accident",
+            "m.default.subsystems ?? m.default.components ?? []",
+        ),
+    },
+    "architecture-as-code": {
+        "references/assembler.md": (
+            "# Architecture as Code — The Assembler",
+            "Forward EVERY field the subsystem schema defines",
+            "resolves to no registered subsystem",
+        ),
+    },
     "zero-copy-requirements": {
         "references/sweep.md": (
             "Enumerate from version control, not the filesystem",
@@ -696,6 +715,11 @@ REFERENCE_REQUIRED_TERMS = {
         ),
     },
     "requirements-grounding": {
+        "references/recovery-mode.md": (
+            "# Requirements Grounding — Recovery Mode",
+            "Evidence strength is contextual, not a universal ranking",
+            "Default code-only candidates and recovered outcome hypotheses to `PROVISIONAL`",
+        ),
         "references/quality-model.md": (
             "ISO/IEC 25010:2023",
             "Close an `open` characteristic by recording the measurement it needs",
@@ -1738,11 +1762,23 @@ def scenario_route(output: str) -> set[str]:
     return named
 
 
+def logical_lines(output: str) -> list[str]:
+    """Lines with a record field's wrapped continuation folded in: a record
+    that wraps "X considered," onto "not selected" states one fact."""
+    lines: list[str] = []
+    for line in output.splitlines():
+        if lines and re.match(r"^ {4,}\S", line):
+            lines[-1] += " " + line.strip()
+        else:
+            lines.append(line)
+    return lines
+
+
 def scenario_route_loaded(transcript: dict) -> bool:
     """Every routed skill was loaded, or the output reports it as not run on a
     line that names it: a decision attributed to an unloaded skill fails."""
     output, loaded = transcript["output"], scenario_loaded(transcript)
-    lines = output.splitlines()
+    lines = logical_lines(output)
     return all(
         any(skill in line and NOT_RUN_RE.search(line) for line in lines)
         for skill in scenario_route(output) - loaded
@@ -2171,7 +2207,7 @@ def mutation_test() -> int:
     # The expand step of the components -> subsystems key rename must keep the
     # alias readable until the contract step; dropping the JS fallback is the
     # premature contract this case guards against.
-    js_skill = [copy / tree / "skills" / "architecture-as-code-javascript" / "SKILL.md" for tree in (".agents", ".claude")]
+    js_skill = [copy / tree / "skills" / "architecture-as-code-javascript" / "references" / "assembler.md" for tree in (".agents", ".claude")]
 
     def drop_alias_fallback(files=js_skill):
         for path in files:
@@ -2181,7 +2217,7 @@ def mutation_test() -> int:
                 raise RuntimeError(f"alias fallback not found in {path}")
             write_raw(path, text.replace(needle, "m.default.subsystems ?? []"), crlf)
 
-    cases.append((Case("schema: components alias dropped before the contract step", js_skill, ("architecture-as-code-javascript",)), drop_alias_fallback))
+    cases.append((Case("schema: components alias dropped before the contract step", js_skill, ("assembler.md",)), drop_alias_fallback))
 
     # The size ratchet has four failure paths, and each is proven on its own:
     # a file grows past its entry, a skill has no entry, an entry sits a grain
