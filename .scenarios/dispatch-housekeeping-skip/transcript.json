@@ -1,6 +1,6 @@
 {
   "scenario": "dispatch-housekeeping-skip",
-  "revision": "4597a8ae33de",
+  "revision": "17622e19ba96",
   "recorded_with": "claude-code 2.1.234, model claude-opus-5[1m]",
   "skills_available": [
     "alchemy",
@@ -28,6 +28,7 @@
     "fewer-permission-prompts",
     "functionality-complexity-tradeoff",
     "implementation-readiness",
+    "infrastructure-fit",
     "loop",
     "morphogenetic-architecture",
     "observability-design",
@@ -56,5 +57,5 @@
     "."
   ],
   "turns": 6,
-  "output": "```\nDispatch:   SKIP\nCore route: None\nCompanions: None\nVerdict:    Defer\nReason:     Git housekeeping asks no Alchemy question. Blocking fact: the working directory is not a git repository — no `.git` anywhere under . (only CLAUDE.md and .claude/skills/). \"Merged\", \"pushed\", and \"feature branch\" cannot be verified from here.\nNext:       Give me the repo path (or the branch names), and I'll run the checks below.\n```\n\nThe two questions your git state answers, in order:\n\n**1. Is everything pushed?**\n```\ngit status -sb                              # dirty tree + ahead/behind for current branch\ngit log --branches --not --remotes --oneline # any commit on any local branch not on a remote\ngit stash list                              # work parked outside any branch\n```\nEmpty output from lines 2–3 and a clean `status` means nothing is stranded locally.\n\n**2. Can the feature branch be deleted?**\n```\ngit fetch --prune\ngit branch -d <feature>                     # refuses unless merged into HEAD\n```\n`-d` is the safe test, but it reports \"not fully merged\" after a **squash or rebase merge** even when the content shipped. In that case use:\n```\ngit cherry -v <main> <feature>              # no lines prefixed \"+\" = every patch is upstream\n```\nThen delete both sides: `git branch -D <feature>` and `git push origin --delete <feature>`.\n\nWhat I did not check: the merge itself, the remote's branch list, and whether CI/release gates depend on that branch ref — all need the actual repo."
+  "output": "```\nDispatch:   SKIP\nCore route: None\nCompanions: None\nVerdict:    Defer\nReason:     Git hygiene inside one boundary — no Alchemy gate question. But the question can't be answered here: this directory is not a git repository and has no code under review.\nNext:       Run the three commands below in the actual repo, or tell me its path.\n```\n\n**Blocked, not answered.** Two facts, both verified:\n\n- `.` is not a git repo — no `.git` anywhere under it (`**/.git/HEAD` → no match). Contents are `CLAUDE.md` plus `.claude/skills/` only. There is no merge, no fix, and no feature branch visible to me.\n- This session has no shell tool (Glob/Grep/Read/Skill only), so I cannot run `git` even if you point me at the right repo. I can read files; I cannot query git state.\n\nSo I have no evidence either way on \"everything pushed\" or \"safe to delete\". Run these yourself:\n\n1. `git status -sb` — uncommitted work and ahead/behind count for the current branch.\n2. `git log --branches --not --remotes --oneline` — any commit on any local branch that exists nowhere on a remote. Empty output is the \"everything pushed\" proof.\n3. `git branch --merged origin/main` — lists branches whose tip is already in `origin/main`; your feature branch appearing there is the \"safe to delete\" proof. Then `git branch -d <branch>` (lowercase `-d` refuses if unmerged — do not reach for `-D`).\n\nCaveat on step 3: if the fix was merged by squash or rebase, the branch tip is *not* an ancestor of `origin/main` and it won't appear in `--merged`, even though its content shipped. In that case confirm the content landed (`git log origin/main --oneline --grep=<ticket>`) before deleting, and delete with `-D`.\n\n**What I did not check:** every one of the above — no shell access. Also unchecked: whether a remote tracking branch still exists (`git ls-remote --heads origin <branch>`), stashes (`git stash list`), and worktrees pinning the branch (`git worktree list`)."
 }

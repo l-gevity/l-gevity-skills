@@ -39,6 +39,7 @@ SIZE_BUDGET_WORDS = {
     "evolutionary-database-design": 3300,
     "functionality-complexity-tradeoff": 4500,
     "implementation-readiness": 1900,
+    "infrastructure-fit": 2000,
     "morphogenetic-architecture": 4700,
     "observability-design": 1800,
     "push-out": 1300,
@@ -53,7 +54,7 @@ SIZE_BUDGET_WORDS = {
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
 # session carries whether or not a skill is invoked.
-DESCRIPTION_BUDGET_CHARS = 15000
+DESCRIPTION_BUDGET_CHARS = 15800
 ALCHEMY_PIPELINE_STAGES = (
     "Requirements Grounding",
     "M — Minimum",
@@ -119,6 +120,7 @@ SKILL_REQUIRED_TERMS = {
         "select `zero-copy-requirements`",
         "select `dependency-lifecycle`",
         "select `observability-design`",
+        "select `infrastructure-fit`",
         '**Claim only what ran.**',
     ),
     "architecture-as-code": (
@@ -431,6 +433,19 @@ SKILL_REQUIRED_TERMS = {
         "An artifact that fits no exception and duplicates an authority is waste",
         "A claim no artifact carries is unowned, not redundant",
         "| **Sweep** |",
+    ),
+    "infrastructure-fit": (
+        "A template default is a decision nobody made",
+        "A tripwire nobody evaluates is a comment",
+        "Sunk investment is never an argument",
+        "A path that cannot be made to run is a fit finding, not a backlog item",
+        "reversal is cheapest before it",
+        "never from the infrastructure already in place",
+        "A port lowers migration cost; it does not make a wrong paradigm right",
+        "`infrastructure-fit` is a task-matched Alchemy companion",
+        "ONE-WAY | TWO-WAY",
+        "DECIDED | PROVISIONAL | INHERITED",
+        "CHOOSE | KEEP | ADJUST | WATCH | MIGRATE | DEFER",
     ),
     "dependency-lifecycle": (
         "Adoption transfers the maintenance, never the responsibility",
