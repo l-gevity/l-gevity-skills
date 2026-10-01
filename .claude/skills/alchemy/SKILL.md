@@ -53,6 +53,7 @@ empty command with no active subject returns only this table.
 | `down`, `bring-down` | `bring-down` — move bespoke code down |
 | `zero-copy`, `source-of-truth` | `zero-copy-requirements` |
 | `deps`, `dependency` | `dependency-lifecycle` |
+| `infra`, `infrastructure` | `infrastructure-fit` |
 | `signal`, `observability` | `observability-design` |
 
 `left`, `out`, and `down` form the DevOps improvement triad, outside the
@@ -118,6 +119,8 @@ hard-code project-specific companion names into this generic skill.
   bump, and only a contract-preserving bump is `SKIP`.
 - When a risk survives verification into production, or alerts or telemetry
   are under review, select `observability-design`.
+- When infrastructure is chosen, inherited, or questioned, select
+  `infrastructure-fit`.
 - `test-strategy` and `evolutionary-database-design` are two-pass companions
   that bracket A/L/C/E; the route in §2 orders their passes.
 - `SKIP` skips only the Alchemy core; it never suppresses a matching companion.

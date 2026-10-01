@@ -1,0 +1,44 @@
+{
+  "request": "Our product started from a starter template that shipped a document database, a serverless backend, and platform-managed sign-in. Six months in, the domain is clearly relational: employers, employees, roles, assessments, and reports that join them. The backend now has hand-written uniqueness checks, retries on write conflicts, joins assembled in application code, and readers for old document shapes; about one commit in eight touches the store. We expect tens of small customers at most, and production holds no real customer data yet. Nobody ever recorded why the document database was chosen. Does our infrastructure still fit, and should we switch the store now or after the first customers?",
+  "skills": ["infrastructure-fit"],
+  "expect": [
+    {
+      "id": "applies-fit-guidance",
+      "criterion": "infrastructure-fit #1: a question about an existing foundation loads the fit method",
+      "check": "guidance_includes",
+      "skills": ["infrastructure-fit"]
+    },
+    {
+      "id": "reviews-existing-foundation",
+      "criterion": "infrastructure-fit #2: a foundation already in use is reviewed, not selected again",
+      "check": "field_in",
+      "field": "Mode",
+      "values": ["Review"]
+    },
+    {
+      "id": "marks-template-default-inherited",
+      "criterion": "infrastructure-fit #3: a template default with no decision record is INHERITED",
+      "check": "field_in",
+      "field": "Status",
+      "values": ["INHERITED"]
+    },
+    {
+      "id": "migrates-before-real-data",
+      "criterion": "infrastructure-fit #4: forward costs and the absence of real data decide the store verdict",
+      "check": "field_in",
+      "field": "Verdict",
+      "values": ["MIGRATE"]
+    },
+    {
+      "id": "names-tripwires",
+      "criterion": "infrastructure-fit #5: every one-way decision carries an evaluated tripwire",
+      "check": "field_present",
+      "field": "Tripwires"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}
