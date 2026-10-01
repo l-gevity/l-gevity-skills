@@ -201,8 +201,11 @@ Verification:   <commands, lint rules, tests, or Not run + reason>
 
 Lead any run that reaches a verdict with the four report blocks the root
 instruction file defines, What I found, Why it matters, Do this first, and
-What I did not check, then emit the records unchanged. When implementing
-changes, add the normal coding summary after the verdict.
+What I did not check, then emit the records unchanged: the trail and scope
+block, then each stage that ran in execution order, with the decision record
+its skill's output contract defines. The trail summarizes stages; it never
+replaces a stage's record. When implementing changes, add the normal coding
+summary after the verdict.
 
 ## 4. Discipline
 

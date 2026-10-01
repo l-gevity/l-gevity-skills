@@ -30,7 +30,7 @@ telemetry, partition a graph, or accept a restructuring decision.
    restructuring set (SKILL.md §8). Once a restructuring candidate appears, record high / medium / low
    from consumers, published contracts, data-migration need, and deployment
    coupling, or record **Unknown — Low bar applies** with the missing facts, as
-   defined in SKILL.md §5. Carry it into the escalation.
+   defined in full-analysis.md §5. Carry it into the escalation.
 4. **Inspect the bounded evidence.** Check only the proposed or current static
    edges and, when applicable, the named runtime loop.
 5. **Apply hard tests.** Check for a forbidden import cycle, layer-skip
@@ -75,7 +75,7 @@ Set `Analysis mode: Rapid → Full` and preserve completed checks when:
 
 Once escalated, remain in Full. Missing evidence produces DEFER plus an
 instrumentation or measurement action, or a probationary acceptance when
-SKILL.md §5 permits one; it never sends the task back to Rapid.
+full-analysis.md §5 permits one; it never sends the task back to Rapid.
 
 ## Examples
 

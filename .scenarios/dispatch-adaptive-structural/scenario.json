@@ -36,6 +36,11 @@
       "criterion": "adaptive-dispatch #4: structural work reads the route before selecting stages",
       "check": "reads_include",
       "paths": [".claude/skills/alchemy/references/adaptive-route.md"]
+    },
+    {
+      "id": "emits-placement-record",
+      "criterion": "topology-record #2: a multi-gate run emits each stage's own record, not only the trail",
+      "check": "topology_records"
     }
   ]
 }

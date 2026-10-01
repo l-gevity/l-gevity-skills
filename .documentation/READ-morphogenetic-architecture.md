@@ -244,9 +244,12 @@ and how boundaries between them evolve;
 [structural simplification](READ-structural-simplification.md) provides the
 four-axis measurement every restructuring move must pass; and
 [architecture-as-code](READ-architecture-as-code.md) is the enforcement
-mechanism that keeps decided boundaries from drifting. The full operational
-reference — analysis modes, evidence fields, finding taxonomy, and the
-decision record — lives in
-[SKILL.md](../.claude/skills/morphogenetic-architecture/SKILL.md).*
+mechanism that keeps decided boundaries from drifting. The operational
+reference — analysis modes, the quick placement check, and the decision
+record — lives in
+[SKILL.md](../.claude/skills/morphogenetic-architecture/SKILL.md); the
+evidence fields, observed-pressure findings, and restructuring proof it loads
+only for full analysis live in
+[full-analysis.md](../.claude/skills/morphogenetic-architecture/references/full-analysis.md).*
 
-<!-- skill-revision: b9392df9caa8 -->
+<!-- skill-revision: ef6db92fd752 -->

@@ -26,7 +26,7 @@ MAX_DESCRIPTION = 1024
 SIZE_BUDGET_GRAIN = 100
 SIZE_BUDGET_WORDS = {
     "CLAUDE.md": 900,
-    "alchemy": 1900,
+    "alchemy": 2000,
     "architecture-as-code": 2800,
     "architecture-as-code-javascript": 2200,
     "architecture-as-code-python": 1500,
@@ -39,7 +39,7 @@ SIZE_BUDGET_WORDS = {
     "evolutionary-database-design": 3300,
     "functionality-complexity-tradeoff": 3900,
     "implementation-readiness": 1900,
-    "morphogenetic-architecture": 4800,
+    "morphogenetic-architecture": 2800,
     "observability-design": 1800,
     "push-out": 1300,
     "requirements-grounding": 3100,
@@ -119,6 +119,8 @@ SKILL_REQUIRED_TERMS = {
         '**Claim only what ran.**',
         "Load each stage when the route reaches it",
         "A blocking decision in the route's hand-off table ends the route",
+        # Multi-gate runs summarised L in the trail and dropped its record.
+        "it never replaces a stage's record",
     ),
     "architecture-as-code": (
         "`architecture-guidelines` or `morphogenetic-architecture`",
@@ -290,6 +292,8 @@ SKILL_REQUIRED_TERMS = {
         "Select the Analysis Mode",
         "references/rapid-topology-scan.md",
         "Otherwise start in **Rapid**",
+        # A third of recorded Rapid runs read SKILL.md alone.
+        "the legality clause table live only there",
         "Escalate from Rapid to Full",
         "Once Full begins, do not downgrade",
         "boundary-pressure mismatch",
@@ -305,24 +309,12 @@ SKILL_REQUIRED_TERMS = {
         "Analysis mode:",
         "Selection reason:",
         "Candidate baseline:",
-        "generator's name, mechanism, or analogy may never appear in",
-        "satisfy its Candidate-Contribution Test before the candidate counts",
-        "Emit DEFER",
         "Scale proof to reversibility",
-        "### Scale Proof to Reversibility",
-        "Grade only when a boundary actually moves",
         "Reversibility:       <high | medium | low",
         "Unknown — Low bar applies",
         "Generate a Second Candidate",
         "Second candidate:",
-        "### Probationary Acceptance",
         "Prediction:",
-        "### Close the Loop",
-        "declared-vs-observed",
-        "cannot be measured within the decision window",
-        "Unknown reversibility never accepts probationarily",
-        "Probation covers absent evidence only",
-        "Absent means unobtainable, not unfetched",
         "### Position Legality",
         "design-time check on a proposed or changed",
         "**layer inversion**",
@@ -331,19 +323,17 @@ SKILL_REQUIRED_TERMS = {
         "Authority is acyclic **per aspect**, not per subsystem",
         "position-legality clauses first",
         "Position legality:   Pass | Fail",
-        "durable register that the standing",
         "Seven fields form the **restructuring set**",
-        "is never eligible for probation; measure it first",
-        "The path exists only in Full",
-        "Record **Prediction** for every accepted MOVE, SPLIT, MERGE, or",
         "Before accepting a Medium- or Low-reversibility restructuring",
-        "must name which generators were attempted",
         "| Positions an aspect binds | **Holds across**",
         # A placement record ends at Verification; recorded runs filled the
         # restructuring lines with Not required until the rule said otherwise.
         "Their record ends at `Verification`",
         "never fill them with `Not required`",
-        "a PLACE record still carries no **Prediction** line",
+        # A Rapid placement pays only for this file and the two references
+        # step 2 names; Full detail loads from references/full-analysis.md.
+        "A run that stays in Rapid reads only the two files step 2 names",
+        "references/full-analysis.md",
     ),
     "requirements-traceability": (
         "Trace both directions",
@@ -607,6 +597,28 @@ REFERENCE_REQUIRED_TERMS = {
         ),
     },
     "morphogenetic-architecture": {
+        "references/full-analysis.md": (
+            "# Morphogenetic Architecture — Full Analysis",
+            "Rapid never needs this file",
+            "generator's name, mechanism, or analogy may never appear in",
+            "satisfy its Candidate-Contribution Test before the candidate counts",
+            "Emit DEFER",
+            "### Scale Proof to Reversibility",
+            "Grade only when a boundary actually moves",
+            "### Probationary Acceptance",
+            "### Close the Loop",
+            "declared-vs-observed",
+            "cannot be measured within the decision window",
+            "Unknown reversibility never accepts probationarily",
+            "Probation covers absent evidence only",
+            "Absent means unobtainable, not unfetched",
+            "durable register that the standing",
+            "is never eligible for probation; measure it first",
+            "The path exists only in Full",
+            "Record **Prediction** for every accepted MOVE, SPLIT, MERGE, or",
+            "must name which generators were attempted",
+            "a PLACE record still carries no **Prediction** line",
+        ),
         "references/position-legality.md": (
             "Auditing a\nwhole codebase from three axes is an explicit non-goal",
             "Same tier, or a higher tier calling a lower tier",
@@ -2562,8 +2574,8 @@ def validate_evolutionary_database_design_contract() -> None:
 
     # The reversibility vocabulary this skill hands to L must be the vocabulary
     # L's reversibility table actually grades from; a drift on either side
-    # silently breaks the handshake.
-    grading = AGENT_SKILLS / "morphogenetic-architecture" / "SKILL.md"
+    # silently breaks the handshake. The table loads with Full analysis.
+    grading = AGENT_SKILLS / "morphogenetic-architecture" / "references" / "full-analysis.md"
     morphogenetic = grading.read_text(encoding="utf-8")
     for term in ("reversible data change", "irreversible data migration"):
         if not contains(morphogenetic, term):

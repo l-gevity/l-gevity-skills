@@ -3,11 +3,11 @@
   "skills": ["alchemy", "functionality-complexity-tradeoff"],
   "expect": [
     {
-      "id": "selects-adaptive-route",
-      "criterion": "adaptive-dispatch #4: structural work runs the stages it needs",
+      "id": "runs-worth-first",
+      "criterion": "adaptive-dispatch #2: a speculative-abstraction design runs the worth gate first, directly or as the first adaptive stage",
       "check": "field_in",
       "field": "Dispatch",
-      "values": ["ADAPTIVE"]
+      "values": ["ADAPTIVE", "DIRECT"]
     },
     {
       "id": "runs-worth-gate",

@@ -34,7 +34,7 @@ authority, however strong its numbers are.
 When two fields disagree, do not average them. Name the disagreement, prefer
 the field with authority over the question being asked, and return **DEFER**
 when the deciding field is the one that is **Not measured**. A probationary
-acceptance under SKILL.md §5 is unavailable here: a disagreement between
+acceptance under full-analysis.md §5 is unavailable here: a disagreement between
 measured fields is measured contradiction, which always blocks probation.
 
 At Low reversibility, two fields count as agreement only when both meet their
@@ -65,7 +65,7 @@ preferred candidate:
 | Candidate size | Minimum group size or fraction that prevents trivial isolation |
 | Sensitivity | Perturbation size and minimum stable membership for generated partitions; metric stability only for fixed supplied partitions |
 | Basis | Why the policy was chosen before candidate generation |
-| Reversal cost | The high / medium / low grade and dominant driver, or Unknown with the missing facts; it sets the field-agreement and window requirements in SKILL.md §5 |
+| Reversal cost | The high / medium / low grade and dominant driver, or Unknown with the missing facts; it sets the field-agreement and window requirements in full-analysis.md §5 |
 
 Hard invariants such as a forbidden static cycle do not need a threshold. For
 all weighted candidates, a missing, retrofitted, or unstable policy requires
@@ -136,6 +136,6 @@ declared window, widen coverage for a sampled one, add a second field for
 single-field evidence, and DEFER a contradictory one under **Field Authority**
 above. Low confidence is never eligible for probation. Only a field that is
 **Not measured** and cannot be measured within the decision window may carry
-its instrumentation into a probationary acceptance under SKILL.md §5.
+its instrumentation into a probationary acceptance under full-analysis.md §5.
 One-field evidence cannot accept a Low-reversibility end state; DEFER that end
 state and independently grade any separately specified precursor.

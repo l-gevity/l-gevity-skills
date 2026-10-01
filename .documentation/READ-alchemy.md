@@ -188,4 +188,4 @@ decision-trail format — lives in
 gate handshakes it loads for structural work live in
 [adaptive-route.md](../.claude/skills/alchemy/references/adaptive-route.md).*
 
-<!-- skill-revision: 8ec1284ce1f6 -->
+<!-- skill-revision: 22f992aef229 -->

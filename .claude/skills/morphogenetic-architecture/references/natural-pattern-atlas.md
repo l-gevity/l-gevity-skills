@@ -2,7 +2,7 @@
 
 Use this atlas after declaring topology and recording the discovery evidence
 that produced the question, finding, and lens-free baseline, but before choosing
-a topology decision. The atlas is one of SKILL.md §4's second-candidate
+a topology decision. The atlas is one of full-analysis.md §4's second-candidate
 generators; an algorithmic cut or a manual alternative decomposition may serve
 instead. The analogy may add one candidate or expose one missed
 risk; an unused independent field or held-out evidence window must be able to
@@ -51,7 +51,7 @@ in **Boundary evidence**.
 
 ## Operational Lens Index
 
-Enter through the question or the SKILL.md §5 finding name. Each row routes to
+Enter through the question or the §5 finding name (SKILL.md or full-analysis.md). Each row routes to
 one lens to limit motivated selection. A hard invariant needs no lens: report
 and fix it.
 
