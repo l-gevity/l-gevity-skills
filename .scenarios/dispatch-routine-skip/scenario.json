@@ -27,6 +27,12 @@
       "criterion": "adaptive-dispatch #1: the agent reads no stage guidance",
       "check": "guidance_within",
       "skills": ["alchemy"]
+    },
+    {
+      "id": "skips-route",
+      "criterion": "adaptive-dispatch #1: a skip reads no route guidance",
+      "check": "reads_exclude",
+      "paths": [".claude/skills/alchemy/references/adaptive-route.md"]
     }
   ]
 }

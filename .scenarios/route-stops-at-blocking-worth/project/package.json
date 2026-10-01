@@ -1,0 +1,7 @@
+{
+  "name": "reportctl",
+  "version": "2.3.0",
+  "type": "module",
+  "private": true,
+  "bin": { "reportctl": "src/cli.js" }
+}

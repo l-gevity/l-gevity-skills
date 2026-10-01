@@ -1,0 +1,33 @@
+{
+  "request": "Run alchemy L on this: billing rules change every week while orders rarely changes. Should src/orders/billing.js move out of the orders subsystem into a subsystem of its own?",
+  "skills": ["alchemy", "morphogenetic-architecture"],
+  "expect": [
+    {
+      "id": "applies-placement-guidance",
+      "criterion": "rapid-placement #4: a restructuring question runs the placement gate",
+      "check": "guidance_includes",
+      "skills": ["morphogenetic-architecture"]
+    },
+    {
+      "id": "escalates-to-full",
+      "criterion": "rapid-placement #4: a restructuring candidate escalates Rapid to Full",
+      "check": "text_matches",
+      "pattern": "Rapid\\s*(→|->)\\s*Full"
+    },
+    {
+      "id": "complete-record",
+      "criterion": "topology-record #1: every placement record carries the fields its decision requires",
+      "check": "topology_records"
+    },
+    {
+      "id": "claims-only-loaded-stages",
+      "criterion": "claim-only-what-ran #1: every stage and companion the run names was loaded",
+      "check": "route_loaded"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}

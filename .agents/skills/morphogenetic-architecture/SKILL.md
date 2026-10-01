@@ -230,11 +230,11 @@ historical and runtime field; that is absence of history, not a defect.
 §1's position legality still runs at full strength there — it needs no
 field — and it is this skill's whole contribution until the first field
 becomes measurable. Decide placement from domain meaning, declared topology,
-and position legality, and
-for a placement that establishes a new cross-domain or cross-layer edge,
-predeclare in **Prediction** the future validating field, its expected
-direction, the evidence window, and the recheck trigger. A restructuring in
-an evidence-poor system follows the probationary path in §5.
+and position legality. For a placement that establishes a new cross-domain or
+cross-layer edge, name in **Next action** the future validating field, its
+expected direction, the evidence window, and the recheck trigger; a PLACE
+record still carries no **Prediction** line (§8). A restructuring in an
+evidence-poor system follows the probationary path in §5.
 
 Collect:
 
@@ -511,7 +511,8 @@ row per finding:
 | Subsystem / edge | Declared position | Observed pressure | Finding | Evidence / confidence | Decision | Next action | Verification |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 
-Then emit:
+Then emit one summary block. Its first fourteen lines appear in every report;
+the last seven, after `Verification`, are the restructuring set:
 
 ```text
 Subject:             <subsystem / service / dependency graph>
@@ -523,24 +524,24 @@ Decision:            PLACE | KEEP | MOVE | SPLIT | MERGE | INTRODUCE-BOUNDARY |
 Declared topology:   <Domain / abstraction tier / layer + allowed interfaces>
 Position legality:   Pass | Fail: <violation + edge> | Not evaluated
 Observed fields:     <static | runtime | change | data | failure | Not measured>
-Decision policy:     <field: baseline + metric/operator/threshold + window + sensitivity | hard invariant | Not declared>
-Graph analysis:      <script/tool + version + input/result hash | Not measured | Not required>
-Candidate baseline:  <generator-free candidate | none>
-Second candidate:    <candidate or exposed risk + generator | none + generators
-                     attempted + why each produced nothing | Not required + reason>
 Static cycle:        Pass | Fail | Not evaluated
 Runtime cycles:      <none | named cycle + bound/owner/observability>
 Boundary evidence:   <domain reason + independent field | probationary —
                      reason + why unmeasurable + expiry + instrumentation +
                      reversal path | insufficient>
+Enforcement:         <none | add/update architecture rule: exact constraint>
+Next action:         <move, split, merge, add interface, instrument, recheck, or stop>
+Verification:        <graph/lint/test/telemetry check>
+Decision policy:     <field: baseline + metric/operator/threshold + window + sensitivity | hard invariant | Not declared>
+Graph analysis:      <script/tool + version + input/result hash | Not measured | Not required>
+Candidate baseline:  <generator-free candidate | none>
+Second candidate:    <candidate or exposed risk + generator | none + generators
+                     attempted + why each produced nothing | Not required + reason>
 Reversibility:       <high | medium | low + dominant reversal-cost driver |
                      Unknown — Low bar applies + missing facts | Not required + reason>
 Prediction:          <field + direction + window + recheck trigger |
                      Not required + reason>
-Enforcement:         <none | add/update architecture rule: exact constraint>
 Measurement:         <structural-simplification result | Not required + reason>
-Next action:         <move, split, merge, add interface, instrument, or stop>
-Verification:        <graph/lint/test/telemetry check>
 ```
 
 Seven fields form the **restructuring set**: `Decision policy`, `Graph
@@ -548,8 +549,12 @@ analysis`, `Candidate baseline`, `Second candidate`, `Reversibility`,
 `Prediction`, and `Measurement`. Emit them on the same trigger as the §5
 reversibility grade — before accepting MOVE, SPLIT, MERGE, or
 INTRODUCE-BOUNDARY, and when DEFER withholds one of them. PLACE, KEEP, and
-DECLARE-RUNTIME-CYCLE omit all seven; Rapid never emits them. Every other
-field appears in every report.
+DECLARE-RUNTIME-CYCLE omit all seven; Rapid never emits them. Their record
+ends at `Verification`: omit the lines, never fill them with `Not required`,
+which is a value for a restructuring record only. A KEEP that rejected a
+restructuring candidate is still a KEEP; put the rejected candidate and its
+evidence in **Boundary evidence** and **Next action**. Every other field
+appears in every report.
 
 Always emit the summary block in Design and Audit mode. Keep values terse when
 the user asks for a concise answer; do not omit a field your decision

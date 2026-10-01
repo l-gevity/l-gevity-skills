@@ -32,6 +32,12 @@
       "id": "claims-only-loaded-stages",
       "criterion": "claim-only-what-ran #1: every stage and companion the run names was loaded",
       "check": "route_loaded"
+    },
+    {
+      "id": "skips-route",
+      "criterion": "adaptive-dispatch #3: a named stage reads no route guidance",
+      "check": "reads_exclude",
+      "paths": [".claude/skills/alchemy/references/adaptive-route.md"]
     }
   ]
 }

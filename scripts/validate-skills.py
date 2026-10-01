@@ -25,8 +25,8 @@ MAX_DESCRIPTION = 1024
 # with the rationale in the commit message.
 SIZE_BUDGET_GRAIN = 100
 SIZE_BUDGET_WORDS = {
-    "CLAUDE.md": 1200,
-    "alchemy": 4400,
+    "CLAUDE.md": 900,
+    "alchemy": 1900,
     "architecture-as-code": 2800,
     "architecture-as-code-javascript": 2200,
     "architecture-as-code-python": 1500,
@@ -37,9 +37,9 @@ SIZE_BUDGET_WORDS = {
     "defect-shift-left": 2100,
     "dependency-lifecycle": 2000,
     "evolutionary-database-design": 3300,
-    "functionality-complexity-tradeoff": 4500,
+    "functionality-complexity-tradeoff": 3900,
     "implementation-readiness": 1900,
-    "morphogenetic-architecture": 4700,
+    "morphogenetic-architecture": 4800,
     "observability-design": 1800,
     "push-out": 1300,
     "requirements-grounding": 3100,
@@ -54,6 +54,8 @@ SIZE_BUDGET_WORDS = {
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
 # session carries whether or not a skill is invoked.
 DESCRIPTION_BUDGET_CHARS = 15000
+# ADAPTIVE, FULL, and audit read this file; SKIP and DIRECT never load it.
+ALCHEMY_ROUTE = AGENT_SKILLS / "alchemy" / "references" / "adaptive-route.md"
 ALCHEMY_PIPELINE_STAGES = (
     "Requirements Grounding",
     "M — Minimum",
@@ -95,21 +97,16 @@ SKILL_REQUIRED_TERMS = {
         "Dispatch:   <SKIP | DIRECT | ADAPTIVE | FULL>",
         "Core route:",
         "Companions:",
-        "requirements-grounding",
-        "requirements-topology",
-        "implementation-readiness",
         "requirements-traceability",
-        "PARTLY-READY",
-        "NOT-GROUNDED",
-        "NOT-READY",
         "Focused aliases never silently run requirements qualification",
         "Blocking stage:",
         "C₀",
         "L candidate → C measurement → L acceptance",
-        "When current outcome evidence reaches a revisit trigger",
         "Gate E remains blocked",
-        "one candidate may re-enter Gate 3 only",
-        "predecessor is retired or marked lapsing",
+        "Gate E also waits for a passing readiness decision in a full pass",
+        # SKIP and DIRECT pay only for this file; the route they never
+        # walk lives in references/adaptive-route.md.
+        "`SKIP` and `DIRECT` never need it",
         "### Change Primitives",
         "**Subsystem**",
         "**Aspect**",
@@ -120,6 +117,8 @@ SKILL_REQUIRED_TERMS = {
         "select `dependency-lifecycle`",
         "select `observability-design`",
         '**Claim only what ran.**',
+        "Load each stage when the route reaches it",
+        "A blocking decision in the route's hand-off table ends the route",
     ),
     "architecture-as-code": (
         "`architecture-guidelines` or `morphogenetic-architecture`",
@@ -340,6 +339,11 @@ SKILL_REQUIRED_TERMS = {
         "Before accepting a Medium- or Low-reversibility restructuring",
         "must name which generators were attempted",
         "| Positions an aspect binds | **Holds across**",
+        # A placement record ends at Verification; recorded runs filled the
+        # restructuring lines with Not required until the rule said otherwise.
+        "Their record ends at `Verification`",
+        "never fill them with `Not required`",
+        "a PLACE record still carries no **Prediction** line",
     ),
     "requirements-traceability": (
         "Trace both directions",
@@ -583,8 +587,23 @@ REFERENCE_REQUIRED_TERMS = {
             "which is unobserved rather than accepted",
                 ),
         "references/change-primitives.md": (
-            "# Change Primitives — Named Specializations",
+            "# Change Primitives — Definitions and Named Specializations",
             "adds no rule of its own",
+            "the scope → subsystem mapping is L's placement decision, never inferred upstream",
+        ),
+        "references/adaptive-route.md": (
+            "# Adaptive Route — Qualification, Gates, and Handshakes",
+            "predecessor is retired or marked lapsing",
+            "When current outcome evidence reaches a revisit trigger",
+            "one candidate may re-enter Gate 3 only",
+            "requirements-grounding",
+            "requirements-topology",
+            "implementation-readiness",
+            "PARTLY-READY",
+            "NOT-GROUNDED",
+            "NOT-READY",
+            "`PROVISIONAL` passes with its confirmation",
+            "load each one only when the route reaches",
         ),
     },
     "morphogenetic-architecture": {
@@ -608,6 +627,9 @@ REFERENCE_REQUIRED_TERMS = {
         ),
         "references/rapid-topology-scan.md": (
             "Rapid must not evaluate weighted fields",
+            # SKILL.md §8 and check_topology_report.py R4: a Rapid decision
+            # omits the restructuring set. The scan once said the opposite.
+            "A Rapid decision omits the seven restructuring-set",
             "Do not emit MOVE, SPLIT, MERGE, or INTRODUCE-BOUNDARY as a final Rapid",
         ),
         "references/evidence-fields.md": (
@@ -696,7 +718,12 @@ PUBLIC_DOC_FORBIDDEN = {
             ROOT / "CLAUDE.md",
             *(ROOT / tree / "skills" / "alchemy" / name
               for tree in (".agents", ".claude")
-              for name in ("SKILL.md", "references/failure-modes.md")),
+              for name in (
+                  "SKILL.md",
+                  "references/adaptive-route.md",
+                  "references/change-primitives.md",
+                  "references/failure-modes.md",
+              )),
         ),
         "patterns": (
             "eslint.architecture.mjs",
@@ -1148,7 +1175,6 @@ def validate_morphogenetic_mode_selection() -> None:
             "Rapid →",
             "restructure · non-static evidence · broad scope · ambiguity",
         ),
-        ROOT / "CLAUDE.md": ("start in Rapid", "Rapid → Full", "`Selection reason`"),
         ROOT / "ALCHEMY-PIPELINE-DESIGN.md": (
             "starts in Rapid",
             "cannot bypass `Rapid → Full`",
@@ -1158,7 +1184,7 @@ def validate_morphogenetic_mode_selection() -> None:
             "RAPID BY DEFAULT",
             "FULL FOR RESTRUCTURING",
         ),
-        CLAUDE_SKILLS / "alchemy" / "SKILL.md": (
+        CLAUDE_SKILLS / "alchemy" / "references" / "adaptive-route.md": (
             "starts in Rapid",
             "`Rapid → Full` escalation",
             "`Selection reason`",
@@ -1501,6 +1527,13 @@ SCENARIO_CHECKS = {
     "blocks_in_order": {},
     "text_matches": {"pattern": str},
     "route_loaded": {},
+    # A reference loads on demand, so whether a run read it is part of the
+    # behavior: the route an ADAPTIVE run needs, or the cost a SKIP must not pay.
+    "reads_include": {"paths": list},
+    "reads_exclude": {"paths": list},
+    # Every placement record (a fenced block with `Analysis mode:`) passes
+    # scripts/check_topology_report.py, and the run emits at least one.
+    "topology_records": {},
 }
 ROUTE_SKILLS = {
     "M": "functionality-complexity-tradeoff",
@@ -1527,7 +1560,6 @@ SCENARIO_UNCOVERED = (
     "dependency-lifecycle",
     "evolutionary-database-design",
     "implementation-readiness",
-    "morphogenetic-architecture",
     "observability-design",
     "push-out",
     "requirements-grounding",
@@ -1616,6 +1648,9 @@ def load_scenario(directory: Path) -> tuple[dict, dict | None]:
         for name in expectation.get("skills", []):
             if not known_skill(name):
                 fail(f"{label} expectation '{ident}' names unknown skill {name!r}")
+        for relative in expectation.get("paths", []):
+            if not isinstance(relative, str) or not (ROOT / relative).is_file():
+                fail(f"{label} expectation '{ident}' names a file that does not exist: {relative!r}")
         if "pattern" in arguments:
             try:
                 re.compile(expectation["pattern"])
@@ -1671,7 +1706,7 @@ def scenario_loaded(transcript: dict) -> set[str]:
     return loaded
 
 
-NOT_RUN_RE = re.compile(r"\b(?:not run|not triggered|deferred|skipped|blocked)\b", re.I)
+NOT_RUN_RE = re.compile(r"\b(?:not run|not triggered|not selected|deferred|skipped|blocked)\b", re.I)
 
 
 def scenario_route(output: str) -> set[str]:
@@ -1702,10 +1737,30 @@ def scenario_route_loaded(transcript: dict) -> bool:
     )
 
 
+def topology_checker():
+    """The report checker as a module, loaded from scripts/ by path."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("check_topology_report", ROOT / "scripts" / "check_topology_report.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def scenario_topology_records(output: str) -> bool:
+    """Only the placement record carries `Analysis mode:`, so the worth and
+    router records in the same output are never mistaken for it."""
+    checker = topology_checker()
+    records = [block for block in checker.BLOCK_RE.findall(output) if "Analysis mode" in checker.parse(block)]
+    return bool(records) and not any(checker.check(block, "record") for block in records)
+
+
 def scenario_passes(expectation: dict, transcript: dict) -> bool:
     check, output = expectation["check"], transcript["output"]
     if check == "route_loaded":
         return scenario_route_loaded(transcript)
+    if check == "topology_records":
+        return scenario_topology_records(output)
     if check in ("field_in", "field_present", "field_absent"):
         values = scenario_values(output, expectation["field"])
         if check == "field_present":
@@ -1721,6 +1776,9 @@ def scenario_passes(expectation: dict, transcript: dict) -> bool:
         if check == "guidance_within":
             return seen <= named
         return not seen & named
+    if check.startswith("reads_"):
+        read, named = set(transcript["files_read"]), set(expectation["paths"])
+        return named <= read if check == "reads_include" else not read & named
     if check == "blocks_in_order":
         positions = []
         for block in REPORT_BLOCKS:
@@ -2024,7 +2082,7 @@ def mutation_test() -> int:
     cases.append((Case("package: __pycache__ exclusion removed", [package], ("__pycache__",)), drop_cache_exclusion))
 
     legality = [copy / tree / "skills" / "morphogenetic-architecture" / "references" / "position-legality.md" for tree in (".agents", ".claude")]
-    moved_term = next(iter(REFERENCE_REQUIRED_TERMS["morphogenetic-architecture"].values()))[0]
+    moved_term = REFERENCE_REQUIRED_TERMS["morphogenetic-architecture"]["references/position-legality.md"][0]
 
     def remove_reference_term(files=legality, pattern=phrase_pattern(moved_term)):
         for path in files:
@@ -2171,14 +2229,21 @@ def mutation_test() -> int:
     # Every relative link in published markdown resolves.
     root_file = copy / "CLAUDE.md"
 
+    # Retarget an existing link rather than append one: the root file sits at
+    # its size budget, so added words would trip the ratchet first.
     def break_link(path=root_file):
         text, crlf = read_raw(path)
-        write_raw(path, text + "\nSee [the missing skill](.claude/skills/no-such-skill/SKILL.md).\n", crlf)
+        target = "(.claude/skills/continuous-improvement/SKILL.md)"
+        if target not in text:
+            raise RuntimeError("continuous-improvement link not found in CLAUDE.md")
+        write_raw(path, text.replace(target, "(.claude/skills/no-such-skill/SKILL.md)", 1), crlf)
 
     cases.append((Case("links: root file links a path that does not exist", [root_file], ("does not resolve",)), break_link))
 
-    # The router classifies every verdict the worth gate can return.
-    def drop_verdict(files=router_files):
+    # The route's hand-off table classifies every verdict the worth gate can return.
+    route_files = [copy / tree / "skills" / "alchemy" / "references" / "adaptive-route.md" for tree in (".agents", ".claude")]
+
+    def drop_verdict(files=route_files):
         for path in files:
             text, crlf = read_raw(path)
             needle = "`SIMPLIFY`, `QUARANTINE` |"
@@ -2186,7 +2251,7 @@ def mutation_test() -> int:
                 raise RuntimeError(f"M hand-off row not found in {path}")
             write_raw(path, text.replace(needle, "`SIMPLIFY` |", 1), crlf)
 
-    cases.append((Case("verdicts: router hand-off drops an M verdict", router_files, ("does not classify M verdict",)), drop_verdict))
+    cases.append((Case("verdicts: router hand-off drops an M verdict", route_files, ("does not classify M verdict",)), drop_verdict))
 
     # The scenario-coverage list may only shrink.
     def uncover_skill(files=validator_copy):
@@ -2375,12 +2440,13 @@ def validate_test_strategy_contract() -> None:
             fail(f"{(skill / relative).relative_to(ROOT)} is required")
 
     contracts = {
-        # Routing detail lives in alchemy; the root file keeps the invariant.
-        ROOT / "CLAUDE.md": (
-            "test-strategy",
-            "two-pass",
-        ),
+        # Pass order is route detail: the adaptive route holds it, and the
+        # router names the companion.
         AGENT_SKILLS / "alchemy" / "SKILL.md": (
+            "`test-strategy`",
+            "two-pass companions",
+        ),
+        ALCHEMY_ROUTE: (
             "`test-strategy`",
             "two-pass task-matched companion",
             "Obligation pass before A",
@@ -2412,9 +2478,7 @@ def validate_test_strategy_contract() -> None:
             "for a test stimulus"
         )
 
-    alchemy_text = (AGENT_SKILLS / "alchemy" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    alchemy_text = ALCHEMY_ROUTE.read_text(encoding="utf-8")
     ordered_terms = (
         "Readiness — READY or bounded reversible PARTLY-READY before Architecture",
         "Test strategy — Obligation pass before A",
@@ -2426,7 +2490,7 @@ def validate_test_strategy_contract() -> None:
     positions = [alchemy_text.find(term) for term in ordered_terms]
     if any(position < 0 for position in positions) or positions != sorted(positions):
         fail(
-            ".agents/skills/alchemy/SKILL.md must preserve the Test Strategy "
+            f"{ALCHEMY_ROUTE.relative_to(ROOT).as_posix()} must preserve the Test Strategy "
             "Obligation → A/L/C/E → Portfolio → H checklist order"
         )
 
@@ -2460,13 +2524,17 @@ def validate_requirements_grounding_contract() -> None:
 
 def validate_evolutionary_database_design_contract() -> None:
     contracts = {
+        # The root file keeps the invariant every session holds; the pass
+        # order is route detail.
         ROOT / "CLAUDE.md": (
-            "evolutionary-database-design",
-            "two-pass",
             "Expand and contract never ship in one deployable",
             "gated on evidence, not a date",
         ),
         AGENT_SKILLS / "alchemy" / "SKILL.md": (
+            "`evolutionary-database-design`",
+            "two-pass companions",
+        ),
+        ALCHEMY_ROUTE: (
             "`evolutionary-database-design`",
             "two-pass task-matched companion",
             "Compatibility pass",
@@ -2495,19 +2563,16 @@ def validate_evolutionary_database_design_contract() -> None:
     # The reversibility vocabulary this skill hands to L must be the vocabulary
     # L's reversibility table actually grades from; a drift on either side
     # silently breaks the handshake.
-    morphogenetic = (
-        AGENT_SKILLS / "morphogenetic-architecture" / "SKILL.md"
-    ).read_text(encoding="utf-8")
+    grading = AGENT_SKILLS / "morphogenetic-architecture" / "SKILL.md"
+    morphogenetic = grading.read_text(encoding="utf-8")
     for term in ("reversible data change", "irreversible data migration"):
         if not contains(morphogenetic, term):
             fail(
-                ".agents/skills/morphogenetic-architecture/SKILL.md no longer "
+                f"{grading.relative_to(ROOT).as_posix()} no longer "
                 f"grades from '{term}', which evolutionary-database-design emits"
             )
 
-    alchemy_text = (AGENT_SKILLS / "alchemy" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    alchemy_text = ALCHEMY_ROUTE.read_text(encoding="utf-8")
     ordered_terms = (
         "Test strategy — Obligation pass before A",
         "Data shape — Compatibility pass before A",
@@ -2520,7 +2585,7 @@ def validate_evolutionary_database_design_contract() -> None:
     positions = [alchemy_text.find(term) for term in ordered_terms]
     if any(position < 0 for position in positions) or positions != sorted(positions):
         fail(
-            ".agents/skills/alchemy/SKILL.md must preserve the Evolutionary "
+            f"{ALCHEMY_ROUTE.relative_to(ROOT).as_posix()} must preserve the Evolutionary "
             "Database Design Compatibility -> A/L/C/E -> Transition -> Test "
             "Strategy Portfolio -> H checklist order"
         )
@@ -2543,12 +2608,8 @@ def validate_outcome_hypothesis_contract() -> None:
         )
 
     contracts = {
-        ROOT / "CLAUDE.md": (
-            "problem outcome, requirement completion, and linked outcome",
-            "working capability, not downstream",
-            "authoritative obligation",
-        ),
-        AGENT_SKILLS / "alchemy" / "SKILL.md": (
+        ROOT / "CLAUDE.md": ("working capability, not downstream",),
+        ALCHEMY_ROUTE: (
             "linked outcome hypotheses as value evidence",
             "kept separate",
             "acceptance passed is reported as outcome success",
@@ -2622,12 +2683,7 @@ def validate_outcome_evidence_lifecycle() -> None:
         )
 
     contracts = {
-        ROOT / "CLAUDE.md": (
-            "Grounding owns meaning, Traceability owns measurement links",
-            "route only the bounded",
-            "do not restart the pipeline",
-        ),
-        AGENT_SKILLS / "alchemy" / "SKILL.md": (
+        ALCHEMY_ROUTE: (
             "new worth decision",
             "not a backward pipeline edge",
             "rerun only M in Retrospective mode",
@@ -2736,7 +2792,6 @@ def validate_alchemy_topology_handshake() -> None:
     contracts = {
         CLAUDE_SKILLS / "alchemy" / "SKILL.md": "Gate E remains blocked",
         ROOT / "README.md": "Gate E cannot run before",
-        ROOT / "CLAUDE.md": "E remains blocked until",
         ROOT / "ALCHEMY-PIPELINE-DESIGN.md": "blocks E until",
     }
     for path, blocking_term in contracts.items():
@@ -2876,7 +2931,7 @@ def validate_verdict_classification() -> None:
     if not enum:
         fail(f"{gate.relative_to(ROOT)} output contract has no Decision enum")
     verdicts = [value.strip() for value in enum.group(1).split("|")]
-    router = AGENT_SKILLS / "alchemy" / "SKILL.md"
+    router = ALCHEMY_ROUTE
     row = re.search(r"^\| M — Minimum \|(.*)$", router.read_text(encoding="utf-8"), re.M)
     if not row:
         fail(f"{router.relative_to(ROOT)} has no M — Minimum hand-off row")

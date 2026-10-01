@@ -26,8 +26,8 @@ telemetry, partition a graph, or accept a restructuring decision.
 2. **Declare the position.** Record Domain / abstraction tier / layer,
    inbound interface, outbound interface, and allowed static neighbors.
 3. **Grade reversibility, but only when a boundary would move.** A Rapid PLACE,
-   KEEP, or DECLARE-RUNTIME-CYCLE marks the field **Not required** with a short
-   reason. Once a restructuring candidate appears, record high / medium / low
+   KEEP, or DECLARE-RUNTIME-CYCLE omits the field with the rest of the
+   restructuring set (SKILL.md §8). Once a restructuring candidate appears, record high / medium / low
    from consumers, published contracts, data-migration need, and deployment
    coupling, or record **Unknown — Low bar applies** with the missing facts, as
    defined in SKILL.md §5. Carry it into the escalation.
@@ -39,8 +39,10 @@ telemetry, partition a graph, or accept a restructuring decision.
 6. **Choose or escalate.** Emit one permitted Rapid decision, or continue in
    Full using the escalation rules below.
 7. **Report the mode.** Fill `Analysis mode` and `Selection reason` in the main
-   skill's summary block. Mark unused Full-only fields, `Reversibility`
-   included, **Not required** with a short reason; do not omit them.
+   skill's summary block. A Rapid decision omits the seven restructuring-set
+   fields, `Reversibility` included; every other field appears, marked
+   **Not measured** or **Not required** with a short reason when Rapid cannot
+   fill it.
 
 A Low grade or Unknown reversibility never lets Rapid accept a restructuring
 decision. It raises the evidence bar once the task escalates, and it belongs in

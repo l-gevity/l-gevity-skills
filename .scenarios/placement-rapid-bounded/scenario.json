@@ -1,0 +1,57 @@
+{
+  "request": "Run alchemy L on this: where should a new invoice PDF formatter live in this codebase? The billing export job in src/exports will call it, and we planned to have it read orders straight from src/orders/repository.js. Check the placement and those imports.",
+  "skills": ["alchemy", "morphogenetic-architecture"],
+  "expect": [
+    {
+      "id": "applies-placement-guidance",
+      "criterion": "rapid-placement #1: a bounded placement runs the placement gate",
+      "check": "guidance_includes",
+      "skills": ["morphogenetic-architecture"]
+    },
+    {
+      "id": "reads-rapid-scan",
+      "criterion": "rapid-placement #1: a bounded placement runs the Rapid procedure",
+      "check": "reads_include",
+      "paths": [".claude/skills/morphogenetic-architecture/references/rapid-topology-scan.md"]
+    },
+    {
+      "id": "stays-rapid",
+      "criterion": "rapid-placement #1: a bounded placement reads no full-analysis guidance",
+      "check": "reads_exclude",
+      "paths": [
+        ".claude/skills/morphogenetic-architecture/references/evidence-fields.md",
+        ".claude/skills/morphogenetic-architecture/references/graph-analysis.md",
+        ".claude/skills/morphogenetic-architecture/references/natural-pattern-atlas.md"
+      ]
+    },
+    {
+      "id": "reports-mode",
+      "criterion": "rapid-placement #1: the record states why the mode was chosen",
+      "check": "field_present",
+      "field": "Selection reason"
+    },
+    {
+      "id": "places-subsystem",
+      "criterion": "rapid-placement #2: a bounded new subsystem gets a placement decision",
+      "check": "field_in",
+      "field": "Decision",
+      "values": ["PLACE"]
+    },
+    {
+      "id": "flags-interface-bypass",
+      "criterion": "rapid-placement #3: an edge that bypasses a domain's inbound interface is flagged",
+      "check": "text_matches",
+      "pattern": "cross-domain (coupling|interface bypass)"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    },
+    {
+      "id": "complete-record",
+      "criterion": "topology-record #1: every placement record carries the fields its decision requires",
+      "check": "topology_records"
+    }
+  ]
+}

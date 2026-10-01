@@ -1,8 +1,16 @@
-# Change Primitives — Named Specializations
+# Change Primitives — Definitions and Named Specializations
 
-Which sibling term specializes which primitive. `SKILL.md` §1 defines the four
-primitives; this table is lookup material for a stage that must name its own
-term, and adds no rule of its own.
+The four primitives every stage uses to describe change, and which sibling
+term specializes which. `SKILL.md` §1 names them; this file is vocabulary for
+a stage that must name its own term, not a gate rule, and adds no rule of its
+own.
+
+| Primitive | Definition |
+|:--|:--|
+| **Subsystem** | A part produced by decomposition: the thing a position is assigned to and a rule file governs. *Where change lands.* |
+| **Aspect** | A property that holds across a declared set of the units the stage knows — problem scopes at Grounding and Topology, capabilities at Readiness, subsystems from L onward; the scope → subsystem mapping is L's placement decision, never inferred upstream. One obligation (the rule) and one mechanism (the subsystem that implements it). *Which dimension is touched.* |
+| **Increment** | The bounded unit of change admitted to implementation; it adds, changes, or removes cells of the subsystem × aspect matrix. *What changes.* |
+| **Iteration** | One cycle that admits an increment, realizes it, and measures the resulting baseline: completion evidence plus the structural and flow measurements later windows compare against. Prediction windows, outcome-evidence windows, and revisit triggers are carried across iterations and close on their own trigger, re-entering L or M as a new bounded decision. "Iteration 2" is the next iteration on the same subject, *starting from that measured baseline*. |
 
 | Primitive | Named specializations |
 |:--|:--|

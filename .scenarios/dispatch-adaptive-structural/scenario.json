@@ -1,6 +1,6 @@
 {
   "request": "Run alchemy on this: we want to move the billing logic out of the orders module into its own service, because billing rules change every week while orders rarely changes.",
-  "skills": ["alchemy"],
+  "skills": ["alchemy", "morphogenetic-architecture"],
   "expect": [
     {
       "id": "selects-adaptive-route",
@@ -30,6 +30,12 @@
       "id": "claims-only-loaded-stages",
       "criterion": "claim-only-what-ran #1: every stage and companion the run names was loaded",
       "check": "route_loaded"
+    },
+    {
+      "id": "reads-route",
+      "criterion": "adaptive-dispatch #4: structural work reads the route before selecting stages",
+      "check": "reads_include",
+      "paths": [".claude/skills/alchemy/references/adaptive-route.md"]
     }
   ]
 }

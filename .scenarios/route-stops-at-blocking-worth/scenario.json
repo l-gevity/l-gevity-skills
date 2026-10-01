@@ -1,0 +1,53 @@
+{
+  "request": "Run alchemy on this: design a plugin subsystem for our CLI so third parties can add output formats. A new PluginRegistry module would sit between the export, report, and print commands and the formatters. JSON is the only format today and nobody has asked for another.",
+  "skills": ["alchemy", "functionality-complexity-tradeoff"],
+  "expect": [
+    {
+      "id": "selects-adaptive-route",
+      "criterion": "adaptive-dispatch #4: structural work runs the stages it needs",
+      "check": "field_in",
+      "field": "Dispatch",
+      "values": ["ADAPTIVE"]
+    },
+    {
+      "id": "runs-worth-gate",
+      "criterion": "stage-loading #1: the route reaches the worth gate before any design gate",
+      "check": "guidance_includes",
+      "skills": ["functionality-complexity-tradeoff"]
+    },
+    {
+      "id": "does-not-build",
+      "criterion": "worth-verdict #4: an abstraction whose further uses are only anticipated is not built",
+      "check": "field_in",
+      "field": "Decision",
+      "values": ["DROP", "DEFER", "Drop", "Defer"]
+    },
+    {
+      "id": "stops-at-blocking-decision",
+      "criterion": "stage-loading #2: a blocking decision ends the route before later stages load",
+      "check": "guidance_excludes",
+      "skills": [
+        "requirements-topology",
+        "implementation-readiness",
+        "test-strategy",
+        "evolutionary-database-design",
+        "architecture-guidelines",
+        "morphogenetic-architecture",
+        "structural-simplification",
+        "architecture-as-code",
+        "defect-shift-left",
+        "system-optimization"
+      ]
+    },
+    {
+      "id": "claims-only-loaded-stages",
+      "criterion": "claim-only-what-ran #1: every stage and companion the run names was loaded",
+      "check": "route_loaded"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}

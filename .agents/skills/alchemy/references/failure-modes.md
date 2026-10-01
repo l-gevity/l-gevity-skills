@@ -1,7 +1,7 @@
 # Failure-Mode Diagnostics
 
 Symptoms that reveal a skipped qualification stage, gate, or companion pass,
-each with the recovery that returns work to the named stage. `SKILL.md` §6
+each with the recovery that returns work to the named stage. `SKILL.md` §2
 points here when a run, an audit, or a decision trail shows one of them. This
 table adds no rule of its own; every recovery names the sibling skill or gate
 that owns it, and re-entry starts at that stage, never at the beginning of the

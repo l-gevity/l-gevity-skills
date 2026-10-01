@@ -78,7 +78,12 @@ requirements by name, even when their transcripts are current.
 
 A `route_loaded` expectation fails when a run names a gate in `Core route`, or
 a companion in `Companions`, whose `SKILL.md` it never read: a decision
-attributed to a skill that did not load is a claim, not a result.
+attributed to a skill that did not load is a claim, not a result. A
+`reads_include` or `reads_exclude` expectation names reference files a run
+must or must not read: the route a structural run needs, or the cost a skip
+must not pay. Name the gate or skill in the request, as in `Run alchemy L on
+this: …`: a natural request can be answered without loading any skill, and
+that run tests nothing the skill says.
 `SCENARIO_UNCOVERED` in the validator lists the skills no scenario names yet;
 it only shrinks, and a new skill ships with a scenario.
 

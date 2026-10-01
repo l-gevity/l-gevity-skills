@@ -105,6 +105,9 @@ alter?**
 The classification happens *before* any deep investigation — from the
 request and readily available context — because a dispatcher that must
 study everything before deciding what to skip has already not skipped it.
+The skill is built the same way: a skip or a one-question run reads only
+the dispatcher, and the route for structural work loads only when the
+dispatch selects it.
 
 Why the proportionality matters more than it looks: a discipline that
 costs too much on small changes doesn't merely waste time — it trains
@@ -179,8 +182,10 @@ down. Two companions cover what decays with time rather than with a commit:
 or an end-of-life date names something already in the tree — it also decides
 whether a version bump is routine enough to skip — and
 [observability-design](READ-observability-design.md) when a risk survives into
-production or a signal set needs pruning. The full operational reference — command grammar, dispatch rules, gate
-handshakes, and the decision-trail format — lives in
-[SKILL.md](../.claude/skills/alchemy/SKILL.md).*
+production or a signal set needs pruning. The full operational reference — command grammar, dispatch rules, and the
+decision-trail format — lives in
+[SKILL.md](../.claude/skills/alchemy/SKILL.md); the qualification route and
+gate handshakes it loads for structural work live in
+[adaptive-route.md](../.claude/skills/alchemy/references/adaptive-route.md).*
 
-<!-- skill-revision: 421420eca7a1 -->
+<!-- skill-revision: 8ec1284ce1f6 -->

@@ -109,8 +109,7 @@ flowchart TD
     Current -- "Yes" --> M["M · Minimum<br/>necessity and worth"]
 
     G -- "GROUNDED" --> M
-    G -. "PROVISIONAL" .-> Confirm["Confirm, source, or test"]
-    Confirm -.-> G
+    G -- "PROVISIONAL<br/>with confirmation queue" --> M
     G -- "NOT-GROUNDED" --> StopGround["Stop"]
 
     M -- "BUILD / KEEP / SIMPLIFY" --> NeedTopology{"Topology needed?"}
@@ -243,12 +242,16 @@ confirmation.
   takes the smallest `ADAPTIVE` route.
 - Re-entry starts at the earliest failed decision, not at the beginning of the
   pipeline.
+- Each stage's skill loads only when the route reaches it. A blocking decision
+  ends the route for its candidate, and the stages after it stay unloaded.
+  `PROVISIONAL` passes with its confirmation queue; Readiness decides whether
+  the unconfirmed requirements can change the increment.
 
 ## Decision Hand-offs
 
 | Stage | Passing decisions | Non-passing decisions | Hand-off artifact |
 |:--|:--|:--|:--|
-| Requirements Grounding | `GROUNDED` | `PROVISIONAL`, `NOT-GROUNDED` | Grounded requirement set, linked outcome hypotheses when relevant, evidence map, assumptions, confirmation queue |
+| Requirements Grounding | `GROUNDED`; `PROVISIONAL` with its confirmation queue | `NOT-GROUNDED` | Grounded requirement set, linked outcome hypotheses when relevant, evidence map, assumptions, confirmation queue |
 | M — Minimum | `BUILD`, `BUILD-minimal`, `KEEP`, `SIMPLIFY`, `QUARANTINE` | `NEGOTIATE`, `DEFER`, `DROP`, `DEPRECATE`, `DELETE`, `OBSOLETE` | Functionality/complexity decision per candidate |
 | Requirements Topology | `STABLE` | `NEEDS-REFACTOR`, `BLOCKED` | Atomic typed graph, stable IDs, dependencies, conflicts, dependency order |
 | Implementation Readiness | `READY`, bounded `PARTLY-READY` | `NOT-READY` | Smallest coherent increment, verification obligations, unresolved blockers |
@@ -339,7 +342,11 @@ the work's risk or dependency structure justifies the extra reasoning cost. It
 preserves the shortest useful route for local and already-grounded decisions.
 The dispatch preflight adds no subsystem and no mandatory gate depth: `SKIP`
 returns before sibling loading, while `DIRECT` and `ADAPTIVE` replace ad hoc
-route inference with one explicit classification.
+route inference with one explicit classification. The router is split the same
+way: its `SKILL.md` holds only dispatch, aliases, gate prerequisites,
+companions, and the output contract, and the qualification route, hand-offs,
+handshakes, checklist, and retrospective order load from
+`references/adaptive-route.md` only for `ADAPTIVE`, `FULL`, and `audit`.
 
 ## Acceptance Criteria
 
@@ -355,6 +362,10 @@ following:
   preserving independently triggered companion skills.
 - Return `DIRECT` for one clear gate question, `ADAPTIVE` for structural work,
   and `FULL` only for explicit full-traversal language.
+- Read the adaptive route before selecting stages for `ADAPTIVE`, `FULL`, and
+  `audit`, and never for `SKIP` or `DIRECT`.
+- Load each stage only when the route reaches it, and end a candidate's route
+  at its first blocking decision.
 - Route an already-grounded request directly to M.
 - Skip topology with a recorded rationale for one bounded independent
   requirement.
