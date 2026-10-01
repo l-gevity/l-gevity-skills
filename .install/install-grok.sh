@@ -25,7 +25,72 @@ REPO_TARBALL="https://github.com/$REPO/archive/$REF.tar.gz"
 TARGET="$PWD"
 LOCK_NAME="l-gevity-skills.lock.json"
 KNOWN_SKILL_DIRS=".claude/skills .agents/skills"
-KNOWN_MEMFILES="CLAUDE.md AGENTS.md GEMINI.md GROK.md"
+GUIDANCE_BEGIN='<!-- BEGIN L-GEVITY MANAGED GUIDANCE -->'
+GUIDANCE_END='<!-- END L-GEVITY MANAGED GUIDANCE -->'
+
+upsert_guidance() {
+  dest="$1"
+  input="$dest"
+  if [ ! -e "$input" ]; then
+    input="$TMP/empty-guidance.md"
+    : > "$input"
+  fi
+  final_newline=0
+  if [ -s "$input" ] && [ -z "$(tail -c 1 "$input")" ]; then final_newline=1; fi
+  tmp="$TMP/guidance-$AGENT.md"
+  # Validate before emitting anything; keep every byte outside the managed block.
+  awk -v BINMODE=3 -v begin="$GUIDANCE_BEGIN" -v end="$GUIDANCE_END" -v source="$SRC/CLAUDE.md" \
+      -v primary="$PRIMARY_SKILLS_DIR" \
+      -v final_newline="$final_newline" -v destination="$dest" '
+    BEGIN {
+      while ((getline line < source) > 0) {
+        sub(/\r$/, "", line)
+        gsub(/\.claude\/skills/, primary, line)
+        block[n++] = line
+      }
+      close(source)
+      newline = "\n"
+    }
+    {
+      rows[NR] = $0
+      probe = $0
+      if (NR == 1 && sub(/\r$/, "", probe)) newline = "\r\n"
+      sub(/\r$/, "", probe)
+      if (index(probe, begin)) {
+        if (probe != begin || first || last) malformed = 1
+        first = NR
+      }
+      if (index(probe, end)) {
+        if (probe != end || !first || last) malformed = 1
+        last = NR
+      }
+    }
+    END {
+      if (malformed || (first && !last) || (!first && last)) {
+        print "Refused to update malformed L-GEVITY guidance markers in " destination > "/dev/stderr"
+        exit 1
+      }
+      for (i = 1; i <= NR; i++) {
+        if (i == first) {
+          printf "%s%s", begin, newline
+          for (j = 0; j < n; j++) printf "%s%s", block[j], newline
+          printf "%s", end
+          if (last < NR || final_newline) printf "%s", newline
+          i = last
+        } else {
+          printf "%s", rows[i]
+          if (i < NR || final_newline) printf "\n"
+        }
+      }
+      if (!first) {
+        if (NR) printf "%s", (final_newline ? newline : newline newline)
+        printf "%s%s", begin, newline
+        for (j = 0; j < n; j++) printf "%s%s", block[j], newline
+        printf "%s%s", end, newline
+      }
+    }
+  ' "$input" > "$tmp"
+}
 
 sha256_of() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -82,6 +147,10 @@ tar -xzf "$TMP/skills.tar.gz" $TAR_LOCAL -C "$TMP"
 
 SRC="$(find "$TMP" -mindepth 1 -maxdepth 1 -type d -name 'l-gevity-skills-*' | head -n 1)"
 SRC_SKILLS="$SRC/.claude/skills"
+
+# The profile owns its root file. Stage guidance before changing skills or locks.
+MEM_DEST="$TARGET/$MEMFILE"
+upsert_guidance "$MEM_DEST"
 
 COMMIT=""
 if [ -z "$ARCHIVE" ]; then
@@ -193,20 +262,8 @@ for d in $DESTS; do
   write_lock "$dest"
 done
 
-# Honor whichever instruction file the project already uses, whatever its name.
-EXISTING_MEM=""
-for name in $KNOWN_MEMFILES; do
-  if [ -z "$EXISTING_MEM" ] && [ -e "$TARGET/$name" ]; then
-    EXISTING_MEM="$name"
-  fi
-done
-if [ -n "$EXISTING_MEM" ]; then
-  cp "$SRC/CLAUDE.md" "$TARGET/$EXISTING_MEM.l-gevity"
-  MEM_REPORT="$EXISTING_MEM.l-gevity (existing $EXISTING_MEM kept; review and merge manually)"
-else
-  cp "$SRC/CLAUDE.md" "$TARGET/$MEMFILE"
-  MEM_REPORT="$MEMFILE"
-fi
+mv "$TMP/guidance-$AGENT.md" "$MEM_DEST"
+MEM_REPORT="$MEMFILE (managed L-GEVITY block updated; project guidance kept)"
 
 echo "Installed $SKILL_COUNT skills ($FILE_COUNT files) into: $DESTS"
 if [ "$REMOVED_TOTAL" -gt 0 ]; then

@@ -564,6 +564,14 @@ CONSUMER_FORBIDDEN = (
 # A reference file is loaded on demand, so the rule it carries is pinned to
 # that file, and SKILL.md must link the file (validate_reference_links).
 REFERENCE_REQUIRED_TERMS = {
+    "continuous-improvement": {
+        "references/paired-replay.md": (
+            "same scenario on both skill sources",
+            "randomizes arm order",
+            "Promote the candidate only when the target failure improves",
+            "report length alongside verdict",
+        ),
+    },
     "zero-copy-requirements": {
         "references/sweep.md": (
             "Enumerate from version control, not the filesystem",
@@ -1500,7 +1508,12 @@ SCENARIO_CHECKS = {
     "guidance_excludes": {"skills": list},
     "blocks_in_order": {},
     "text_matches": {"pattern": str},
+    "text_not_matches": {"pattern": str},
+    "word_count_lte": {"max_words": int},
+    "file_not_read": {"path": str},
+    "file_read": {"path": str},
     "route_loaded": {},
+    "route_includes": {"skills": list},
 }
 ROUTE_SKILLS = {
     "M": "functionality-complexity-tradeoff",
@@ -1556,20 +1569,29 @@ def scenario_fixture(directory: Path) -> Path | None:
     return fixture if fixture.is_dir() else None
 
 
-def scenario_revision(directory: Path, scenario: dict) -> str:
+def scenario_revision(directory: Path, scenario: dict, *, source_root: Path | None = None) -> str:
     """What a transcript is valid for: the request, the fixture project, the
-    root instruction file, and every skill the scenario names."""
+    root instruction file, criteria, and all available skill sources. A run may
+    select a sibling not named in the scenario's coverage declaration."""
+    source = source_root if source_root is not None else ROOT
+    skills = source / ".claude" / "skills"
     digest = hashlib.sha256()
-    digest.update(scenario["request"].encode("utf-8") + b"\0")
-    digest.update((ROOT / "CLAUDE.md").read_bytes().replace(b"\r\n", b"\n"))
-    for name in sorted(scenario["skills"]):
+    digest.update(json.dumps(scenario, sort_keys=True, ensure_ascii=False).encode("utf-8") + b"\0")
+    digest.update((source / "CLAUDE.md").read_bytes().replace(b"\r\n", b"\n"))
+    for name in sorted(path.name for path in skill_dirs(skills)):
         digest.update(b"\0" + name.encode("utf-8") + b"\0")
-        digest.update(skill_revision(CLAUDE_SKILLS / name).encode("ascii"))
-    fixture = scenario_fixture(directory)
+        digest.update(skill_revision(skills / name).encode("ascii"))
+    # A captured project already contains the full fixture alongside guidance.
+    # Enumerate it directly: consulting the original fixture's current names
+    # would let a concurrent addition/removal change a captured revision.
+    fixture = source if source_root is not None else scenario_fixture(directory)
     if fixture is not None:
         for path in sorted(fixture.rglob("*"), key=lambda item: item.as_posix()):
             if path.is_file():
-                digest.update(b"\0" + path.relative_to(fixture).as_posix().encode("utf-8") + b"\0")
+                relative = path.relative_to(fixture)
+                if source_root is not None and (relative.as_posix() == "CLAUDE.md" or relative.parts[:2] == (".claude", "skills")):
+                    continue
+                digest.update(b"\0" + relative.as_posix().encode("utf-8") + b"\0")
                 digest.update(path.read_bytes().replace(b"\r\n", b"\n"))
     return digest.hexdigest()[:12]
 
@@ -1600,6 +1622,9 @@ def load_scenario(directory: Path) -> tuple[dict, dict | None]:
     for name in scenario["skills"]:
         if not known_skill(name):
             fail(f"{label} depends on unknown skill {name!r}")
+    rubric = scenario.get("blind_judge_rubric", [])
+    if not isinstance(rubric, list) or any(not isinstance(item, str) or not item.strip() for item in rubric):
+        fail(f"{label} blind_judge_rubric must be a list of non-empty strings")
     ids = []
     for expectation in scenario["expect"]:
         ident = expectation.get("id") if isinstance(expectation, dict) else None
@@ -1645,15 +1670,23 @@ def load_scenario(directory: Path) -> tuple[dict, dict | None]:
 def scenario_values(output: str, field: str) -> list[str]:
     """Every value the output gives a record field, whatever markdown wraps the
     line: a run can print the same field in more than one record."""
-    pattern = re.compile(rf"^[ \t>*_-]*{re.escape(field)}\**:\**[ \t]*(.*)$", re.M)
-    return [match.group(1).strip() for match in pattern.finditer(output)]
+    pattern = re.compile(rf"^[ \t>*_-]*{re.escape(field)}\**[ \t]*(?::|[—–])\**[ \t]*(.*)$", re.M)
+    values = [match.group(1).strip() for match in pattern.finditer(output)]
+    if field == "Decision" and not values:
+        # The root card can state its explicit verdict directly after its first
+        # heading. Later narrative mentions are not decision declarations.
+        verdicts = "BUILD-minimal|BUILD|KEEP|SIMPLIFY|QUARANTINE|NEGOTIATE|DEFER|DROP|DEPRECATE|DELETE|OBSOLETE|NOT-GROUNDED|PROVISIONAL|GROUNDED|NOT-READY|PARTLY-READY|READY|PLACE|MOVE|SPLIT|MERGE|INTRODUCE-BOUNDARY"
+        card = re.search(rf"^[ \t>*_-]*What I found\**\s*[—–:-]\s*[`*]*({verdicts})(?![\w-])", output, re.M)
+        if card:
+            values = [card.group(1)]
+    return values
 
 
 def scenario_guidance(transcript: dict) -> set[str]:
     """Skills whose guidance the run took in: invoked through the Skill tool, or
     with any file read or searched inside the skill's own folder."""
     seen = {str(name).rsplit(":", 1)[-1] for name in transcript["skills_invoked"]}
-    for path in transcript["files_read"] + transcript["paths_searched"]:
+    for path in transcript["files_read"] + transcript["paths_searched"] + transcript.get("guidance_content_reads", []):
         parts = str(path).split("/")
         if len(parts) >= 3 and parts[:2] == [".claude", "skills"]:
             seen.add(parts[2])
@@ -1664,7 +1697,7 @@ def scenario_loaded(transcript: dict) -> set[str]:
     """Skills whose SKILL.md body the run read or invoked; a reference file
     alone does not count as loading the gate."""
     loaded = {str(name).rsplit(":", 1)[-1] for name in transcript["skills_invoked"]}
-    for path in transcript["files_read"]:
+    for path in transcript["files_read"] + transcript.get("guidance_content_reads", []):
         parts = str(path).split("/")
         if len(parts) == 4 and parts[:2] == [".claude", "skills"] and parts[3] == "SKILL.md":
             loaded.add(parts[2])
@@ -1674,17 +1707,34 @@ def scenario_loaded(transcript: dict) -> set[str]:
 NOT_RUN_RE = re.compile(r"\b(?:not run|not triggered|deferred|skipped|blocked)\b", re.I)
 
 
-def scenario_route(output: str) -> set[str]:
-    """Skills a run names as routed: Core route stages and Companions. A stage
-    annotated as not run, as in "E (Not run)" or "(Y deferred)", and any
-    parenthesized aside are notes, not claims."""
+def scenario_core_route(output: str) -> set[str]:
+    """Core stages explicitly reported in the Core route field.
+
+    Companions cannot stand in for an omitted core route. Deferred annotations
+    and parenthesized asides remain disclosures rather than loaded-stage claims.
+    """
     named = set()
     for value in scenario_values(output, "Core route"):
+        # Inline Companions is a separate field, not part of the core route.
+        value = re.split(r";\s*\**Companions\**\s*(?::|[—–])", value, flags=re.I)[0]
         value = re.sub(r"\b[A-Za-z][A-Za-z-]*\s*\([^)]*\)", lambda m: "" if NOT_RUN_RE.search(m.group(0)) else m.group(0), value)
+        # An explicitly deferred stage remains a disclosure even when its
+        # annotation is not parenthesized (for example "Y deferred to iteration 2").
+        value = re.sub(r"\b[A-Za-z][A-Za-z-]*\s+(?:not run|not triggered|deferred|skipped|blocked)\b[^,;→>\n]*", "", value, flags=re.I)
         for token in re.findall(r"[A-Za-z][A-Za-z-]*", re.sub(r"\([^)]*\)", "", value)):
             if token in ROUTE_SKILLS:
                 named.add(ROUTE_SKILLS[token])
-    for value in scenario_values(output, "Companions"):
+            elif (CLAUDE_SKILLS / token / "SKILL.md").is_file():
+                named.add(token)
+    return named
+
+
+def scenario_route(output: str) -> set[str]:
+    """All reported core stages and companions that require loaded bodies."""
+    named = scenario_core_route(output)
+    companion_values = scenario_values(output, "Companions")
+    companion_values += re.findall(r";\s*\**Companions\**\s*(?::|[—–])\**\s*(.*)", output)
+    for value in companion_values:
         for token in re.findall(r"[a-z][a-z0-9-]+", re.sub(r"\([^)]*\)", "", value)):
             if (CLAUDE_SKILLS / token / "SKILL.md").is_file():
                 named.add(token)
@@ -1706,6 +1756,8 @@ def scenario_passes(expectation: dict, transcript: dict) -> bool:
     check, output = expectation["check"], transcript["output"]
     if check == "route_loaded":
         return scenario_route_loaded(transcript)
+    if check == "route_includes":
+        return set(expectation["skills"]) <= scenario_core_route(output)
     if check in ("field_in", "field_present", "field_absent"):
         values = scenario_values(output, expectation["field"])
         if check == "field_present":
@@ -1727,7 +1779,57 @@ def scenario_passes(expectation: dict, transcript: dict) -> bool:
             match = re.search(rf"^[ \t>#*_-]*{re.escape(block)}\b", output, re.M)
             positions.append(match.start() if match else -1)
         return -1 not in positions and positions == sorted(positions)
+    if check == "word_count_lte":
+        return len(re.findall(r"\b[\w’'-]+\b", output)) <= expectation["max_words"]
+    if check == "file_not_read":
+        return expectation["path"] not in transcript["files_read"] + transcript.get("guidance_content_reads", [])
+    if check == "file_read":
+        return expectation["path"] in transcript["files_read"] + transcript.get("guidance_content_reads", [])
+    if check == "text_not_matches":
+        return re.search(expectation["pattern"], output, re.I) is None
     return re.search(expectation["pattern"], output, re.I) is not None
+
+
+def validate_scenario_checker() -> None:
+    """Route aliases and full names represent the same loaded-stage claim."""
+    worth = "functionality-complexity-tradeoff"
+    expects = {"check": "route_includes", "skills": [worth]}
+    for route in ("M", worth, f"M ({worth})"):
+        record = {"output": f"Core route: {route}; Companions: observability-design\n",
+                  "skills_invoked": [worth, "observability-design"], "files_read": [], "paths_searched": []}
+        if not scenario_passes(expects, record) or not scenario_route_loaded(record):
+            fail("scenario checker must accept equivalent route letters and full skill names")
+        record["skills_invoked"] = []
+        if scenario_route_loaded(record):
+            fail("scenario checker accepted a route whose skill bodies were not loaded")
+    record = {"output": "Dispatch: DIRECT\n", "skills_invoked": [worth], "files_read": [], "paths_searched": []}
+    if scenario_passes(expects, record):
+        fail("scenario checker accepted an omitted explicit core route")
+    record["output"] += f"Companions: {worth}\n"
+    if scenario_passes(expects, record):
+        fail("scenario checker accepted a companion in place of an explicit core route")
+    record.update(output="**Core route** — M; Y deferred to iteration 2\n", skills_invoked=[worth])
+    if not scenario_passes(expects, record) or not scenario_route_loaded(record):
+        fail("scenario checker must recognize explicit route punctuation and deferred-stage disclosures")
+    record["output"] = "Core route: M, Y\n"
+    if scenario_route_loaded(record):
+        fail("scenario checker must reject an unqualified claim to an unloaded stage")
+    record["output"] = "**What I found** — DROP. No second implementation is requested."
+    if not scenario_passes({"check": "field_in", "field": "Decision", "values": ["DROP", "DEFER"]}, record):
+        fail("scenario checker must recognize an explicit verdict at the start of the root card")
+    record["output"] = "**What I found** — BUILD. We could DROP it later."
+    if scenario_passes({"check": "field_in", "field": "Decision", "values": ["DROP", "DEFER"]}, record):
+        fail("scenario checker must not confuse narrative verdict mentions with the declared decision")
+    record["output"] = "word " * 351
+    if scenario_passes({"check": "word_count_lte", "max_words": 350}, record):
+        fail("scenario checker accepted a report above the declared word ceiling")
+    guide = ".claude/skills/alchemy/references/failure-modes.md"
+    record.update(output="Core route: M\n", skills_invoked=[], files_read=[],
+                  guidance_content_reads=[f".claude/skills/{worth}/SKILL.md", guide])
+    if not scenario_route_loaded(record):
+        fail("scenario checker must count a skill body returned by content Grep as loaded")
+    if scenario_passes({"check": "file_not_read", "path": guide}, record) or not scenario_passes({"check": "file_read", "path": guide}, record):
+        fail("scenario checker must count guidance returned by content Grep as read")
 
 
 def validate_scenario_coverage(directories: list[Path]) -> None:
@@ -1791,7 +1893,83 @@ def project_relative(value: str, project: Path) -> str:
     return Path(os.path.relpath(full, root)).as_posix()
 
 
-def scenario_transcript(directory: Path, scenario: dict, stream: str, project: Path) -> tuple[dict | None, str]:
+def scenario_guidance_content_reads(stream: str, project: Path) -> list[str]:
+    """Guidance paths with text returned by successful content-mode Grep.
+
+    Content-mode output normally prefixes hits with a filename. When a Grep
+    targets one guidance file, numbered lines without a filename also identify
+    that body. Empty results, errors and files_with_matches do not load it.
+    """
+    calls, loaded = {}, set()
+    # Match only a returned filename prefix. A path mentioned after another
+    # file's ':line:' delimiter is content of that other file, not a loaded body.
+    pattern = re.compile(r"^(?:(?:[A-Za-z]:/|/)?[^:\r\n]*?/)?\.(claude|agents)/skills/([a-z0-9-]+/(?:SKILL\.md|references/[^:\r\n]+?\.md))(?=[:\-])", re.M)
+    for line in stream.splitlines():
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(event, dict):
+            continue
+        for block in (event.get("message") or {}).get("content") or []:
+            if not isinstance(block, dict):
+                continue
+            if block.get("type") == "tool_use" and block.get("id") and block.get("name") == "Grep":
+                arguments = block.get("input") or {}
+                if arguments.get("output_mode") == "content":
+                    calls[block["id"]] = project_relative(str(arguments.get("path") or "."), project)
+            elif block.get("type") == "tool_result" and block.get("tool_use_id") in calls and not block.get("is_error"):
+                content = block.get("content") or ""
+                if isinstance(content, list):
+                    content = "\n".join(str(item.get("text", "")) for item in content if isinstance(item, dict))
+                content = str(content).replace("\\", "/")
+                for match in pattern.finditer(content):
+                    loaded.add(f".{match.group(1)}/skills/{match.group(2)}")
+                target = calls[block["tool_use_id"]]
+                if target.startswith((".claude/skills/", ".agents/skills/")) and (target.endswith("/SKILL.md") or "/references/" in target):
+                    if content.strip() and not re.fullmatch(r"\s*(?:No matches found|No files found|Found 0 (?:lines|files))\s*", content, re.I):
+                        loaded.add(target)
+    return sorted(loaded)
+
+
+def scenario_filter_failed_loads(transcript: dict, stream: str, project: Path) -> dict:
+    """Remove Skill/Read loads with explicit errors and no successful retry.
+
+    Missing tool results remain conservative estimates. A later successful
+    retry of the same body counts, regardless of the earlier call's failure.
+    Standard recording and paired replay use this same normalization.
+    """
+    calls, failed, successful, resolved = {}, set(), set(), set()
+    for line in stream.splitlines():
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(event, dict):
+            continue
+        for block in (event.get("message") or {}).get("content") or []:
+            if not isinstance(block, dict):
+                continue
+            if block.get("type") == "tool_use" and block.get("id"):
+                arguments = block.get("input") or {}
+                if block.get("name") == "Skill":
+                    calls[block["id"]] = ("skills_invoked", str(arguments.get("skill", "")))
+                elif block.get("name") == "Read":
+                    calls[block["id"]] = ("files_read", project_relative(str(arguments.get("file_path", "")), project))
+            elif block.get("type") == "tool_result" and block.get("tool_use_id") in calls:
+                resolved.add(block["tool_use_id"])
+                (failed if block.get("is_error") else successful).add(calls[block["tool_use_id"]])
+    unresolved = {value for ident, value in calls.items() if ident not in resolved}
+    excluded = failed - successful - unresolved
+    result = dict(transcript)
+    result["failed_guidance_loads"] = [{"kind": field, "value": value} for field, value in sorted(excluded)]
+    for field in ("skills_invoked", "files_read"):
+        result[field] = [value for value in transcript[field] if (field, value) not in excluded]
+    return result
+
+
+
+def scenario_transcript(directory: Path, scenario: dict, stream: str, project: Path, *, revision: str | None = None) -> tuple[dict | None, str]:
     """Reduce a stream-json run to what the checks read. Returns the transcript,
     or None and the reason the run failed."""
     init, result, texts = {}, None, []
@@ -1830,17 +2008,19 @@ def scenario_transcript(directory: Path, scenario: dict, stream: str, project: P
     replacements = {str(project): ".", project.as_posix(): ".", str(Path.home()): "~", Path.home().as_posix(): "~"}
     for form in sorted(replacements, key=len, reverse=True):
         output = output.replace(form, replacements[form])
-    return {
+    transcript = {
         "scenario": directory.name,
-        "revision": scenario_revision(directory, scenario),
+        "revision": revision if revision is not None else scenario_revision(directory, scenario),
         "recorded_with": f"claude-code {init.get('claude_code_version', 'unknown')}, model {init.get('model', 'unknown')}",
         "skills_available": sorted(init.get("skills") or []),
         "skills_invoked": invoked,
         "files_read": read,
+        "guidance_content_reads": scenario_guidance_content_reads(stream, project),
         "paths_searched": searched,
         "turns": result.get("num_turns"),
         "output": output,
-    }, ""
+    }
+    return scenario_filter_failed_loads(transcript, stream, project), ""
 
 
 def record_scenarios(names: list[str]) -> int:
@@ -1881,6 +2061,7 @@ def record_scenarios(names: list[str]) -> int:
             fixture = scenario_fixture(directory)
             if fixture is not None:
                 shutil.copytree(fixture, project, dirs_exist_ok=True)
+            revision = scenario_revision(directory, scenario, source_root=project)
             command = [
                 claude, "-p", scenario["request"],
                 "--output-format", "stream-json", "--verbose",
@@ -1895,7 +2076,7 @@ def record_scenarios(names: list[str]) -> int:
                 transcript, reason = None, "the run did not finish within 30 minutes"
             else:
                 stream = run.stdout.decode("utf-8", errors="replace")
-                transcript, reason = scenario_transcript(directory, scenario, stream, project)
+                transcript, reason = scenario_transcript(directory, scenario, stream, project, revision=revision)
         finally:
             shutil.rmtree(project, ignore_errors=True)
         if transcript is None:
@@ -2230,6 +2411,22 @@ def mutation_test() -> int:
     if scenario_dirs:
         subject = [scenario_dirs[0] / "scenario.json", scenario_dirs[0] / "transcript.json"]
 
+        def refresh_mutation_revision(files):
+            """Isolate a checker mutation from the separate stale-source check.
+
+            Only controlled scratch fixtures are restamped. Production
+            transcripts must be recorded against their captured source.
+            """
+            spec = json.loads(files[0].read_text(encoding="utf-8"))
+            record = json.loads(files[1].read_text(encoding="utf-8"))
+            previous_root = globals()["ROOT"]
+            try:
+                globals()["ROOT"] = copy
+                record["revision"] = scenario_revision(files[0].parent, spec)
+            finally:
+                globals()["ROOT"] = previous_root
+            write_raw(files[1], json.dumps(record, indent=2) + "\n", False)
+
         def remove_transcript(files=subject):
             files[1].unlink()
 
@@ -2249,8 +2446,46 @@ def mutation_test() -> int:
             record = json.loads(files[1].read_text(encoding="utf-8"))
             record.update(output="", skills_invoked=["mutation-foreign-skill"], files_read=[], paths_searched=[])
             write_raw(files[1], json.dumps(record, indent=2) + "\n", False)
+            refresh_mutation_revision(files)
 
         cases.append((Case("scenario: transcript emptied and known failures cleared", subject, ("not met",)), empty_transcript))
+
+        def unloaded_full_route(files=subject):
+            spec = json.loads(files[0].read_text(encoding="utf-8"))
+            spec["expect"] = [{"id": "loaded", "criterion": "claim-only-what-ran #1: full names are skill claims", "check": "route_loaded"}]
+            spec.pop("known_failures", None)
+            write_raw(files[0], json.dumps(spec, indent=2) + "\n", False)
+            record = json.loads(files[1].read_text(encoding="utf-8"))
+            record.update(output="Core route: functionality-complexity-tradeoff; Companions: observability-design\n", skills_invoked=[], files_read=[], paths_searched=[])
+            write_raw(files[1], json.dumps(record, indent=2) + "\n", False)
+            refresh_mutation_revision(files)
+
+        cases.append((Case("scenario: unloaded full-name route and inline companion", subject, ("not met",)), unloaded_full_route))
+
+        def over_budget_report(files=subject):
+            spec = json.loads(files[0].read_text(encoding="utf-8"))
+            spec["expect"] = [{"id": "brief", "criterion": "summary-led-report #3: declared word ceiling", "check": "word_count_lte", "max_words": 350}]
+            spec.pop("known_failures", None)
+            write_raw(files[0], json.dumps(spec, indent=2) + "\n", False)
+            record = json.loads(files[1].read_text(encoding="utf-8"))
+            record["output"] = "word " * 351
+            write_raw(files[1], json.dumps(record, indent=2) + "\n", False)
+            refresh_mutation_revision(files)
+
+        cases.append((Case("scenario: report exceeds predeclared ceiling", subject, ("not met",)), over_budget_report))
+
+        def load_guide_through_content_search(files=subject):
+            spec = json.loads(files[0].read_text(encoding="utf-8"))
+            guide = ".claude/skills/alchemy/references/failure-modes.md"
+            spec["expect"] = [{"id": "cheap-route", "criterion": "loaded-guidance #1: forbidden reference content remains read through search", "check": "file_not_read", "path": guide}]
+            spec.pop("known_failures", None)
+            write_raw(files[0], json.dumps(spec, indent=2) + "\n", False)
+            record = json.loads(files[1].read_text(encoding="utf-8"))
+            record.update(files_read=[], guidance_content_reads=[guide])
+            write_raw(files[1], json.dumps(record, indent=2) + "\n", False)
+            refresh_mutation_revision(files)
+
+        cases.append((Case("scenario: forbidden guide loaded through content Grep", subject, ("not met",)), load_guide_through_content_search))
 
         specs = [path / "scenario.json" for path in scenario_dirs]
 
@@ -2263,10 +2498,12 @@ def mutation_test() -> int:
                 if passing:
                     spec["known_failures"] = {**known, passing[0]: "mutation: listed while it passes"}
                     write_raw(path, json.dumps(spec, indent=2) + "\n", False)
+                    refresh_mutation_revision([path, path.parent / "transcript.json"])
                     return
             raise RuntimeError("no scenario meets an expectation that could be listed as a known failure")
 
-        cases.append((Case("scenario: known failure that passes again", specs, ("now passes",)), list_passing_as_known))
+        scenario_files = [file for spec in specs for file in (spec, spec.parent / "transcript.json")]
+        cases.append((Case("scenario: known failure that passes again", scenario_files, ("now passes",)), list_passing_as_known))
 
     try:
         code, output = run()
@@ -2906,13 +3143,15 @@ def installer_body(text: str) -> str:
 # report a consumer's 40 mirrored directories as 40 freshly installed skills.
 INSTALLER_BODY_REQUIRED = {
     "sh": ("--force-local", "$SRC_SKILL_NAMES", "$SRC_FILES", "sha256_of",
-           "previous_files", "KNOWN_MEMFILES", "KNOWN_SKILL_DIRS"),
+           "previous_files", "MEMFILE", "KNOWN_SKILL_DIRS",
+           "GUIDANCE_BEGIN", "GUIDANCE_END", "upsert_guidance"),
     "ps1": ("$SrcSkillNames.Count", "$SrcFiles.Count", "Get-FileHash",
-            "Get-PreviousFiles", "KnownMemFiles", "KnownSkillDirs"),
+            "Get-PreviousFiles", "MemFile", "KnownSkillDirs",
+            "$GuidanceBegin", "$GuidanceEnd", "Update-ManagedGuidance"),
 }
 INSTALLER_BODY_FORBIDDEN = {
-    "sh": ('find "$TARGET',),
-    "ps1": ("Get-ChildItem $SkillsDest -Directory",),
+    "sh": ('find "$TARGET', ".l-gevity (existing"),
+    "ps1": ("Get-ChildItem $SkillsDest -Directory", ".l-gevity (existing"),
 }
 
 
@@ -2974,6 +3213,7 @@ def validate_ci_wiring() -> None:
     for command in (
         "npm run validate",
         "npm run validate:mutation",
+        "npm run test:replay",
         "bash scripts/test-installers.sh",
         "./scripts/test-installers.ps1",
     ):
@@ -2987,12 +3227,25 @@ def validate_ci_wiring() -> None:
     scripts = package.get("scripts", {})
     expected_scripts = {
         "validate:mutation": "python scripts/validate-skills.py --mutation-test",
+        "replay:scenario": "python scripts/replay-scenarios.py",
+        "test:replay": "python scripts/test-replay-scenarios.py",
         "test:installers": "bash scripts/test-installers.sh",
         "test:installers:ps": "pwsh -NoProfile -File scripts/test-installers.ps1",
     }
     for name, command in expected_scripts.items():
         if scripts.get(name) != command:
             fail(f"package.json must expose {name} as '{command}'")
+
+    replay = ROOT / "scripts" / "replay-scenarios.py"
+    if not replay.is_file():
+        fail(f"missing {replay.relative_to(ROOT)}")
+    replay_source = replay.read_text(encoding="utf-8")
+    for contract in (
+        "--before", "--after", "--runs", "--blind-judge",
+        "arm_order", "judge_key", "expectations_passed", "word_count",
+    ):
+        if contract not in replay_source:
+            fail(f"{replay.relative_to(ROOT)} must implement paired replay contract '{contract}'")
 
     # Under a bare `* text=auto` a shell script checks out CRLF on Windows and
     # bash dies on the carriage return. Pin both script families explicitly.
@@ -3052,6 +3305,7 @@ def main() -> int:
     validate_design_and_release_contracts()
     validate_contribution_contract()
     validate_markdown_links()
+    validate_scenario_checker()
     validate_scenarios()
     print("Skills validated")
     return 0

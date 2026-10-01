@@ -44,32 +44,40 @@ function MemFile-For($Agent) {
     }
 }
 
-function New-SourceArchive($WorkDir) {
-    $stage = Join-Path $WorkDir 'l-gevity-skills-test'
+function New-SourceArchive($WorkDir, $Revision = 'test-v1') {
+    $stage = Join-Path $WorkDir "l-gevity-skills-$Revision"
     New-Item -ItemType Directory -Path $stage -Force | Out-Null
     Copy-Item -Path (Join-Path $RepoRoot '.claude') -Destination $stage -Recurse -Force
     Copy-Item -Path (Join-Path $RepoRoot '.agents') -Destination $stage -Recurse -Force
     Copy-Item -Path (Join-Path $RepoRoot 'CLAUDE.md') -Destination $stage -Force
-    $zip = Join-Path $WorkDir 'skills.zip'
+    $rootGuidance = Join-Path $stage 'CLAUDE.md'
+    $guidance = [System.IO.File]::ReadAllText($rootGuidance) + "`nLibrary guidance revision: $Revision.`n"
+    [System.IO.File]::WriteAllText($rootGuidance, $guidance, [System.Text.UTF8Encoding]::new($false))
+    $zip = Join-Path $WorkDir "skills-$Revision.zip"
     Compress-Archive -Path $stage -DestinationPath $zip -Force
     return $zip
 }
 
-function Invoke-Installer($Exe, $Agent, $ConsumerDir, $Archive) {
+function Invoke-Installer($Exe, $Agent, $ConsumerDir, $Archive, $Ref = 'main') {
     $installer = Join-Path $RepoRoot ".install/install-$Agent.ps1"
     $argv = @('-NoProfile')
     if ($IsWindows -or $null -eq $IsWindows) { $argv += @('-ExecutionPolicy', 'Bypass') }
     $argv += @('-File', $installer)
 
     $previous = $env:L_GEVITY_SKILLS_ARCHIVE
+    $previousRef = $env:L_GEVITY_SKILLS_REF
     $env:L_GEVITY_SKILLS_ARCHIVE = $Archive
+    $env:L_GEVITY_SKILLS_REF = $Ref
     Push-Location $ConsumerDir
     try {
+        # Expected failing installs emit native stderr on Windows PowerShell 5.1.
+        $ErrorActionPreference = 'Continue'
         $output = (& $Exe @argv 2>&1 | Out-String)
         return [pscustomobject]@{ Output = $output; ExitCode = $LASTEXITCODE }
     } finally {
         Pop-Location
         $env:L_GEVITY_SKILLS_ARCHIVE = $previous
+        $env:L_GEVITY_SKILLS_REF = $previousRef
     }
 }
 
@@ -102,6 +110,13 @@ function Match-One($Text, $Pattern) {
     return ''
 }
 
+function Test-FileBytesAt($Path, [byte[]] $Expected, $FromEnd = $false) {
+    $actual = [System.IO.File]::ReadAllBytes($Path)
+    if ($actual.Length -lt $Expected.Length) { return $false }
+    $offset = if ($FromEnd) { $actual.Length - $Expected.Length } else { 0 }
+    return [Convert]::ToBase64String($actual, $offset, $Expected.Length) -eq [Convert]::ToBase64String($Expected)
+}
+
 function Invoke-Suite($Exe, $ExeLabel) {
     Write-Host ""
     Write-Host "######## host: $ExeLabel ########"
@@ -110,6 +125,7 @@ function Invoke-Suite($Exe, $ExeLabel) {
     New-Item -ItemType Directory -Path $work -Force | Out-Null
     try {
         $archive = New-SourceArchive $work
+        $repinArchive = New-SourceArchive $work 'test-v2'
 
         $srcSkills = Join-Path $RepoRoot '.claude/skills'
         $expectSkills = (Get-ChildItem -LiteralPath $srcSkills -Directory -Force).Count
@@ -135,6 +151,11 @@ function Invoke-Suite($Exe, $ExeLabel) {
             Check "nothing written to $other" `
                 (Test-Path (Join-Path $consumer $other)) $false
             Check "created $memfile" (Test-Path (Join-Path $consumer $memfile)) $true
+            $instructions = Get-Content -Raw -LiteralPath (Join-Path $consumer $memfile)
+            Check "first install includes managed root guidance" `
+                ([regex]::Matches($instructions, 'Library guidance revision: test-v1\.').Count) 1
+            Check "root skill links target $primary" ($instructions.Contains("$primary/")) $true
+            Check "root skill links do not target the absent $other" ($instructions.Contains("$other/")) $false
             Check "reported skill count" `
                 (Match-One $run.Output 'Installed (\d+) skills') $expectSkills
             Check "reported file count" `
@@ -161,19 +182,89 @@ function Invoke-Suite($Exe, $ExeLabel) {
         }
         Check "hash mismatches across every file" $mismatch 0
 
-        # --- An existing instruction file of any name is honored ---
+        # --- Own root is merged; other agents' roots remain byte-identical ---
         Write-Host ""
-        Write-Host "== an existing AGENTS.md is honored by the Claude installer =="
-        $consumer = Join-Path $work 'consumer-agents-md'
-        New-Item -ItemType Directory -Path $consumer -Force | Out-Null
-        Set-Content -LiteralPath (Join-Path $consumer 'AGENTS.md') -Value 'project instructions'
-        Invoke-Installer $Exe 'claude' $consumer $archive | Out-Null
-        Check "existing file untouched" `
-            (Get-Content -Raw -LiteralPath (Join-Path $consumer 'AGENTS.md')).Trim() 'project instructions'
-        Check "upstream copy sidecarred" `
-            (Test-Path (Join-Path $consumer 'AGENTS.md.l-gevity')) $true
-        Check "no second instruction file invented" `
-            (Test-Path (Join-Path $consumer 'CLAUDE.md')) $false
+        Write-Host "== every existing agent root file receives a managed block =="
+        foreach ($agent in @('claude', 'codex', 'gemini', 'grok')) {
+            $consumer = Join-Path $work "consumer-existing-$agent"
+            $memfile = MemFile-For $agent
+            New-Item -ItemType Directory -Path $consumer -Force | Out-Null
+            $rootPath = Join-Path $consumer $memfile
+            $prefix = "project instructions`r`nkeep trailing spaces  `r`n"
+            [System.IO.File]::WriteAllText($rootPath, $prefix, [System.Text.UTF8Encoding]::new($true))
+            $prefixBytes = [System.IO.File]::ReadAllBytes($rootPath)
+            $otherHashes = @{}
+            foreach ($otherMem in @('CLAUDE.md', 'AGENTS.md', 'GEMINI.md', 'GROK.md')) {
+                if ($otherMem -ne $memfile) {
+                    $otherPath = Join-Path $consumer $otherMem
+                    [System.IO.File]::WriteAllText($otherPath, "other agent project instructions: $otherMem`n")
+                    $otherHashes[$otherMem] = (Get-FileHash -LiteralPath $otherPath -Algorithm SHA256).Hash
+                }
+            }
+            $run = Invoke-Installer $Exe $agent $consumer $archive
+            Check "$agent existing root install succeeds" $run.ExitCode 0
+            $instructions = [System.IO.File]::ReadAllText($rootPath)
+            Check "$agent preserves project prefix bytes including UTF8 BOM" (Test-FileBytesAt $rootPath $prefixBytes) $true
+            Check "$agent merges managed guidance" ([regex]::Matches($instructions, '(?m)^<!-- BEGIN L-GEVITY MANAGED GUIDANCE -->\r?$').Count) 1
+            Check "$agent closes managed block" ([regex]::Matches($instructions, '(?m)^<!-- END L-GEVITY MANAGED GUIDANCE -->\r?$').Count) 1
+            Check "$agent installs current root guidance" ([regex]::Matches($instructions, 'Library guidance revision: test-v1\.').Count) 1
+            Check "$agent needs no sidecar" (Test-Path (Join-Path $consumer "$($memfile).l-gevity")) $false
+            $suffix = "`r`nproject suffix without final newline"
+            $suffixBytes = [System.Text.Encoding]::UTF8.GetBytes($suffix)
+            [System.IO.File]::AppendAllText($rootPath, $suffix)
+            $rootBefore = (Get-FileHash -LiteralPath $rootPath -Algorithm SHA256).Hash
+            $run = Invoke-Installer $Exe $agent $consumer $archive
+            Check "$agent repeat install succeeds" $run.ExitCode 0
+            Check "$agent repeat leaves root bytes unchanged" (Get-FileHash -LiteralPath $rootPath -Algorithm SHA256).Hash $rootBefore
+            $instructionsAgain = [System.IO.File]::ReadAllText($rootPath)
+            Check "$agent replaces rather than duplicates guidance" ([regex]::Matches($instructionsAgain, '(?m)^<!-- BEGIN L-GEVITY MANAGED GUIDANCE -->\r?$').Count) 1
+            $run = Invoke-Installer $Exe $agent $consumer $repinArchive 'test-repin'
+            Check "$agent repin succeeds" $run.ExitCode 0
+            $repinned = [System.IO.File]::ReadAllText($rootPath)
+            Check "$agent repin refreshes managed guidance" ([regex]::Matches($repinned, 'Library guidance revision: test-v2\.').Count) 1
+            Check "$agent repin removes obsolete guidance" ([regex]::Matches($repinned, 'Library guidance revision: test-v1\.').Count) 0
+            Check "$agent repin preserves prefix bytes" (Test-FileBytesAt $rootPath $prefixBytes) $true
+            Check "$agent repin preserves suffix bytes" (Test-FileBytesAt $rootPath $suffixBytes $true) $true
+            $lock = Get-Content -Raw -LiteralPath (Join-Path $consumer "$(Primary-DirFor $agent)/l-gevity-skills.lock.json") | ConvertFrom-Json
+            Check "$agent repin records selected ref" $lock.source.ref 'test-repin'
+            foreach ($otherMem in $otherHashes.Keys) {
+                Check "$agent preserves $otherMem belonging to another agent" `
+                    (Get-FileHash -LiteralPath (Join-Path $consumer $otherMem) -Algorithm SHA256).Hash $otherHashes[$otherMem]
+            }
+        }
+
+        # --- Malformed blocks fail before any guidance, skills, or locks change ---
+        Write-Host ""
+        Write-Host "== malformed managed blocks are refused without changing the consumer =="
+        $begin = '<!-- BEGIN L-GEVITY MANAGED GUIDANCE -->'
+        $end = '<!-- END L-GEVITY MANAGED GUIDANCE -->'
+        foreach ($agent in @('claude', 'codex', 'gemini', 'grok')) {
+            foreach ($malformed in @('unterminated', 'orphan', 'reversed', 'duplicate', 'nested', 'inline')) {
+                $consumer = Join-Path $work "consumer-malformed-$agent-$malformed"
+                $primary = Primary-DirFor $agent
+                $skillTree = Join-Path $consumer $primary
+                $rootPath = Join-Path $consumer (MemFile-For $agent)
+                New-Item -ItemType Directory -Path $skillTree -Force | Out-Null
+                [System.IO.File]::WriteAllText((Join-Path $skillTree 'CANARY.md'), "local skill instructions`n")
+                $malformedText = switch ($malformed) {
+                    'unterminated' { "$begin`nold guidance`n" }
+                    'orphan' { "old guidance`n$end`n" }
+                    'reversed' { "$end`n$begin`n" }
+                    'duplicate' { "$begin`n$end`n$begin`n$end`n" }
+                    'nested' { "$begin`n$begin`n$end`n$end`n" }
+                    'inline' { "inline $begin`n$end`n" }
+                }
+                [System.IO.File]::WriteAllText($rootPath, $malformedText)
+                $beforeRoot = (Get-FileHash -LiteralPath $rootPath -Algorithm SHA256).Hash
+                $beforeTree = (Get-TreeHashes $skillTree) -join "`n"
+                $run = Invoke-Installer $Exe $agent $consumer $archive
+                Check "$agent $malformed markers fail" ($run.ExitCode -ne 0) $true
+                Check "$agent $malformed refusal is explicit" ($run.Output -match 'Refused to update malformed L-GEVITY guidance markers') $true
+                Check "$agent $malformed leaves root bytes unchanged" (Get-FileHash -LiteralPath $rootPath -Algorithm SHA256).Hash $beforeRoot
+                Check "$agent $malformed leaves skill tree unchanged" ((Get-TreeHashes $skillTree) -join "`n") $beforeTree
+                Check "$agent $malformed writes no lock" (Test-Path (Join-Path $skillTree 'l-gevity-skills.lock.json')) $false
+            }
+        }
 
         # --- A consumer keeping both trees gets both, identically ---
         Write-Host ""

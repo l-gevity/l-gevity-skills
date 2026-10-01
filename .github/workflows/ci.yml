@@ -28,6 +28,8 @@ jobs:
         run: npm run validate
       - name: Prove every validator check fails on a deliberate violation
         run: npm run validate:mutation
+      - name: Verify paired replay persistence, accounting, and judge isolation
+        run: npm run test:replay
 
   installers:
     # The shell installers are the only code here that writes and deletes files

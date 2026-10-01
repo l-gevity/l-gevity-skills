@@ -350,9 +350,9 @@ routes current evidence back to the Minimum gate for a bounded worth decision.
 
 Installers are provided for Claude Code, Codex, Gemini CLI, and Grok CLI on
 Windows, Linux, and macOS. Each installs the shared skills into its agent's
-skills tree, adds the agent's root instruction file, and records provenance in
-`l-gevity-skills.lock.json`. When the project already keeps the other skills
-tree, that tree is updated as well.
+skills tree, upserts a managed block in the agent's root instruction file, and
+records provenance in `l-gevity-skills.lock.json`. When the project already
+keeps the other skills tree, that tree is updated as well.
 
 | Agent | Skills tree | Root instruction file |
 |---|---|---|
@@ -361,10 +361,11 @@ tree, that tree is updated as well.
 | Gemini CLI | `.agents/skills/` | `GEMINI.md` |
 | Grok CLI | `.agents/skills/` | `GROK.md` |
 
-An existing root instruction file is preserved; the L-GEVITY version is written
-beside it with a `.l-gevity` suffix for manual merging. Locally added skills are
-not removed during updates. Set `L_GEVITY_SKILLS_REF` to pin a branch, tag, or
-commit.
+The L-GEVITY instructions are kept in a marked managed block inside the
+agent's root instruction file. Existing project guidance outside that block is
+preserved, and later installs replace only the managed block. Locally added
+skills are not removed during updates. Set `L_GEVITY_SKILLS_REF` to pin a
+branch, tag, or commit.
 
 [Inspect the installer scripts](./.install/).
 

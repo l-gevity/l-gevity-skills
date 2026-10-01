@@ -1,0 +1,47 @@
+Command: node --test test/app.test.js
+Working directory: .scenarios/worth-design-minimal-first/project
+Exit code: 0
+
+STDOUT
+TAP version 13
+# Subtest: existing query isolates the account and uses inclusive/exclusive UTC week edges
+ok 1 - existing query isolates the account and uses inclusive/exclusive UTC week edges
+  ---
+  duration_ms: 3.7392
+  type: 'test'
+  ...
+# Subtest: existing optional note is authored only by its owner and may be blank
+ok 2 - existing optional note is authored only by its owner and may be blank
+  ---
+  duration_ms: 0.6606
+  type: 'test'
+  ...
+# Subtest: existing notice API owns recipient, eligibility and concurrent duplicate suppression
+ok 3 - existing notice API owns recipient, eligibility and concurrent duplicate suppression
+  ---
+  duration_ms: 0.9568
+  type: 'test'
+  ...
+# Subtest: existing delivery failure is visible and permits a later successful retry
+ok 4 - existing delivery failure is visible and permits a later successful retry
+  ---
+  duration_ms: 0.4656
+  type: 'test'
+  ...
+# Subtest: existing task hook supplies the established identity and completed week
+ok 5 - existing task hook supplies the established identity and completed week
+  ---
+  duration_ms: 0.4643
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 74.141
+
+STDERR

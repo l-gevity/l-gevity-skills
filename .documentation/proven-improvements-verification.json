@@ -1,0 +1,208 @@
+{
+  "reviewed_local_date": "2026-10-01",
+  "baseline": "3aeeae29ed9c061c727e960c1bf47f73eb7a02c8",
+  "status": "passed",
+  "scope": "independently verified replay/checker/accounting infrastructure, installer managed blocks, and evaluation protocol",
+  "validation_scope": "accepted baseline task-skill contracts plus new infrastructure invariants; rejected brevity/minimal-design criteria are preserved outside active scenario discovery and were not declared passed",
+  "guidance_changes_excluded": [
+    "Alchemy extraction/report changes",
+    "M/A/L/C minimal-design and output changes",
+    "root brevity and ambiguity changes"
+  ],
+  "experimental_backup": "C:/Users/Patrick/Projects/l-gevity/l-gevity-skills-experimental-preserved-20261001-092102",
+  "experimental_files_preserved": 4311,
+  "all_replaced_work_preserved": true,
+  "first_recording_attempts_preserved": {
+    "archive": ".refactor-evidence/evidence.zip",
+    "members": "proven-subset-initial-recordings/"
+  },
+  "repeat_reason": "checker correctness fixes, not selecting favorable behavior; guidance unchanged between fresh recording sets",
+  "checks": {
+    "skill_validation": {
+      "status": "passed",
+      "log": ".documentation/proven-skill-validation.log"
+    },
+    "validator_mutations": {
+      "status": "passed",
+      "deliberate_violations_caught": 52,
+      "log": ".documentation/proven-validator-mutations.log"
+    },
+    "runner_regressions": {
+      "status": "passed",
+      "tests": 26,
+      "log": ".documentation/proven-replay-tests.log"
+    },
+    "bash_installers": {
+      "status": "passed",
+      "checks": 252,
+      "log": ".documentation/proven-installers-bash.log"
+    },
+    "powershell_installers": {
+      "status": "passed",
+      "checks": 504,
+      "hosts": 2,
+      "log": ".documentation/proven-installers-powershell.log"
+    }
+  },
+  "standard_scenarios": [
+    {
+      "scenario": "dispatch-adaptive-structural",
+      "revision": "cfcb9e268956",
+      "transcript_sha256": "86eded75947fad43abac6fb88b1c3fc83507f6f7c5a6206b467deb0c4884a83c",
+      "criteria_sha256": "a19ca0b7d4f828e4356c2ee18d4a66c8c648957c94a15d9aeb7320ee42970d79",
+      "checks_passed": 5,
+      "checks_total": 5,
+      "current": true,
+      "failed_guidance_loads": []
+    },
+    {
+      "scenario": "dispatch-direct-worth-question",
+      "revision": "c4cea0d33a90",
+      "transcript_sha256": "a78b4715151704b6db9814559c665f6be3efcb2a7b3ad978f39c9a84a2f6bb14",
+      "criteria_sha256": "0969ea1043ae3f6b44f9954b4f58f47b7fef4dc0253e3af81f86da25f7edd2cd",
+      "checks_passed": 7,
+      "checks_total": 7,
+      "current": true,
+      "failed_guidance_loads": []
+    },
+    {
+      "scenario": "dispatch-housekeeping-skip",
+      "revision": "f8457e9da52a",
+      "transcript_sha256": "0dbf86886b6ec0c7dc4dd7f09e847adca64afa178f0d27fe36f9647dbb90151b",
+      "criteria_sha256": "fe3e7b9d3da55cec9f47593073b9b3644959e80482515ed51ca2da9aa7f69f65",
+      "checks_passed": 2,
+      "checks_total": 2,
+      "current": true,
+      "failed_guidance_loads": []
+    },
+    {
+      "scenario": "dispatch-missing-prerequisite",
+      "revision": "aba973910683",
+      "transcript_sha256": "37a9593ea1c527af4b0f60717cc11073358b7384d954810ca0c15cb68890f23a",
+      "criteria_sha256": "04224d90b69074cf31f208b2bc2adade4a2b79c0c8bd861a0e5492bb2762ac5f",
+      "checks_passed": 5,
+      "checks_total": 5,
+      "current": true,
+      "failed_guidance_loads": []
+    },
+    {
+      "scenario": "dispatch-routine-skip",
+      "revision": "864dbc6a29de",
+      "transcript_sha256": "c9cc0e7a9da5c62b3a49a2e0f571eace4a1d8e5fef2e70f28c6d60ddd1d5c993",
+      "criteria_sha256": "ccf636ac3e4700a92d5a95ef704681f31e645a71e810a18539319afa8aaa1ca6",
+      "checks_passed": 4,
+      "checks_total": 4,
+      "current": true,
+      "failed_guidance_loads": []
+    },
+    {
+      "scenario": "worth-design-minimal-first",
+      "revision": "28f3109dde16",
+      "transcript_sha256": "5191be76de50e786ce372086286361937f7b4040231afc22d84db070ce0fc546",
+      "criteria_sha256": "4cbfda8cce758ab1c82946f6bbe8368ccde24fb9af9b430561f7012fa0967318",
+      "checks_passed": 4,
+      "checks_total": 4,
+      "current": true,
+      "failed_guidance_loads": []
+    },
+    {
+      "scenario": "worth-existing-retry-wrapper",
+      "revision": "0bb558729fb3",
+      "transcript_sha256": "e9c8ee2f7976cae5e75aa757f7b4d6cf99b27b14b36434ebe082839120827651",
+      "criteria_sha256": "fb82ccc3f25c1dd71c9cbe01dff8eb7a0004aeb48034884c5e9ae7c9bc50b1aa",
+      "checks_passed": 5,
+      "checks_total": 5,
+      "current": true,
+      "failed_guidance_loads": []
+    },
+    {
+      "scenario": "worth-impossible-state-guard",
+      "revision": "a13cc83e308a",
+      "transcript_sha256": "2ab78efb0fb8cf4b06d2baf467a3d42a85af3ec1e69044d4de089bb84fb29e29",
+      "criteria_sha256": "8e17b6ebbae5880695a6a8606390bb0bacd6e1f0e35d0412a8e2116d321aabfe",
+      "checks_passed": 5,
+      "checks_total": 5,
+      "current": true,
+      "failed_guidance_loads": []
+    },
+    {
+      "scenario": "worth-speculative-abstraction",
+      "revision": "8d4247e76698",
+      "transcript_sha256": "0dc134e602e51b36c5f3e87414b2d4e69f584e2c2f50d5f58caa00e87c7dc0a8",
+      "criteria_sha256": "ef35cc2be1e0b9e3784403e731f9f125719bd30cd564cc67d3f003962050374a",
+      "checks_passed": 3,
+      "checks_total": 3,
+      "current": true,
+      "failed_guidance_loads": []
+    }
+  ],
+  "verified_file_sha256": {
+    "scripts/replay-scenarios.py": "cecf23d2c5a41c70d99951eb815552f98a9d56e875d21f742b6f568902323ab8",
+    "scripts/test-replay-scenarios.py": "4dcad878403c7906009f4421c182123d1388c1746a0df8e441e3686bd0635c80",
+    "scripts/validate-skills.py": "120d2a8bbce11b6bbc29ce0170676217e26fca5f33f62d50648ae9a065e4b288",
+    "scripts/test-installers.sh": "0c181741d625cafa66cdec88baf511cddf9c3d1fcf3cef58f813d2abda52d006",
+    "scripts/test-installers.ps1": "afae39d83809e6d8694202f3ec2cc5eca47827e9bd75ba8829a2bbfb7864100f",
+    "CLAUDE.md": "f366837766eff914fd51c96e6429ba1d6186a9f0366a420bb70c6cbb413b1f9c",
+    "package.json": "81c07654f35c8dbd6ecae8216bf3828226aab2b42db2e195c2aaf09761c65c7a",
+    ".github/workflows/ci.yml": "c866dfc1e548be61298a511e17c2b2c6738ac9f25bb02028195d2d3bc2e9e030",
+    ".install/install-claude.ps1": "044436f040d25b34cb0c861171009ed99f3fe0b0dad9541e64c2c31562d040a6",
+    ".install/install-claude.sh": "bed3eca290a2d249cf2e0229207b0ca4454ca693607d36e8c04a88258fae4067",
+    ".install/install-codex.ps1": "03fc919c18d155bc379b42a89589c93dc1b05a031dc761cbffe055e17cae05d4",
+    ".install/install-codex.sh": "34a3038bd8825888e74d21682a4ac43b676de80cab26d94cccf17dbc8fb0c60a",
+    ".install/install-gemini.ps1": "f9f26b5eb6257cf92c027cbdacdcea3ff17b6e5bb692111a02b558f96144067e",
+    ".install/install-gemini.sh": "a2fa2422a512759c5c2225f7190cc59bac73670c336faf17898628a83a852945",
+    ".install/install-grok.ps1": "67fed3c15e16b1d057bc863e3a254b167c4ce1e6cbc557c9d0e5b2e0ac570fc0",
+    ".install/install-grok.sh": "4bde53162b71c1685b9684da0960e48c083c3394fa566e930a609c15ce76ac5f",
+    ".agents/skills/alchemy/references/change-primitives.md": "8ef3fcfef06cc86a07c1be107dd7615818a69dce1c2f1ea5ffb1e6f00a724e19",
+    ".agents/skills/alchemy/references/failure-modes.md": "758afe85238e7ea8c1601a1f2a15e4612c91079bcca54e8e7da2dae80a9d6844",
+    ".agents/skills/alchemy/SKILL.md": "975a023f49ed8e465478909f80a2442ada4bca2e4808e95b0b1712a1104efe2d",
+    ".agents/skills/architecture-as-code/SKILL.md": "bd54324f89313a41721f549d6725068de68a505018dbdf8148e57b5f585a4b40",
+    ".agents/skills/architecture-as-code-javascript/SKILL.md": "2ce33d736d70ba94536ca2b0b3aa6aa69afcdf2a97944b23a1f12de90047c5d9",
+    ".agents/skills/architecture-as-code-python/SKILL.md": "46af6c7172b747794c1d9a35b91f27bf32caa5233587ea81d53747b2e5948843",
+    ".agents/skills/architecture-guidelines/SKILL.md": "7fcecdb8ca5b1e02ea49b784978cf1d2d38da40ac04421b16781e34f6fd202ff",
+    ".agents/skills/bring-down/SKILL.md": "64863b20d8535b36d14aff65991d25d95d62d15691f72736387b3864cf14cdf8",
+    ".agents/skills/ci-cd-reliability-architecture/references/pipeline-patterns.md": "3713ac52435737be2f1779cd3a5603d375d86e7329dc916fe1f825200e4625bf",
+    ".agents/skills/ci-cd-reliability-architecture/SKILL.md": "2894759393411782237772b67d95ed071c91dc80bf9462d6e95f7a7af587dfe3",
+    ".agents/skills/continuous-improvement/references/paired-replay.md": "841443450843334e7bf6c5d127681a8bff55aa8b6063b4c3d5735393686c6d75",
+    ".agents/skills/continuous-improvement/SKILL.md": "80795a023bf54df993a2b4583a2b80c8ffefd2cf518548b225de15f248e14a86",
+    ".agents/skills/defect-shift-left/references/shift-patterns.md": "f14a60af2f523904b0568009a08495ab99ba6d85d8f04f223af684af1e144049",
+    ".agents/skills/defect-shift-left/references/tooling-survey.md": "ca6d9b7ec9da6fb6fa59d37c52cb743c1d8ded072a974e5e6ba92424fd0d9709",
+    ".agents/skills/defect-shift-left/SKILL.md": "5c142cef276af78e2105711d013baf3862a7ec0a8bcee80030c72a71ddb55ea4",
+    ".agents/skills/dependency-lifecycle/SKILL.md": "2e767303f39f3e271fdb4276aa2ef8b8b221d4d371cff9128ef631a288db6402",
+    ".agents/skills/evolutionary-database-design/SKILL.md": "e26b6c3c67633ecf7ce9c380a4ab712319a43939024799b2e684822c9fa3607d",
+    ".agents/skills/functionality-complexity-tradeoff/references/asymmetric-tradeoffs.md": "ca2f00a463c260812c3a3a47e6c744bcc55a57116424bdbbd44a90489aa1c2ff",
+    ".agents/skills/functionality-complexity-tradeoff/references/common-patterns.md": "20e8fa08ec81330f2edd0ffd991ee2cc304b47c10506fe44153c19497bb71335",
+    ".agents/skills/functionality-complexity-tradeoff/references/forcing-questions.md": "1292e785a1e802d38516958abab626d04854fcce87f3598231a2af02813590b6",
+    ".agents/skills/functionality-complexity-tradeoff/references/worth-signals.md": "a3788f2f45fd831131c9c306271c4e6f2df2fe8c35c6f6b26acf640610e5e9ec",
+    ".agents/skills/functionality-complexity-tradeoff/SKILL.md": "8c0e7898ac5de47a98bb8368175ffa67d47fae495c1ab94756fb52efdd302b69",
+    ".agents/skills/implementation-readiness/SKILL.md": "8864a12c64bb268c5356b5af6977b3a15b3dbeea8a6c89a6bec7dfd8bf19399c",
+    ".agents/skills/morphogenetic-architecture/references/evidence-fields.md": "d04ee54de1bacec0e8a09436d8efcaffc496620d80343a34e9fb25ce26edc72f",
+    ".agents/skills/morphogenetic-architecture/references/graph-analysis.md": "b56bfecf7f03468277331ec415f80915216874240294eaa9b074a171556119c0",
+    ".agents/skills/morphogenetic-architecture/references/natural-pattern-atlas.md": "618b7c73a09e6a1cecc911b0b5aea10e02ac5e5d8e78d54b59f4729fec68d9ea",
+    ".agents/skills/morphogenetic-architecture/references/position-legality.md": "540d605b80be6ddc523a0027d067e2634ea30a1870774a48e6db664e6143daa7",
+    ".agents/skills/morphogenetic-architecture/references/rapid-topology-scan.md": "5eeca6c7b645d652b00085d0ed8c905f2306e6bce54cdc68d3b5c5dc92d37052",
+    ".agents/skills/morphogenetic-architecture/scripts/analyze_evidence_graph.py": "7ae5304eb767095b21f5fcc911360ac168d9a85559c04b8463661b7c71e7849d",
+    ".agents/skills/morphogenetic-architecture/SKILL.md": "28bf3f5d9660f7945920b24bb66d483b94391770c0532d75236bf9862ad11296",
+    ".agents/skills/observability-design/SKILL.md": "23d31bc9e62737e4b060060e8fff814fd813d919c5c2f0f99796ec941be7b9b0",
+    ".agents/skills/push-out/SKILL.md": "32c46bb3effbc5bb95bb8a5c62c8a16d0ae9433bbd5f30da00374d40ceb4a70f",
+    ".agents/skills/requirements-grounding/references/quality-model.md": "4d9cf8c520cc2626e532b9bbecd65386ff36acdc7323aefdf2e2680550c03a98",
+    ".agents/skills/requirements-grounding/SKILL.md": "17bccecbef30dcaf0c9f75ef5aca389f58e4e98b909468319e047117b952c9a8",
+    ".agents/skills/requirements-topology/SKILL.md": "61755b70717e8015ba18066560fd32e9abbab20300c0e606033b7ad360a9b6d6",
+    ".agents/skills/requirements-traceability/SKILL.md": "24b0d0e8f07ce1ae0571a3439d544dd30cbc1de97dd8dea02b9cf02ea24d4af7",
+    ".agents/skills/structural-simplification/SKILL.md": "aeb5f39c51c8d8c4ef1d48e8a1497fdf74eb42a2e804e7e6879f5a70de9e1483",
+    ".agents/skills/system-optimization/SKILL.md": "0747344e59658bac3faeb4295d4e70c7e89ad98877223b5d3eb9fc98c83c4552",
+    ".agents/skills/test-strategy/references/portfolio-governance.md": "e24c28b26750ad544720d07efa14ae506ccd995757d82b3fbaa1f13585ee9844",
+    ".agents/skills/test-strategy/references/technique-selection.md": "cb6a4cd2343be38a71047921579bc306b73740c24f40a8d23af465694cbc2933",
+    ".agents/skills/test-strategy/SKILL.md": "88e65166f204e3a3f49e1c6e1bb585ef21154bc7b2be8b1984133e9f0295ad5a",
+    ".agents/skills/zero-copy-requirements/references/sweep.md": "925c7e4909abf1fd694c6860b7c1e0fdba2a0adebcb396dadddadfbb2e0b81a4",
+    ".agents/skills/zero-copy-requirements/SKILL.md": "53e594c7f943319e416bc324d81e03713dd232cd2047c6bad5a0b5ab5bcd077c"
+  },
+  "published": false,
+  "consumer_repinned": false,
+  "portable_evidence": {
+    "archive": ".refactor-evidence/evidence.zip",
+    "sha256": "38649c20bc6070f361d0cba9866a14b23deff2beb68326b60f3bbe72290c8702",
+    "members": 106,
+    "manifest": ".refactor-evidence/manifest.json"
+  }
+}

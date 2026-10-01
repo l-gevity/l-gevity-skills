@@ -68,12 +68,42 @@ the skill triggers. Each `.scenarios/<name>/` folder holds:
   recorded.
 - `project/`, optional: files copied into the throwaway project before the run,
   for a scenario whose request is about code.
+- `blind_judge_rubric`, optional: predeclared pairwise quality criteria for a
+  before/after replay.
+
+Use the checked-in paired runner when a rule must prove that it changes a
+behavior:
+
+```sh
+python scripts/replay-scenarios.py <scenario> --before <git-ref-or-path> --after <git-ref-or-path> --runs 3 --blind-judge
+```
+
+Each arm gets a fresh throwaway project with the same request and fixture.
+Run order and A/B labels are randomized; the artifact stores per-run
+expectations, report length, model transcript, judge result, and the assignment
+key. The judge prompt sees only A and B. Read the result together with the
+scenario's predeclared expectations; a shorter report is a win only when its
+verdict and required decisions still pass. Use a Git ref for a committed arm or
+a directory path for a dirty candidate. Artifacts go under
+`.scenarios/<name>/replays/` by default.
+
+The runner freezes guidance, fixtures, criteria and the checker before any
+model call. Atomic checkpoints retain each arm, completed pairs and raw traces;
+`--resume <artifact.json>` continues those frozen inputs. The isolated judge
+sees only A/B reports, the rubric and shared product context. Guidance cost
+counts unique loaded root/skill/reference files through Skill, Read, or
+successful content searches, as conservative whole-file word estimates rather
+than token usage. Filename discovery does not count as a body load. Run
+`npm run test:replay` for the deterministic runner invariants.
 
 CI never calls a model. It fails when a transcript is missing, when the
-request, the fixture project, `CLAUDE.md`, or a named skill changed after
-the transcript was recorded, when an expectation is not met, and when an entry in
+scenario definition (including criteria and rubric), the fixture project,
+`CLAUDE.md`, or any available skill source changed after the transcript was
+recorded, when an expectation is not met, and when an entry in
 `known_failures` passes again. Code checks structure; read the transcript diff
-to judge the reasoning. Before a release, re-record the scenarios for must
+to judge the reasoning. Recordings bind to the source and fixture snapshot
+captured before the model call; a later working-tree edit cannot retag old
+evidence. Before a release, re-record the scenarios for must
 requirements by name, even when their transcripts are current.
 
 A `route_loaded` expectation fails when a run names a gate in `Core route`, or
@@ -96,6 +126,9 @@ it only shrinks, and a new skill ships with a scenario.
 - [ ] A change to a decision rule, verdict set, or evidence bar adds or updates
       a scenario that fails without the change, or lists the unmet expectation
       under `known_failures` with its reason.
+- [ ] When claiming a behavior improvement, replay the same scenario against
+      before and after sources with `scripts/replay-scenarios.py`; preserve the
+      predeclared criteria and inspect every run and blind-judge result.
 - [ ] `.documentation/READ-<name>.md` matches the public role, was re-read
       against the skill diff, and was then restamped with
       `python scripts/validate-skills.py --stamp-primers`. The stamp records
@@ -117,7 +150,8 @@ it only shrinks, and a new skill ships with a scenario.
       raises it only with the rationale in the commit message. A section an
       agent needs only on some paths moves to `references/*.md`, which carries
       no budget.
-- [ ] Every scenario whose request, named skills, or `CLAUDE.md` changed is
+- [ ] Every scenario whose definition, fixture, available skill sources, or
+      `CLAUDE.md` changed is
       re-recorded with `python scripts/validate-skills.py --record-scenario`,
       the transcript diff was read, and an expectation that still fails is
       listed under `known_failures` with its reason.

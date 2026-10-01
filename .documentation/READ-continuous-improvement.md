@@ -91,6 +91,12 @@ happens" is a fact about the world.
 
 ## Rules are a codebase — treat them like one
 
+A skill edit is a behavioral hypothesis. Declare the criteria, then replay the
+same request and fixture against frozen before and after sources, several times
+in randomized order. An isolated judge sees anonymous reports; the assignment
+key stays outside its context. Keep failed and interrupted trials as evidence.
+A shorter answer earns promotion only if it retains the decision obligations.
+
 A team that takes double-loop learning seriously accumulates rules — lint
 configs, working agreements, templates, guides. Left untended, this
 accumulation becomes its own failure mode: the guideline document nobody
@@ -124,6 +130,10 @@ trap. A rule that has never been observed to catch anything is a hypothesis,
 not a safeguard, and "this can never happen again" is only true when an
 enforced gate makes it true.
 
+For skill decision changes, compare the same scenario against the before and
+after skill sources. A current-text recording alone cannot show that the new
+rule improved behavior; paired runs with predeclared criteria can.
+
 Second, **notification**: the people affected hear one plain sentence —
 *"such-and-such now fails the build, because of the incident last week"* —
 so the change enters the team's shared model instead of ambushing the next
@@ -151,4 +161,4 @@ reference for this concept — triggers, root-cause analysis, and the update
 protocol — lives in
 [SKILL.md](../.claude/skills/continuous-improvement/SKILL.md).*
 
-<!-- skill-revision: a1ec029891dc -->
+<!-- skill-revision: af25c35aa87b -->

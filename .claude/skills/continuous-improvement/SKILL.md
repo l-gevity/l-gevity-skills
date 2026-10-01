@@ -143,9 +143,10 @@ Ensure the learning "sticks":
   less likely. Do not claim structural impossibility unless an enforced gate
   guarantees it. For skill-library changes, run
   `python scripts/validate-skills.py`. A changed decision rule is a behavioral
-  hypothesis: record the originating miss as a scenario that fails before the
-  change and passes after, and apply the new rule to the change itself before
-  calling it ready.
+  hypothesis: use the [paired replay protocol](references/paired-replay.md) to
+  compare before and after on the originating scenario. Promote only when the
+  target failure improves without worsening the verdict or another required
+  criterion; apply the candidate to the current change before calling it ready.
 - **Notify**: Conclude the improvement sequence with a concise summary back to
   the user:
     > _"Updated [Skill/Test] to prevent [issue] by mandating [new practice]."_

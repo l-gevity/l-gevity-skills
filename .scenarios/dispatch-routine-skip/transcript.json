@@ -1,6 +1,6 @@
 {
   "scenario": "dispatch-routine-skip",
-  "revision": "e943afd21e71",
+  "revision": "864dbc6a29de",
   "recorded_with": "claude-code 2.1.234, model claude-opus-5[1m]",
   "skills_available": [
     "alchemy",
@@ -8,9 +8,6 @@
     "architecture-as-code-javascript",
     "architecture-as-code-python",
     "architecture-guidelines",
-    "artifact-capabilities",
-    "artifact-design",
-    "artifact-diagramming",
     "batch",
     "bring-down",
     "ci-cd-reliability-architecture",
@@ -50,6 +47,7 @@
     "alchemy"
   ],
   "files_read": [],
+  "guidance_content_reads": [],
   "paths_searched": [
     ".",
     ".",
@@ -57,5 +55,6 @@
     "."
   ],
   "turns": 7,
-  "output": "```\nDispatch:   SKIP\nCore route: None\nCompanions: None\nVerdict:    Proceed\nReason:     CSS value edit inside one governed boundary; asks no Alchemy question (§ signal matrix row 1). No companion trigger matches — no UX/a11y/stack skill in this library.\nNext:       Point me at the project — this working directory holds only `.claude/skills/` and `CLAUDE.md`.\n```\n\nBlocker on execution, not on the route: there is no stylesheet here. `#2255CC` and `#1B675E` both return zero matches across the tree, and the glob for `*.{css,scss,sass,less,styl}` finds no files. I have not made the change.\n\nTwo things to confirm when you give me the path:\n- `#1B675E` is a dark teal-green (hue ~168°), not a blue. If \"brand blue\" is the intended token name, either the hex or the name is wrong upstream.\n- Whether the colour is literal in one rule or behind a token/variable — that decides whether it really is one line, and whether other components shift with it."
+  "output": "Dispatch: SKIP (CSS-only, one declaration, inside one boundary — no Alchemy gate question).\n\n```\nDispatch:   SKIP\nCore route: None\nCompanions: None\nVerdict:    Proceed\nReason:     Single colour literal in one stylesheet; no structure, contract, or data shape changes.\nNext:       Replace the literal and verify contrast on the button's background.\n```\n\nNow locating it.\n\nDispatch stands, but the edit can't be made: this working directory contains only the skill library (`.claude/skills/**`) and `CLAUDE.md`. No stylesheet, no application code, and no occurrence of `#2255CC` anywhere under `.`.\n\nTwo things to resolve before the one-liner lands:\n\n1. **Wrong directory.** Point me at the repo holding the stylesheet (or `cd` there) and I'll make the change.\n2. **The hex doesn't match the name.** `#1B675E` is a dark teal-green (hue ≈ 173°), not a blue. `#2255CC` is a blue (hue ≈ 225°). Either the brand blue has a different hex, or the brand colour isn't blue. Confirm which — swapping a blue CTA for a teal one on the strength of a mislabelled token is the kind of change that gets reverted.\n\nContrast, for whichever you confirm: `#1B675E` on white is 6.0:1 (passes AA for normal text); `#2255CC` on white is 6.4:1. Both pass, so white-on-colour button text stays compliant either way — no accessibility blocker.\n\nNothing else was checked: I did not inspect any component, test, or design-token file, because none exist in this directory.",
+  "failed_guidance_loads": []
 }

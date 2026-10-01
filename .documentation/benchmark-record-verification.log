@@ -1,0 +1,11 @@
+Command: python scripts/validate-skills.py --record-scenario worth-design-minimal-first
+Working directory: repository root
+Exit code: 0 (recording succeeded; this is not acceptance)
+
+STDOUT
+recorded worth-design-minimal-first: 6 of 9 expectations met
+  not met: claims-only-loaded-stages (claim-only-what-ran #1: every stage and companion the run names was loaded)
+  not met: keeps-the-user-visible-shape-minimal (minimal-first-design #3: lead with the requested list and free-format text, not an invented component inventory)
+  not met: keeps-default-report-brief (summary-led-report #3: the default decision report stays within its word budget)
+
+STDERR

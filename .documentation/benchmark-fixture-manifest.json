@@ -1,0 +1,17 @@
+{
+  "kind": "new explicitly synthetic fixture",
+  "fixture_root": ".scenarios/worth-design-minimal-first/project",
+  "file_sha256": {
+    "data/accounts.json": "af9dd334288612154d96a98b26bf794951f7868544021785c10ef4b5eed361cc",
+    "data/usage.json": "8c191db5bf312670c5649150b5b88a6b652c9dbe5fdecdc4ac5f2026d402ba99",
+    "package.json": "56744e73df7da2bb5fb69a615c29ab0a34b530e5e68156ae868f8a25d32afc3e",
+    "README.md": "12fb8376899c39a795d66bcb9f0f91c13558cd345e7815d37f75fc5b1018a968",
+    "src/app.js": "30dc2cc32800b7f5208d075ede521d791980ab39d16a2d7ad9b26155d5d8af9f",
+    "src/mail.js": "ccce3976190d132c15adad08b8eb78a6535e38633ad13aaa5a5e2fa2a5d9e650",
+    "test/app.test.js": "b753dd139595dea8dd26b556779a509db6d32f640eb87eca047614593ca6cac7"
+  },
+  "manifest_sha256": "7ea9a8d61dd4869e53466dedb01a8dcc842ea23d4900a139e1357b6167c644b9",
+  "manifest_hash_method": "SHA-256 of UTF-8 JSON file_sha256 object, sorted keys and separators comma/colon",
+  "unchanged_scenario_sha256": "470441ba53223d666c2f16b3265ac34b9e67cf9cb59b95eb5a186da0237632e5",
+  "preserved_fixtureless_transcript_sha256": "ff84d5db56631defeb8849db6756a8aad68751380ecef1af938ae64c7feccfcc"
+}

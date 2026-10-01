@@ -1,6 +1,6 @@
 {
   "scenario": "dispatch-housekeeping-skip",
-  "revision": "4597a8ae33de",
+  "revision": "f8457e9da52a",
   "recorded_with": "claude-code 2.1.234, model claude-opus-5[1m]",
   "skills_available": [
     "alchemy",
@@ -8,9 +8,6 @@
     "architecture-as-code-javascript",
     "architecture-as-code-python",
     "architecture-guidelines",
-    "artifact-capabilities",
-    "artifact-design",
-    "artifact-diagramming",
     "batch",
     "bring-down",
     "ci-cd-reliability-architecture",
@@ -50,11 +47,13 @@
     "alchemy"
   ],
   "files_read": [],
+  "guidance_content_reads": [],
   "paths_searched": [
     ".",
     ".",
     "."
   ],
   "turns": 6,
-  "output": "```\nDispatch:   SKIP\nCore route: None\nCompanions: None\nVerdict:    Defer\nReason:     Git housekeeping asks no Alchemy question. Blocking fact: the working directory is not a git repository — no `.git` anywhere under . (only CLAUDE.md and .claude/skills/). \"Merged\", \"pushed\", and \"feature branch\" cannot be verified from here.\nNext:       Give me the repo path (or the branch names), and I'll run the checks below.\n```\n\nThe two questions your git state answers, in order:\n\n**1. Is everything pushed?**\n```\ngit status -sb                              # dirty tree + ahead/behind for current branch\ngit log --branches --not --remotes --oneline # any commit on any local branch not on a remote\ngit stash list                              # work parked outside any branch\n```\nEmpty output from lines 2–3 and a clean `status` means nothing is stranded locally.\n\n**2. Can the feature branch be deleted?**\n```\ngit fetch --prune\ngit branch -d <feature>                     # refuses unless merged into HEAD\n```\n`-d` is the safe test, but it reports \"not fully merged\" after a **squash or rebase merge** even when the content shipped. In that case use:\n```\ngit cherry -v <main> <feature>              # no lines prefixed \"+\" = every patch is upstream\n```\nThen delete both sides: `git branch -D <feature>` and `git push origin --delete <feature>`.\n\nWhat I did not check: the merge itself, the remote's branch list, and whether CI/release gates depend on that branch ref — all need the actual repo."
+  "output": "```\nDispatch:   SKIP\nCore route: None\nCompanions: None\nVerdict:    Defer\nReason:     A merge/push/branch-deletion question is VCS state, not an Alchemy gate question — no gate decides it. It is also unanswerable here: `.` is not a git repository (no `.git`), contains no source code, and has no branches or remote. The directory holds only `CLAUDE.md` and `.claude/skills/`. I also have no shell tool in this session, so I cannot run `git` even if a repo were present.\nNext:       Tell me the repo path (or open a session in it) and I'll check — the answer comes from `git status -sb`, `git log --oneline origin/<branch>..HEAD`, and `git branch --merged origin/<main>`.\n```\n\nTwo things I did not check and cannot: whether any repo elsewhere on this machine has the merged fix, and whether that fix exists at all — \"the fix is merged\" is unverified here, not confirmed.",
+  "failed_guidance_loads": []
 }

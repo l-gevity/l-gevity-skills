@@ -24,7 +24,45 @@ $RepoZip        = "https://github.com/$Repo/archive/$Ref.zip"
 $Target         = (Get-Location).Path
 $LockName       = 'l-gevity-skills.lock.json'
 $KnownSkillDirs = @('.claude/skills', '.agents/skills')
-$KnownMemFiles  = @('CLAUDE.md', 'AGENTS.md', 'GEMINI.md', 'GROK.md')
+$GuidanceBegin  = '<!-- BEGIN L-GEVITY MANAGED GUIDANCE -->'
+$GuidanceEnd    = '<!-- END L-GEVITY MANAGED GUIDANCE -->'
+
+function Update-ManagedGuidance([string] $Destination, [string] $Source, [string] $Staged) {
+    $current = ''
+    $encoding = [System.Text.UTF8Encoding]::new($false, $true)
+    if (Test-Path -LiteralPath $Destination) {
+        $reader = [System.IO.StreamReader]::new($Destination, $encoding, $true)
+        try {
+            $current = $reader.ReadToEnd()
+            $encoding = $reader.CurrentEncoding
+        } finally { $reader.Dispose() }
+    }
+    $begins = [regex]::Matches($current, [regex]::Escape($GuidanceBegin)).Count
+    $ends = [regex]::Matches($current, [regex]::Escape($GuidanceEnd)).Count
+    $beginLines = [regex]::Matches($current, '(?m)^' + [regex]::Escape($GuidanceBegin) + '\r?$')
+    $endLines = [regex]::Matches($current, '(?m)^' + [regex]::Escape($GuidanceEnd) + '\r?$')
+    if ($begins -ne $ends -or $begins -gt 1 -or
+        $beginLines.Count -ne $begins -or $endLines.Count -ne $ends -or
+        ($begins -eq 1 -and $beginLines[0].Index -ge $endLines[0].Index)) {
+        throw "Refused to update malformed L-GEVITY guidance markers in $Destination"
+    }
+    $newline = if ($current.Contains("`r`n")) { "`r`n" } else { "`n" }
+    $guidance = [System.IO.File]::ReadAllText($Source).TrimEnd("`r", "`n")
+    $guidance = $guidance.Replace('.claude/skills', $PrimarySkillsDir)
+    $guidance = [regex]::Replace($guidance, '\r\n|\r|\n', $newline)
+    $block = $GuidanceBegin + $newline + $guidance + $newline + $GuidanceEnd
+    if ($begins -eq 1) {
+        $start = $current.IndexOf($GuidanceBegin, [System.StringComparison]::Ordinal)
+        $end = $current.IndexOf($GuidanceEnd, $start, [System.StringComparison]::Ordinal) + $GuidanceEnd.Length
+        $current = $current.Substring(0, $start) + $block + $current.Substring($end)
+    } elseif ($current) {
+        $separator = if ($current.EndsWith("`n")) { $newline } else { $newline + $newline }
+        $current += $separator + $block + $newline
+    } else {
+        $current = $block + $newline
+    }
+    [System.IO.File]::WriteAllText($Staged, $current, $encoding)
+}
 
 # Files this installer recorded in a previous run, from that run's lock.
 function Get-PreviousFiles($DestAbs) {
@@ -62,6 +100,11 @@ try {
 
     $Src = (Get-ChildItem -Path $Tmp -Directory -Filter 'l-gevity-skills-*' | Select-Object -First 1).FullName
     $SrcSkills = Join-Path $Src '.claude/skills'
+
+    # The profile owns its root file. Stage guidance before changing skills or locks.
+    $MemDest = Join-Path $Target $MemFile
+    $StagedGuidance = Join-Path $Tmp 'guidance.md'
+    Update-ManagedGuidance $MemDest (Join-Path $Src 'CLAUDE.md') $StagedGuidance
 
     $Commit = $null
     if (-not $Archive) {
@@ -142,15 +185,8 @@ try {
         $Lock | ConvertTo-Json -Depth 5 | Set-Content -Path (Join-Path $DestAbs $LockName) -Encoding utf8
     }
 
-    # Honor whichever instruction file the project already uses, whatever its name.
-    $ExistingMem = $KnownMemFiles | Where-Object { Test-Path (Join-Path $Target $_) } | Select-Object -First 1
-    if ($ExistingMem) {
-        Copy-Item -Path (Join-Path $Src 'CLAUDE.md') -Destination (Join-Path $Target "$ExistingMem.l-gevity") -Force
-        $MemReport = "$ExistingMem.l-gevity (existing $ExistingMem kept; review and merge manually)"
-    } else {
-        Copy-Item -Path (Join-Path $Src 'CLAUDE.md') -Destination (Join-Path $Target $MemFile) -Force
-        $MemReport = $MemFile
-    }
+    Move-Item -LiteralPath $StagedGuidance -Destination $MemDest -Force
+    $MemReport = "$MemFile (managed L-GEVITY block updated; project guidance kept)"
 
     Write-Host "Installed $($SrcSkillNames.Count) skills ($($SrcFiles.Count) files) into: $($Dests -join ' ')"
     if ($RemovedTotal -gt 0) {

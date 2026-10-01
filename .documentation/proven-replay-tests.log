@@ -1,0 +1,70 @@
+case: run 1/3, after arm
+case: run 1/3, before arm
+case: run 2/3, before arm
+case: run 2/3, after arm
+case: run 3/3, after arm
+case: run 3/3, before arm
+case: run 1/3, after arm
+case: run 1/3, before arm
+case: run 2/3, before arm
+case: run 2/3, after arm
+case: run 3/3, after arm
+case: run 3/3, before arm
+case: run 1/3, after arm
+case: run 1/3, after arm
+case: run 1/3, before arm
+case: run 2/3, before arm
+case: run 2/3, after arm
+case: run 3/3, after arm
+case: run 3/3, before arm
+case: run 1/3, after arm
+case: run 1/3, before arm
+case: run 2/3, before arm
+case: run 2/3, after arm
+case: run 3/3, after arm
+case: run 3/3, before arm
+case: run 1/3, after arm
+case: run 1/3, before arm
+case: run 2/3, before arm
+case: run 2/3, after arm
+.............Interrupted; resume frozen replay with --resume C:\Users\Patrick\AppData\Local\Temp\l-gevity-replay-test-b6i927h7\.scenarios\case\replays\trial.json
+case: run 2/3, after arm
+case: run 3/3, after arm
+case: run 3/3, before arm
+Saved replay: C:\Users\Patrick\AppData\Local\Temp\l-gevity-replay-test-b6i927h7\.scenarios\case\replays\trial.json
+before: 3 runs, 3/3 expectations; mean report length 12 words; mean loaded-guidance estimate 11 words (not token usage)
+after: 3 runs, 3/3 expectations; mean report length 12 words; mean loaded-guidance estimate 11 words (not token usage)
+case: run 1/3, after arm
+case: run 1/3, before arm
+.Interrupted; resume frozen replay with --resume C:\Users\Patrick\AppData\Local\Temp\l-gevity-replay-test-5170ooa6\.scenarios\case\replays\trial.json
+case: run 2/3, before arm
+case: run 2/3, after arm
+case: run 3/3, after arm
+case: run 3/3, before arm
+Saved replay: C:\Users\Patrick\AppData\Local\Temp\l-gevity-replay-test-5170ooa6\.scenarios\case\replays\trial.json
+before: 3 runs, 3/3 expectations; mean report length 12 words; mean loaded-guidance estimate 11 words (not token usage)
+after: 3 runs, 3/3 expectations; mean report length 12 words; mean loaded-guidance estimate 11 words (not token usage)
+case: run 1/3, after arm
+case: run 1/3, before arm
+case: run 2/3, before arm
+case: run 2/3, after arm
+case: run 3/3, after arm
+case: run 3/3, before arm
+case: run 1/3, after arm
+case: run 1/3, before arm
+case: run 2/3, before arm
+case: run 2/3, after arm
+case: run 3/3, after arm
+case: run 3/3, before arm
+case: run 1/3, after arm
+case: run 1/3, before arm
+case: run 2/3, before arm
+case: run 2/3, after arm
+case: run 3/3, after arm
+case: run 3/3, before arm
+............
+----------------------------------------------------------------------
+Ran 26 tests in 15.743s
+
+OK
+recorded case: 1 of 1 expectations met

@@ -1,0 +1,53 @@
+caught  alchemy: pinned phrase 'Adaptive Requirements Qualification' removed
+caught  architecture-as-code: pinned phrase '`architecture-guidelines` or `morphogene' removed
+caught  architecture-as-code-javascript: pinned phrase 'no-restricted-syntax' removed
+caught  architecture-as-code-python: pinned phrase 'The graph root is the coverage gate' removed
+caught  architecture-guidelines: pinned phrase '## 8. Layer Self-Sufficiency' removed
+caught  ci-cd-reliability-architecture: pinned phrase 'Release and Production Promotion' removed
+caught  defect-shift-left: pinned phrase 'Aspect coverage gap' removed
+caught  bring-down: pinned phrase 'Bring down to the lowest responsible lev' removed
+caught  push-out: pinned phrase 'Push work, not responsibility' removed
+caught  system-optimization: pinned phrase 'Question the requirement' removed
+caught  continuous-improvement: pinned phrase 'Consumer-to-Library Promotion' removed
+caught  requirements-grounding: pinned phrase 'requirements-topology' removed
+caught  requirements-topology: pinned phrase 'requirements-grounding' removed
+caught  implementation-readiness: pinned phrase 'requirements-grounding' removed
+caught  morphogenetic-architecture: pinned phrase 'Declare before observing' removed
+caught  requirements-traceability: pinned phrase 'Trace both directions' removed
+caught  functionality-complexity-tradeoff: pinned phrase 'Outcome evidence informs worth; it is no' removed
+caught  structural-simplification: pinned phrase 'enforceable static constraints to `archi' removed
+caught  test-strategy: pinned phrase 'Risk before test type' removed
+caught  evolutionary-database-design: pinned phrase 'Every change is a refactoring, not an ed' removed
+caught  zero-copy-requirements: pinned phrase 'No artifact may exist whose content is f' removed
+caught  dependency-lifecycle: pinned phrase 'Adoption transfers the maintenance, neve' removed
+caught  observability-design: pinned phrase 'A failure nobody can observe has no seve' removed
+caught  mirror: one byte differs between trees
+caught  primer: skill-revision stamp removed
+caught  primer: stamp older than the skill
+caught  asset: unreferenced svg added
+caught  package: __pycache__ exclusion removed
+caught  reference: pinned phrase removed from position-legality.md
+caught  reference: file left unlinked from SKILL.md
+caught  vocabulary: retired term reintroduced
+caught  vocabulary: aspect extraction rule removed
+caught  coverage: skill left without pinned phrases
+caught  coverage: reference left without pinned phrases
+caught  schema: components alias dropped before the contract step
+caught  size: skill grown past its budget
+caught  size: skill left without a budget
+caught  size: budget left slack after a trim
+caught  size: budget kept for a skill that no longer exists
+caught  genericity: router names one stack's enforcement file
+caught  links: root file links a path that does not exist
+caught  verdicts: router hand-off drops an M verdict
+caught  scenarios: a skill left without a scenario
+caught  docs: README skill count left stale
+caught  docs: README install table names the wrong tree
+caught  scenario: transcript missing
+caught  scenario: transcript older than the text it depends on
+caught  scenario: transcript emptied and known failures cleared
+caught  scenario: unloaded full-name route and inline companion
+caught  scenario: report exceeds predeclared ceiling
+caught  scenario: forbidden guide loaded through content Grep
+caught  scenario: known failure that passes again
+52 deliberate violations, all caught

@@ -1,0 +1,713 @@
+{
+  "reviewed_local_date": "2026-10-01",
+  "baseline": "3aeeae29ed9c061c727e960c1bf47f73eb7a02c8",
+  "candidate_accepted": false,
+  "predeclared_criteria_file": ".documentation/refactor-replay-criteria.md",
+  "criteria_relaxed": false,
+  "guidance_cost_unit": "unique whole-file word estimates, not token usage",
+  "standard_transcript_selection": "first candidate run regardless of result; never cherry-picked for validation",
+  "results": [
+    {
+      "scenario": "dispatch-adaptive-structural",
+      "status": "complete",
+      "completed_pairs": 3,
+      "source_sha256": "5cac1e7de382a3ef8454bfb21952684bac6c9b4ac59dacb9e87574b5d076e864",
+      "scenario_sha256": "3589a2e4ed1f06ee7718d08bc706a269a5e87eb0f526d6207cd714865d57afe7",
+      "fixture_sha256": "dc69f228dbc14594a4fd631c977608a3f2509a8d60f71e19813c89b1cfc3e965",
+      "frozen_checker_sha256": "1b0390fa5b95cbba053545712340fb86673250e4e740d78167c2860e8979251c",
+      "before": {
+        "report_words": [
+          2729,
+          3703,
+          2400
+        ],
+        "mean_report_words": 2944,
+        "guidance_words_estimates": [
+          23461,
+          23946,
+          27963
+        ],
+        "mean_guidance_words_estimate": 25123.333333333332,
+        "frozen_machine_failures": [
+          [
+            "loads-adaptive-operating-guide",
+            "keeps-default-report-brief"
+          ],
+          [
+            "claims-only-loaded-stages",
+            "loads-adaptive-operating-guide",
+            "keeps-default-report-brief"
+          ],
+          [
+            "loads-adaptive-operating-guide",
+            "keeps-default-report-brief"
+          ]
+        ],
+        "experiment_end_machine_failures": [
+          [
+            "loads-adaptive-operating-guide",
+            "keeps-default-report-brief"
+          ],
+          [
+            "claims-only-loaded-stages",
+            "loads-adaptive-operating-guide",
+            "keeps-default-report-brief"
+          ],
+          [
+            "loads-adaptive-operating-guide",
+            "keeps-default-report-brief"
+          ]
+        ]
+      },
+      "after": {
+        "report_words": [
+          327,
+          399,
+          397
+        ],
+        "mean_report_words": 374.3333333333333,
+        "guidance_words_estimates": [
+          16480,
+          16480,
+          14753
+        ],
+        "mean_guidance_words_estimate": 15904.333333333334,
+        "frozen_machine_failures": [
+          [],
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ]
+        ],
+        "experiment_end_machine_failures": [
+          [],
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ]
+        ]
+      },
+      "length_reduction_percent": 87.2848731884058,
+      "guidance_estimate_reduction_percent": 36.69497147406129,
+      "blind_preferences": [
+        "before",
+        "before",
+        "before"
+      ],
+      "original_artifact_path": ".scenarios/dispatch-adaptive-structural/replays/refactor-final-v6.json",
+      "source_matched_experimental_guidance_when_reviewed": true,
+      "experiment_end_checker_sha256": "746d008f46fe5a03e6328966c8579a79fb7abe8f87bd69e86200fd448260cc10",
+      "artifact_archive": ".refactor-evidence/evidence.zip",
+      "artifact_member": "dispatch-adaptive-structural/refactor-final-v6.json"
+    },
+    {
+      "scenario": "dispatch-direct-worth-question",
+      "status": "complete",
+      "completed_pairs": 3,
+      "source_sha256": "5cac1e7de382a3ef8454bfb21952684bac6c9b4ac59dacb9e87574b5d076e864",
+      "scenario_sha256": "ecf4f01643b71849556222782eb477d1553faa2b0423e5cd5685368179b7e9ae",
+      "fixture_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "frozen_checker_sha256": "1b0390fa5b95cbba053545712340fb86673250e4e740d78167c2860e8979251c",
+      "before": {
+        "report_words": [
+          1111,
+          993,
+          812
+        ],
+        "mean_report_words": 972,
+        "guidance_words_estimates": [
+          10138,
+          10138,
+          9768
+        ],
+        "mean_guidance_words_estimate": 10014.666666666666,
+        "frozen_machine_failures": [
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ]
+        ],
+        "experiment_end_machine_failures": [
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ]
+        ]
+      },
+      "after": {
+        "report_words": [
+          368,
+          324,
+          372
+        ],
+        "mean_report_words": 354.6666666666667,
+        "guidance_words_estimates": [
+          6280,
+          6280,
+          6280
+        ],
+        "mean_guidance_words_estimate": 6280,
+        "frozen_machine_failures": [
+          [
+            "keeps-default-report-brief"
+          ],
+          [],
+          [
+            "keeps-default-report-brief"
+          ]
+        ],
+        "experiment_end_machine_failures": [
+          [
+            "keeps-default-report-brief"
+          ],
+          [],
+          [
+            "keeps-default-report-brief"
+          ]
+        ]
+      },
+      "length_reduction_percent": 63.5116598079561,
+      "guidance_estimate_reduction_percent": 37.29197177473039,
+      "blind_preferences": [
+        "after",
+        "after",
+        "after"
+      ],
+      "original_artifact_path": ".scenarios/dispatch-direct-worth-question/replays/refactor-final-v6.json",
+      "source_matched_experimental_guidance_when_reviewed": true,
+      "experiment_end_checker_sha256": "746d008f46fe5a03e6328966c8579a79fb7abe8f87bd69e86200fd448260cc10",
+      "artifact_archive": ".refactor-evidence/evidence.zip",
+      "artifact_member": "dispatch-direct-worth-question/refactor-final-v6.json"
+    },
+    {
+      "scenario": "dispatch-routine-skip",
+      "status": "complete",
+      "completed_pairs": 3,
+      "source_sha256": "5cac1e7de382a3ef8454bfb21952684bac6c9b4ac59dacb9e87574b5d076e864",
+      "scenario_sha256": "bf698b8ec7e05291c1539d4f9c8625cb19c72615d181cb3595fa6da560487a2d",
+      "fixture_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "frozen_checker_sha256": "1b0390fa5b95cbba053545712340fb86673250e4e740d78167c2860e8979251c",
+      "before": {
+        "report_words": [
+          112,
+          154,
+          182
+        ],
+        "mean_report_words": 149.33333333333334,
+        "guidance_words_estimates": [
+          5016,
+          5016,
+          5016
+        ],
+        "mean_guidance_words_estimate": 5016,
+        "frozen_machine_failures": [
+          [],
+          [],
+          []
+        ],
+        "experiment_end_machine_failures": [
+          [],
+          [],
+          []
+        ]
+      },
+      "after": {
+        "report_words": [
+          180,
+          198,
+          159
+        ],
+        "mean_report_words": 179,
+        "guidance_words_estimates": [
+          2313,
+          2313,
+          2313
+        ],
+        "mean_guidance_words_estimate": 2313,
+        "frozen_machine_failures": [
+          [],
+          [],
+          []
+        ],
+        "experiment_end_machine_failures": [
+          [],
+          [],
+          []
+        ]
+      },
+      "length_reduction_percent": -19.86607142857142,
+      "guidance_estimate_reduction_percent": 53.88755980861244,
+      "blind_preferences": [
+        "after",
+        "before",
+        "after"
+      ],
+      "original_artifact_path": ".scenarios/dispatch-routine-skip/replays/refactor-final-v6.json",
+      "source_matched_experimental_guidance_when_reviewed": true,
+      "experiment_end_checker_sha256": "746d008f46fe5a03e6328966c8579a79fb7abe8f87bd69e86200fd448260cc10",
+      "artifact_archive": ".refactor-evidence/evidence.zip",
+      "artifact_member": "dispatch-routine-skip/refactor-final-v6.json"
+    },
+    {
+      "scenario": "plugin-design-original-context",
+      "status": "complete",
+      "completed_pairs": 3,
+      "source_sha256": "5cac1e7de382a3ef8454bfb21952684bac6c9b4ac59dacb9e87574b5d076e864",
+      "scenario_sha256": "a695de0e402b87840559913c88141aa37b6d4c6031d9915571e7055b2883a962",
+      "fixture_sha256": "f1a7adf014af29aa3d021965de9dfb296c095b49599219640bf94164039a2192",
+      "frozen_checker_sha256": "1b0390fa5b95cbba053545712340fb86673250e4e740d78167c2860e8979251c",
+      "before": {
+        "report_words": [
+          2994,
+          3553,
+          4457
+        ],
+        "mean_report_words": 3668,
+        "guidance_words_estimates": [
+          24213,
+          34875,
+          36212
+        ],
+        "mean_guidance_words_estimate": 31766.666666666668,
+        "frozen_machine_failures": [
+          [
+            "claims-only-loaded-stages",
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ]
+        ],
+        "experiment_end_machine_failures": [
+          [
+            "claims-only-loaded-stages",
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ]
+        ]
+      },
+      "after": {
+        "report_words": [
+          861,
+          475,
+          381
+        ],
+        "mean_report_words": 572.3333333333334,
+        "guidance_words_estimates": [
+          19856,
+          12178,
+          17065
+        ],
+        "mean_guidance_words_estimate": 16366.333333333334,
+        "frozen_machine_failures": [
+          [
+            "retains-explicit-verdict",
+            "keeps-default-report-brief"
+          ],
+          [
+            "explicit-route",
+            "keeps-default-report-brief"
+          ],
+          [
+            "names-presentation-boundary",
+            "keeps-default-report-brief"
+          ]
+        ],
+        "experiment_end_machine_failures": [
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "explicit-route",
+            "keeps-default-report-brief"
+          ],
+          [
+            "names-presentation-boundary",
+            "keeps-default-report-brief"
+          ]
+        ]
+      },
+      "length_reduction_percent": 84.3965830607052,
+      "guidance_estimate_reduction_percent": 48.47953830010493,
+      "blind_preferences": [
+        "after",
+        "after",
+        "before"
+      ],
+      "original_artifact_path": ".scenarios/plugin-design-original-context/replays/refactor-final-v6.json",
+      "source_matched_experimental_guidance_when_reviewed": true,
+      "experiment_end_checker_sha256": "746d008f46fe5a03e6328966c8579a79fb7abe8f87bd69e86200fd448260cc10",
+      "artifact_archive": ".refactor-evidence/evidence.zip",
+      "artifact_member": "plugin-design-original-context/refactor-final-v6.json"
+    },
+    {
+      "scenario": "plugin-design-recovered-replay",
+      "status": "complete",
+      "completed_pairs": 3,
+      "source_sha256": "5cac1e7de382a3ef8454bfb21952684bac6c9b4ac59dacb9e87574b5d076e864",
+      "scenario_sha256": "c33cd480a357a0b68b356a54f09af36265bb3151d83c90f66bd8e706f3841b17",
+      "fixture_sha256": "e7754cf82f6a2d2871735825a0ad1474dac9a1ae9e990ce092b613d7cabc44de",
+      "frozen_checker_sha256": "1b0390fa5b95cbba053545712340fb86673250e4e740d78167c2860e8979251c",
+      "before": {
+        "report_words": [
+          3201,
+          3430,
+          2425
+        ],
+        "mean_report_words": 3018.6666666666665,
+        "guidance_words_estimates": [
+          36914,
+          34521,
+          35106
+        ],
+        "mean_guidance_words_estimate": 35513.666666666664,
+        "frozen_machine_failures": [
+          [
+            "preserves-free-format-path",
+            "keeps-default-report-brief"
+          ],
+          [
+            "does-not-expand-component-inventory",
+            "keeps-default-report-brief"
+          ],
+          [
+            "preserves-free-format-path",
+            "keeps-default-report-brief"
+          ]
+        ],
+        "experiment_end_machine_failures": [
+          [
+            "preserves-free-format-path",
+            "keeps-default-report-brief"
+          ],
+          [
+            "does-not-expand-component-inventory",
+            "keeps-default-report-brief"
+          ],
+          [
+            "preserves-free-format-path",
+            "keeps-default-report-brief"
+          ]
+        ]
+      },
+      "after": {
+        "report_words": [
+          1008,
+          1194,
+          1141
+        ],
+        "mean_report_words": 1114.3333333333333,
+        "guidance_words_estimates": [
+          34199,
+          33614,
+          34199
+        ],
+        "mean_guidance_words_estimate": 34004,
+        "frozen_machine_failures": [
+          [
+            "claims-only-loaded-stages",
+            "preserves-free-format-path",
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ]
+        ],
+        "experiment_end_machine_failures": [
+          [
+            "preserves-free-format-path",
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ]
+        ]
+      },
+      "length_reduction_percent": 63.08524734982333,
+      "guidance_estimate_reduction_percent": 4.250945645338411,
+      "blind_preferences": [
+        "before",
+        "after",
+        "after"
+      ],
+      "original_artifact_path": ".scenarios/plugin-design-recovered-replay/replays/refactor-final-v6.json",
+      "source_matched_experimental_guidance_when_reviewed": true,
+      "experiment_end_checker_sha256": "746d008f46fe5a03e6328966c8579a79fb7abe8f87bd69e86200fd448260cc10",
+      "artifact_archive": ".refactor-evidence/evidence.zip",
+      "artifact_member": "plugin-design-recovered-replay/refactor-final-v6.json"
+    },
+    {
+      "scenario": "worth-existing-retry-wrapper",
+      "status": "complete",
+      "completed_pairs": 3,
+      "source_sha256": "5cac1e7de382a3ef8454bfb21952684bac6c9b4ac59dacb9e87574b5d076e864",
+      "scenario_sha256": "47e45cd81d259f9a6913de8fd08bdfbc689b9203b01b61975b3f5b9a6e816345",
+      "fixture_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "frozen_checker_sha256": "1b0390fa5b95cbba053545712340fb86673250e4e740d78167c2860e8979251c",
+      "before": {
+        "report_words": [
+          912,
+          997,
+          1077
+        ],
+        "mean_report_words": 995.3333333333334,
+        "guidance_words_estimates": [
+          5063,
+          5063,
+          5063
+        ],
+        "mean_guidance_words_estimate": 5063,
+        "frozen_machine_failures": [
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ]
+        ],
+        "experiment_end_machine_failures": [
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ]
+        ]
+      },
+      "after": {
+        "report_words": [
+          370,
+          362,
+          371
+        ],
+        "mean_report_words": 367.6666666666667,
+        "guidance_words_estimates": [
+          5095,
+          5095,
+          5095
+        ],
+        "mean_guidance_words_estimate": 5095,
+        "frozen_machine_failures": [
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ]
+        ],
+        "experiment_end_machine_failures": [
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ],
+          [
+            "keeps-default-report-brief"
+          ]
+        ]
+      },
+      "length_reduction_percent": 63.0609511051574,
+      "guidance_estimate_reduction_percent": -0.6320363420896591,
+      "blind_preferences": [
+        "before",
+        "after",
+        "after"
+      ],
+      "original_artifact_path": ".scenarios/worth-existing-retry-wrapper/replays/refactor-final-v6.json",
+      "source_matched_experimental_guidance_when_reviewed": true,
+      "experiment_end_checker_sha256": "746d008f46fe5a03e6328966c8579a79fb7abe8f87bd69e86200fd448260cc10",
+      "artifact_archive": ".refactor-evidence/evidence.zip",
+      "artifact_member": "worth-existing-retry-wrapper/refactor-final-v6.json"
+    }
+  ],
+  "verification": {
+    "runner_tests": {
+      "passed": 21,
+      "log": ".documentation/replay-runner-verification.log"
+    },
+    "bash_installers": {
+      "passed": 252,
+      "log": ".documentation/installers-bash-verification.log"
+    },
+    "powershell_installers": {
+      "passed": 504,
+      "hosts": 2,
+      "log": ".documentation/installers-powershell-verification.log"
+    },
+    "full_skill_validation": {
+      "status": "failed",
+      "first_failure": "dispatch-direct-worth-question/keeps-default-report-brief",
+      "log": ".documentation/skill-validation-verification.log"
+    },
+    "full_mutation_suite": {
+      "status": "blocked_by_failing_baseline",
+      "log": ".documentation/validator-mutation-verification.log"
+    },
+    "synthetic_fixture_recording": {
+      "status": "failed",
+      "checks_passed": 6,
+      "checks_total": 9,
+      "report_words": 749,
+      "scope": "new explicitly synthetic grounded fixture; not original-case evidence"
+    },
+    "standard_transcripts": {
+      "status": "historical experimental recordings; current accepted-scope recordings verified separately",
+      "results": [
+        {
+          "scenario": "dispatch-adaptive-structural",
+          "source_revision_current": true,
+          "revision": "10778c484e6c",
+          "checks_passed": 7,
+          "checks_total": 7,
+          "failures": []
+        },
+        {
+          "scenario": "dispatch-direct-worth-question",
+          "source_revision_current": true,
+          "revision": "4972b9ea6882",
+          "checks_passed": 8,
+          "checks_total": 9,
+          "failures": [
+            "keeps-default-report-brief"
+          ]
+        },
+        {
+          "scenario": "dispatch-housekeeping-skip",
+          "source_revision_current": true,
+          "revision": "75413bd65ff5",
+          "checks_passed": 2,
+          "checks_total": 2,
+          "failures": []
+        },
+        {
+          "scenario": "dispatch-missing-prerequisite",
+          "source_revision_current": true,
+          "revision": "f29a3cf4beae",
+          "checks_passed": 5,
+          "checks_total": 5,
+          "failures": []
+        },
+        {
+          "scenario": "dispatch-routine-skip",
+          "source_revision_current": true,
+          "revision": "c46c027df44e",
+          "checks_passed": 5,
+          "checks_total": 5,
+          "failures": []
+        },
+        {
+          "scenario": "plugin-design-original-context",
+          "source_revision_current": true,
+          "revision": "7edde4e91cfe",
+          "checks_passed": 13,
+          "checks_total": 14,
+          "failures": [
+            "keeps-default-report-brief"
+          ]
+        },
+        {
+          "scenario": "plugin-design-recovered-replay",
+          "source_revision_current": true,
+          "revision": "9b8fc157032a",
+          "checks_passed": 8,
+          "checks_total": 10,
+          "failures": [
+            "preserves-free-format-path",
+            "keeps-default-report-brief"
+          ]
+        },
+        {
+          "scenario": "worth-design-minimal-first",
+          "source_revision_current": true,
+          "revision": "a19723f562c1",
+          "checks_passed": 6,
+          "checks_total": 9,
+          "failures": [
+            "claims-only-loaded-stages",
+            "keeps-the-user-visible-shape-minimal",
+            "keeps-default-report-brief"
+          ]
+        },
+        {
+          "scenario": "worth-detailed-report",
+          "source_revision_current": true,
+          "revision": "c5e083ea9e82",
+          "checks_passed": 6,
+          "checks_total": 6,
+          "failures": []
+        },
+        {
+          "scenario": "worth-existing-retry-wrapper",
+          "source_revision_current": true,
+          "revision": "c54aa15b9382",
+          "checks_passed": 5,
+          "checks_total": 6,
+          "failures": [
+            "keeps-default-report-brief"
+          ]
+        },
+        {
+          "scenario": "worth-impossible-state-guard",
+          "source_revision_current": true,
+          "revision": "3c9167c59765",
+          "checks_passed": 5,
+          "checks_total": 5,
+          "failures": []
+        },
+        {
+          "scenario": "worth-speculative-abstraction",
+          "source_revision_current": true,
+          "revision": "0d34e50b46fe",
+          "checks_passed": 3,
+          "checks_total": 3,
+          "failures": []
+        }
+      ]
+    },
+    "source_correspondence": {
+      "all_six_final_sources_match": true,
+      "mirror_files_byte_identical": 45,
+      "status": "verified at experiment end before withdrawal; not current source"
+    }
+  },
+  "evidence_status": "historical rejected v6 candidate; retained for next refactor, not current guidance",
+  "experimental_snapshot_archive": "C:/Users/Patrick/Projects/l-gevity/l-gevity-skills-experimental-preserved-20261001-092102/working-tree.zip"
+}

@@ -56,8 +56,12 @@ mkdir -p "$STAGE"
 cp -R "$REPO_ROOT/.claude" "$STAGE/"
 cp -R "$REPO_ROOT/.agents" "$STAGE/"
 cp "$REPO_ROOT/CLAUDE.md" "$STAGE/"
+printf '\nLibrary guidance revision: test-v1.\n' >> "$STAGE/CLAUDE.md"
 ARCHIVE="$WORK/skills.tar.gz"
 tar -czf "$ARCHIVE" -C "$WORK" "l-gevity-skills-test"
+sed -i 's/Library guidance revision: test-v1/Library guidance revision: test-v2/' "$STAGE/CLAUDE.md"
+REPIN_ARCHIVE="$WORK/skills-repin.tar.gz"
+tar -czf "$REPIN_ARCHIVE" -C "$WORK" "l-gevity-skills-test"
 export L_GEVITY_SKILLS_ARCHIVE="$ARCHIVE"
 
 SRC_SKILLS="$REPO_ROOT/.claude/skills"
@@ -99,6 +103,12 @@ for agent in claude codex gemini grok; do
   check "nothing written to $other" \
     "$([ -d "$T/$other" ] && echo yes || echo no)" "no"
   check "created $memfile" "$([ -f "$T/$memfile" ] && echo yes || echo no)" "yes"
+  check "first install includes managed root guidance" \
+    "$(grep -Fc 'Library guidance revision: test-v1.' "$T/$memfile")" "1"
+  check "root skill links target $primary" \
+    "$(grep -Fq "$primary/" "$T/$memfile" && echo yes || echo no)" "yes"
+  check "root skill links do not target the absent $other" \
+    "$(grep -Fq "$other/" "$T/$memfile" && echo yes || echo no)" "no"
   check "reported skill count" \
     "$(grep -oE 'Installed [0-9]+ skills' "$WORK/$agent.log" | grep -oE '[0-9]+')" \
     "$EXPECT_SKILLS"
@@ -130,17 +140,89 @@ done < <(grep -oE '"[^"]+": "[0-9a-f]{64}"' "$LOCK")
 check "hash mismatches across every file" "$mismatch" "0"
 echo
 
-# --- An existing instruction file of any name is honored ---
-echo "== an existing AGENTS.md is honored by the Claude installer =="
-T="$WORK/consumer-agents-md"
-mkdir -p "$T"
-printf 'project instructions\n' > "$T/AGENTS.md"
-( cd "$T" && bash "$REPO_ROOT/.install/install-claude.sh" ) > "$WORK/agents-md.log" 2>&1
-check "existing file untouched" "$(cat "$T/AGENTS.md")" "project instructions"
-check "upstream copy sidecarred" \
-  "$([ -f "$T/AGENTS.md.l-gevity" ] && echo yes || echo no)" "yes"
-check "no second instruction file invented" \
-  "$([ -f "$T/CLAUDE.md" ] && echo yes || echo no)" "no"
+# --- Own root guidance is merged; other agents' roots remain byte-identical ---
+echo "== existing root guidance receives an idempotent managed block =="
+for agent in claude codex gemini grok; do
+  T="$WORK/consumer-existing-$agent"
+  memfile="$(memfile_for "$agent")"
+  mkdir -p "$T"
+  printf 'project instructions\r\nkeep trailing spaces  \r\n' > "$T/$memfile"
+  cp "$T/$memfile" "$WORK/prefix-$agent"
+  for other_mem in CLAUDE.md AGENTS.md GEMINI.md GROK.md; do
+    if [ "$other_mem" != "$memfile" ]; then
+      printf 'other agent project instructions: %s\n' "$other_mem" > "$T/$other_mem"
+      cp "$T/$other_mem" "$WORK/$agent-$other_mem"
+    fi
+  done
+  ( cd "$T" && bash "$REPO_ROOT/.install/install-$agent.sh" ) > "$WORK/existing-$agent.log" 2>&1
+  check "$agent existing root install succeeds" "$?" "0"
+  check "$agent preserves project prefix bytes" \
+    "$(head -c "$(wc -c < "$WORK/prefix-$agent")" "$T/$memfile" | cmp -s - "$WORK/prefix-$agent" && echo yes || echo no)" "yes"
+  check "$agent merges managed guidance" \
+    "$(tr -d '\r' < "$T/$memfile" | grep -Fxc '<!-- BEGIN L-GEVITY MANAGED GUIDANCE -->')" "1"
+  check "$agent closes managed block" \
+    "$(tr -d '\r' < "$T/$memfile" | grep -Fxc '<!-- END L-GEVITY MANAGED GUIDANCE -->')" "1"
+  check "$agent installs current root guidance" "$(grep -Fc 'Library guidance revision: test-v1.' "$T/$memfile")" "1"
+  check "$agent needs no sidecar" "$([ -f "$T/$memfile.l-gevity" ] && echo yes || echo no)" "no"
+  printf '\r\nproject suffix without final newline' > "$WORK/suffix-$agent"
+  cat "$WORK/suffix-$agent" >> "$T/$memfile"
+  root_before="$(sha256_of "$T/$memfile")"
+  ( cd "$T" && bash "$REPO_ROOT/.install/install-$agent.sh" ) > "$WORK/existing-$agent-again.log" 2>&1
+  check "$agent repeat install succeeds" "$?" "0"
+  check "$agent repeat leaves root bytes unchanged" "$(sha256_of "$T/$memfile")" "$root_before"
+  check "$agent replaces rather than duplicates managed guidance" \
+    "$(tr -d '\r' < "$T/$memfile" | grep -Fxc '<!-- BEGIN L-GEVITY MANAGED GUIDANCE -->')" "1"
+  ( cd "$T" && L_GEVITY_SKILLS_ARCHIVE="$REPIN_ARCHIVE" L_GEVITY_SKILLS_REF=test-repin \
+      bash "$REPO_ROOT/.install/install-$agent.sh" ) > "$WORK/repin-$agent.log" 2>&1
+  check "$agent repin succeeds" "$?" "0"
+  check "$agent repin refreshes managed guidance" "$(grep -Fc 'Library guidance revision: test-v2.' "$T/$memfile")" "1"
+  check "$agent repin removes obsolete guidance" "$(grep -Fc 'Library guidance revision: test-v1.' "$T/$memfile" || true)" "0"
+  check "$agent repin preserves prefix bytes" \
+    "$(head -c "$(wc -c < "$WORK/prefix-$agent")" "$T/$memfile" | cmp -s - "$WORK/prefix-$agent" && echo yes || echo no)" "yes"
+  check "$agent repin preserves suffix bytes" \
+    "$(tail -c "$(wc -c < "$WORK/suffix-$agent")" "$T/$memfile" | cmp -s - "$WORK/suffix-$agent" && echo yes || echo no)" "yes"
+  check "$agent repin records selected ref" \
+    "$(grep -Fc '"ref": "test-repin"' "$T/$(primary_dir_for "$agent")/l-gevity-skills.lock.json")" "1"
+  for other_mem in CLAUDE.md AGENTS.md GEMINI.md GROK.md; do
+    if [ "$other_mem" != "$memfile" ]; then
+      check "$agent preserves $other_mem belonging to another agent" \
+        "$(cmp -s "$T/$other_mem" "$WORK/$agent-$other_mem" && echo yes || echo no)" "yes"
+    fi
+  done
+done
+echo
+
+# --- Malformed blocks fail before any guidance, skills, or locks change ---
+echo "== malformed managed blocks are refused without changing the consumer =="
+begin='<!-- BEGIN L-GEVITY MANAGED GUIDANCE -->'
+end='<!-- END L-GEVITY MANAGED GUIDANCE -->'
+for agent in claude codex gemini grok; do
+  for malformed in unterminated orphan reversed duplicate nested inline; do
+    T="$WORK/consumer-malformed-$agent-$malformed"
+    primary="$(primary_dir_for "$agent")"
+    memfile="$(memfile_for "$agent")"
+    mkdir -p "$T/$primary"
+    printf 'local skill instructions\n' > "$T/$primary/CANARY.md"
+    case "$malformed" in
+      unterminated) printf '%s\nold guidance\n' "$begin" ;;
+      orphan) printf 'old guidance\n%s\n' "$end" ;;
+      reversed) printf '%s\n%s\n' "$end" "$begin" ;;
+      duplicate) printf '%s\n%s\n%s\n%s\n' "$begin" "$end" "$begin" "$end" ;;
+      nested) printf '%s\n%s\n%s\n%s\n' "$begin" "$begin" "$end" "$end" ;;
+      inline) printf 'inline %s\n%s\n' "$begin" "$end" ;;
+    esac > "$T/$memfile"
+    before_root="$(sha256_of "$T/$memfile")"
+    before_tree="$(tree_hashes "$T/$primary")"
+    ( cd "$T" && bash "$REPO_ROOT/.install/install-$agent.sh" ) > "$WORK/malformed-$agent-$malformed.log" 2>&1
+    status="$?"
+    check "$agent $malformed markers fail" "$([ "$status" -ne 0 ] && echo yes || echo no)" "yes"
+    check "$agent $malformed refusal is explicit" \
+      "$(grep -c 'Refused to update malformed L-GEVITY guidance markers' "$WORK/malformed-$agent-$malformed.log")" "1"
+    check "$agent $malformed leaves root bytes unchanged" "$(sha256_of "$T/$memfile")" "$before_root"
+    check "$agent $malformed leaves skill tree unchanged" "$(tree_hashes "$T/$primary")" "$before_tree"
+    check "$agent $malformed writes no lock" "$([ -f "$T/$primary/l-gevity-skills.lock.json" ] && echo yes || echo no)" "no"
+  done
+done
 echo
 
 # --- A consumer keeping both trees gets both, identically ---

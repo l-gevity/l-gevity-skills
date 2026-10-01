@@ -1,0 +1,1 @@
+ERROR: the unmutated copy must validate first: ERROR: .scenarios/dispatch-direct-worth-question expectation 'keeps-default-report-brief' not met (summary-led-report #3: the default decision report stays within the predeclared word budget); fix the skill and re-record, or list it under known_failures with the reason

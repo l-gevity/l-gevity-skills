@@ -1,0 +1,278 @@
+Source tree: 23 skills, 45 files
+
+== claude: installs into its own tree ==
+  PASS exit status
+  PASS skills in .claude/skills
+  PASS nothing written to .agents/skills
+  PASS created CLAUDE.md
+  PASS first install includes managed root guidance
+  PASS root skill links target .claude/skills
+  PASS root skill links do not target the absent .agents/skills
+  PASS reported skill count
+  PASS reported file count
+  PASS lock version 2
+  PASS lock names the agent
+  PASS one hash per installed file
+
+== codex: installs into its own tree ==
+  PASS exit status
+  PASS skills in .agents/skills
+  PASS nothing written to .claude/skills
+  PASS created AGENTS.md
+  PASS first install includes managed root guidance
+  PASS root skill links target .agents/skills
+  PASS root skill links do not target the absent .claude/skills
+  PASS reported skill count
+  PASS reported file count
+  PASS lock version 2
+  PASS lock names the agent
+  PASS one hash per installed file
+
+== gemini: installs into its own tree ==
+  PASS exit status
+  PASS skills in .agents/skills
+  PASS nothing written to .claude/skills
+  PASS created GEMINI.md
+  PASS first install includes managed root guidance
+  PASS root skill links target .agents/skills
+  PASS root skill links do not target the absent .claude/skills
+  PASS reported skill count
+  PASS reported file count
+  PASS lock version 2
+  PASS lock names the agent
+  PASS one hash per installed file
+
+== grok: installs into its own tree ==
+  PASS exit status
+  PASS skills in .agents/skills
+  PASS nothing written to .claude/skills
+  PASS created GROK.md
+  PASS first install includes managed root guidance
+  PASS root skill links target .agents/skills
+  PASS root skill links do not target the absent .claude/skills
+  PASS reported skill count
+  PASS reported file count
+  PASS lock version 2
+  PASS lock names the agent
+  PASS one hash per installed file
+
+== recorded hashes describe the installed bytes ==
+  PASS hash mismatches across every file
+
+== existing root guidance receives an idempotent managed block ==
+  PASS claude existing root install succeeds
+  PASS claude preserves project prefix bytes
+  PASS claude merges managed guidance
+  PASS claude closes managed block
+  PASS claude installs current root guidance
+  PASS claude needs no sidecar
+  PASS claude repeat install succeeds
+  PASS claude repeat leaves root bytes unchanged
+  PASS claude replaces rather than duplicates managed guidance
+  PASS claude repin succeeds
+  PASS claude repin refreshes managed guidance
+  PASS claude repin removes obsolete guidance
+  PASS claude repin preserves prefix bytes
+  PASS claude repin preserves suffix bytes
+  PASS claude repin records selected ref
+  PASS claude preserves AGENTS.md belonging to another agent
+  PASS claude preserves GEMINI.md belonging to another agent
+  PASS claude preserves GROK.md belonging to another agent
+  PASS codex existing root install succeeds
+  PASS codex preserves project prefix bytes
+  PASS codex merges managed guidance
+  PASS codex closes managed block
+  PASS codex installs current root guidance
+  PASS codex needs no sidecar
+  PASS codex repeat install succeeds
+  PASS codex repeat leaves root bytes unchanged
+  PASS codex replaces rather than duplicates managed guidance
+  PASS codex repin succeeds
+  PASS codex repin refreshes managed guidance
+  PASS codex repin removes obsolete guidance
+  PASS codex repin preserves prefix bytes
+  PASS codex repin preserves suffix bytes
+  PASS codex repin records selected ref
+  PASS codex preserves CLAUDE.md belonging to another agent
+  PASS codex preserves GEMINI.md belonging to another agent
+  PASS codex preserves GROK.md belonging to another agent
+  PASS gemini existing root install succeeds
+  PASS gemini preserves project prefix bytes
+  PASS gemini merges managed guidance
+  PASS gemini closes managed block
+  PASS gemini installs current root guidance
+  PASS gemini needs no sidecar
+  PASS gemini repeat install succeeds
+  PASS gemini repeat leaves root bytes unchanged
+  PASS gemini replaces rather than duplicates managed guidance
+  PASS gemini repin succeeds
+  PASS gemini repin refreshes managed guidance
+  PASS gemini repin removes obsolete guidance
+  PASS gemini repin preserves prefix bytes
+  PASS gemini repin preserves suffix bytes
+  PASS gemini repin records selected ref
+  PASS gemini preserves CLAUDE.md belonging to another agent
+  PASS gemini preserves AGENTS.md belonging to another agent
+  PASS gemini preserves GROK.md belonging to another agent
+  PASS grok existing root install succeeds
+  PASS grok preserves project prefix bytes
+  PASS grok merges managed guidance
+  PASS grok closes managed block
+  PASS grok installs current root guidance
+  PASS grok needs no sidecar
+  PASS grok repeat install succeeds
+  PASS grok repeat leaves root bytes unchanged
+  PASS grok replaces rather than duplicates managed guidance
+  PASS grok repin succeeds
+  PASS grok repin refreshes managed guidance
+  PASS grok repin removes obsolete guidance
+  PASS grok repin preserves prefix bytes
+  PASS grok repin preserves suffix bytes
+  PASS grok repin records selected ref
+  PASS grok preserves CLAUDE.md belonging to another agent
+  PASS grok preserves AGENTS.md belonging to another agent
+  PASS grok preserves GEMINI.md belonging to another agent
+
+== malformed managed blocks are refused without changing the consumer ==
+  PASS claude unterminated markers fail
+  PASS claude unterminated refusal is explicit
+  PASS claude unterminated leaves root bytes unchanged
+  PASS claude unterminated leaves skill tree unchanged
+  PASS claude unterminated writes no lock
+  PASS claude orphan markers fail
+  PASS claude orphan refusal is explicit
+  PASS claude orphan leaves root bytes unchanged
+  PASS claude orphan leaves skill tree unchanged
+  PASS claude orphan writes no lock
+  PASS claude reversed markers fail
+  PASS claude reversed refusal is explicit
+  PASS claude reversed leaves root bytes unchanged
+  PASS claude reversed leaves skill tree unchanged
+  PASS claude reversed writes no lock
+  PASS claude duplicate markers fail
+  PASS claude duplicate refusal is explicit
+  PASS claude duplicate leaves root bytes unchanged
+  PASS claude duplicate leaves skill tree unchanged
+  PASS claude duplicate writes no lock
+  PASS claude nested markers fail
+  PASS claude nested refusal is explicit
+  PASS claude nested leaves root bytes unchanged
+  PASS claude nested leaves skill tree unchanged
+  PASS claude nested writes no lock
+  PASS claude inline markers fail
+  PASS claude inline refusal is explicit
+  PASS claude inline leaves root bytes unchanged
+  PASS claude inline leaves skill tree unchanged
+  PASS claude inline writes no lock
+  PASS codex unterminated markers fail
+  PASS codex unterminated refusal is explicit
+  PASS codex unterminated leaves root bytes unchanged
+  PASS codex unterminated leaves skill tree unchanged
+  PASS codex unterminated writes no lock
+  PASS codex orphan markers fail
+  PASS codex orphan refusal is explicit
+  PASS codex orphan leaves root bytes unchanged
+  PASS codex orphan leaves skill tree unchanged
+  PASS codex orphan writes no lock
+  PASS codex reversed markers fail
+  PASS codex reversed refusal is explicit
+  PASS codex reversed leaves root bytes unchanged
+  PASS codex reversed leaves skill tree unchanged
+  PASS codex reversed writes no lock
+  PASS codex duplicate markers fail
+  PASS codex duplicate refusal is explicit
+  PASS codex duplicate leaves root bytes unchanged
+  PASS codex duplicate leaves skill tree unchanged
+  PASS codex duplicate writes no lock
+  PASS codex nested markers fail
+  PASS codex nested refusal is explicit
+  PASS codex nested leaves root bytes unchanged
+  PASS codex nested leaves skill tree unchanged
+  PASS codex nested writes no lock
+  PASS codex inline markers fail
+  PASS codex inline refusal is explicit
+  PASS codex inline leaves root bytes unchanged
+  PASS codex inline leaves skill tree unchanged
+  PASS codex inline writes no lock
+  PASS gemini unterminated markers fail
+  PASS gemini unterminated refusal is explicit
+  PASS gemini unterminated leaves root bytes unchanged
+  PASS gemini unterminated leaves skill tree unchanged
+  PASS gemini unterminated writes no lock
+  PASS gemini orphan markers fail
+  PASS gemini orphan refusal is explicit
+  PASS gemini orphan leaves root bytes unchanged
+  PASS gemini orphan leaves skill tree unchanged
+  PASS gemini orphan writes no lock
+  PASS gemini reversed markers fail
+  PASS gemini reversed refusal is explicit
+  PASS gemini reversed leaves root bytes unchanged
+  PASS gemini reversed leaves skill tree unchanged
+  PASS gemini reversed writes no lock
+  PASS gemini duplicate markers fail
+  PASS gemini duplicate refusal is explicit
+  PASS gemini duplicate leaves root bytes unchanged
+  PASS gemini duplicate leaves skill tree unchanged
+  PASS gemini duplicate writes no lock
+  PASS gemini nested markers fail
+  PASS gemini nested refusal is explicit
+  PASS gemini nested leaves root bytes unchanged
+  PASS gemini nested leaves skill tree unchanged
+  PASS gemini nested writes no lock
+  PASS gemini inline markers fail
+  PASS gemini inline refusal is explicit
+  PASS gemini inline leaves root bytes unchanged
+  PASS gemini inline leaves skill tree unchanged
+  PASS gemini inline writes no lock
+  PASS grok unterminated markers fail
+  PASS grok unterminated refusal is explicit
+  PASS grok unterminated leaves root bytes unchanged
+  PASS grok unterminated leaves skill tree unchanged
+  PASS grok unterminated writes no lock
+  PASS grok orphan markers fail
+  PASS grok orphan refusal is explicit
+  PASS grok orphan leaves root bytes unchanged
+  PASS grok orphan leaves skill tree unchanged
+  PASS grok orphan writes no lock
+  PASS grok reversed markers fail
+  PASS grok reversed refusal is explicit
+  PASS grok reversed leaves root bytes unchanged
+  PASS grok reversed leaves skill tree unchanged
+  PASS grok reversed writes no lock
+  PASS grok duplicate markers fail
+  PASS grok duplicate refusal is explicit
+  PASS grok duplicate leaves root bytes unchanged
+  PASS grok duplicate leaves skill tree unchanged
+  PASS grok duplicate writes no lock
+  PASS grok nested markers fail
+  PASS grok nested refusal is explicit
+  PASS grok nested leaves root bytes unchanged
+  PASS grok nested leaves skill tree unchanged
+  PASS grok nested writes no lock
+  PASS grok inline markers fail
+  PASS grok inline refusal is explicit
+  PASS grok inline leaves root bytes unchanged
+  PASS grok inline leaves skill tree unchanged
+  PASS grok inline writes no lock
+
+== a dual-tree consumer keeps its mirror ==
+  PASS primary tree filled
+  PASS mirror tree filled
+  PASS trees byte-identical
+
+== the installer is idempotent ==
+  PASS second run leaves the tree unchanged
+  PASS second run removes nothing
+
+== a dropped file is pruned on the next run ==
+  PASS stale file removed
+  PASS removal reported
+  PASS sibling files survive
+
+== path traversal in the lock is refused ==
+  PASS file outside the tree survives
+  PASS refusal reported
+  PASS install still succeeds
+
+252 checks run
+Installers verified
