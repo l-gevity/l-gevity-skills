@@ -82,6 +82,8 @@ iteration 2 is the next cycle on the same subject, *starting from that measured 
   evidence, not a date. `zero-copy-requirements` decides where a fact lives: code and tests
   own behavior, history owns what changed, issues own decisions and open questions.
   `dependency-lifecycle` and `observability-design` own what decays without a commit.
+  `infrastructure-fit` checks the foundation against the requirements when it is chosen and
+  whenever they move.
 
 ## 7. Define success; checkpoint
 Strong success criteria let you loop independently. After each significant step, summarize

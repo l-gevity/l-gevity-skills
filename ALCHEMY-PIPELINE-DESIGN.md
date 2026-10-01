@@ -92,6 +92,20 @@ what a health probe blocks, and `requirements-traceability` owns outcome
 evidence. Observability Design is not a qualification stage, gate, acronym
 letter, or prerequisite for Architecture.
 
+When a datastore, identity provider, compute or hosting model, region, or
+tenancy model is chosen, inherited from a template, or questioned,
+`infrastructure-fit` is an independently matched companion. Select mode follows
+readiness and precedes A: it builds a fit profile from the requirements, keeps
+every template default `INHERITED` until that profile justifies it, and records
+each one-way door with its forcing requirement, tripwires, and reversal cost.
+Review mode runs in a single pass when a requirement, scale estimate, or
+tripwire moves, and returns one verdict per component: choose, keep, adjust,
+watch, migrate, or defer. `bring-down` owns whether one capability is bespoke
+or external, `dependency-lifecycle` owns vendor-side events on a platform
+already owned, and `evolutionary-database-design` stages a migration once it
+is decided. Infrastructure Fit is not a qualification stage, gate, acronym
+letter, or prerequisite for Architecture.
+
 ## Pipeline
 
 ```mermaid

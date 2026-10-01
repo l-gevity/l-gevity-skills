@@ -75,6 +75,7 @@ task context runs the preflight.
 | `alchemy out ...`, `alchemy push-out ...` | Invoke `push-out`. |
 | `alchemy zero-copy ...`, `alchemy source-of-truth ...` | Invoke `zero-copy-requirements`. |
 | `alchemy deps ...`, `alchemy dependency ...` | Invoke `dependency-lifecycle`. |
+| `alchemy infra[structure] ...` | Invoke `infrastructure-fit`. |
 | `alchemy signal ...`, `alchemy observability ...` | Invoke `observability-design`. |
 | `alchemy down ...`, `alchemy bring-down ...` | Invoke `bring-down`. |
 
@@ -132,6 +133,8 @@ the selected companion skill bodies.
   bump, and only a contract-preserving bump is `SKIP`.
 - When a risk survives verification into production, or alerts or telemetry
   are under review, select `observability-design`.
+- When infrastructure is chosen, inherited, or questioned, select
+  `infrastructure-fit`.
 - `SKIP` skips only the Alchemy core; it never suppresses a matching companion.
 - `DIRECT` keeps the core route focused while allowing independently triggered
   companions.
