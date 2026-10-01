@@ -666,5 +666,66 @@ class ReplayTests(unittest.TestCase):
         self.assertEqual([pair["arms"][arm]["loaded_guidance_words_estimate"] for pair in artifact["runs"] for arm in ("before", "after")], original_estimates)
 
 
+    def test_record_sink_scoped_permission_persistence_and_anonymous_judging(self):
+        self.args.decision_records = True
+        self.args.runs = 1
+        artifact = self.freeze()
+        def with_record(command, cwd, stdout, stderr, timeout, stdin=None):
+            if "--safe-mode" not in command:
+                self.assertIn("Write", command[command.index("--tools") + 1].split(","))
+                allowed = command[command.index("--allowedTools") + 1].split(",")
+                self.assertIn("Edit(/.decision-record.md)", allowed)
+                self.assertNotIn("Write", allowed)
+                self.assertNotIn("Edit", allowed)
+                self.assertEqual(command[command.index("--permission-mode") + 1], "dontAsk")
+                (cwd / ".decision-record.md").write_text(f"Complete record for {cwd}: " + "evidence " * 500, encoding="utf-8")
+            else:
+                packet = stdin.decode("utf-8")
+                self.assertIn("Complete record for .:", packet)
+                self.assertNotIn(".decision-record.md", packet)
+                self.assertNotIn("log_file", packet)
+            return self.cli(command, cwd, stdout, stderr, timeout, stdin)
+        with patch.object(replay.shutil, "which", return_value="mock-claude"), patch.object(replay, "capture", side_effect=with_record):
+            self.assertEqual(replay.execute(artifact, self.destination), 0)
+        for arm in ("before", "after"):
+            result = artifact["runs"][0]["arms"][arm]
+            self.assertEqual(result["word_count"], 12)
+            record = result["decision_record"]
+            self.assertEqual(record["sha256"], replay.hashlib.sha256(record["text"].encode()).hexdigest())
+            self.assertTrue((self.destination.with_suffix(".logs") / record["log_file"]).is_file())
+        self.assertEqual(artifact["record_sink_context"], replay.RECORD_SINK_CONTEXT)
+        artifact["record_sink_context"] += " changed"
+        with self.assertRaisesRegex(ValueError, "record-sink context"):
+            replay.execute(artifact, self.destination)
+
+    def test_record_sink_does_not_make_mutated_inputs_successful(self):
+        self.args.decision_records = True
+        self.args.runs = 1
+        artifact = self.freeze()
+        def mutate(command, cwd, stdout, stderr, timeout, stdin=None):
+            result = self.cli(command, cwd, stdout, stderr, timeout, stdin)
+            if "--safe-mode" not in command:
+                (cwd / "input.txt").write_text("illegal mutation", encoding="utf-8")
+            return result
+        with patch.object(replay.shutil, "which", return_value="mock-claude"), patch.object(replay, "capture", side_effect=mutate):
+            self.assertEqual(replay.execute(artifact, self.destination), 1)
+        for result in artifact["runs"][0]["arms"].values():
+            self.assertEqual(result["status"], "error")
+            self.assertIn("input.txt", result["changed_inputs"])
+
+    def test_interrupted_record_sink_keeps_record_log(self):
+        self.args.decision_records = True
+        self.args.runs = 1
+        artifact = self.freeze()
+        def interrupt(command, cwd, stdout, stderr, timeout, stdin=None):
+            (cwd / ".decision-record.md").write_text("Incomplete but preserved", encoding="utf-8")
+            raise KeyboardInterrupt
+        with patch.object(replay.shutil, "which", return_value="mock-claude"), patch.object(replay, "capture", side_effect=interrupt):
+            self.assertEqual(replay.execute(artifact, self.destination), 130)
+        records = list(self.destination.with_suffix(".logs").glob("*.decision-record.md"))
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0].read_text(encoding="utf-8"), "Incomplete but preserved")
+
+
 if __name__ == "__main__":
     unittest.main()

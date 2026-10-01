@@ -34,6 +34,7 @@ assert SPEC and SPEC.loader
 validator = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = validator
 SPEC.loader.exec_module(validator)
+RECORD_SINK_CONTEXT = "A writable decision-record sink is available at .decision-record.md. All product and guidance files remain read-only. Use the sink only if your reporting instructions require it."
 FORMAT_VERSION = 2
 WORD_RE = re.compile(r"\b[\w’'-]+\b")
 ACCOUNTING_VERSION = "unique-whole-file-words-v1"
@@ -349,7 +350,7 @@ def evaluate_stream(scenario_name: str, scenario: dict[str, Any], snapshot: Path
 
 def run_agent(scenario_name: str, scenario: dict[str, Any], snapshot: Path, source: dict[str, Any],
               fixture: Path, fixture_sha256: str, logs: Path, timeout: int, model: str | None,
-              checker: Any) -> dict[str, Any]:
+              checker: Any, decision_records: bool = False) -> dict[str, Any]:
     cli = shutil.which("claude")
     if not cli:
         raise RuntimeError("claude CLI is not on PATH")
@@ -360,12 +361,17 @@ def run_agent(scenario_name: str, scenario: dict[str, Any], snapshot: Path, sour
     tools = ",".join(checker.SCENARIO_TOOLS)
     project = Path(tempfile.mkdtemp(prefix="l-gevity-replay-")).resolve()
     result = None
+    record_path = project / ".decision-record.md"
     try:
         shutil.copytree(snapshot, project, dirs_exist_ok=True)
         shutil.copytree(fixture, project, dirs_exist_ok=True)
         command = [cli, "-p", scenario["request"], "--output-format", "stream-json", "--verbose",
                    "--setting-sources", "project", "--strict-mcp-config", "--no-session-persistence",
                    "--tools", tools, "--allowedTools", tools]
+        if decision_records:
+            command.extend(["--permission-mode", "dontAsk", "--append-system-prompt", RECORD_SINK_CONTEXT])
+            command[command.index("--tools") + 1] += ",Write"
+            command[command.index("--allowedTools") + 1] += ",Edit(/.decision-record.md)"
         if model:
             command.extend(["--model", model])
         code, error = capture(command, project, logs.with_suffix(".stdout.jsonl"), logs.with_suffix(".stderr.txt"), timeout)
@@ -374,8 +380,19 @@ def run_agent(scenario_name: str, scenario: dict[str, Any], snapshot: Path, sour
         if error or code or result is None:
             detail = logs.with_suffix(".stderr.txt").read_text(encoding="utf-8", errors="replace")[-2000:]
             result = {"status": "error", "exit_code": code, "error": error or reason or detail or f"CLI exit {code}"}
+        if decision_records:
+            changed = [name for directory in (snapshot, fixture) for name, digest in manifest(directory).items()
+                       if not (project / name).is_file() or hashlib.sha256((project / name).read_bytes()).hexdigest() != digest]
+            if changed:
+                result.update(status="error", error="read-only inputs changed", changed_inputs=changed)
         return result
     finally:
+        if decision_records and record_path.is_file():
+            data = record_path.read_bytes()
+            saved = logs.with_suffix(".decision-record.md")
+            saved.write_bytes(data)
+            if result is not None:
+                result["decision_record"] = {"text": data.decode("utf-8"), "sha256": hashlib.sha256(data).hexdigest(), "log_file": saved.name, "judge_text": data.decode("utf-8").replace(str(project), ".").replace(project.as_posix(), ".")}
         warnings = cleanup_workspace(project)
         if warnings and result is not None:
             result["cleanup_warnings"] = warnings
@@ -481,7 +498,7 @@ def freeze(args: argparse.Namespace, destination: Path) -> dict[str, Any]:
     original_fixture = validator.scenario_fixture(directory)
     if original_fixture:
         manifest(original_fixture)
-        for reserved in ("CLAUDE.md", ".claude", ".agents", ".git"):
+        for reserved in ("CLAUDE.md", ".claude", ".agents", ".git", ".decision-record.md"):
             if (original_fixture / reserved).exists():
                 raise ValueError(f"scenario fixture must not override agent guidance/settings: {reserved}")
         shutil.copytree(original_fixture, fixture, dirs_exist_ok=True)
@@ -511,6 +528,8 @@ def freeze(args: argparse.Namespace, destination: Path) -> dict[str, Any]:
         "fixture_file_sha256": manifest(fixture), "fixture_sha256": content_hash(manifest(fixture)),
         "sources": sources, "inputs_directory": inputs.name, "runs_per_arm": args.runs,
         "seed": seed, "created_at": now(), "runs": runs, "status": "pending", "completed_pairs": 0,
+        "decision_records": getattr(args, "decision_records", False),
+        "record_sink_context": RECORD_SINK_CONTEXT if getattr(args, "decision_records", False) else None,
         "blind_judge_enabled": args.blind_judge, "judge_model": args.judge_model, "model": args.model,
         "run_timeout_seconds": args.timeout, "judge_timeout_seconds": args.judge_timeout,
     }
@@ -519,6 +538,8 @@ def freeze(args: argparse.Namespace, destination: Path) -> dict[str, Any]:
 def execute(artifact: dict[str, Any], destination: Path) -> int:
     inputs = destination.parent / artifact["inputs_directory"]
     scenario = artifact["scenario_definition"]
+    if artifact.get("decision_records") and artifact.get("record_sink_context") != RECORD_SINK_CONTEXT:
+        raise ValueError("frozen record-sink context differs from this runner")
     if hashlib.sha256(json_bytes(scenario)).hexdigest() != artifact["scenario_sha256"]:
         raise ValueError("artifact scenario or criteria were modified")
     if artifact["criteria"] != scenario["expect"] or artifact["request"] != scenario["request"] or artifact["blind_judge_rubric"] != scenario.get("blind_judge_rubric", []):
@@ -593,7 +614,7 @@ def execute(artifact: dict[str, Any], destination: Path) -> int:
                 try:
                     result = run_agent(artifact["scenario"], scenario, inputs / arm, artifact["sources"][arm],
                                        inputs / "fixture", artifact["fixture_sha256"], prefix,
-                                       artifact["run_timeout_seconds"], artifact.get("model"), checker)
+                                       artifact["run_timeout_seconds"], artifact.get("model"), checker, decision_records=artifact.get("decision_records", False))
                     state.update(result, finished_at=now())
                 except KeyboardInterrupt:
                     state.update(status="interrupted", error="interrupted", finished_at=now())
@@ -617,6 +638,7 @@ def execute(artifact: dict[str, Any], destination: Path) -> int:
                     outputs = {pair["judge_key"][arm]: pair["arms"][arm]["transcript"]["output"] for arm in ("before", "after")}
                     context = {
                         "request": artifact["request"], "product_fixture": fixture_context(inputs / "fixture"),
+                        "decision_records": {pair["judge_key"][arm]: ({"text": pair["arms"][arm]["decision_record"]["judge_text"]} if "decision_record" in pair["arms"][arm] else {"unavailable": True}) for arm in ("before", "after")},
                         "product_tool_provenance": {pair["judge_key"][arm]: pair["arms"][arm].get("product_tool_provenance", {"unavailable": True}) for arm in ("before", "after")},
                     }
                     packet = {"rubric": artifact["blind_judge_rubric"], "reports": outputs, "context": context}
@@ -664,6 +686,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--runs", type=int, default=3, help="runs per arm (default: 3)")
     parser.add_argument("--seed", type=int, help="reproducible arm-order and label seed")
     parser.add_argument("--blind-judge", action="store_true", help="judge each pair in isolated safe mode")
+    parser.add_argument("--decision-records", action="store_true", help="allow writing only .decision-record.md; preserve it separately from all assistant prose")
     parser.add_argument("--judge-model", help="optional Claude model for blind judging")
     parser.add_argument("--model", help="optional Claude model for both replay arms")
     parser.add_argument("--timeout", type=int, default=1800, help="per-arm timeout in seconds")

@@ -96,6 +96,16 @@ successful content searches, as conservative whole-file word estimates rather
 than token usage. Filename discovery does not count as a body load. Run
 `npm run test:replay` for the deterministic runner invariants.
 
+For an experiment that separates the complete decision record from its report,
+add `--decision-records`. Both arms receive the same notice and permission to
+write only `.decision-record.md`; product and guidance files stay read-only.
+The runner preserves the record and its hash alongside raw traces, including
+interrupted attempts. Judges receive anonymized record text, without arm log
+filenames. All assistant prose still counts toward report length; the separate
+artifact is not a substitute for visible blockers or required evidence. Compare
+record completeness and report correspondence under predeclared semantic checks.
+This option enables measurement; it does not prove a compact report is correct.
+
 CI never calls a model. It fails when a transcript is missing, when the
 scenario definition (including criteria and rubric), the fixture project,
 `CLAUDE.md`, or any available skill source changed after the transcript was
