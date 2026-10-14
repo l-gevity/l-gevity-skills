@@ -1,7 +1,7 @@
 {
   "scenario": "dispatch-housekeeping-skip",
-  "revision": "ad43d3ad075e",
-  "recorded_with": "claude-code 2.1.234, model claude-opus-5[1m]",
+  "revision": "fbc871a49a6c",
+  "recorded_with": "claude-code 2.1.287, model claude-opus-5",
   "skills_available": [
     "alchemy",
     "architecture-as-code",
@@ -9,7 +9,6 @@
     "architecture-as-code-python",
     "architecture-guidelines",
     "artifact-capabilities",
-    "artifact-design",
     "artifact-diagramming",
     "batch",
     "bring-down",
@@ -22,15 +21,18 @@
     "deep-research",
     "defect-shift-left",
     "dependency-lifecycle",
+    "design",
     "design-sync",
     "doctor",
     "evolutionary-database-design",
     "fewer-permission-prompts",
     "functionality-complexity-tradeoff",
     "implementation-readiness",
+    "infrastructure-fit",
     "loop",
     "morphogenetic-architecture",
     "observability-design",
+    "plugin-authoring",
     "push-out",
     "requirements-grounding",
     "requirements-topology",
@@ -39,11 +41,13 @@
     "run-skill-generator",
     "schedule",
     "simplify",
+    "slides",
     "structural-simplification",
     "system-optimization",
     "test-strategy",
     "update-config",
     "verify",
+    "workflow-authoring",
     "zero-copy-requirements"
   ],
   "skills_invoked": [
@@ -52,9 +56,8 @@
   "files_read": [],
   "paths_searched": [
     ".",
-    ".",
     "."
   ],
-  "turns": 6,
-  "output": "```\nDispatch:   SKIP\nCore route: None\nCompanions: None\nVerdict:    Defer\nReason:     VCS state question inside one boundary — no Alchemy gate applies. But it is unanswerable here: this directory is not a git repository (only CLAUDE.md and .claude/skills/), and no fix or branch name exists in this session.\nNext:       Run the four read-only checks below in the real repo and paste the output.\n```\n\n**What blocks the answer:** I can't inspect your repo. `.` has no `.git` — I verified `.git/HEAD` and `**/.git/**` are both absent. Nothing in this session names the fix, the branch, or the base branch, so I also can't tell you *which* branch is a candidate for deletion.\n\n**Do this first** — from the repo root, substituting your branch and base:\n\n```\ngit fetch --prune\ngit status -sb                                   # 1. uncommitted + ahead/behind\ngit log --branches --not --remotes --oneline     # 2. any local commit on no remote\ngit stash list                                   # 3. stashed work\ngit cherry -v <base> <branch>                    # 4. did the content actually land\n```\n\nRead it as: (1) clean and not \"ahead\" + (2) and (3) empty → everything is pushed. (4) all lines prefixed `-` → every commit's content is in `<base>`, and the branch is safe to delete with `git branch -d <branch>` then `git push origin --delete <branch>`. Any line prefixed `+` means that commit is not in `<base>` — do not delete.\n\n**The gotcha:** if the PR was squash- or rebase-merged, `git branch -d` will refuse even though the fix is in. `git cherry` is the check that survives that; don't reach for `-D` to silence the refusal, because `-D` discards unmerged work without asking.\n\n**What I did not check:** whether the fix is merged (your statement, taken as given), whether `<base>` itself is pushed, and whether any tag or worktree still references the branch — `git worktree list` and `git tag --contains <branch>` close those."
+  "turns": 5,
+  "output": "**Dispatch:** `SKIP` — git state question, no Alchemy gate applies\n**Core route:** None\n**Companions:** None\n**Verdict:** Defer — blocked on a missing premise\n**Reason:** This directory is not a git repository (no `.git` anywhere; contents are `CLAUDE.md` plus `.claude/skills/`). There is no merge, no branch, no remote, and no \"fix\" here — nor earlier in this session. Both questions are unanswerable from this working tree.\n**Next:** Run the checks below in the repo that actually holds the fix, or tell me its path.\n\nIn that repo, these four answer it:\n\n```\ngit status -sb                                   # uncommitted work + ahead/behind upstream\ngit log --branches --not --remotes --oneline      # commits on ANY local branch not on a remote\ngit branch --merged main                          # is the feature branch contained in main\ngit cherry -v main <feature>                      # containment by patch, not by ancestry\n```\n\nTwo things that bite here:\n\n- `git log --branches --not --remotes` is the real \"is everything pushed\" — `git status` only reports the current branch's upstream, so stale local branches and unpushed tags stay invisible.\n- If the fix was **squash- or rebase-merged**, `git branch --merged` will report the branch as *unmerged* even though its content is in `main`. Use `git cherry`; a line starting with `-` means that commit is already upstream by patch. Deciding from `--merged` alone after a squash merge is how merged branches get kept forever — or how unmerged ones get deleted.\n\nDeleting the local branch is cheap and reversible (reflog holds the SHA ~90 days, `git branch -D` prints it). Deleting the remote branch is the outward-facing step — I'd want a `git cherry` result in hand before that one, and I'll ask before running it."
 }

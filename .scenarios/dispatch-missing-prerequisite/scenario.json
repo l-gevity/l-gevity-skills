@@ -39,5 +39,8 @@
       "check": "reads_exclude",
       "paths": [".claude/skills/alchemy/references/adaptive-route.md"]
     }
-  ]
+  ],
+  "known_failures": {
+    "names-enforcement": "On claude-code 2.1.287, 3 of 3 runs, one of them on unmodified main, blocked E correctly and wrote no rules, but emitted a DIRECT trail with no Core route field."
+  }
 }

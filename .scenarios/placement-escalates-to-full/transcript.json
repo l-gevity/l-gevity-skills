@@ -1,7 +1,7 @@
 {
   "scenario": "placement-escalates-to-full",
-  "revision": "3bb9f152216e",
-  "recorded_with": "claude-code 2.1.234, model claude-opus-5[1m]",
+  "revision": "b4573ce91b33",
+  "recorded_with": "claude-code 2.1.287, model claude-opus-5",
   "skills_available": [
     "alchemy",
     "architecture-as-code",
@@ -9,7 +9,6 @@
     "architecture-as-code-python",
     "architecture-guidelines",
     "artifact-capabilities",
-    "artifact-design",
     "artifact-diagramming",
     "batch",
     "bring-down",
@@ -22,15 +21,18 @@
     "deep-research",
     "defect-shift-left",
     "dependency-lifecycle",
+    "design",
     "design-sync",
     "doctor",
     "evolutionary-database-design",
     "fewer-permission-prompts",
     "functionality-complexity-tradeoff",
     "implementation-readiness",
+    "infrastructure-fit",
     "loop",
     "morphogenetic-architecture",
     "observability-design",
+    "plugin-authoring",
     "push-out",
     "requirements-grounding",
     "requirements-topology",
@@ -39,33 +41,32 @@
     "run-skill-generator",
     "schedule",
     "simplify",
+    "slides",
     "structural-simplification",
     "system-optimization",
     "test-strategy",
     "update-config",
     "verify",
+    "workflow-authoring",
     "zero-copy-requirements"
   ],
   "skills_invoked": [
-    "alchemy"
+    "alchemy",
+    "morphogenetic-architecture"
   ],
   "files_read": [
-    ".claude/skills/morphogenetic-architecture/SKILL.md",
     "src/orders/billing.js",
     "src/orders/index.js",
     "src/orders/repository.js",
     "src/shipping/index.js",
-    ".claude/skills/morphogenetic-architecture/references/rapid-topology-scan.md",
     ".claude/skills/morphogenetic-architecture/references/position-legality.md",
-    "package.json",
-    ".claude/skills/morphogenetic-architecture/references/full-analysis.md"
+    ".claude/skills/morphogenetic-architecture/references/full-analysis.md",
+    "package.json"
   ],
   "paths_searched": [
     ".",
-    ".",
-    ".",
     "."
   ],
-  "turns": 16,
-  "output": "## What I found\n\n`src/orders/billing.js` is already a module with zero outbound imports and exactly one caller — `src/orders/index.js`, inside the same subsystem. Its weekly churn is in constants and body (`TAX`, `DISCOUNT_TIERS`, invoice layout), not in its interface: `priceOrder`, `applyTaxRules`, `invoiceFor` are the same three exports whatever the rates do. Churn behind a stable interface is not boundary pressure — boundary pressure means fields repeatedly *crossing* a boundary. It also reads `order.total`, which `index.js` writes one line earlier (`index.js:6-7`), so it is coupled to the orders aggregate's shape and write order. So: leave it where it is (the record calls this KEEP), and the fact that decided it is \"one in-subsystem caller plus a data dependency on the orders aggregate\".\n\nSeparately: `src/shipping/index.js:1` imports `../orders/repository.js` directly, bypassing `src/orders/index.js`. That is a **cross-domain coupling** violation on a real boundary — unlike the billing question, which is churn inside one.\n\n## Why it matters\n\nMoving billing out converts a same-domain, same-layer edge into a cross-domain edge that needs a published inbound interface, and it does not reduce the weekly edit rate by one line — the same constants get edited at a new path. Not moving it costs nothing today; the risk you keep is that a *second* consumer (a cart/quote path pricing without an order) would turn this into a genuine MOVE, and you'd want to notice that. The shipping→repository edge is the live problem: it lets any subsystem reach orders' storage, so orders cannot change its persistence without breaking shipping.\n\n## Do this first\n\n1. Keep `src/orders/billing.js` where it is. No code change for the billing question.\n2. Add the enforcement rule that makes `src/orders/index.js` the only entry point (`architecture-as-code-javascript`, `eslint-plugin-boundaries`, at `warn`), which flags `src/shipping/index.js:1`.\n3. Set the recheck trigger: re-enter L if a second subsystem imports `billing.js`, or if a change edits its *exports* rather than its constants.\n\n## What I did not check\n\n- **Measured co-change.** This directory is not a git repository, so `git log --format= --name-only -- src/orders/` cannot run. The \"changes every week\" input is your report, not a measured field; I took it at face value and it does not change the verdict. Closes by running that command against the real repository.\n- **Runtime, data-ownership, failure fields.** No traces, schema, or incidents available here. `Not measured`.\n- **Correctness of `reprice`.** `index.js:14` applies tax to a repriced total but never regenerates `order.invoice`, so the stored invoice goes stale. Out of L's scope — raise it under M or a bug fix.\n\n---\n\n```\nDispatch:   DIRECT\nCore route: L\nCompanions: None\nVerdict:    Proceed (as KEEP — no move)\nReason:     Billing's churn is internal to a stable three-export interface with one\n            in-subsystem caller; the move adds a cross-domain edge and removes no churn.\nNext:       Add the orders inbound-interface rule at `warn`; it flags shipping/index.js:1.\n```\n\n### L — morphogenetic-architecture\n\n| Subsystem / edge | Declared position | Observed pressure | Finding | Evidence / confidence | Decision | Next action | Verification |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| `orders/index.js` → `orders/billing.js` | `commerce/orders` / primitive / domain | Change: weekly edits, user-reported, unmeasured. Static: 1 caller, 0 outbound imports | No finding — churn is interface-stable, not boundary pressure | Static: sole caller is same-subsystem; data: reads `order.total` written by caller. High confidence | KEEP | Recheck if a second subsystem imports it, or an edit changes its exports | `grep -rn \"billing.js\" src/` returns one import |\n| `shipping/index.js` → `orders/repository.js` | `commerce/shipping` → `commerce/orders` internals | Static: 1 edge bypassing inbound interface | **cross-domain coupling** | `src/shipping/index.js:1`; orders publishes `index.js`. Field-free legality clause | INTRODUCE-BOUNDARY (candidate, not the asked subject) | Expose an orders read contract, repoint shipping, then enforce | boundaries rule at `warn` → `error` once clear |\n\n```text\nSubject:             src/orders/billing.js placement within commerce/orders\nMode:                Design\nAnalysis mode:       Rapid → Full\nSelection reason:    MOVE became a candidate (escalation condition 1)\nDecision:            KEEP\nDeclared topology:   commerce/orders / capability / application-domain;\n                     inbound interface src/orders/index.js; billing.js is an\n                     internal primitive-tier module, no outbound edges\nPosition legality:   Fail: cross-domain coupling — src/shipping/index.js:1 →\n                     src/orders/repository.js. Subject edge\n                     orders/index.js → orders/billing.js: Pass (same domain,\n                     higher tier → lower, same layer)\nObserved fields:     static (measured); change (user-reported, unmeasured —\n                     no VCS); runtime, data, failure: Not measured\nStatic cycle:        Pass\nRuntime cycles:      none\nBoundary evidence:   Rejected candidate MOVE billing.js → src/billing/.\n                     Insufficient: one unmeasured field (churn), no domain\n                     reason — billing has no consumer outside orders and\n                     depends on the orders aggregate (`order.lines`,\n                     `order.total`). Churn is in constants behind an\n                     unchanged three-export interface, so it does not cross\n                     the boundary it is alleged to pressure.\nEnforcement:         Principle:   interface\n                     Constraint:  subsystems outside `commerce/orders` must not\n                                  depend on `src/orders/**` except `src/orders/index.js`\n                     Enforcement: add architecture rule at `warn`:\n                                  `orders` internals private; entry point `index.js`\nNext action:         No move. Add the rule above; repoint shipping off\n                     `repository.js`. Re-enter L on a second billing consumer\n                     or an export-level change.\nVerification:        `grep -rn \"billing.js\" src/` (one import, in-subsystem);\n                     `eslint` boundaries rule once the config exists —\n                     not run, no architecture config in this repo\n```\n\nRestructuring-set fields (`Decision policy`, `Graph analysis`, `Candidate baseline`, `Second candidate`, `Reversibility`, `Prediction`, `Measurement`) are omitted: KEEP does not move a boundary (SKILL.md §8)."
+  "turns": 14,
+  "output": "## What I found\n\n`src/orders/billing.js` stays where it is — keep it inside the orders subsystem (the record calls this **KEEP**). The fact that decided it: billing.js imports nothing and has exactly one caller (`src/orders/index.js:1`), so its weekly edits already land in one file and ripple nowhere. A high *change rate* is not boundary pressure; *co-change* is, and there is none to relieve. The asymmetry you describe is already satisfied by the current placement.\n\n## Why it matters\n\nMoving it buys nothing and costs a contract. billing.js reads the order aggregate's internals (`order.lines[].price/.quantity/.sku`, `order.total`) — today an intra-subsystem detail, after a move a cross-domain contract that two subsystems must version together. That makes the *order shape* harder to change, which is the thing you said rarely changes and want to keep cheap. Not moving it costs nothing: weekly billing edits already touch one file with one import edge.\n\n## Do this first\n\n1. Keep `src/orders/billing.js`. If the weekly edits are the actual pain, the pressure is on data, not structure: move `TAX` and `DISCOUNT_TIERS` (`src/orders/billing.js:3-7`) out of code into a versioned config/table so a rate change stops being a code change.\n2. Separate finding, same subsystem edge: `src/shipping/index.js:1` imports `../orders/repository.js`, bypassing orders' entry point and reaching its infrastructure tier directly. That is cross-domain coupling and it is real today — run `/alchemy L` on that edge.\n3. Declare the positions as an artifact (`eslint.architecture.mjs` per subsystem, via `architecture-as-code-javascript`) so this question is answered by a rule next time, not by a read.\n\n## What I did not check\n\n- Co-change history — unmeasurable here: not a git repository, so the \"changes every week\" claim stays an unverified assertion. Closes with `git log --name-only --since=6.months -- src/orders` once the repo is under VCS.\n- Runtime flow, failure propagation — no traces, no incidents, no instrumentation.\n- Tests — `npm test` runs `node --test` against zero test files; nothing verifies billing behavior before or after any placement change.\n\n---\n\n```\nDispatch:   DIRECT\nCore route: L\nCompanions: None\nVerdict:    Proceed (as KEEP — no move)\nReason:     Single caller, zero imports, no measurable co-change to relieve; a\n            move converts the order aggregate's shape into a cross-domain contract.\nNext:       Leave placement alone; externalize the weekly-changing rate data.\n```\n\n| Subsystem / edge | Declared position | Observed pressure | Finding | Evidence / confidence | Decision | Next action | Verification |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| `src/orders/billing.js` | `commerce/orders` / primitive / domain | static: 1 inbound edge, 0 outbound; change: asserted weekly, unmeasured; data: reads order aggregate, owns none | none — change rate without co-change is not boundary pressure | Static graph read in full (4 files); change field **Not measured** (no VCS). High confidence on static, none on change | KEEP | Externalize `TAX` / `DISCOUNT_TIERS` to config | `rg -n \"billing\" src` → 1 importer |\n| `src/shipping/index.js` → `src/orders/repository.js` | `commerce/shipping` capability → `commerce/orders` infrastructure | static: cross-domain edge bypassing `orders/index.js` | **cross-domain coupling** | `src/shipping/index.js:1`; certain | not decided — outside this run's subject | Run L on this edge; candidate is INTRODUCE-BOUNDARY | `rg -n \"orders/repository\" src` |\n\n```\nSubject:             src/orders/billing.js placement within the orders subsystem\nMode:                Design\nAnalysis mode:       Rapid → Full\nSelection reason:    MOVE became a candidate (SKILL.md §Select, escalation condition 1)\nDecision:            KEEP\nDeclared topology:   commerce/orders / primitive / domain; inbound interface =\n                     orders' entry point src/orders/index.js; billing has no\n                     outbound interface (no imports, no I/O)\nPosition legality:   Pass for the current position. For the proposed position\n                     (commerce/billing / primitive / domain): layer Pass, tier\n                     Pass, domain clause cannot run — no domain in this repo\n                     publishes a declared inbound interface → placement ambiguity\nObserved fields:     static (measured); change (asserted, Not measured — no git);\n                     data (partial: billing reads order aggregate, owns no store);\n                     runtime Not measured; failure Not measured\nStatic cycle:        Pass\nRuntime cycles:      none\nBoundary evidence:   insufficient for the MOVE candidate. Domain reason is\n                     arguable (pricing/tax as its own context) but no independent\n                     field supports it: the one field cited, change rate, is not a\n                     co-change measurement and cannot locate a boundary. Probation\n                     not available — co-change is VCS-derivable, so it is unfetched,\n                     not absent (full-analysis §5).\nEnforcement:         add/update architecture rule (warn):\n                     `commerce/shipping` must not depend on `commerce/orders`\n                     internals; only `src/orders/index.js` is reachable\nNext action:         Keep placement. Externalize billing's rate data\n                     (src/orders/billing.js:3-7). Declare per-subsystem positions\n                     and the shipping rule. Note: if billing ever does split, the\n                     stronger cut is invoiceFor (presentation) vs priceOrder /\n                     applyTaxRules (domain primitive) — a tier/layer cut, not a\n                     domain cut.\nVerification:        `rg -n \"from \\\"\\./billing\" src` → 1 edge; `rg -n \"orders/repository\" src`\n                     → shipping violation; `npm test` currently exercises nothing (0 test files)\n```"
 }

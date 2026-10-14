@@ -182,10 +182,13 @@ down. Two companions cover what decays with time rather than with a commit:
 or an end-of-life date names something already in the tree — it also decides
 whether a version bump is routine enough to skip — and
 [observability-design](READ-observability-design.md) when a risk survives into
-production or a signal set needs pruning. The full operational reference — command grammar, dispatch rules, and the
+production or a signal set needs pruning.
+[infrastructure-fit](READ-infrastructure-fit.md) checks the datastore, identity
+provider, compute model, and region against the requirements when they are
+chosen, and again whenever the requirements move. The full operational reference — command grammar, dispatch rules, and the
 decision-trail format — lives in
 [SKILL.md](../.claude/skills/alchemy/SKILL.md); the qualification route and
 gate handshakes it loads for structural work live in
 [adaptive-route.md](../.claude/skills/alchemy/references/adaptive-route.md).*
 
-<!-- skill-revision: 2b1e22340eb9 -->
+<!-- skill-revision: e15dd1d7e2da -->

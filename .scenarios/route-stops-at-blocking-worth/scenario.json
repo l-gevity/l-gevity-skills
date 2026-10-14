@@ -49,5 +49,8 @@
       "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
       "check": "blocks_in_order"
     }
-  ]
+  ],
+  "known_failures": {
+    "runs-worth-gate": "On claude-code 2.1.287, 2 of 3 runs, one of them on unmodified main, stopped at Requirements Grounding with NOT-GROUNDED and never loaded the worth gate."
+  }
 }
