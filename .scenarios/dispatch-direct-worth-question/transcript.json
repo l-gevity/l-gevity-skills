@@ -1,7 +1,7 @@
 {
   "scenario": "dispatch-direct-worth-question",
-  "revision": "8024404bad34",
-  "recorded_with": "claude-code 2.1.234, model claude-opus-5[1m]",
+  "revision": "e61ad48a301e",
+  "recorded_with": "claude-code 2.1.287, model claude-opus-5",
   "skills_available": [
     "alchemy",
     "architecture-as-code",
@@ -9,7 +9,6 @@
     "architecture-as-code-python",
     "architecture-guidelines",
     "artifact-capabilities",
-    "artifact-design",
     "artifact-diagramming",
     "batch",
     "bring-down",
@@ -22,6 +21,7 @@
     "deep-research",
     "defect-shift-left",
     "dependency-lifecycle",
+    "design",
     "design-sync",
     "doctor",
     "evolutionary-database-design",
@@ -31,6 +31,7 @@
     "loop",
     "morphogenetic-architecture",
     "observability-design",
+    "plugin-authoring",
     "push-out",
     "requirements-grounding",
     "requirements-topology",
@@ -39,11 +40,13 @@
     "run-skill-generator",
     "schedule",
     "simplify",
+    "slides",
     "structural-simplification",
     "system-optimization",
     "test-strategy",
     "update-config",
     "verify",
+    "workflow-authoring",
     "zero-copy-requirements"
   ],
   "skills_invoked": [
@@ -52,11 +55,12 @@
   "files_read": [
     ".claude/skills/functionality-complexity-tradeoff/SKILL.md",
     ".claude/skills/functionality-complexity-tradeoff/references/forcing-questions.md",
-    ".claude/skills/functionality-complexity-tradeoff/references/asymmetric-tradeoffs.md"
+    ".claude/skills/functionality-complexity-tradeoff/references/asymmetric-tradeoffs.md",
+    ".claude/skills/functionality-complexity-tradeoff/references/common-patterns.md"
   ],
   "paths_searched": [
     "."
   ],
-  "turns": 7,
-  "output": "**What I found**\n\nA plugin system for output formats, proposed for a CLI that has exactly one format (JSON) and zero requests for a second. The `M` gate (`functionality-complexity-tradeoff`) fails at the necessity gate under \"generality without instantiation\" — a plugin interface with one implementation — so don't build it (the record calls this DROP). The fact that decides it: no named, probable second format exists, so the extension point would ship with nothing to extend.\n\n**Why it matters**\n\nNot building costs you almost nothing: when a second format is actually asked for, adding it behind a `--format` flag is a localized change (one switch, one formatter), and that first addition is also what tells you the real shape of the seam. Building now costs a public extension contract — discovery, registration, versioning, error handling for third-party code — that is hard to remove once anyone depends on it, and it will be designed against guesses instead of a real second format. Evidence reaches to \"no requester today\"; it does not prove no one will ever ask, which is why the revisit trigger below is part of the decision.\n\n**Do this first**\n\n1. Close the proposal with the rationale recorded, so it isn't re-proposed without a named format: \"plugin interface with one implementation, no second format requested.\"\n2. When a second format is requested, add it inline behind `--format <json|…>` — one switch at the output boundary, no registry.\n3. Re-run `/alchemy M` on a plugin system only at the trigger below.\n\n**What I did not check**\n\n- The CLI's actual source: this working directory contains only `.claude/skills/` and `CLAUDE.md`, no tool code. Closes with `rg -n \"json|--format|output\" --type <lang>` in the tool's repo, to confirm output is emitted at a single boundary.\n- Whether any contract, vendor, or compliance requirement already names a second format (§8c floor). Closes by checking issue tracker and contracts for format obligations.\n- Structural measurement was not delegated to `structural-simplification`; necessity failed first, and there are no sources here to measure.\n\n---\n\n```\nDispatch:   DIRECT\nCore route: M\nCompanions: None\nVerdict:    Drop\nReason:     Prospective necessity failure — generality without instantiation; speculative\n            optionality fails YAGNI (§8a) and a plugin API carries the irreversibility tax (§8b).\nNext:       Record the rejection; add a second format inline when one is actually requested.\n```\n\n**M — `functionality-complexity-tradeoff`**\n\n```\nSubject:        Plugin system for CLI output formats (today: JSON only)\nMode:           Prospective\nNecessity:      Fail\nNecessity note: §1a \"generality without instantiation\" — plugin interface with one\n                implementation. No second format is named or probable, so the anticipated\n                variation has no instantiation to serve. Not an architectural impossibility:\n                the failure is the YAGNI null hypothesis standing unrefuted (§8a), and\n                downstream tooling (jq, format converters in a pipe) already owns\n                \"I need this as something else\" for most callers.\nOutcome evidence: none — no linked hypothesis, no requests, no telemetry on format demand\nDecision:       DROP\nRationale:      Necessity fails, so the worth ledger does not apply and V/C scores are\n                omitted per §9. The extension point would ship with one implementation and\n                no named next one; §8a resolves speculative optionality against building,\n                and §8b raises the bar further because a plugin contract is a public API\n                that is costly to withdraw. The cheap path is the inline one: the first\n                real second format is also the evidence that would justify a seam.\nNext action:    Stop. Record the rejection rationale where the proposal lives so it is not\n                re-proposed without a named format.\nVerification:   Not run — no CLI sources in this working directory to inspect.\nMinimal alt:    When a second format arrives: `--format <name>` dispatching to one\n                formatter function per format, in-tree, no registry or discovery.\nRevisit when:   Any one of — (a) a third format is requested (two formatter branches is\n                still cheaper inline than a plugin API), (b) someone outside this repo must\n                ship a format you cannot merge, or (c) a contract/compliance requirement\n                names a specific format you must emit.\n```"
+  "turns": 8,
+  "output": "I'll invoke the alchemy skill as requested.\n\n## What I found\n\nYou're proposing a plugin system so output formats can be added later. The verdict is don't build it (the record below calls this **DROP**), and it fails before any cost/benefit scoring: a plugin system's prerequisite is a second implementation that is *named and probable*. You have one format and zero requests. That's an extension point with one implementation — generality without instantiation.\n\n## Why it matters\n\nBuilding it now means shipping an extension interface before you know what the second format needs. That's a one-way door: once anything loads through it, the interface shape is pinned, and every future change to output traverses discovery, registration, and version-compatibility code that exists to serve a user who hasn't appeared. Not building it costs you roughly the work of adding a `--format` flag and one function on the day a second format is actually requested — and by then you'll know its real requirements instead of guessing them. The evidence supports that bounded claim and no stronger one; if a second format is already contractually owed to someone, this verdict reopens.\n\n## Do this first\n\n1. Keep output rendering behind a single function (data in, string out) called from one place — no registry, no discovery, no interface. That is the whole of the useful insurance, and it is not an abstraction.\n2. Record the rejection with its reason (\"no second format named\") so the idea isn't re-proposed without new evidence.\n3. If someone names a concrete second format, re-run this gate then — likely answer is still a `--format` branch, not plugins.\n\n## What I did not check\n\n- **The CLI's actual code.** The working directory contains only the skill library, no source. Re-run this in the repo root to confirm output formatting isn't already scattered across call sites — if it is, step 1 is real work rather than a no-op.\n- **Whether an external obligation already requires a second format** (customer contract, vendor integration, compliance export). Check open contracts/tickets; such a floor (§8c) would name the second implementation and change the verdict.\n\n---\n\n```\nDispatch:   DIRECT\nCore route: M\nCompanions: None\nVerdict:    Drop\nReason:     Extension point with one implementation and no named second — fails\n            the necessity gate as a cargo-culted pattern, and fails §8a as\n            speculative optionality.\nNext:       Keep formatting in one function; do not build discovery/registration.\n```\n\n```\nSubject:        Proposed plugin system for CLI output formats\nMode:           Prospective\nNecessity:      Fail\nNecessity note: §1a cargo-culted pattern / generality without instantiation.\n                The plugin pattern's prerequisites — multiple implementations,\n                or extenders who cannot modify the source — do not hold: one\n                format (JSON), no second named, no requests. Obligation (§1e) is\n                \"emit machine-readable output\", already satisfied; \"plugin\n                system\" is unforced mechanism.\nOutcome evidence: none\nDecision:       DROP\nRationale:      The necessity gate fails, so V and C are not scored. The stated\n                justification is future optionality with no named, probable next\n                format, which §8a rejects as speculative. §8b compounds it: a\n                plugin interface is a public extension surface and hard to\n                withdraw once anything loads through it, so it would have to\n                clear a *higher* value bar than an ordinary feature, not a\n                lower one. Deferring costs a `--format` flag later; building now\n                costs an interface designed against an unknown requirement.\nNext action:    Keep output rendering in one function with a single call site.\n                Record the rejection and its reason. Stop.\nVerification:   Not run — no CLI source present in the working directory\n                (.\n                contains only .claude/skills and CLAUDE.md). Re-run in the repo\n                to confirm the current formatting call sites.\nMinimal alt:    One `render(data) -> str` function. If a second format ever\n                lands: `--format` flag plus a second function, no registry,\n                until a third arrives.\nRevisit when:   A second output format is named by a real requester, OR a\n                third party needs to add a format without modifying your source,\n                OR an external contract obliges a specific format (§8c floor).\n                Any of these changes the premise and reopens the case.\n```\n\nThe one thing worth separating from the verdict: \"nobody has asked\" is not the same as \"nobody wants it.\" If you have no telemetry or feedback channel on this tool, the absence of requests is weak evidence rather than no evidence — but it still doesn't name a second format, so the verdict holds either way."
 }

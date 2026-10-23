@@ -1,0 +1,29 @@
+{
+  "request": "Run ci-cd-reliability-architecture on this artifact step. CI runs on every pull request and on every push to the default branch, and each run uploads one deployment candidate of about 75 MB; about 40 candidates are built per day, most of them for pull requests. The deploy job downloads the candidate within 20 minutes of the CI run that built it, and a manual redeploy of an older commit reruns CI when its candidate has expired. The product has no production users yet and releases record no rollback window. Step: - name: Retain immutable candidate / uses: actions/upload-artifact@v4 / with: name: candidate-${{ github.sha }}-${{ github.run_attempt }}, path: candidate/, if-no-files-found: error, retention-days: 90",
+  "skills": ["ci-cd-reliability-architecture"],
+  "expect": [
+    {
+      "id": "applies-cicd-guidance",
+      "criterion": "retention-by-reader #1: the retention verdict comes from the CI/CD skill",
+      "check": "guidance_includes",
+      "skills": ["ci-cd-reliability-architecture"]
+    },
+    {
+      "id": "names-retention-risk",
+      "criterion": "retention-by-reader #2: retention longer than any reader is named as the risk",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Risk:[^\\n]*\\bretention\\b"
+    },
+    {
+      "id": "records-retention-reader",
+      "criterion": "retention-by-reader #3: the record states the artifact's retention and the reader that sets it",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Artifact:(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*\\bretention\\b"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}

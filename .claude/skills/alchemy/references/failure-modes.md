@@ -42,4 +42,5 @@ pipeline.
 | Stale or inconclusive outcome evidence silently justifies KEEP or DROP | Outcome follow-through → M | Refresh or bound the evidence in `requirements-traceability`, then rerun only M in Retrospective mode |
 | Duplicate implementations are unified but retain separate behavior tests | 6 — integration / contract | Add one shared conformance suite and real-boundary coverage for backend-specific semantics before deleting either copy |
 | "Just in case" extension point with one user | 1 — speculative optionality | DROP unless second use is named and probable |
+| Pipeline compute or stored artifacts grow unnoticed until a spending limit stops delivery | 7 — deferred with no metric or opening trigger | Record the consumption baseline and when iteration 2 opens; run `system-optimization` on inventory and set retention by reader in `ci-cd-reliability-architecture` |
 | Premature performance optimization | 7 — applied before baseline | Revert; re-apply after stability |

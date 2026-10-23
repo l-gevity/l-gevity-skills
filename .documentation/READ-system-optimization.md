@@ -72,7 +72,8 @@ not stylistic preferences; they are batch-size controls.
 ## Waste, and the two things that manufacture it
 
 Lean's contribution is a vocabulary for non-value-adding work — *waste* —
-and software is full of it: stale PRs and long-lived branches (inventory),
+and software is full of it: stale PRs, long-lived branches, and build
+output stored long after its last reader (inventory),
 sequential CI stages that could run in parallel (waiting), reports and logs
 nobody consumes (overproduction), review gates on generated files
 (overprocessing), bugs a linter could have caught (defects), constant
@@ -177,4 +178,4 @@ operational reference for this concept — scan layers, waste tables, flow
 levers, and the decision record — lives in
 [SKILL.md](../.claude/skills/system-optimization/SKILL.md).*
 
-<!-- skill-revision: b3dc6bddb6d1 -->
+<!-- skill-revision: 13239dec8030 -->

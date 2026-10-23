@@ -56,7 +56,9 @@ has passed**:
    deferred to the *second* iteration — the one after the increment ships,
    starting from its measured baseline: optimizing before a design is
    stable tunes what's about to change, and stabilization beats
-   optimization every time they compete.
+   optimization every time they compete. The deferral names what will
+   be measured and when the second iteration opens; one that names
+   neither never opens.
 
 The macro-structure is the part worth internalizing: **questions 1–4 shape
 the design, 5–6 enforce it, 7 tunes it** — and running them out of order
@@ -188,4 +190,4 @@ decision-trail format — lives in
 gate handshakes it loads for structural work live in
 [adaptive-route.md](../.claude/skills/alchemy/references/adaptive-route.md).*
 
-<!-- skill-revision: 2b1e22340eb9 -->
+<!-- skill-revision: 1dc4c3c26727 -->

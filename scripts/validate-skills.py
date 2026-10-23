@@ -32,7 +32,7 @@ SIZE_BUDGET_WORDS = {
     "architecture-as-code-python": 1500,
     "architecture-guidelines": 1900,
     "bring-down": 2800,
-    "ci-cd-reliability-architecture": 3500,
+    "ci-cd-reliability-architecture": 3530,
     "continuous-improvement": 1300,
     "defect-shift-left": 2100,
     "dependency-lifecycle": 2000,
@@ -46,7 +46,7 @@ SIZE_BUDGET_WORDS = {
     "requirements-topology": 2000,
     "requirements-traceability": 2500,
     "structural-simplification": 2100,
-    "system-optimization": 2600,
+    "system-optimization": 2620,
     "test-strategy": 2100,
     "zero-copy-requirements": 1800,
 }
@@ -190,6 +190,7 @@ SKILL_REQUIRED_TERMS = {
         "Environment parity / permanent stages only",
         "Representativeness:",
         "in-place subsystem replace",
+        "Retention follows the longest reader",
         "Zero-downtime:  <yes | no + why>",
     ),
     "defect-shift-left": (
@@ -216,6 +217,7 @@ SKILL_REQUIRED_TERMS = {
         "cycle time = WIP / throughput",
         "Stabilize Before Optimizing",
         "is an iteration: its Check or Control",
+        "output stored past its last reader",
     ),
     "continuous-improvement": (
         "Consumer-to-Library Promotion",
@@ -594,6 +596,7 @@ REFERENCE_REQUIRED_TERMS = {
             "a second authority cannot be kept in sync by discipline",
             "bump classified by version number",
             "which is unobserved rather than accepted",
+            "deferred with no metric or opening trigger",
                 ),
         "references/change-primitives.md": (
             "# Change Primitives — Definitions and Named Specializations",
@@ -613,6 +616,7 @@ REFERENCE_REQUIRED_TERMS = {
             "NOT-READY",
             "`PROVISIONAL` passes with its confirmation",
             "load each one only when the route reaches",
+            "A deferral without them never reopens",
         ),
     },
     "morphogenetic-architecture": {
@@ -1590,7 +1594,6 @@ SCENARIO_UNCOVERED = (
     "architecture-as-code-python",
     "architecture-guidelines",
     "bring-down",
-    "ci-cd-reliability-architecture",
     "continuous-improvement",
     "defect-shift-left",
     "dependency-lifecycle",

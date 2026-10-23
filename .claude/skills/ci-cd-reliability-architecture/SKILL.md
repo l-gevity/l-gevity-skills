@@ -81,6 +81,7 @@ rebuild to change target environment.
 | Bake URLs/secrets into build output | Inject config at deploy time (env vars, config files) | Same artifact, different config               |
 | Tag artifacts with branch name only | Tag with commit SHA (+ optional semver)               | SHA is immutable; branch names move           |
 | Store artifacts only in CI cache    | Publish to an artifact registry                       | Decouples build from deploy; enables rollback |
+| Keep every candidate for one default window | Retain by reader: candidates until their deploy reads them, promoted artifacts for the rollback window | Storage grows with no reader |
 
 **Rules:**
 
@@ -92,6 +93,12 @@ rebuild to change target environment.
   staging — not triggering a new build
 - Rollback means redeploying a **previous known-good artifact**, not reverting
   code and rebuilding
+- **Retention follows the longest reader.** Set each stored artifact's
+  retention explicitly from its longest-lived consumer: a candidate that is
+  never promoted expires once its deploy or preview has read it; only promoted
+  artifacts stay for the rollback window the release record states, and no
+  rollback policy means no rollback retention. Fail any upload or publish step
+  that leaves retention to the platform default.
 - **Never delegate the build to the deploy platform's implicit builder** (Oryx,
   Cloud Native Buildpacks, Vercel/Netlify auto-build, etc.). Platform builders
   frequently report `success` even when a sub-build (TS compile, webpack, native
@@ -340,7 +347,7 @@ must satisfy the release's evidence-freshness policy.
       or retried
 - [ ] **Timeouts**: All long-running steps have explicit timeout values
 - [ ] **Immutable artifacts**: Build once, promote same artifact; config
-      injected at deploy time
+      injected at deploy time; retention set per artifact by its longest reader
 - [ ] **Build in CI, not in the deploy platform**: every build runs as a
       dedicated fail-fast CI step; deploy action receives a pre-built artifact
       (no reliance on Oryx/Buildpacks/Vercel auto-build)
@@ -395,9 +402,9 @@ When applying this skill, emit a coder-facing pipeline decision record:
 
 ```
 Scope:          <workflow / job / environment / deploy path>
-Decision:       Proceed | Block | Add gate | Split job | Make idempotent | Promote | Rollback | Remove secret
-Risk:           <idempotency | timeout | mutable artifact | deploy-build | secret | static-quality | unit | integration | contract | authorization | frontend-quality | accessibility | performance | migration | health-check | e2e | resilience | restore | concurrency | IaC | provenance | preflight | rollout | production-verification | handoff>
-Artifact:       <commit, digest, provenance>
+Decision:       Proceed | Block | Add gate | Split job | Make idempotent | Set retention | Promote | Rollback | Remove secret
+Risk:           <idempotency | timeout | mutable artifact | retention | deploy-build | secret | static-quality | unit | integration | contract | authorization | frontend-quality | accessibility | performance | migration | health-check | e2e | resilience | restore | concurrency | IaC | provenance | preflight | rollout | production-verification | handoff>
+Artifact:       <commit, digest, provenance, retention and its reader>
 Release state:  <BUILD-VERIFIED | RELEASE-READY | DEPLOYING | PRODUCTION-VERIFYING | DEPLOYED-HEALTHY | BLOCKED | ROLLBACK>
 Test evidence:  <applicable gates, reports, exclusions, and results>
 Preflight:      <checks and results>

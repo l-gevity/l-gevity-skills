@@ -171,7 +171,10 @@ decision trail to Gate 6, which places the standing check.
    "add the rules" are drift.
 4. Defer Gate 7 to iteration 2 — the iteration after the increment ships,
    starting from its stable, measured baseline — unless the request is
-   explicitly about an existing bottleneck.
+   explicitly about an existing bottleneck. The deferral names its baseline
+   metric, where that metric is read, and the date or event that opens
+   iteration 2; when the increment adds pipeline work or stored output, the
+   metric includes what it consumes. A deferral without them never reopens.
 5. Audit starts at `C₀`, conditionally recovers intent, then resumes the
    qualification phase and remaining gates from the earliest failed decision.
 6. Before deleting either of two duplicate implementations, inventory their
@@ -215,7 +218,8 @@ decision trail to Gate 6, which places the standing check.
                        scope, fidelity, dependencies, data, environment, stimulus
 - [ ] Gate 6 — Every error path mapped to earliest catchable stage
 - [ ] Gate 7 — Deferred to iteration 2 (after the increment ships, from its
-            stable, measured baseline)
+            stable, measured baseline); metric, source, and opening date
+            or event recorded
 - [ ] Follow-through — When implementation is in scope, hand admitted IDs and
                        completion and outcome-evidence obligations to
                        requirements-traceability

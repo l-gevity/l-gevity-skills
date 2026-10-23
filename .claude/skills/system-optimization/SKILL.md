@@ -86,7 +86,7 @@ TIMWOODS table below enumerates its eight forms. But Muda is usually
 | Waste               | In Software                    | Red Flag                                      |
 | ------------------- | ------------------------------ | --------------------------------------------- |
 | **Transport**       | Unnecessary artifact movement  | Copying outputs between tools manually        |
-| **Inventory**       | Unprocessed work in queues     | Stale PRs, long-lived branches, unread alerts |
+| **Inventory**       | Unprocessed work in queues; output stored past its last reader | Stale PRs, long-lived branches, unread alerts; artifacts, caches, or package versions kept with no reader |
 | **Motion**          | Context switching              | Navigating multiple tools for one task        |
 | **Waiting**         | Idle time between steps        | Sequential stages that could parallelize      |
 | **Overproduction**  | More than consumed             | Unused logs, reports, generated files         |
@@ -235,8 +235,9 @@ For identifying constraints, waste, and root causes in operational analysis:
 - **Idempotent environments**: Deployment state must be reproducible from source
   control.
 - **Shift-left gates**: Linting and unit tests run before integration tests.
-- **Measure**: Track build duration, failure rate, and flakiness. Regressions
-  are bugs.
+- **Measure**: Track build duration, failure rate, flakiness, and the compute
+  and storage the pipeline consumes against its spending limit, alerting before
+  the limit stops delivery. Regressions are bugs.
 - **Zero-downtime secret rotation**: Always create the new credential first,
   apply it to all environments, then delete the old one. Never delete before
   applying — the gap causes downtime and broken deployments.

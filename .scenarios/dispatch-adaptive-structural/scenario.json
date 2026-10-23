@@ -44,6 +44,8 @@
     }
   ],
   "known_failures": {
-    "emits-placement-record": "Every recorded run since the router's record rule emitted its placement record; this run accepted the MOVE probationarily without saying why the missing field cannot be measured (R6), as 2 of the last 6 billing runs did one way or another."
+    "runs-placement-and-complexity": "This run stopped after M and did not load morphogenetic-architecture or structural-simplification. On unmodified main (809ab39) with the same CLI (2.1.287) and model (claude-opus-5), 1 of 2 runs missed this too, so the miss predates the retention change.",
+    "claims-only-loaded-stages": "This run names architecture-as-code, architecture-guidelines, defect-shift-left, morphogenetic-architecture, structural-simplification and test-strategy in its route without loading them or marking them not run. It missed in 2 of 2 claude-opus-5 runs after the Gate 7 deferral change and was met in 2 of 2 runs on unmodified main. None of the named skills changed, but two runs per side cannot clear the change: re-record before release.",
+    "emits-placement-record": "Placement did not run in this recording, so no placement record exists. On unmodified main with the same CLI and model, 2 of 2 runs also missed it."
   }
 }

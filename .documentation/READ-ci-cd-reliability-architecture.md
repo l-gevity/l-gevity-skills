@@ -75,6 +75,13 @@ means *redeploy yesterday's known-good artifact from the registry*: a
 two-minute operation, instead of reverting code, rebuilding, and hoping the
 new build behaves like the old one did.
 
+That payoff also sets how long to keep things. Only an artifact that was
+promoted can be rolled back to, so only promoted artifacts are kept for the
+rollback window. A candidate built for a pull request that never ships has
+one reader, its own deploy, and expires once that deploy has read it. Leave
+retention to the platform default and every candidate is stored for months,
+paid for, and never read again.
+
 One trap deserves its own warning: deploy platforms that helpfully rebuild
 your app for you. Implicit platform builders are notorious for reporting
 success while a sub-build quietly failed, shipping stale output. The build
@@ -178,4 +185,4 @@ full operational reference for this concept — checklists, gate tables, and
 the promotion state machine — lives in
 [SKILL.md](../.claude/skills/ci-cd-reliability-architecture/SKILL.md).*
 
-<!-- skill-revision: 35a7db1e8681 -->
+<!-- skill-revision: 6a5868da71f4 -->
