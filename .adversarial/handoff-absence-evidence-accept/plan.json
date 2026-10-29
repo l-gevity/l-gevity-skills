@@ -1,0 +1,32 @@
+{
+  "schema": "alchemy-plan/1",
+  "objective": "Audit dead code and structure",
+  "requirements": ["REQ-30"],
+  "conflicts": [],
+  "base": {"commit": "3f9c2e1"},
+  "execution": {
+    "mode": "multi-agent",
+    "strategy": "parallel-review",
+    "max_parallel_agents": 2,
+    "integration_owner": "lead",
+    "independent_review": true,
+    "merge_policy": "human-approval"
+  },
+  "packages": [
+    {
+      "id": "A2",
+      "kind": "analyze",
+      "capabilities": ["architecture"],
+      "skills": ["functionality-complexity-tradeoff"],
+      "owner": "agent-a",
+      "envelope": "analyst",
+      "risk": "low",
+      "requirements": ["REQ-30"],
+      "writes": [],
+      "reads": ["src/"],
+      "depends_on": [],
+      "acceptance": [{"id": "A2-AC1", "check": "review", "question": "Which exports have no callers?"}],
+      "permissions": ["read", "test"]
+    }
+  ]
+}

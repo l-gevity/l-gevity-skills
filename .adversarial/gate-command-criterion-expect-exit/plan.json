@@ -1,0 +1,150 @@
+{
+  "schema": "alchemy-plan/1",
+  "objective": "Validate order input and paginate shipments",
+  "requirements": [
+    "REQ-12",
+    "REQ-13"
+  ],
+  "conflicts": [],
+  "base": {
+    "commit": "3f9c2e1"
+  },
+  "contracts_existing": [
+    "contract:orders-repository"
+  ],
+  "execution": {
+    "mode": "multi-agent",
+    "strategy": "dependency-aware",
+    "max_parallel_agents": 2,
+    "integration_owner": "lead",
+    "independent_review": true,
+    "merge_policy": "human-approval"
+  },
+  "packages": [
+    {
+      "id": "P1",
+      "kind": "implement",
+      "capabilities": [
+        "engineering"
+      ],
+      "skills": [
+        "test-strategy"
+      ],
+      "owner": "agent-a",
+      "envelope": "implementer",
+      "risk": "medium",
+      "requirements": [
+        "REQ-12"
+      ],
+      "writes": [
+        "src/orders/",
+        "test/orders/"
+      ],
+      "reads": [
+        "src/"
+      ],
+      "depends_on": [],
+      "produces": [],
+      "consumes": [
+        "contract:orders-repository"
+      ],
+      "acceptance": [
+        {
+          "id": "REQ-12-AC1",
+          "check": "command",
+          "command": "npm test -- orders"
+        }
+      ],
+      "permissions": [
+        "read",
+        "edit",
+        "test"
+      ]
+    },
+    {
+      "id": "P2",
+      "kind": "implement",
+      "capabilities": [
+        "engineering"
+      ],
+      "skills": [
+        "test-strategy"
+      ],
+      "owner": "agent-b",
+      "envelope": "implementer",
+      "risk": "medium",
+      "requirements": [
+        "REQ-13"
+      ],
+      "writes": [
+        "src/shipments/",
+        "test/shipments/"
+      ],
+      "reads": [
+        "src/"
+      ],
+      "depends_on": [],
+      "produces": [],
+      "consumes": [],
+      "acceptance": [
+        {
+          "id": "REQ-13-AC1",
+          "check": "command",
+          "command": "npm test -- shipments"
+        },
+        {
+          "id": "REQ-13-AC2",
+          "check": "command",
+          "command": "npm run load-test -- shipments"
+        }
+      ],
+      "permissions": [
+        "read",
+        "edit",
+        "test"
+      ]
+    },
+    {
+      "id": "P3",
+      "kind": "verify",
+      "capabilities": [
+        "verification"
+      ],
+      "skills": [
+        "test-strategy"
+      ],
+      "owner": "agent-c",
+      "envelope": "analyst",
+      "risk": "medium",
+      "requirements": [
+        "REQ-12",
+        "REQ-13"
+      ],
+      "writes": [],
+      "reads": [
+        "src/"
+      ],
+      "depends_on": [
+        "P1",
+        "P2"
+      ],
+      "produces": [],
+      "consumes": [],
+      "acceptance": [
+        {
+          "id": "P3-AC1",
+          "check": "review",
+          "question": "Do the diffs meet REQ-12 and REQ-13 with passing evidence?"
+        }
+      ],
+      "permissions": [
+        "read",
+        "test"
+      ],
+      "reviews": [
+        "P1",
+        "P2"
+      ]
+    }
+  ]
+}

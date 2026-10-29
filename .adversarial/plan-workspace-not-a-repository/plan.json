@@ -1,0 +1,63 @@
+{
+  "schema": "alchemy-plan/1",
+  "objective": "Validate order input and paginate shipments",
+  "requirements": [
+    "REQ-12",
+    "REQ-13"
+  ],
+  "conflicts": [],
+  "base": {
+    "commit": "3f9c2e1"
+  },
+  "contracts_existing": [
+    "contract:orders-repository"
+  ],
+  "execution": {
+    "mode": "single-agent",
+    "strategy": "dependency-aware",
+    "max_parallel_agents": 1,
+    "integration_owner": "lead",
+    "independent_review": false,
+    "merge_policy": "human-approval"
+  },
+  "packages": [
+    {
+      "id": "P1",
+      "kind": "implement",
+      "capabilities": [
+        "engineering"
+      ],
+      "skills": [
+        "test-strategy"
+      ],
+      "owner": "lead",
+      "envelope": "implementer",
+      "risk": "medium",
+      "requirements": [
+        "REQ-12"
+      ],
+      "writes": [
+        "src/orders/",
+        "test/orders/"
+      ],
+      "reads": [
+        "src/"
+      ],
+      "depends_on": [],
+      "produces": [],
+      "consumes": [],
+      "acceptance": [
+        {
+          "id": "REQ-12-AC1",
+          "check": "command",
+          "command": "npm test -- orders"
+        }
+      ],
+      "permissions": [
+        "read",
+        "edit",
+        "test"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #102: a gate verifies a command criterion only on exit 0, whatever the evidence expects",
+  "description": "REQ-12-AC1 is verified by E10, a failing run of the plan command that declares expect_exit 1.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "UNSUPPORTED_VERDICT"
+    ]
+  }
+}

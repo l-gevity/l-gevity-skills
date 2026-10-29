@@ -1,0 +1,56 @@
+{
+  "schema": "alchemy-handoff/1",
+  "package": "P1",
+  "owner": "agent-a",
+  "status": "DONE",
+  "attempt": 1,
+  "base_commit": "3f9c2e1",
+  "head_commit": "8a1d4b0",
+  "requirements": [
+    "REQ-12"
+  ],
+  "decisions": [
+    {
+      "id": "D-4",
+      "summary": "Validate at the HTTP boundary",
+      "ref": "issue #42"
+    }
+  ],
+  "assumptions": [
+    "Order totals are integers in cents"
+  ],
+  "relied_on": [
+    {
+      "path": "src/orders/repository.js",
+      "sha256": "8a8c168ef95ffd014f8f347c516f2a02e4ececa715bcb2217430d5c0ad78e97e"
+    }
+  ],
+  "changed_files": [
+    {
+      "path": "src/orders/validate.js",
+      "sha256": "16f6525cd063456ca4b6023335872814e7c089609ad59915288eba9dbf08d8ca"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "criterion": "REQ-12-AC1",
+      "command": "npm test -- orders",
+      "exit_code": 1,
+      "commit": "8a1d4b0",
+      "summary": "13 passed, 1 failed",
+      "expect_exit": 1
+    }
+  ],
+  "claims": [
+    {
+      "text": "The orders suite ran as expected",
+      "evidence": [
+        "E1"
+      ]
+    }
+  ],
+  "blockers": [],
+  "next_owner": "lead",
+  "integration_ready": true
+}

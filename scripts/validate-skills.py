@@ -3301,13 +3301,12 @@ def run_adversarial_case(checker, directory: Path) -> tuple[dict, dict]:
         fail(f"{label} names {args['profile']}, which does not exist")
     profile = checker.load_profile(str(profile_path) if profile_path else None)
     plan = load("plan")
+    root = str(directory / args["root"]) if "root" in args else None
     if command == "plan":
-        report = checker.check_plan(plan, profile)
+        report = checker.check_plan(plan, profile, root)
     elif command == "handoff":
-        root = str(directory / args["root"]) if "root" in args else None
         report = checker.check_handoff(load("handoff"), plan, profile, root)
     else:
-        root = str(directory / args["root"]) if "root" in args else None
         report = checker.check_gate(load("ledger"), plan, profile, root)
     return case, report
 

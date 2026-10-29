@@ -118,7 +118,11 @@ artifacts; it never pastes them.
 
 `status` is `DONE`, `PARTIAL`, `BLOCKED`, or `FAILED`. A blocker is
 `{"id", "text", "blocking": true|false}`; an evidence item needs `id`,
-`command`, `exit_code`, and `commit`. Commits match when one is a hex prefix
+`command`, `exit_code`, and `commit`. An item passes when `exit_code` equals its
+optional `expect_exit`, 0 when absent: a search proving absence records the
+code it returns on no match, such as `git grep` with `"expect_exit": 1`, so an
+error code still fails. Evidence for a `command` criterion passes only on exit
+0; its `expect_exit` is ignored. Commits match when one is a hex prefix
 of the other and at least seven characters long. `relied_on` lists every
 artifact the work depended on with the digest it saw, so a receiver detects a
 context that moved underneath it. `changed_files` digests are taken after the
@@ -154,9 +158,9 @@ Kept by the lead from hand-offs, independent verification, and integration.
 | Field | Rule |
 |:--|:--|
 | `head_commit` | The integrated head. Every evidence item the gate relies on — for a verified criterion, a finding resolution or rejection, or a dispute decided on evidence — ran at it. |
-| `criteria[].status` | `verified` (evidence IDs that exited 0 at `head_commit`), `failed`, `unverified`, or `deferred` with `deferred_by: human`. Every plan criterion appears once. |
+| `criteria[].status` | `verified` (evidence IDs that passed at `head_commit`), `failed`, `unverified`, or `deferred` with `deferred_by: human`. Every plan criterion appears once. |
 | `criteria[]` | `verified_by` is required when verified; `reason` when deferred. Only plan criteria, under their own package. When independent review is on or the package's risk is `high`, an `implement` criterion's `verified_by` is the owner of a `verify` package that reviews it. A verified `command` criterion cites evidence whose `command` is the plan's, whitespace-normalized, or that of an `equivalent: {"command", "accepted_by": "human"}` the human accepted in its place. |
-| `evidence[]` | `id`, `command`, `exit_code`, `commit`; optional `produced_by`, and `criterion`, the only criterion the item may verify. Items with the same normalized command, commit, and exit code are the same evidence, whatever their IDs. |
+| `evidence[]` | `id`, `command`, `exit_code`, `commit`; optional `produced_by`, `expect_exit` as in the hand-off, and `criterion`, the only criterion the item may verify. Items with the same normalized command, commit, and exit code are the same evidence, whatever their IDs. Profile verification commands pass only on exit 0. |
 | `findings[].severity` | `blocking`, `major`, or `minor`. Blocking and major must end `resolved` with `resolution.evidence`, `rejected` with `resolution.evidence` showing the finding is wrong — sharing no evidence, by ID or identity, with the raiser's own `evidence` — or `accepted-risk` with `accepted_by: human`. |
 | `disputes[].resolution.basis` | `evidence` with evidence IDs, only when exactly one position's evidence all exists and exited 0; when both positions or neither have it, the human decides. Or `human` with `decided_by: human`. Majority, seniority, model, and confidence are not a basis. |
 | `rework_cycles` | Correction rounds per package; above the profile's `max_rework_cycles` the gate escalates. |
@@ -217,7 +221,7 @@ bound reached must stop rework rather than restart it.
 | `SCOPE_VIOLATION` | handoff | REJECT | A changed file lies outside the write set, or a read-only package changed files |
 | `SCOPE_EXPANSION` | handoff | REJECT | The hand-off claims requirements its package was not assigned |
 | `CLAIM_CONTRADICTS_WORKSPACE` | handoff | REJECT | A changed file is missing or its digest differs from the workspace |
-| `CLAIM_CONTRADICTS_EVIDENCE` | handoff | REJECT | A claim cites failing evidence, or `DONE` or integration-ready while any evidence failed |
+| `CLAIM_CONTRADICTS_EVIDENCE` | handoff | REJECT | A claim cites failing evidence, or `DONE` or integration-ready while any evidence failed; failing is an exit code other than the item's expected one |
 | `UNSUPPORTED_CLAIM` | handoff | REJECT | A claim cites no evidence or unknown evidence |
 | `UNEVIDENCED_CRITERION` | handoff | REJECT | A `DONE` package leaves an acceptance criterion without evidence |
 | `BLOCKER_IGNORED` | handoff | REJECT | Integration-ready with an open blocking blocker |
@@ -229,7 +233,7 @@ bound reached must stop rework rather than restart it.
 | `SILENT_SKIP` | gate | FAIL | A plan criterion is missing from the ledger |
 | `CRITERION_FAILED` | gate | FAIL | A criterion is `failed` |
 | `UNVERIFIED` | gate | FAIL | A criterion is `unverified`, or deferred by anyone but the human |
-| `UNSUPPORTED_VERDICT` | gate | FAIL | `verified` without evidence that exists, exited 0, runs the criterion's assigned or human-accepted check, and is not recorded for another criterion |
+| `UNSUPPORTED_VERDICT` | gate | FAIL | `verified` without evidence that exists, passed (exit 0 for a `command` criterion), runs the criterion's assigned or human-accepted check, and is not recorded for another criterion |
 | `EVIDENCE_STALE` | gate | FAIL | Evidence a verified criterion, finding resolution, or dispute decision relies on was produced on a commit other than `head_commit` |
 | `REVIEW_NOT_INDEPENDENT` | gate | FAIL | Independent review is required and the verifier is not the owner of a `verify` package that reviews the package |
 | `UNRESOLVED_FINDING` | gate | FAIL | A blocking or major finding is open |
@@ -237,6 +241,6 @@ bound reached must stop rework rather than restart it.
 | `RISK_NOT_ACCEPTED_BY_HUMAN` | gate | FAIL | `accepted-risk` without `accepted_by: human` |
 | `VOTE_NOT_EVIDENCE` | gate | FAIL | A dispute resolved on a basis other than evidence or the human, on evidence it does not cite, or on a `human` basis the human did not decide |
 | `VERIFICATION_FAILED` | gate | FAIL | A profile `repository.verification` command has no passing evidence at `head_commit` |
-| `WORKSPACE_MISMATCH` | gate | FAIL | With `--root`, the repository's HEAD is not `head_commit`, it holds uncommitted changes outside `state_dir`, or git cannot confirm either |
+| `WORKSPACE_MISMATCH` | plan, gate | FAIL | With `--root`, the repository's HEAD is not the plan's base or an integrated head (plan) or `head_commit` (gate), it holds uncommitted changes outside `state_dir`, or git cannot confirm either |
 | `DISPUTE_OPEN` | gate | ESCALATE | A dispute is open or escalated, or decided on evidence while both positions, or neither, have passing evidence |
 | `REWORK_LIMIT` | gate | ESCALATE | A package exceeded `max_rework_cycles` |

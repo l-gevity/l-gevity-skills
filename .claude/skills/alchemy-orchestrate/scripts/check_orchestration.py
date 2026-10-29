@@ -11,6 +11,7 @@ states.
 
 Usage:
     check_orchestration.py plan <plan.json> [--profile <alchemy-workspace.json>]
+                                [--root <repository>]
     check_orchestration.py handoff <handoff.json> --plan <plan.json>
                                    [--profile <profile>] [--root <workspace>]
     check_orchestration.py gate <ledger.json> --plan <plan.json>
@@ -1028,14 +1029,27 @@ def _plan_rules(parsed: dict[str, Any], view: dict[str, Any], report: Report) ->
     return {"graph": graph, "owners": owners}
 
 
-def check_plan(plan: Any, profile: Any) -> dict[str, Any]:
-    """Decide whether a plan may run; report waves and the derived execution mode."""
+def check_plan(plan: Any, profile: Any, root: str | Path | None = None) -> dict[str, Any]:
+    """Decide whether a plan may run; report waves and the derived execution mode.
+
+    With `root`, the repository there must be at the plan's base or an
+    integrated head and hold no uncommitted change outside the state
+    directory, so no agent starts from, or reports, changes the run did not make.
+    """
     report = Report("plan")
     view = _profile_view(profile, report)
     parsed = _parse_plan(plan, view, report)
     _rule_secrets(plan, "plan", report, None)
     shape = _plan_rules(parsed, view, report)
-    return _result(report, _plan_facts(parsed, shape["graph"], shape["owners"], view))
+    facts = _plan_facts(parsed, shape["graph"], shape["owners"], view)
+    facts["head_checked"] = False
+    if root is not None:
+        heads = [parsed["base_commit"], *parsed["integrated"]] if parsed["base_commit"] else []
+        problems, facts["head_checked"] = _workspace_problems(Path(root), heads, view["state_dir"],
+                                                              "the plan base or an integrated head")
+        for problem in problems:
+            report.add("WORKSPACE_MISMATCH", problem)
+    return _result(report, facts)
 
 
 # ----------------------------------------------------------------- hand-off
@@ -1058,7 +1072,11 @@ def _parse_digests(raw: list[Any], key: str, report: Report, subject: str | None
 
 
 def _parse_evidence(raw: list[Any], report: Report, where: str, subject: str | None) -> dict[str, dict[str, Any]]:
-    """Evidence by ID. A mistyped exit code reads as None and counts as not passing."""
+    """Evidence by ID. A mistyped exit code reads as None and counts as not passing.
+
+    `expect_exit` is the exit code that counts as passing, 0 when absent: a
+    search proving absence exits non-zero when it finds nothing.
+    """
     evidence: dict[str, dict[str, Any]] = {}
     for index, item in enumerate(raw):
         label = f"{where}.evidence[{index}]"
@@ -1070,6 +1088,7 @@ def _parse_evidence(raw: list[Any], report: Report, where: str, subject: str | N
             "id": eid,
             "command": _get(item, "command", "str", report, label, subject),
             "exit_code": _get(item, "exit_code", "int", report, label, subject),
+            "expect_exit": _get(item, "expect_exit", "int", report, label, subject, required=False, default=0),
             "commit": _get(item, "commit", "commit", report, label, subject),
             "criterion": _get(item, "criterion", "str", report, label, subject, required=False),
         }
@@ -1157,8 +1176,17 @@ def _digest_problem(root: Path, raw_path: str, declared: str | None) -> str | No
     return None
 
 
-def _failing(entry: dict[str, Any]) -> bool:
-    return entry["exit_code"] != 0
+def _failing(entry: dict[str, Any], strict: bool = False) -> bool:
+    """True unless the item exited with its expected code. `strict` holds it to
+    0: a plan's command criterion fixes the check, so evidence never redefines
+    what passing means for it."""
+    return entry["exit_code"] != (0 if strict else entry["expect_exit"])
+
+
+def _command_criteria(pkg: dict[str, Any] | None) -> set[str]:
+    if pkg is None:
+        return set()
+    return {cid for cid, definition in pkg["checks"].items() if definition["check"] == "command"}
 
 
 def check_handoff(handoff: Any, plan: Any, profile: Any, root: str | Path | None = None) -> dict[str, Any]:
@@ -1225,18 +1253,26 @@ def check_handoff(handoff: Any, plan: Any, profile: Any, root: str | Path | None
                        f"{', '.join(unknown)}", pid)
 
     finishing = h["status"] == "DONE" or h["integration_ready"] is True
+    commands = _command_criteria(pkg)
+
+    def failing(entry: dict[str, Any]) -> bool:
+        return _failing(entry, strict=entry["criterion"] in commands)
+
     cited_failing = {eid for claim in h["claims"] for eid in claim["evidence"]
-                     if eid in evidence and _failing(evidence[eid])}
+                     if eid in evidence and failing(evidence[eid])}
     for eid, entry in evidence.items():
-        if not _failing(entry) or not (finishing or eid in cited_failing):
+        if not failing(entry) or not (finishing or eid in cited_failing):
             continue
         reasons = []
         if finishing:
             reasons.append(f"status {h['status']}, integration_ready {h['integration_ready']}")
         if eid in cited_failing:
             reasons.append("a claim cites it")
-        report.add("CLAIM_CONTRADICTS_EVIDENCE", f"evidence {eid} exited {entry['exit_code']} while "
-                   f"{' and '.join(reasons)}", entry["criterion"] or pid)
+        expected = 0 if entry["criterion"] in commands else entry["expect_exit"]
+        note = (f"; expect_exit does not apply to command criterion {entry['criterion']}"
+                if entry["criterion"] in commands and entry["expect_exit"] != 0 else "")
+        report.add("CLAIM_CONTRADICTS_EVIDENCE", f"evidence {eid} exited {entry['exit_code']}, not "
+                   f"{expected}, while {' and '.join(reasons)}{note}", entry["criterion"] or pid)
 
     if pkg is not None and h["status"] == "DONE":
         covered = {entry["criterion"] for entry in evidence.values()}
@@ -1272,16 +1308,18 @@ def check_handoff(handoff: Any, plan: Any, profile: Any, root: str | Path | None
 
 # --------------------------------------------------------------------- gate
 
-def _evidence_gap(cited: list[str], evidence: dict[str, dict[str, Any]]) -> str | None:
-    """None when the cited evidence exists and every item exited 0."""
+def _evidence_gap(cited: list[str], evidence: dict[str, dict[str, Any]], strict: bool = False) -> str | None:
+    """None when the cited evidence exists and every item passed; `strict`
+    as in _failing."""
     if not cited:
         return "cites no evidence"
     unknown = [eid for eid in cited if eid not in evidence]
     if unknown:
         return f"cites unknown evidence {', '.join(unknown)}"
-    failing = [f"{eid} (exit {evidence[eid]['exit_code']})" for eid in cited if _failing(evidence[eid])]
+    failing = [f"{eid} (exit {evidence[eid]['exit_code']})" for eid in cited if _failing(evidence[eid], strict)]
     if failing:
-        return f"cites evidence that did not exit 0: {', '.join(failing)}"
+        expected = "exit 0" if strict else "exit with its expected code"
+        return f"cites evidence that did not {expected}: {', '.join(failing)}"
     return None
 
 
@@ -1396,9 +1434,11 @@ def _git(root: Path, *args: str) -> tuple[str | None, str | None]:
     return proc.stdout.decode("utf-8", "replace"), None
 
 
-def _workspace_problems(root: Path, head: str | None, state_dir: str | None) -> tuple[list[str], bool]:
-    """Differences between the real repository at root and the ledger: its head
-    and any change outside the state directory. The flag is True when git ran."""
+def _workspace_problems(root: Path, heads: list[str], state_dir: str | None,
+                        named: str) -> tuple[list[str], bool]:
+    """Differences between the real repository at root and a record: a HEAD that
+    is none of `heads`, and any change outside the state directory. `named`
+    describes the heads in the message. The flag is True when git ran."""
     top, error = _git(root, "rev-parse", "--show-toplevel")
     if error:
         return [error], False
@@ -1416,8 +1456,8 @@ def _workspace_problems(root: Path, head: str | None, state_dir: str | None) -> 
         return [error], False
     problems = []
     actual = actual.strip()
-    if head is not None and not _same_commit(actual, head):
-        problems.append(f"the repository head is {actual}, not ledger head_commit {head}")
+    if heads and not any(_same_commit(actual, head) for head in heads):
+        problems.append(f"the repository head is {actual}, not {named} {', '.join(heads)}")
     changed, tokens, position = [], status.split("\0"), 0
     while position < len(tokens):
         token = tokens[position]
@@ -1508,14 +1548,15 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
                            "only the human defers a criterion", cid)
         elif status == "verified":
             reasons = []
-            gap = _evidence_gap(entry["evidence"], evidence)
+            definition = packages[pid]["checks"].get(cid)
+            gap = _evidence_gap(entry["evidence"], evidence,
+                                strict=definition is not None and definition["check"] == "command")
             if gap:
                 reasons.append(gap)
             cited = [evidence[eid] for eid in entry["evidence"] if eid in evidence]
             foreign = [item["id"] for item in cited if item["criterion"] is not None and item["criterion"] != cid]
             if foreign:
                 reasons.append(f"cites {', '.join(foreign)}, recorded as evidence for another criterion")
-            definition = packages[pid]["checks"].get(cid)
             if definition is not None and definition["check"] == "command" and definition["command"]:
                 expected, source = definition["command"], "the plan's check"
                 equivalent = entry["equivalent"]
@@ -1634,7 +1675,8 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
 
     head_checked = False
     if root is not None:
-        problems, head_checked = _workspace_problems(Path(root), head, view["state_dir"])
+        problems, head_checked = _workspace_problems(Path(root), [head] if head else [], view["state_dir"],
+                                                     "ledger head_commit")
         for problem in problems:
             report.add("WORKSPACE_MISMATCH", problem)
 
@@ -1657,6 +1699,7 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     commands = parser.add_subparsers(dest="command", required=True)
     plan = commands.add_parser("plan", help="check a plan before any delegation")
     plan.add_argument("plan", type=Path, help="alchemy-plan/1 JSON file")
+    plan.add_argument("--root", type=Path, help="repository that must be clean at the plan's base")
     handoff = commands.add_parser("handoff", help="check one package hand-off on receipt")
     handoff.add_argument("handoff", type=Path, help="alchemy-handoff/1 JSON file")
     handoff.add_argument("--root", type=Path, help="workspace to re-check digests against")
@@ -1683,7 +1726,7 @@ def main(argv: list[str] | None = None) -> int:
         if root is not None and not root.is_dir():
             raise InputError(f"{root}: --root is not a directory")
         if args.command == "plan":
-            result = check_plan(_read_json(args.plan), profile)
+            result = check_plan(_read_json(args.plan), profile, root)
         elif args.command == "handoff":
             result = check_handoff(_read_json(args.handoff), _read_json(args.plan), profile, root)
         else:

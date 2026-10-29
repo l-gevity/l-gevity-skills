@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #103: a plan check with a repository root confirms a clean work tree at the base",
+  "description": "The plan check is given a root that is not the top of a git work tree, so neither the base nor a clean tree can be confirmed.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json",
+    "root": "workspace"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "WORKSPACE_MISMATCH"
+    ]
+  }
+}
