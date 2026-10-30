@@ -787,7 +787,6 @@ REFERENCE_REQUIRED_TERMS = {
         "references/technique-selection.md": (
             "A sophisticated harness cannot repair an",
             "Human does not mean informal; automated does not mean objective",
-            "Triage each persona finding by its oracle",
             "Do not prescribe a universal unit/integration/E2E ratio",
         ),
         "references/portfolio-governance.md": (
@@ -1661,7 +1660,6 @@ SCENARIO_UNCOVERED = (
     "requirements-traceability",
     "structural-simplification",
     "system-optimization",
-    "test-strategy",
     "zero-copy-requirements",
 )
 SCENARIO_CRITERION_RE = re.compile(r"^[a-z][a-z0-9-]* #\d+: \S")

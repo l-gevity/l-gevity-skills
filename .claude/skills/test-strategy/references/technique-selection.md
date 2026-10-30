@@ -197,15 +197,6 @@ Use exploratory, usability, accessibility, or acceptance evaluation when:
 Give exploratory work a charter, scope, time box, evidence capture, and follow-up
 owner. Human does not mean informal; automated does not mean objective.
 
-An agent that plays a declared persona, such as a tester, a domain expert, or a
-designer, against an assembled environment is exploratory evaluation, not a new
-test type. Give each persona its own charter, run it on the preview candidate
-before promotion, and let it report without gating the release. Triage each
-persona finding by its oracle: a finding with a deterministic oracle, such as a
-wrong date or amount, is an escaped defect, so add the test at the earliest
-stage that can catch it and hand placement to `defect-shift-left`; a finding
-that needs judgment, such as an unclear control, becomes an issue for its owner.
-
 ## Quality-risk routing
 
 | Quality risk | Strategy decision | Specialist hand-off |
