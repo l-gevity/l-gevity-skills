@@ -787,6 +787,7 @@ REFERENCE_REQUIRED_TERMS = {
         "references/technique-selection.md": (
             "A sophisticated harness cannot repair an",
             "Human does not mean informal; automated does not mean objective",
+            "Triage each persona finding by its oracle",
             "Do not prescribe a universal unit/integration/E2E ratio",
         ),
         "references/portfolio-governance.md": (
