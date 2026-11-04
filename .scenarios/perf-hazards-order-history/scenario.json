@@ -1,0 +1,60 @@
+{
+  "request": "Run alchemy left on this change before it merges: it adds the customer order-history endpoint in src/orders.ts and the migration migrations/0042_order_history.sql. Which defects could it carry, and at which stage should each be caught?",
+  "skills": [
+    "defect-shift-left"
+  ],
+  "expect": [
+    {
+      "id": "applies-shift-left-guidance",
+      "criterion": "defect-shift-left #1: a question about where checks run loads the placement method",
+      "check": "guidance_includes",
+      "skills": [
+        "defect-shift-left"
+      ]
+    },
+    {
+      "id": "names-n-plus-one",
+      "criterion": "defect-shift-left #2: a query issued once per row of an earlier result is placed before integration",
+      "check": "text_matches",
+      "pattern": "N\\+1|(query|queries) (per|for each|inside the|in a) (order|row|loop)"
+    },
+    {
+      "id": "names-missing-index",
+      "criterion": "defect-shift-left #3: a filter or join column on a large table with no index is placed at design or a plan check",
+      "check": "text_matches",
+      "pattern": "(order_id|customer_id)[^\\n]{0,120}\\bindex|\\bindex[^\\n]{0,120}(order_id|customer_id)"
+    },
+    {
+      "id": "names-unbounded-fetch",
+      "criterion": "defect-shift-left #4: a query without a row bound on a large table is placed before integration",
+      "check": "text_matches",
+      "pattern": "no LIMIT|without (a )?LIMIT|missing LIMIT|(no|never sets a) row limit|unbounded"
+    },
+    {
+      "id": "names-quadratic-loop",
+      "criterion": "defect-shift-left #5: work that grows with the square of a declared-large collection is named",
+      "check": "text_matches",
+      "pattern": "O\\(n\\^?2\\)|O\\(n²\\)|O\\(n·m\\)|quadratic"
+    },
+    {
+      "id": "names-locking-migration",
+      "criterion": "defect-shift-left #6: an index built on a large table without a non-locking build is placed at static analysis",
+      "check": "text_matches",
+      "pattern": "CONCURRENTLY"
+    },
+    {
+      "id": "names-unrepresentative-volume",
+      "criterion": "defect-shift-left #7: a test environment whose data volume cannot expose the defect is named",
+      "check": "text_matches",
+      "pattern": "10[ ,.]?000|10k|staging[^\\n]{0,80}(volume|rows|data|small)"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ],
+  "known_failures": {
+    "names-quadratic-loop": "Recorded on claude-opus-5-5: the run bounded distinctSkus to the returned page, which removes the cost, but never named the quadratic includes() loop over up to 360 000 items. This is the one planted hazard the current library missed; a second miss on another fixture is the evidence that reopens a performance-hazard catalog."
+  }
+}

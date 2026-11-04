@@ -1649,7 +1649,6 @@ SCENARIO_UNCOVERED = (
     "architecture-guidelines",
     "bring-down",
     "continuous-improvement",
-    "defect-shift-left",
     "dependency-lifecycle",
     "evolutionary-database-design",
     "implementation-readiness",

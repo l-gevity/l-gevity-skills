@@ -1,0 +1,13 @@
+{
+  "name": "shop-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "migrate": "node scripts/migrate.js"
+  },
+  "dependencies": { "pg": "^8.13.0" },
+  "devDependencies": { "eslint": "^9.0.0", "typescript": "^5.6.0", "vitest": "^2.1.0" }
+}
