@@ -2,9 +2,9 @@
 name: zero-copy-requirements
 description: >-
     Decides where a fact belongs so that no artifact exists whose content is
-    fully reconstructable from another artifact already in the system. Use when
-    adding, reviewing, or pruning documentation, when deciding whether a
-    decision belongs in a document, an issue, a commit, or a requirement, when
+    fully reconstructable from another artifact in the system. Use when
+    adding, reviewing, or pruning documentation, when deciding where a decision
+    or follow-up belongs: a document, an issue, a commit, or a requirement, when
     an architecture note, decision log, status page, or triage write-up is
     proposed, or when auditing a documentation tree for duplicated authority.
     Do not use to establish requirement meaning, normalize a requirement graph,
@@ -24,12 +24,13 @@ a second authority that will disagree with the first.
 >
 > 1. **One question, one authority.** Each fact has exactly one owning
 >    artifact. Every other mention is a reference to it, never a restatement.
-> 2. **Four authorities carry the system.** Behavior, history, decisions, and
+> 2. **Four authorities carry the system.** Behavior, history, open work, and
 >    specification. An artifact that is none of them is a generated report, a
 >    bounded exception, or waste.
-> 3. **Decisions close where they were raised.** Record a decision as a comment
->    or closing note on the tracker item that asked the question. Never write a
->    separate decision document for it.
+> 3. **Decisions close where they were raised.** A reversible technical decision
+>    closes in the commit or change request that makes it; an owner's answer
+>    closes on the issue that asked. Never write a separate decision document
+>    for it.
 > 4. **Sign-off is immutable.** Compliance-grade approval lands in a merged
 >    commit or change request, not in a mutable comment or an editable page.
 > 5. **Reports are compiled, never authored.** Anything assembled from the
@@ -39,6 +40,8 @@ a second authority that will disagree with the first.
 > 7. **Frozen records are closed, not maintained.** A historical or migration
 >    record is dated and never backfilled; the moment it is updated to stay
 >    current it has become an unowned second authority.
+> 8. **The tracker holds live work, not memory.** Whatever is not live work or a
+>    bounded owner question has another home, or none (§1).
 
 ## Boundary
 
@@ -81,21 +84,35 @@ missing.
 | # | Authority | Sole owner of | Must not absorb |
 | --- | --- | --- | --- |
 | 1 | **Code and its tests** | What the system does now, and the conditions under which it is correct | Why a change was made, what is still undecided, what is merely planned |
-| 2 | **Version-control history** | What changed, when, by whom, and — via the commit message — the immediate why of that specific change | Standing policy, open questions, the specification of unbuilt work |
-| 3 | **Issue tracker** | Every open question; every decision, product or architectural; every planned-not-yet-built item | Current behavior, which the code already states; acceptance conditions, which the register already states |
-| 4 | **Requirement / specification register** | What can or should be built, and the conditions that make it complete | The decision's rationale, which lives on the issue it cites; evidence state, which traceability owns |
+| 2 | **Version-control history** | What changed, when, by whom, and — via the commit message or change request — the immediate why of that specific change, including any reversible technical decision it makes | Standing policy, open questions, the specification of unbuilt work |
+| 3 | **Issue tracker** | Work picked up now; defects; checks that block a named milestone; owner questions and their answers | Current behavior, which the code already states; acceptance conditions, which the register already states; reversible technical decisions, which history owns; findings, follow-ups, ideas, and reminders, which have no home |
+| 4 | **Requirement / specification register** | What can or should be built, and the conditions that make it complete | The decision's rationale, which lives on the issue or change it cites; evidence state, which traceability owns |
 
 Wiring between them:
 
-- A requirement cites the issue or issues that decided it, and — when blocked or
-  unbuilt — the issue that will unblock it. It restates neither.
-- An issue's closing note is the decision record. A decision that outgrows a
-  comment becomes a requirement plus the issue that decided it, not a document.
-- A commit message carries the immediate why of its own change and references
-  the issue or requirement that authorized it. It does not restate the standing
-  rule.
+- A requirement cites the issue or change that decided it, and — when blocked —
+  the issue or milestone check that will unblock it. It restates neither.
+- An issue's closing note, or the answer under a standing question, is the
+  decision record. A decision that outgrows a comment becomes a requirement plus
+  the issue that decided it, not a document.
+- A commit message carries the immediate why of its own change, names any
+  reversible technical decision it makes, and references the issue or
+  requirement that authorized it, if any. It does not restate the standing rule.
 - Code and tests carry requirement identifiers as anchors, not requirement
   prose.
+
+### Issue Scope
+
+An open issue is work picked up now, a defect, or a check that blocks a named
+milestone. The rest goes here; a project profile names the two standing items.
+
+| Item | Home | Rule |
+| --- | --- | --- |
+| Reversible technical decision: changes neither what users see, nor privacy, nor cost | The commit or change request that makes it | Decide it and name the choice there. A technical trade-off is never an owner question |
+| Owner question: what remains after reading the code and running the system | One standing questions issue | Plain language, at most three open at a time, each with the default that stands without objection. An irreversible step waits for a yes. An answer is work: build it before asking anything new |
+| Milestone check or fixed date | One milestone checklist | A check closes when it ran, or when the owner accepted the risk for that milestone. An issue with an unrun check moves that check to the checklist first |
+| Unbuilt obligation nobody has picked up | The requirement register | It becomes an issue when work on it starts; without an obligation it is an idea |
+| Finding, follow-up, idea, or reminder | No artifact | Fixed in the change at hand or dropped, never filed |
 
 ## 2. The Generated-Report Layer
 
@@ -126,7 +143,8 @@ content into the owning authority and delete it.
 
 ## 4. Litmus Test
 
-Run in order for any existing or proposed document. Stop at the first match.
+Run in order for any existing or proposed document or tracker item. Stop at the
+first match.
 
 ```text
 1. Is its content fully reconstructable from artifacts that already exist?
@@ -135,13 +153,13 @@ Run in order for any existing or proposed document. Stop at the first match.
    → Code and its tests.
 3. Does it answer "what changed, when, and why that change?"
    → Version-control history.
-4. Does it answer "what is undecided, what was decided, or what is planned
-   but unbuilt?"
-   → An issue; a decision closes as that issue's comment or closing note,
-     unless it must later be proved unaltered — then it closes in a merged
-     commit or change request (Directive 4).
+4. Does it answer "what is undecided, what was decided, or what work is open?"
+   → Issue Scope in section 1 places it. Work picked up now or a defect: an
+     issue, whose decisions close as its comments or closing note. A decision
+     that must later be proved unaltered closes in a merged commit or change
+     request (Directive 4).
 5. Does it answer "what should be built, and when is it done?"
-   → The requirement register, citing the deciding issue.
+   → The requirement register, citing the issue or change that decided it.
 6. Is it compiled from 2-5?
    → A generated report, regenerated by command and read-only.
 7. Does it pass exactly one exception admission test in section 3?
@@ -156,11 +174,14 @@ A document that needs two answers is two artifacts. Split it before keeping it.
 
 | Anti-pattern | Correction |
 | --- | --- |
-| A decision document or ADR file recording a decision already argued on an issue | Close the decision on that issue; cite the issue ID where the decision is needed |
-| A decision log appended to a requirement | The requirement cites the deciding issue; it is not the decision record |
+| A decision document or ADR file recording a decision already argued on an issue or change request | Close the decision where it was argued; cite that ID where the decision is needed |
+| A decision log appended to a requirement | The requirement cites the deciding issue or change; it is not the decision record |
+| A finding, follow-up, idea, or reminder filed as an issue | Fix it in the change at hand or drop it |
+| A reversible technical decision raised as a question or an issue | Decide it and name the choice in the commit or change request |
+| An owner question with no default, or a new one while an answer sits unbuilt | Give it a default, or build the answer first |
 | Hand-maintained changelog, status page, or progress board | Generate it from history, the tracker, and the register |
 | Architecture or design note narrating what the code already does | Point at the module, contract, or enforcement rule |
-| Triage, investigation, or incident write-up committed as a repository file | It is an issue and its comments |
+| Triage, investigation, or incident write-up committed as a repository file | An open defect is an issue and its comments; the rest is fixed or dropped |
 | Requirement text restating a dependency's acceptance conditions | Reference the criterion identifier |
 | Compliance deliverable hand-authored every cycle | Compile it from the authorities; the deliverable is a report |
 | Compliance sign-off recorded in an editable comment or page | Land it in a merged commit or change request |

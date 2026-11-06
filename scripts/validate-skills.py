@@ -50,7 +50,7 @@ SIZE_BUDGET_WORDS = {
     "structural-simplification": 2100,
     "system-optimization": 2620,
     "test-strategy": 2100,
-    "zero-copy-requirements": 1800,
+    "zero-copy-requirements": 2300,
 }
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
@@ -435,6 +435,14 @@ SKILL_REQUIRED_TERMS = {
         "No artifact may exist whose content is fully reconstructable",
         "One question, one authority",
         "Decisions close where they were raised",
+        "The tracker holds live work, not memory",
+        "An open issue is work picked up now, a defect, or a check that blocks",
+        "A technical trade-off is never an owner question",
+        "One standing questions issue",
+        "One milestone checklist",
+        "An answer is work: build it before asking anything new",
+        "A check closes when it ran",
+        "Fixed in the change at hand or dropped, never filed",
         "Sign-off is immutable",
         "Reports are compiled, never authored",
         "Frozen records are closed, not maintained",
@@ -638,6 +646,7 @@ REFERENCE_REQUIRED_TERMS = {
             "Enumerate from version control, not the filesystem",
             "Deleting an unowned claim destroys the only",
             "The sweep's own result is a finding, not an artifact",
+            "never as an issue",
             "state how many of the enumerated candidates were never opened",
         ),
     },
@@ -1661,7 +1670,6 @@ SCENARIO_UNCOVERED = (
     "structural-simplification",
     "system-optimization",
     "test-strategy",
-    "zero-copy-requirements",
 )
 SCENARIO_CRITERION_RE = re.compile(r"^[a-z][a-z0-9-]* #\d+: \S")
 SCENARIO_TRANSCRIPT_KEYS = {
@@ -2365,7 +2373,7 @@ def mutation_test() -> int:
     def uncover_skill(files=validator_copy):
         for path in files:
             text, crlf = read_raw(path)
-            needle = '    "zero-copy-requirements",\n)'
+            needle = '    "test-strategy",\n)'
             if needle not in text:
                 raise RuntimeError("SCENARIO_UNCOVERED tail not found in the validator copy")
             write_raw(path, text.replace(needle, ")", 1), crlf)
