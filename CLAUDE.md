@@ -57,8 +57,8 @@ the next cycle on the same subject, *starting from that measured baseline*.
   evidence, not a date.
 - Completion proves a working capability, not downstream impact. `READY` never means
   implemented; a code anchor never means verified.
-- `zero-copy-requirements` decides where a fact lives: code and tests own behavior, history
-  owns what changed, issues own decisions and open questions.
+- `zero-copy-requirements` places each fact: code and tests own behavior, history owns
+  changes and reversible technical decisions, issues own live work and owner questions.
 
 ## 7. Define success; checkpoint
 Strong success criteria let you loop independently. After each significant step, summarize

@@ -3,8 +3,8 @@
 A new engineer joins and asks why the export runs at 02:00. Four answers are
 available. The cron expression says 02:00. The architecture document says
 03:00, because it was written before a daylight-saving incident. The wiki page
-says "overnight". And an issue from last spring explains that 02:00 was chosen
-because the upstream feed lands at 01:40 — which is the only answer that tells
+says "overnight". And a commit message from last spring explains that 02:00 was
+chosen because the upstream feed lands at 01:40 — which is the only answer that tells
 them anything they couldn't have read off the schedule itself.
 
 Three of those four artifacts were written by people trying to be helpful. Two
@@ -50,8 +50,8 @@ question:
 | The authority | Answers | Because |
 | --- | --- | --- |
 | **Code and its tests** | *What does the system do?* | It is the system. It cannot be out of date with itself. |
-| **Version-control history** | *What changed, when, and why that change?* | Each commit is welded to a diff and immutable afterwards. |
-| **The issue tracker** | *What's undecided, what was decided, what's planned?* | It is the only one of the four that can hold a question. |
+| **Version-control history** | *What changed, when, why that change, and which technical choice it made?* | Each commit is welded to a diff and immutable afterwards. |
+| **The issue tracker** | *What work is live, and what is waiting on an owner's answer?* | It is the only one of the four that can hold a question. |
 | **The requirement register** | *What should be built, and when is it done?* | It is the only one that can describe something not yet built. |
 
 The division isn't arbitrary — it follows from what each medium is physically
@@ -71,18 +71,20 @@ anyone can edit.
 Most teams place three of these correctly by instinct. Nobody argues that code
 belongs in code. The one that goes wrong is decisions.
 
-A decision starts as a question — *should the export run at 02:00 or 03:00?* —
-and questions live in the issue tracker, because that's the only authority that
-can hold one. The temptation, once it's settled, is to promote the answer into
-a document: an ADR file, a decision log, a page in the wiki. It feels like
-respect for the decision. What it actually does is separate the answer from the
-question, so that the issue is closed with no reasoning and the document has
-reasoning with no trace of what it was arguing against.
+A decision starts as a question — *should the export run at 02:00 or 03:00?* The
+temptation, once it's settled, is to promote the answer into a document: an ADR
+file, a decision log, a page in the wiki. It feels like respect for the
+decision. What it actually does is separate the answer from the question, so
+that the place it was settled holds no reasoning and the document has reasoning
+with no trace of what it was arguing against.
 
-The alternative is to let the decision close where it was raised: as the
-closing note on the issue that asked. The argument, the rejected options, and
-the answer stay in one thread, in order, with the people who made it. Anything
-downstream that needs the decision cites the issue ID rather than restating
+The alternative is to let the decision close where it was raised. A technical
+choice that can be undone, and that changes nothing about what users see, about
+privacy, or about cost, is made by whoever is making the change and named in the
+pull request that makes it, where the reasoning sits beside the diff it
+explains. A question only an owner can answer closes on the issue that asked.
+Either way the argument, the rejected options, and the answer stay together.
+Anything downstream that needs the decision cites that ID rather than restating
 the conclusion — which, conveniently, is also a link back to the reasoning.
 
 There's one carve-out. A decision that must survive as *evidence* — a
@@ -91,6 +93,31 @@ live in a comment that anybody can edit afterwards. That belongs in a merged
 commit or change request, where it's welded to a diff and a timestamp. The test
 isn't how important the decision feels; it's whether someone will later need
 to prove it wasn't changed.
+
+## A tracker is not a memory
+
+The same discipline applies to the tracker itself, because an open issue is a
+claim that something is going to happen. File every question, plan, audit
+finding, and follow-up, and that claim stops being true: issues nobody can act
+on, follow-ups nobody picks up, and new questions for an owner whose last
+answers were never built.
+
+So an open issue means one of three things: work someone has picked up now, a
+defect, or a check that blocks a named milestone. Everything else has a
+different home, or none:
+
+- **A technical choice** goes in the pull request that makes it. A technical
+  trade-off is never a question for the owner.
+- **Owner questions** sit in one standing issue, in plain language, at most
+  three at a time, each with the default that stands if nobody objects. An
+  irreversible step waits for a yes. An answer is work: build it before asking
+  anything new.
+- **Milestone checks and fixed dates** sit in one checklist. A check closes when
+  it ran, or when the owner accepted the risk for that milestone.
+- **An unbuilt obligation** nobody has picked up stays in the requirement
+  register until work on it starts.
+- **Findings, follow-ups, ideas, and reminders** are fixed in the change at hand
+  or dropped. They are never filed.
 
 ## Reports are compiled, never written
 
@@ -167,7 +194,7 @@ documentation advice in [push-out](READ-push-out.md) — which prunes prose that
 an executable source already covers — and ahead of
 [requirements-traceability](READ-requirements-traceability.md), which anchors
 evidence once a location exists. The full operational reference — the authority
-table, the generated-report rules, the three exceptions, and the litmus test —
-lives in [SKILL.md](../.claude/skills/zero-copy-requirements/SKILL.md).*
+table, the issue scope, the generated-report rules, the three exceptions, and the
+litmus test — lives in [SKILL.md](../.claude/skills/zero-copy-requirements/SKILL.md).*
 
-<!-- skill-revision: 01cfa6aadab5 -->
+<!-- skill-revision: 48e053c72a2a -->

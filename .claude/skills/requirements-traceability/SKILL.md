@@ -210,7 +210,7 @@ Completion record:
 - Implementation: <stable anchors>
 - Executed evidence: <run identities and results>
 - Evidence freshness: <current through date, stale, or not applicable>
-- Gaps/deferred: <gap, owner, and follow-up record>
+- Gaps/deferred: <gap, owner, and the issue or milestone check that carries it>
 - Outcome status: <linked states or not assessed>
 - Repository marker: <change record; optional checkpoint; aggregate milestone>
 ```
