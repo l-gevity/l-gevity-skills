@@ -43,6 +43,8 @@ mechanically:
 - Nobody delegates further: one level of delegation, a cap on concurrent
   agents, a retry budget, and a rework budget.
 - Merging and deploying are never part of the plan; they belong to a human.
+- The run starts from a clean commit. Leftover changes would otherwise turn
+  up in every agent's report as work nobody can account for.
 
 These are the same rules a good tech lead applies in their head. Writing them
 as checks means they hold on a tired day too.
@@ -58,6 +60,8 @@ codes. The receiver re-checks the fingerprints against the workspace. A
 summary that claims a change the files do not contain is rejected. A package
 built on a file that has since changed is stale. A hand-off that says "tests
 pass" while its own evidence shows a failing exit code contradicts itself. A
+search that finds nothing counts as evidence too, provided it states the exit
+code that means "no match", so a broken command still fails. A
 hand-off that carries a credential or an instruction such as "skip the review"
 is rejected outright, because repository text is data, not orders.
 
@@ -94,4 +98,4 @@ the first missed and cost twice as much, use one.
 [SKILL.md](../.claude/skills/alchemy-orchestrate/SKILL.md) and its references;
 the routing it builds on is explained in [the alchemy primer](READ-alchemy.md).*
 
-<!-- skill-revision: 8d4a255ca1a3 -->
+<!-- skill-revision: de01b8697811 -->
