@@ -1,0 +1,47 @@
+{
+  "request": "Run test-strategy on this: after every merge to main, three persona agents (a tester, a domain expert, and a UI designer) exercise the live environment and post what they find. Last week they reported an order total one cent too low after a percentage discount, a delivery date shown one day early for orders placed after 23:00, and a button labelled Process that users could not tell apart from the Submit button next to it. The unit tests passed in all three cases. Decide what each finding should lead to and where the persona agents belong in the test strategy.",
+  "skills": ["test-strategy"],
+  "expect": [
+    {
+      "id": "applies-test-strategy",
+      "criterion": "persona-evaluation #1: the decision comes from the test-strategy skill",
+      "check": "guidance_includes",
+      "skills": ["test-strategy"]
+    },
+    {
+      "id": "reads-technique-selection",
+      "criterion": "persona-evaluation #2: persona agents are judged as exploratory evaluation, which the technique reference owns",
+      "check": "reads_include",
+      "paths": [".claude/skills/test-strategy/references/technique-selection.md"]
+    },
+    {
+      "id": "runs-personas-on-preview",
+      "criterion": "persona-evaluation #3: persona agents run on the preview candidate before promotion, not only on the live environment",
+      "check": "text_matches",
+      "pattern": "\\bpreview\\b"
+    },
+    {
+      "id": "personas-do-not-gate",
+      "criterion": "persona-evaluation #4: persona findings are reported without gating the release",
+      "check": "text_matches",
+      "pattern": "\\b(non-blocking|not (a )?(release )?gate|(does|do|must|should) not (gate|block)|without gating)\\b"
+    },
+    {
+      "id": "hands-placement-to-shift-left",
+      "criterion": "persona-evaluation #5: a deterministic finding becomes a test whose placement is handed to defect-shift-left",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Handoffs\\**:\\**(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*defect-shift-left"
+    },
+    {
+      "id": "judgment-finding-goes-to-owner",
+      "criterion": "persona-evaluation #6: a finding that needs judgment goes to its owner for a decision, not to a regression test",
+      "check": "text_matches",
+      "pattern": "(?m)^[^\\n]*(button|label|Process)[^\\n]*\\b(issue|owner|design decision|usability)\\b"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}

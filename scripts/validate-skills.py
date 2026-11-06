@@ -1660,7 +1660,6 @@ SCENARIO_UNCOVERED = (
     "requirements-traceability",
     "structural-simplification",
     "system-optimization",
-    "test-strategy",
     "zero-copy-requirements",
 )
 SCENARIO_CRITERION_RE = re.compile(r"^[a-z][a-z0-9-]* #\d+: \S")

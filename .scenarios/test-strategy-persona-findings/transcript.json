@@ -1,0 +1,63 @@
+{
+  "scenario": "test-strategy-persona-findings",
+  "revision": "6347d4b0f701",
+  "recorded_with": "claude-code 2.1.293, model claude-opus-5-5",
+  "skills_available": [
+    "alchemy",
+    "alchemy-orchestrate",
+    "architecture-as-code",
+    "architecture-as-code-javascript",
+    "architecture-as-code-python",
+    "architecture-guidelines",
+    "batch",
+    "bring-down",
+    "ci-cd-reliability-architecture",
+    "claude-api",
+    "code-review",
+    "continuous-improvement",
+    "dataviz",
+    "debug",
+    "deep-research",
+    "defect-shift-left",
+    "dependency-lifecycle",
+    "design",
+    "design-sync",
+    "doctor",
+    "evolutionary-database-design",
+    "fewer-permission-prompts",
+    "functionality-complexity-tradeoff",
+    "implementation-readiness",
+    "infrastructure-fit",
+    "loop",
+    "morphogenetic-architecture",
+    "observability-design",
+    "plugin-authoring",
+    "push-out",
+    "requirements-grounding",
+    "requirements-topology",
+    "requirements-traceability",
+    "run",
+    "run-skill-generator",
+    "schedule",
+    "simplify",
+    "structural-simplification",
+    "system-optimization",
+    "test-strategy",
+    "update-config",
+    "verify",
+    "workflow-authoring",
+    "zero-copy-requirements"
+  ],
+  "skills_invoked": [
+    "test-strategy"
+  ],
+  "files_read": [
+    ".claude/skills/test-strategy/references/technique-selection.md",
+    ".claude/skills/test-strategy/references/portfolio-governance.md"
+  ],
+  "paths_searched": [
+    "."
+  ],
+  "turns": 6,
+  "output": "**What I found**\n\nThe automated tests don't catch two kinds of bug that matter, and the persona agents are filling that gap without anyone having decided they should. The record calls this NOT-ADEQUATE.\n\n- **The order total and the delivery date** are rule-based questions with one right answer. Each should become a fast regression test written against the business rule, not against what the code currently does.\n- **The Process/Submit button** is a question of human judgement. No unit test can settle it. It needs a design decision, and real users need to confirm the confusion before anything changes.\n- **Where the agents belong:** they are exploratory testers. Their reports are leads to investigate, not proof that something works or is broken. Once an agent finds a rule-based bug, a regression test should take over checking it.\n\nThe unit tests passed all three times. For the two rule-based bugs, that means the tests either had no expected value from the business rule, or they never ran the code path where the bug lives.\n\n**Why it matters**\n\n- **If we act:** rounding and the 23:00 cutoff get checked on every change, before merge. The agents stay focused on things nobody has thought of yet.\n- **If we don't:** each fix depends on an agent noticing the bug again after it is already live. The agents give different answers on each run, so a clean run proves nothing.\n- **A caution:** I haven't confirmed any of the three findings. A language model can get a percentage calculation wrong, so the one-cent finding might be the agent's arithmetic error.\n\n**Do this first**\n\n1. Ask finance for the rounding rule: whether rounding happens per line or per order, half-up or half-even, and before or after tax. Write it down as the accepted rule. Then reproduce the one-cent case with that rule; it is only a bug if the rule says so.\n2. Ask the business for the delivery-date rule and its timezone: is 23:00 a cutoff, or just where the date changes, and in which zone? Then add boundary tests at 22:59, 23:00 and 23:01, plus around daylight-saving changes.\n3. Give each persona agent a written brief: scope, a time limit, evidence to capture (steps to reproduce, input data, timestamp, environment), and a named person who follows up. Their runs should never block a merge.\n\n**What I did not check**\n\n- No application code or tests are in this directory, so I don't know why the unit tests passed. Check whether money is handled as floats or decimals, and whether the expected values in the discount tests were calculated by the code under test. Running a mutation testing tool on the discount code would show whether the tests catch changes.\n- Whether \"live environment\" means production. If it does, the agents are placing orders in production; check the agent configuration and how their test orders are kept out of real data.\n- How often agent findings turn out to be wrong. Count confirmed versus rejected findings over the last few weeks of runs.\n- Whether real users are confused by the buttons. Check support tickets or click data for the Process/Submit pair.\n\n| Risk / criterion | Failure mode | Oracle | Technique | Scope / fidelity | Dependencies | Data / environment | Evidence | Residual blind spot |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| Discounted order total | Total off by 0.01 after a % discount | Finance rounding policy (granularity, mode, order of operations): **missing, DEFER** | Example regression for the reported case; boundary values at half-cent results; property check (the order total equals the sum of line totals under the rule); differential check against a decimal reference model | Pricing logic in-process; no wider scope needed | Real owned collaborators; no doubles | Generated amounts and percentages; failing cases kept as fixtures | Agent report only; not reproduced | Currency/tax interaction if a policy covers it; float storage at persistence boundary |\n| Delivery date after 23:00 | Date shown one day early | Cutoff rule and business timezone: **missing, DEFER** | Boundary values with an injected clock at 22:59/23:00/23:01 and around daylight-saving changes; one test at a real timezone boundary | Date calculation in-process; plus one test against the deployed timezone configuration (server, database, framework) | Clock injected for the boundary tests; real runtime timezone settings for the boundary test | Fixed instants per timezone; preview environment with production timezone config | Agent report only; not reproduced | Customer-local vs business timezone display, if the rule distinguishes them |\n| Process vs Submit distinguishability | Users pick the wrong action | Actor task success, set by the UX owner: **missing, DEFER** | Usability evaluation on the task; accessibility check that each button's name describes what it does | Deployed UI with humans | n/a | Preview environment | Agent opinion; no user evidence | Whether users are actually confused; what pressing the wrong button costs |\n| Unknown risks after merge | New defects not yet modelled | Agent brief plus human triage | Persona agents as exploratory testers | Live assembled system | Real | Isolated synthetic accounts (unverified) | 3 findings, 0 triaged to verdict | Reports vary between runs; false-positive rate unknown |\n\n```text\nSubject:              Post-merge persona-agent exploration and the three escaped findings\nMode:                 Audit\nStrategy pass:        Combined\nDecision:             NOT-ADEQUATE\nTest basis:           Three agent findings (escaped defects); rounding and cutoff policies absent\nArchitecture basis:   stable existing (not inspected; no code in workspace)\nQuality risks:        1 monetary correctness, 2 date/timezone correctness, 3 usability\nManual evaluation:    Persona agents = exploratory with charter; usability evaluation for button pair\nAdequacy signals:     2 escaped deterministic defects with green unit tests (hollow oracle or missing boundary);\n                      persona precision unknown\nHandoffs:             requirements-grounding (rounding rule, cutoff/timezone rule, button task);\n                      defect-shift-left (rounding/date checks pre-merge; persona run on preview before merge?);\n                      ci-cd-reliability-architecture (persona non-blocking trigger, evidence artifact);\n                      UX/accessibility specialist (button labels);\n                      requirements-traceability (persona findings are not verified evidence)\nResidual risk:        Findings 1–2 deferred on policy; finding 3 deferred on UX oracle; persona false-positive rate unknown\nNext action:          Obtain the finance rounding policy and reproduce the one-cent case against it\nVerification:         Not run: no application code or tests in workspace; decision rests on the reported findings only\n```"
+}
