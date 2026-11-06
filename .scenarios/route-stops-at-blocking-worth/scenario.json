@@ -38,8 +38,5 @@
       "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
       "check": "blocks_in_order"
     }
-  ],
-  "known_failures": {
-    "runs-worth-gate": "Re-recorded on claude-opus-5-5: the run stopped at Requirements Grounding with NOT-GROUNDED (no actor, no request, no second format), a legal blocking stop that ends the route before M. The expectation assumes grounding passes. Re-record before release to see whether this is model variance."
-  }
+  ]
 }

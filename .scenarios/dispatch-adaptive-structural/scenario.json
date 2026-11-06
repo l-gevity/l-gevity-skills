@@ -42,9 +42,5 @@
       "criterion": "topology-record #2: a multi-gate run emits each stage's own record, not only the trail",
       "check": "topology_records"
     }
-  ],
-  "known_failures": {
-    "runs-placement-and-complexity": "Re-recorded on claude-opus-5-5 after the Execution Strategy change: the run stopped at Implementation Readiness (blocked before readiness, companions not run) and did not load morphogenetic-architecture or structural-simplification. The same miss was recorded on claude-opus-5 before this change (1 of 2 runs on unmodified main 809ab39).",
-    "emits-placement-record": "Placement did not run in this recording, so no placement record exists; it also missed in 2 of 2 claude-opus-5 runs on unmodified main."
-  }
+  ]
 }
