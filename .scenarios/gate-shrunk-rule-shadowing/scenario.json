@@ -1,0 +1,59 @@
+{
+  "request": "Run gate-lifecycle on this: a reviewer noticed that src/billing/invoice.js imports the auth internals directly, which eslint.config.mjs is meant to forbid. `npm run lint` blocks merge and has been green on every pull request. Is this gate still doing its job, and what do we do about it?",
+  "skills": [
+    "defect-shift-left"
+  ],
+  "expect": [
+    {
+      "id": "restores-the-gate",
+      "criterion": "gate-lifecycle #2: a gate whose effective scope is smaller than its declared scope is restored",
+      "check": "field_in",
+      "field": "Decision",
+      "values": [
+        "RESTORE"
+      ]
+    },
+    {
+      "id": "records-unproven",
+      "criterion": "gate-lifecycle #3: a gate with no negative control is recorded as unproven, whatever its green history",
+      "check": "field_in",
+      "field": "Proof",
+      "values": [
+        "UNPROVEN"
+      ]
+    },
+    {
+      "id": "finds-the-shadow",
+      "criterion": "gate-lifecycle #4: effective scope is measured from the resolved configuration, not read from the declared rule",
+      "check": "text_matches",
+      "pattern": "shadow|replac|overrid|last matching|later block|second block|broader block"
+    },
+    {
+      "id": "requires-negative-control",
+      "criterion": "gate-lifecycle #5: the restored gate keeps a known-bad input that must keep failing",
+      "check": "text_matches",
+      "pattern": "(?i)negative control|known-bad|(test|fixture|probe)[^.\\n]{0,80}\\b(bad|violat\\w*|forbidden)\\b|\\b(fails?|red) (on|against) a (bad|deliberate|forbidden|known)"
+    },
+    {
+      "id": "records-declared-and-effective",
+      "criterion": "gate-lifecycle #14: the record states declared and effective scope side by side",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \t>*_-]*Scope:[^\n]*declared"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    },
+    {
+      "id": "routed-skills-loaded",
+      "criterion": "claim-only-what-ran #1: every routed skill was loaded",
+      "check": "route_loaded"
+    }
+  ],
+  "known_failures": {
+    "restores-the-gate": "No skill owns the gate after placement: the run found the shadow and borrowed architecture-as-code `Update config`.",
+    "records-unproven": "No record carries proof: nothing states that a gate with a green history was never seen red.",
+    "records-declared-and-effective": "No record compares declared with effective scope; the run read the shadow from the config once."
+  }
+}
