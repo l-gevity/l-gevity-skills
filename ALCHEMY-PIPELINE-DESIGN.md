@@ -106,6 +106,17 @@ already owned, and `evolutionary-database-design` stages a migration once it
 is decided. Infrastructure Fit is not a qualification stage, gate, acronym
 letter, or prerequisite for Architecture.
 
+When a gate is added over existing violations, narrowed, suspended, or removed,
+when a baseline churns, or when a gate passes on a known-bad input or cannot
+evaluate, `gate-lifecycle` is an independently matched single-pass companion. It
+follows H, sits beside CI/CD's gate behavior, and also runs later on its own. It
+keeps a gate proven able to fail, measures its effective scope against its
+declared scope, holds a debt baseline to a ratchet, and returns one decision
+with the guard that ends it: keep, prove, restore, ratchet, trial, reinstate, or
+retire. H owns the stage, CI/CD owns how a gate blocks, and `test-strategy` owns
+the oracle it asserts. Gate Lifecycle is not a qualification stage, gate, acronym
+letter, or prerequisite for Architecture.
+
 ## Pipeline
 
 ```mermaid

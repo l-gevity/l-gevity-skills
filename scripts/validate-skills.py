@@ -33,12 +33,13 @@ SIZE_BUDGET_WORDS = {
     "architecture-as-code-python": 1500,
     "architecture-guidelines": 1900,
     "bring-down": 2800,
-    "ci-cd-reliability-architecture": 3530,
+    "ci-cd-reliability-architecture": 3550,
     "continuous-improvement": 1300,
-    "defect-shift-left": 2100,
+    "defect-shift-left": 2120,
     "dependency-lifecycle": 2000,
     "evolutionary-database-design": 3300,
     "functionality-complexity-tradeoff": 3900,
+    "gate-lifecycle": 1600,
     "implementation-readiness": 1900,
     "infrastructure-fit": 2000,
     "morphogenetic-architecture": 2800,
@@ -55,7 +56,7 @@ SIZE_BUDGET_WORDS = {
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
 # session carries whether or not a skill is invoked.
-DESCRIPTION_BUDGET_CHARS = 16200
+DESCRIPTION_BUDGET_CHARS = 16800
 # ADAPTIVE, FULL, and audit read this file; SKIP and DIRECT never load it.
 ALCHEMY_ROUTE = AGENT_SKILLS / "alchemy" / "references" / "adaptive-route.md"
 ALCHEMY_PIPELINE_STAGES = (
@@ -137,6 +138,7 @@ SKILL_REQUIRED_TERMS = {
         "select `dependency-lifecycle`",
         "select `observability-design`",
         "select `infrastructure-fit`",
+        "select `gate-lifecycle`",
         '**Claim only what ran.**',
         "Load each stage when the route reaches it",
         # A design pass records constraints in the pattern's neutral form; the
@@ -466,6 +468,19 @@ SKILL_REQUIRED_TERMS = {
         "DECIDED | PROVISIONAL | INHERITED",
         "CHOOSE | KEEP | ADJUST | WATCH | MIGRATE | DEFER",
     ),
+    "gate-lifecycle": (
+        "A gate is proven by a failure, not a pass",
+        "Effective scope is measured, never assumed",
+        "Indeterminate is not failed",
+        "Every suspension expires",
+        "`gate-lifecycle` is a task-matched Alchemy companion",
+        "Aggregation semantics are scope",
+        "A red run never writes the baseline",
+        "Past expiry the default is `REINSTATE`",
+        "a moved date is not a decision",
+        "BLOCKING | TRIAL | INDETERMINATE | RETIRED",
+        "PROVE | RESTORE | RATCHET | TRIAL | REINSTATE | RETIRE | KEEP",
+    ),
     "dependency-lifecycle": (
         "Adoption transfers the maintenance, never the responsibility",
         "Standing still is a change",
@@ -598,6 +613,14 @@ CONSUMER_FORBIDDEN = (
 # A reference file is loaded on demand, so the rule it carries is pinned to
 # that file, and SKILL.md must link the file (validate_reference_links).
 REFERENCE_REQUIRED_TERMS = {
+    "gate-lifecycle": {
+        "references/ratchet.md": (
+            "A red run writes nothing.",
+            "`named` is per entry",
+            "Either stale policy ratchets",
+            "An expiry fires with no commit",
+        ),
+    },
     "alchemy-orchestrate": {
         "references/contracts.md": (
             "# Orchestration Contracts — Plan, Hand-off, Ledger, Profile",

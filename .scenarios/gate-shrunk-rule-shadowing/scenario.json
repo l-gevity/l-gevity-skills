@@ -1,9 +1,17 @@
 {
   "request": "Run gate-lifecycle on this: a reviewer noticed that src/billing/invoice.js imports the auth internals directly, which eslint.config.mjs is meant to forbid. `npm run lint` blocks merge and has been green on every pull request. Is this gate still doing its job, and what do we do about it?",
   "skills": [
-    "defect-shift-left"
+    "gate-lifecycle"
   ],
   "expect": [
+    {
+      "id": "applies-gate-guidance",
+      "criterion": "gate-lifecycle #1: a request about a gate after placement loads the lifecycle method",
+      "check": "guidance_includes",
+      "skills": [
+        "gate-lifecycle"
+      ]
+    },
     {
       "id": "restores-the-gate",
       "criterion": "gate-lifecycle #2: a gate whose effective scope is smaller than its declared scope is restored",
@@ -50,10 +58,5 @@
       "criterion": "claim-only-what-ran #1: every routed skill was loaded",
       "check": "route_loaded"
     }
-  ],
-  "known_failures": {
-    "restores-the-gate": "No skill owns the gate after placement: the run found the shadow and borrowed architecture-as-code `Update config`.",
-    "records-unproven": "No record carries proof: nothing states that a gate with a green history was never seen red.",
-    "records-declared-and-effective": "No record compares declared with effective scope; the run read the shadow from the config once."
-  }
+  ]
 }

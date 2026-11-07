@@ -1,9 +1,17 @@
 {
   "request": "Run gate-lifecycle on this: a merge gate fails when a source module exceeds its line limit, and a JSON baseline lists the modules allowed to exceed it. Whenever the gate goes red, a script regenerates the JSON from the current tree and the result is committed with whatever change was in flight. In the last 12 days the baseline was rewritten 34 times, the exception list grew from 41 to 58 modules, and no commit message mentions an addition. The gate has stayed green. What should change?",
   "skills": [
-    "defect-shift-left"
+    "gate-lifecycle"
   ],
   "expect": [
+    {
+      "id": "applies-gate-guidance",
+      "criterion": "gate-lifecycle #1: a request about a gate after placement loads the lifecycle method",
+      "check": "guidance_includes",
+      "skills": [
+        "gate-lifecycle"
+      ]
+    },
     {
       "id": "ratchets-the-baseline",
       "criterion": "gate-lifecycle #6: a baseline that moves both ways is put on a ratchet",
@@ -23,7 +31,7 @@
       "id": "red-run-never-writes",
       "criterion": "gate-lifecycle #8: a red run never rewrites the baseline it failed against",
       "check": "text_matches",
-      "pattern": "(?i)(red|failing|failure)[^.\\n]{0,80}\\b(never|not|no longer|stop\\w*)\\b[^.\\n]{0,80}(writ|regenerat|updat)|\\b(never|not|no longer|stop\\w*|remove|delete)\\b[^.\\n]{0,80}(regenerat|rewrit|failure path)|\\bmay only (tighten|shrink|lower|remove)"
+      "pattern": "(?i)(red|failing|failure)[^.\\n]{0,80}\\b(never|not|no longer|stop\\w*)\\b[^.\\n]{0,80}(writ|regenerat|updat)|\\b(never|not|no longer|stop\\w*|remove|delete)\\b[^.\\n]{0,80}(regenerat|rewrit|failure path)|\\bmay only (tighten|shrink|lower|remove)|\\bwrites? nothing\\b[^.\\n]{0,40}\\b(red|failing|failure)\\b"
     },
     {
       "id": "guard-ends-the-decision",
@@ -36,9 +44,5 @@
       "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
       "check": "blocks_in_order"
     }
-  ],
-  "known_failures": {
-    "ratchets-the-baseline": "No skill names the pattern: the run reasoned its way to a shrink-only baseline and borrowed CI/CD `Add gate`.",
-    "guard-ends-the-decision": "The CI/CD record the run used has no field for what ends the decision."
-  }
+  ]
 }
