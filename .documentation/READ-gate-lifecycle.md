@@ -132,4 +132,4 @@ decisions, and the output contract — lives in
 the dated expiry step live in
 [ratchet.md](../.claude/skills/gate-lifecycle/references/ratchet.md).*
 
-<!-- skill-revision: 65d67352ce78 -->
+<!-- skill-revision: cd3553b9c1de -->

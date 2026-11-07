@@ -55,13 +55,14 @@ what oracle it asserts.
   blocks nothing stays there.
 - `test-strategy` owns the oracle and per-test quarantine, whose fields a `TRIAL`
   reuses. The aggregator enforcing that oracle needs a negative control here.
-- `architecture-as-code`, its stack skills, and `continuous-improvement` prove a
-  rule when it is born. This skill keeps it proven.
+- `architecture-as-code`, its stack skills, and `continuous-improvement` own a
+  new rule; this skill takes over when §2 fires.
 - `functionality-complexity-tradeoff` owns whether an obligation stands: `RETIRE`
   cites its verdict rather than reaching one.
 
-A routine baseline shrink, a test or rule added to a proven gate without changing
-its scope, and a pure placement or blocking question do not open this skill.
+A routine baseline shrink, a new rule nothing violates, a test added to a proven
+gate without changing its scope, and a pure placement or blocking question do not
+open this skill.
 
 ## 1. Gate Population
 
@@ -76,7 +77,7 @@ Most of these fire with no edit to the gate.
 
 | Trigger | Signal | Opens |
 | --- | --- | --- |
-| **born** | Added, made blocking, or added over existing violations | §3; §5 when violations exist |
+| **born** | Promoted to blocking, or added over existing violations | §3; §5 when violations exist |
 | **narrowed** | A block, glob, ignore, filter, or skip changed its reach, or it passed while a known-bad input existed | §4 |
 | **churn** | A baseline or budget moves on most commits, or grew with no named decision | §5 |
 | **suspended** | Dropped, downgraded, or shortened "until" something, or that date passed | §6 |
