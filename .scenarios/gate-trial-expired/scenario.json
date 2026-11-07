@@ -1,0 +1,51 @@
+{
+  "request": "Run gate-lifecycle on this, two gates. First: on 3 September a pre-push hook stopped running the integration suite as a one-week trial until 10 September, with the criterion that the red rate of that suite in CI stays under 5 percent. It is now November, the hook still says 'trial until 10 September', nobody recorded a decision, and nobody measured the red rate. Second: the deploy gate went red this morning with an identity-provider error, 'application identifier not found in the directory', before it could compare anything against the target environment. Someone proposes deleting that gate because it is not catching real defects. What is the decision for each?",
+  "skills": [
+    "gate-lifecycle"
+  ],
+  "expect": [
+    {
+      "id": "applies-gate-guidance",
+      "criterion": "gate-lifecycle #1: a request about a gate after placement loads the lifecycle method",
+      "check": "guidance_includes",
+      "skills": [
+        "gate-lifecycle"
+      ]
+    },
+    {
+      "id": "expired-trial-is-decided",
+      "criterion": "gate-lifecycle #10: a trial that expired unmeasured is reinstated; a moved date is not a renewal",
+      "check": "field_in",
+      "field": "Decision",
+      "values": [
+        "REINSTATE"
+      ]
+    },
+    {
+      "id": "guard-has-criterion-owner-expiry",
+      "criterion": "gate-lifecycle #11: a suspension carries a criterion, an owner, and an expiry",
+      "check": "text_matches",
+      "pattern": "(?is)(?=.*criterion)(?=.*owner)(?=.*(expir|end date))"
+    },
+    {
+      "id": "records-indeterminate",
+      "criterion": "gate-lifecycle #12: a gate that could not evaluate is indeterminate, not failed",
+      "check": "field_in",
+      "field": "Status",
+      "values": [
+        "INDETERMINATE"
+      ]
+    },
+    {
+      "id": "indeterminate-is-no-retirement-reason",
+      "criterion": "gate-lifecycle #13: being unable to evaluate is not a reason to retire a gate",
+      "check": "text_matches",
+      "pattern": "(?i)(don.t|do not|never|not a reason to|no reason to) (delete|retire|remove)|\\b(never|not)\\b[^.\\n]{0,60}\\b(a )?reason to `?(delete|retire|remove)"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}

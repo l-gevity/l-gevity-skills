@@ -277,6 +277,8 @@ quarantined test cannot count as verified evidence.
   `requirements-traceability`.
 - Send suite latency, resource cost, flakiness, queues, and duplication to
   `system-optimization`.
+- Send a gate aggregator that could count skipped, retried, or quarantined
+  results as verified to `gate-lifecycle`.
 - Send security, accessibility, safety, UX, data, or domain-specific
   obligations to the applicable companion skill without weakening them.
 

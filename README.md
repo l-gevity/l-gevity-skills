@@ -290,7 +290,7 @@ for runtime mechanisms.
 
 ## The skill library
 
-The library contains 25 composable skills. Each has an operational `SKILL.md`
+The library contains 26 composable skills. Each has an operational `SKILL.md`
 and a standalone primer explaining its engineering concepts. This catalog
 links to the Claude skills tree; Codex uses the matching `.agents/skills/` tree.
 
@@ -312,6 +312,7 @@ links to the Claude skills tree; Codex uses the matching `.agents/skills/` tree.
 | [`test-strategy`](./.claude/skills/test-strategy/SKILL.md) | Choose verification evidence from requirements and risk. | [Read](./.documentation/READ-test-strategy.md) |
 | [`defect-shift-left`](./.claude/skills/defect-shift-left/SKILL.md) | Detect defects at the earliest capable stage. | [Read](./.documentation/READ-defect-shift-left.md) |
 | [`ci-cd-reliability-architecture`](./.claude/skills/ci-cd-reliability-architecture/SKILL.md) | Design reliable build, release, and deployment pipelines. | [Read](./.documentation/READ-ci-cd-reliability-architecture.md) |
+| [`gate-lifecycle`](./.claude/skills/gate-lifecycle/SKILL.md) | Keep gates proven, measured, and explicitly changed. | [Read](./.documentation/READ-gate-lifecycle.md) |
 | [`requirements-traceability`](./.claude/skills/requirements-traceability/SKILL.md) | Link requirements to implementation, verification, operations, and outcomes. | [Read](./.documentation/READ-requirements-traceability.md) |
 | [`observability-design`](./.claude/skills/observability-design/SKILL.md) | Make production failures detectable; prune unused alerts and telemetry. | [Read](./.documentation/READ-observability-design.md) |
 | [`infrastructure-fit`](./.claude/skills/infrastructure-fit/SKILL.md) | Choose infrastructure from requirements and reassess its fit. | [Read](./.documentation/READ-infrastructure-fit.md) |

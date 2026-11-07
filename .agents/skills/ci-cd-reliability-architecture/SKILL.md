@@ -424,3 +424,4 @@ Next action:    <specific workflow edit, test, policy, or owner question>
 - **`defect-shift-left`** — where each pipeline check belongs on the stage ladder.
 - **`system-optimization`** — value-stream optimization built on top of a reliable pipeline.
 - **`architecture-guidelines`** — first-principles rules out of scope here (idempotency etc. as system-level properties).
+- **`gate-lifecycle`** — keeps a gate proven, its baseline shrinking, and its suspensions expiring.

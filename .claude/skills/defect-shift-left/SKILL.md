@@ -234,3 +234,4 @@ rung on the ladder has no place in the output.
 - **`push-out`** — move recurring operational work out of human/manual execution into durable systems.
 - **`bring-down`** — move bespoke or duplicated code down into reusable capability.
 - **`continuous-improvement`** — how to promote a recurring escaped-defect into a permanent gate (Directive 1).
+- **`gate-lifecycle`** — keeps a placed gate proven and in scope; §4's "remove as theatre" takes its criterion there.

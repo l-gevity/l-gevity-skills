@@ -152,4 +152,4 @@ operational reference — file format, recipes, and gotchas — lives in
 assembler code, needed only to set up or change `eslint.config.js`, lives in
 [assembler.md](../.claude/skills/architecture-as-code-javascript/references/assembler.md).*
 
-<!-- skill-revision: 5085c24ad338 -->
+<!-- skill-revision: 1b8413f65d2a -->

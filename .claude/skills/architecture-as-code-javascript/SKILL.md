@@ -126,7 +126,8 @@ Register the rule at `error`. At `warn` this is a report, not a boundary.
 outside the adapter, confirm the lint fails on it with the declared message and
 line, delete the file, then confirm the adapter and its callers pass. A policy
 that has never failed has not been shown to run — the `checkAllOrigins` trap
-above produces exactly the same green output as a working rule.
+above produces exactly the same green output as a working rule. Keeping it
+proven afterward is `gate-lifecycle`.
 
 ### Require literal dynamic-import paths
 

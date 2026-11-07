@@ -121,6 +121,9 @@ hard-code project-specific companion names into this generic skill.
   are under review, select `observability-design`.
 - When infrastructure is chosen, inherited, or questioned, select
   `infrastructure-fit`.
+- When a gate is added over violations, narrowed, suspended, or removed, passes
+  on a known-bad input, or cannot evaluate, or a baseline churns, select
+  `gate-lifecycle`; it never places a check or decides how it blocks.
 - `test-strategy` and `evolutionary-database-design` are two-pass companions
   that bracket A/L/C/E; the route in §2 orders their passes.
 - `SKIP` skips only the Alchemy core; it never suppresses a matching companion.
