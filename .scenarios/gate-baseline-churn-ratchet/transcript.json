@@ -1,0 +1,63 @@
+{
+  "scenario": "gate-baseline-churn-ratchet",
+  "revision": "baeff8746b40",
+  "recorded_with": "claude-code 2.1.310, model claude-opus-5-5",
+  "skills_available": [
+    "alchemy",
+    "alchemy-orchestrate",
+    "architecture-as-code",
+    "architecture-as-code-javascript",
+    "architecture-as-code-python",
+    "architecture-guidelines",
+    "batch",
+    "bring-down",
+    "ci-cd-reliability-architecture",
+    "claude-api",
+    "code-review",
+    "continuous-improvement",
+    "dataviz",
+    "debug",
+    "deep-research",
+    "defect-shift-left",
+    "dependency-lifecycle",
+    "design",
+    "design-sync",
+    "doctor",
+    "evolutionary-database-design",
+    "fewer-permission-prompts",
+    "functionality-complexity-tradeoff",
+    "gate-lifecycle",
+    "implementation-readiness",
+    "infrastructure-fit",
+    "loop",
+    "morphogenetic-architecture",
+    "observability-design",
+    "plugin-authoring",
+    "push-out",
+    "requirements-grounding",
+    "requirements-topology",
+    "requirements-traceability",
+    "run",
+    "run-skill-generator",
+    "schedule",
+    "simplify",
+    "structural-simplification",
+    "system-optimization",
+    "test-strategy",
+    "update-config",
+    "verify",
+    "workflow-authoring",
+    "zero-copy-requirements"
+  ],
+  "skills_invoked": [
+    "gate-lifecycle"
+  ],
+  "files_read": [
+    ".claude/skills/gate-lifecycle/references/ratchet.md"
+  ],
+  "paths_searched": [
+    "."
+  ],
+  "turns": 5,
+  "output": "**What I found:** the gate's detection works, but its red result gets overwritten. Stop regenerating the baseline: new entries should fail unless a change names them, and the list needs an owner (the record calls this RATCHET). The deciding fact is that the list grew by a net 17 modules, from 41 to 58, and no commit named any of them. A green result therefore doesn't show that modules are within the limit.\n\n**Why it matters:** with this change, a commit that adds or grows an oversized module stops at the gate until it's split or named, so expect some in-flight work to go red. Without it, every future violation can be absorbed the same way. Don't reset to 41, because that would block unrelated changes on the 17 modules until they're dealt with.\n\n**Do this first:**\n1. Replace the regeneration script with the reconcile step in `.claude/skills/gate-lifecycle/references/ratchet.md`:\n   - **Writes:** a red run writes nothing, and stale entries are removed.\n   - **Comparison:** compare against the target branch's baseline, so a branch can't pass by editing its own JSON.\n   - **Named growth:** accept growth one path at a time (`--accept-growth <path>`), with no accept-all option, and put each path and reason in the commit message.\n   - **Tests:** cover all four outcomes (refused, accepted, shrunk, stale), with the refused case running in CI.\n2. Make one change that lists the 17 additions, with a reason and owner for each, or split those modules instead.\n3. In that change, store each module's line count if the JSON only lists names. Otherwise, a listed module can keep growing unchecked.\n\n**What I did not check:** this directory has no repository, gate, script or baseline, so all figures are the ones you reported and nothing was run or changed. Each of these needs checking in the real repo:\n- **Actual additions:** 17 is the net figure, and additions could be higher if entries were also removed. Run `git log -p --follow -- <baseline>.json`.\n- **File format:** check whether it stores line counts or only names by reading `<baseline>.json`.\n- **Who runs the script:** check whether CI or a person runs it, and which branch's baseline the gate reads. Run `git grep -n \"<script-name>\"` and read the gate's job definition.\n\n```text\nGate:         Module line-limit check with JSON exception baseline, merge gate\nStage:        Merge gate; exact defect-shift-left stage not verified\nTrigger:      churn\nProof:        UNPROVEN: it has gone red, but no negative control or run is recorded\nScope:        declared all source modules / effective modules not on the list, which\n              regeneration rewrites to match the tree / delta net 17 modules added\n              without a decision; listed modules may also grow unchecked if only\n              names are stored\nBaseline:     58 entries, up from 41 in 12 days, 34 rewrites; no accepted growth named\nStatus:       BLOCKING\nDecision:     RATCHET\nGuard:        Unnamed growth refused; the list has an owner (not yet assigned)\nHandoff:      none\nNext action:  Replace regeneration with reconcile against the target branch's\n              baseline, per-path acceptance, and a CI test of the refused case\nVerification: Not run: no repository here. Done when an unnamed oversized module\n              turns the gate red and leaves the baseline unchanged\n```"
+}

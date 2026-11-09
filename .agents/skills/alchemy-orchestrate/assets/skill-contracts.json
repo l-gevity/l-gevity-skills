@@ -182,6 +182,13 @@
       "verify": "Each verdict cites a forcing requirement and counted evidence; template defaults stay INHERITED",
       "completion": ["CHOOSE", "KEEP", "ADJUST", "WATCH", "MIGRATE"], "failure": ["DEFER"]
     },
+    "gate-lifecycle": {
+      "capability": "verification", "stage": "companion",
+      "inputs": ["named gate or gate population and the trigger that opened it"], "outputs": ["gate decision with its ending guard"],
+      "parallel": "per-subject", "writes": "pipeline-config", "exclusive": ["gate configuration, baseline, and suspension files"],
+      "verify": "Each named negative control turns its gate red on the integrated head, and declared scope matches the resolved configuration",
+      "completion": ["PROVE", "RESTORE", "RATCHET", "TRIAL", "REINSTATE", "RETIRE", "KEEP"], "failure": []
+    },
     "continuous-improvement": {
       "capability": "lead", "stage": "companion",
       "inputs": ["recurring mistake with evidence"], "outputs": ["skill change decision"],

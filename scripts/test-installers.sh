@@ -196,6 +196,28 @@ check "install still succeeds" \
   "$(grep -c 'Installed .* skills' "$WORK/traversal.log")" "1"
 
 echo
+# --- grep -q exits on its first match; under pipefail the writer's SIGPIPE must
+# not read as "dropped upstream". Past the pipe buffer this fails on every OS.
+echo "== a long file list survives a second run =="
+LONG="$WORK/long"
+mkdir -p "$LONG"
+cp -R "$STAGE" "$LONG/l-gevity-skills-test"
+LONG_DIR="$LONG/l-gevity-skills-test/.claude/skills/zz-long"
+LONG_NAME="$(printf 'x%.0s' $(seq 1 130))"
+mkdir -p "$LONG_DIR"
+for n in $(seq 1 500); do
+  : > "$LONG_DIR/$n-$LONG_NAME.md"
+done
+tar -czf "$LONG/skills.tar.gz" -C "$LONG" "l-gevity-skills-test"
+LT="$WORK/long-target"
+mkdir -p "$LT"
+( cd "$LT" && L_GEVITY_SKILLS_ARCHIVE="$LONG/skills.tar.gz" bash "$REPO_ROOT/.install/install-claude.sh" ) > /dev/null 2>&1
+( cd "$LT" && L_GEVITY_SKILLS_ARCHIVE="$LONG/skills.tar.gz" bash "$REPO_ROOT/.install/install-claude.sh" ) > "$WORK/long.log" 2>&1
+check "second run removes nothing" "$(grep -c 'Removed' "$WORK/long.log" || true)" "0"
+check "every file is still there" \
+  "$(find "$LT/.claude/skills/zz-long" -type f | wc -l | tr -d ' ')" "500"
+
+echo
 echo "$checks checks run"
 if [ "$fails" -eq 0 ]; then
   echo "Installers verified"

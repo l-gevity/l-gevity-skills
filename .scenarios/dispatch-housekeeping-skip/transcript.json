@@ -1,6 +1,6 @@
 {
   "scenario": "dispatch-housekeeping-skip",
-  "revision": "e2aaa5039d22",
+  "revision": "10ebc0c6f052",
   "recorded_with": "claude-code 2.1.310, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
@@ -26,6 +26,7 @@
     "evolutionary-database-design",
     "fewer-permission-prompts",
     "functionality-complexity-tradeoff",
+    "gate-lifecycle",
     "implementation-readiness",
     "infrastructure-fit",
     "loop",
@@ -51,14 +52,11 @@
   "skills_invoked": [
     "alchemy"
   ],
-  "files_read": [
-    ".git/HEAD"
-  ],
+  "files_read": [],
   "paths_searched": [
-    ".",
     ".",
     "."
   ],
-  "turns": 7,
-  "output": "```\nDispatch:   SKIP\nCore route: None\nCompanions: None\nExecution:  single-agent — SKIP never loads orchestration\nVerdict:    Defer\nReason:     Can't confirm either one, so don't delete the branch yet: this directory has no .git, only the skill library\n            and CLAUDE.md, and this session has no shell to run git. The merge claim, push state and branch name are all unverified.\nNext:       Run the commands below in the real checkout, replacing <feature> and main, and send me the output.\n```\n\n```powershell\ngit fetch --prune origin\ngit status -sb\ngit branch -vv\ngit log --oneline origin/main..<feature>\ngit log --oneline origin/<feature>..<feature>\n```\n\n- **Everything is pushed:** `status` shows a clean tree, and the last `log` is empty. If `origin/<feature>` no longer exists, that `log` errors out, so check the second `log` instead.\n- **Safe to delete:** the first `log` is also empty, so `git branch -d <feature>` will work.\n- **Squash or rebase merges:** the first `log` still lists commits, and `-d` refuses to delete the branch. In that case, check that the branch tip matches the merged PR's head SHA rather than forcing the delete with `-D`."
+  "turns": 5,
+  "output": "```\nDispatch:   SKIP\nCore route: None\nCompanions: None\nExecution:  single-agent — no code changes or audit; branch check only\nVerdict:    Defer\nReason:     Unknown whether everything is pushed, so don't delete the branch yet. This directory isn't a git\n            repository: it has no .git, only CLAUDE.md and .claude/skills. I also have no git or shell tool\n            here, so I couldn't check the merge, the push state or the branch.\nNext:       Run the commands below in the real clone, replacing <branch> and main with your branch names,\n            and paste the output, or point me at the repo path.\n```\n\n```powershell\ngit fetch --prune origin\ngit status -sb                                  # uncommitted work\ngit stash list                                  # stashed work\ngit log --oneline origin/<branch>..<branch>     # local commits not pushed\ngit log --oneline origin/main..<branch>         # commits not in main\ngit cherry origin/main <branch>                 # \"-\" = change is already in main\n```\n\nThe branch is safe to delete if `status` and `stash list` show nothing of yours, the first `log` is empty, and the second `log` is empty.\n\nIf the second `log` isn't empty, the merge may have been a squash or rebase, which changes the commit hashes:\n- **Rebase merge:** `git cherry` shows `-` on every line if all the changes landed.\n- **Squash merge:** `git cherry` still shows `+`, so compare with `git diff origin/main...<branch>` against the merged PR instead.\n\nOnce that's clear, run `git branch -d <branch>` and `git push origin --delete <branch>`. Avoid `-D`, because it bypasses git's unmerged-work check. If `-d` refuses after a squash merge, the comparison above is what makes `-D` safe. The remote delete is hard to undo, so run it last."
 }
