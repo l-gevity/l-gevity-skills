@@ -1,0 +1,50 @@
+{
+  "request": "Run zero-copy-requirements on this. I am finishing a change that adds a report export and have five notes. Place each one, in one line each: name the exact artifact it goes in, and what to do with it now.\n\n1. I chose a streaming writer over a buffered one. It is easy to swap later and changes nothing about what users see, privacy, or cost.\n2. We could put the export behind the paid plan. That changes what users see and what they pay.\n3. While reading nearby code I noticed an ugly helper in another module. It works. I was going to open an issue so we do not forget it.\n4. A penetration test has to run before the first customer goes live.\n5. The export crashes today on an empty report, and nobody is working on it yet.",
+  "skills": [
+    "zero-copy-requirements"
+  ],
+  "expect": [
+    {
+      "id": "loads-skill",
+      "criterion": "tracker-scope #1: a placement request loads the skill",
+      "check": "guidance_includes",
+      "skills": ["zero-copy-requirements"]
+    },
+    {
+      "id": "decision-in-history",
+      "criterion": "tracker-scope #2: a reversible technical decision is named in the change that makes it",
+      "check": "text_matches",
+      "pattern": "(?s)streaming.{0,400}\\b(commit|change request|pull request)\\b|\\b(commit|change request|pull request)\\b.{0,200}streaming"
+    },
+    {
+      "id": "question-in-standing-issue",
+      "criterion": "tracker-scope #3: an owner question goes in the one standing questions issue",
+      "check": "text_matches",
+      "pattern": "standing[ -](owner[ -])?questions?[ -]issue"
+    },
+    {
+      "id": "question-carries-default",
+      "criterion": "tracker-scope #3: an owner question carries the default that stands without objection",
+      "check": "text_matches",
+      "pattern": "(?s)paid.{0,500}\\bdefault\\b"
+    },
+    {
+      "id": "check-on-checklist",
+      "criterion": "tracker-scope #4: a milestone check goes on the one milestone checklist",
+      "check": "text_matches",
+      "pattern": "milestone[ -]checklist"
+    },
+    {
+      "id": "finding-not-filed",
+      "criterion": "tracker-scope #5: a finding is fixed in the change at hand or dropped, never filed",
+      "check": "text_matches",
+      "pattern": "\\bfix(ed)?\\b[^\\n]{0,80}\\bdrop|\\bdrop\\b[^\\n]{0,80}(no issue|rather than fil|never fil|not fil|without filing|don.t open)"
+    },
+    {
+      "id": "defect-is-issue",
+      "criterion": "tracker-scope #6: an open defect stays an issue",
+      "check": "text_matches",
+      "pattern": "(?s)(empty report|crash).{0,400}\\bissue\\b"
+    }
+  ]
+}

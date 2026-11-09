@@ -1,0 +1,50 @@
+{
+  "request": "Run alchemy on this: should the strict type-check run at pre-commit or in CI?",
+  "skills": [
+    "alchemy",
+    "defect-shift-left"
+  ],
+  "expect": [
+    {
+      "id": "dispatches-direct",
+      "criterion": "gate-lifecycle #15: a pure placement question stays a focused H dispatch",
+      "check": "field_in",
+      "field": "Dispatch",
+      "values": [
+        "DIRECT"
+      ]
+    },
+    {
+      "id": "routes-to-placement",
+      "criterion": "gate-lifecycle #16: check placement routes to the shift-left gate",
+      "check": "field_in",
+      "field": "Core route",
+      "values": [
+        "H",
+        "left"
+      ]
+    },
+    {
+      "id": "no-companion",
+      "criterion": "gate-lifecycle #17: a pure placement question matches no lifecycle companion",
+      "check": "field_in",
+      "field": "Companions",
+      "values": [
+        "None"
+      ]
+    },
+    {
+      "id": "does-not-load-lifecycle",
+      "criterion": "gate-lifecycle #18: a pure placement question never loads this skill",
+      "check": "guidance_excludes",
+      "skills": [
+        "gate-lifecycle"
+      ]
+    },
+    {
+      "id": "routed-skills-loaded",
+      "criterion": "claim-only-what-ran #1: every routed skill was loaded",
+      "check": "route_loaded"
+    }
+  ]
+}

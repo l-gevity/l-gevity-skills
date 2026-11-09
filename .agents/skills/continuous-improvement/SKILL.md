@@ -170,3 +170,4 @@ Residual risk:  <what still depends on judgment or future enforcement>
 
 - **`architecture-guidelines`** — first-principles rules that updates from this skill propagate back into.
 - **`defect-shift-left`** — when a recurring correction can be encoded as a Stage 0–5 gate instead of a SKILL rule (Directive 1).
+- **`gate-lifecycle`** — keeps a lesson's gate proven after it lands.

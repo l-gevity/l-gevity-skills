@@ -1,15 +1,14 @@
 {
   "scenario": "cicd-retention-by-reader",
-  "revision": "bf96b8f1f284",
-  "recorded_with": "claude-code 2.1.287, model claude-opus-5",
+  "revision": "df7ee9addc31",
+  "recorded_with": "claude-code 2.1.310, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
+    "alchemy-orchestrate",
     "architecture-as-code",
     "architecture-as-code-javascript",
     "architecture-as-code-python",
     "architecture-guidelines",
-    "artifact-capabilities",
-    "artifact-diagramming",
     "batch",
     "bring-down",
     "ci-cd-reliability-architecture",
@@ -27,7 +26,9 @@
     "evolutionary-database-design",
     "fewer-permission-prompts",
     "functionality-complexity-tradeoff",
+    "gate-lifecycle",
     "implementation-readiness",
+    "infrastructure-fit",
     "loop",
     "morphogenetic-architecture",
     "observability-design",
@@ -40,7 +41,6 @@
     "run-skill-generator",
     "schedule",
     "simplify",
-    "slides",
     "structural-simplification",
     "system-optimization",
     "test-strategy",
@@ -53,7 +53,10 @@
     "ci-cd-reliability-architecture"
   ],
   "files_read": [],
-  "paths_searched": [],
-  "turns": 3,
-  "output": "## What I found\n\nThe step pins `retention-days: 90` on a 75 MB deployment candidate whose only reader finishes within 20 minutes. Under §3 (\"retention follows the longest reader\"), retention must come from the longest-lived consumer — and here every consumer is same-run: the deploy job reads within 20 min, PR candidates are never promoted, and a manual redeploy of an older commit *reruns CI* rather than reading a stored candidate. There is no rollback window in any release record, so there is no rollback reader to retain for. The verdict is **set retention** — cut it to `retention-days: 1`. Note that 90 is also GitHub's platform default for the field, so the value is explicit in syntax only; it was never derived from a reader.\n\n## Why it matters\n\nActing: ~40 candidates/day × 75 MB = ~3 GB/day ingested. At 90 days that reaches a steady state of ~270 GB retained; at 1 day it is ~3 GB. At GitHub's published Actions storage rate of $0.008/GB/day that is roughly $65/month versus under $1 — a ~99% reduction, and the saving is recurring, not one-off. 1 day still leaves ~70× margin over the 20-minute read and survives a same-day deploy-job re-run.\n\nNot acting: storage grows with no reader for 89 of 90 days, and the overrun is almost entirely PR candidates that are deleted without ever being downloaded.\n\nThe rest of the step is correct and should not change: `if-no-files-found: error` fails loud, and SHA + `run_attempt` satisfies the §2 unique-namespace rule (artifacts are run-scoped, so this is belt-and-braces, not a defect).\n\nOne latent gap, not a blocker today: redeploy-by-rerunning-CI means rollback is a rebuild, not re-promotion of a verified digest — a §3 violation that is only tolerable because there are no production users and no stated rollback window. The day a release records a rollback window, promoted artifacts need their own longer retention (or a registry push), separate from the 1-day candidate retention.\n\n## Do this first\n\n1. Edit the step in the workflow file — change one line:\n\n```yaml\n- name: Retain immutable candidate\n  uses: actions/upload-artifact@v4\n  with:\n    name: candidate-${{ github.sha }}-${{ github.run_attempt }}\n    path: candidate/\n    if-no-files-found: error\n    retention-days: 1   # reader: deploy job, downloads within 20 min; no rollback window recorded\n```\n\n2. Keep the reader named in that comment. It is what makes the next audit cheap and what must be revisited when a rollback window appears.\n3. When a rollback window is first recorded, split retention: candidates stay at 1 day, promoted artifacts get the stated window.\n\n## What I did not check\n\n- **Org-level artifact retention cap** — an org setting silently clamps larger values (lowering to 1 is always permitted, so this cannot block the fix). Settings → Actions → General → Artifact and log retention.\n- **Job-level `timeout-minutes` and `concurrency: cancel-in-progress`** — only the single step was in scope. Close with `grep -nE 'timeout-minutes|concurrency|cancel-in-progress' .github/workflows/*.yml`.\n- **How the deploy job consumes the artifact** (`download-artifact` with explicit `run-id`, or a cross-run assumption). Close with `grep -n -A6 'download-artifact' .github/workflows/*.yml`.\n- **Whether any registry publish exists for promoted artifacts** — relevant only once a rollback window is recorded. Close with `grep -nE 'ghcr.io|docker/build-push|oras|publish' .github/workflows/*.yml`.\n\n```\nScope:          .github/workflows — \"Retain immutable candidate\" upload step\nDecision:       Set retention\nRisk:           retention\nArtifact:       candidate/ tagged candidate-<sha>-<run_attempt>; no digest or provenance recorded;\n                retention 90d declared, longest reader = deploy job at <20 min\nRelease state:  BUILD-VERIFIED\nTest evidence:  Not in scope of this step; no gates read from this artifact beyond the deploy job\nPreflight:      n/a for an upload step\nStrategy:       Not declared in the provided step; no production users yet\nRepresentativeness: unmeasured (no stage declared)\nRollout:        not stated; redeploy of an older commit rebuilds via CI rerun rather than\n                re-promoting a stored digest\nZero-downtime:  n/a — upload step performs no deployment\nRollback:       No rollback window in any release record; rollback path is rebuild, not\n                re-promotion of a known-good artifact (acceptable only while there are no users)\nOwner handoff:  missing — no operational owner named for retention policy\nEvidence:       Step YAML as provided; volume stated as ~40 runs/day x 75 MB; deploy read window\n                stated as <20 min; releases stated to record no rollback window\nVerification:   Not run — no repository present in the working directory; arithmetic\n                (40 x 75 MB x 90d ~ 270 GB steady state) derived from stated figures\nNext action:    Set retention-days: 1 with the reader named in a trailing comment; re-split\n                retention for promoted artifacts when a release first records a rollback window\n```"
+  "paths_searched": [
+    ".",
+    "."
+  ],
+  "turns": 5,
+  "output": "**What I found**\n\nThe `actions/upload-artifact@v4` step keeps every candidate for 90 days, but its only reader finishes within 20 minutes. Set retention to 1 day, the lowest value GitHub accepts (the record calls this Set retention). An expired candidate is not a problem, because a manual redeploy already reruns CI, and releases record no rollback window that would need older candidates.\n\n**Why it matters**\n\nAt 40 candidates a day of about 75 MB, that is 3 GB a day. Keeping them for 90 days holds about 270 GB, and keeping them for 1 day holds about 3 GB, before any zip compression. The cost of the change is that a redeploy after 24 hours always rebuilds instead of sometimes reusing a stored candidate. That rebuild can produce a different digest, which is acceptable while there are no production users and no rollback promise.\n\n**Do this first**\n\n1. In the workflow file containing this step, change the retention value and leave the other fields as they are:\n   ```yaml\n   retention-days: 1\n   ```\n2. When a release record first states a rollback window, retain promoted artifacts for that window only. Pull request candidates stay at 1 day.\n\n**What I did not check**\n\n- **The workflow itself:** there is no `.github/workflows` file in this workspace, so this rests on your description and the pasted step.\n- **Other readers:** another job could still read the candidate. Run `grep -rnE \"download-artifact|run-id\" .github/workflows` in the real repository.\n- **Actual storage:** the figures come from your numbers, not from billing data. Run `gh api repos/{owner}/{repo}/actions/cache/usage` for cache only, or check the repository's Actions storage billing page for artifact storage.\n- **Delayed deploy reruns:** rerunning a failed deploy job more than 24 hours later will find its candidate expired. You described rerunning CI only for manual redeploys, so confirm that path also covers this case.\n- **The rest of the pipeline:** gates, deploy job, digest verification and health checks were not supplied, so they are not assessed.\n\n```\nScope:          CI workflow / \"Retain immutable candidate\" upload step\nDecision:       Set retention\nRisk:           retention\nArtifact:       candidate-<sha>-<run_attempt>; SHA-namespaced, unique per attempt, empty upload fails. Digest and provenance not supplied. Retention 90 days → 1 day; longest reader is the deploy job, within 20 minutes of the CI run. Manual redeploy is not a reader (reruns CI on expiry). No rollback reader (no window recorded).\nRelease state:  Not assessed; gate results not supplied\nTest evidence:  Not assessed; outside the supplied step\nPreflight:      Not assessed; rollback-artifact availability has no target while no rollback window is recorded\nStrategy:       Not supplied\nRepresentativeness: Not supplied\nRollout:        Not supplied\nZero-downtime:  Not assessed; no production users yet\nRollback:       No rollback retention; no window recorded. Redeploy path is a CI rerun, not re-promotion of a stored artifact.\nOwner handoff:  Not supplied\nEvidence:       Pasted step and stated pipeline behavior. Workspace search found no workflow files and no upload-artifact, download-artifact or retention-days matches.\nVerification:   Not run; no workflow file or CI run available. Arithmetic: 40 × 75 MB = 3 GB/day; 90 days ≈ 270 GB, 1 day ≈ 3 GB (pre-compression).\nNext action:    Set retention-days: 1; confirm no other reader; add window-based retention for promoted artifacts only when a release record states a rollback window.\n```"
 }

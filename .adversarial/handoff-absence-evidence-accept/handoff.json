@@ -1,0 +1,22 @@
+{
+  "schema": "alchemy-handoff/1",
+  "package": "A2",
+  "owner": "agent-a",
+  "status": "DONE",
+  "attempt": 1,
+  "base_commit": "3f9c2e1",
+  "requirements": ["REQ-30"],
+  "relied_on": [],
+  "changed_files": [],
+  "evidence": [
+    {"id": "E1", "criterion": "A2-AC1", "command": "git grep -n legacyExport -- src/", "exit_code": 1, "expect_exit": 1, "commit": "3f9c2e1", "summary": "no match: legacyExport has no callers"},
+    {"id": "E2", "command": "git grep -n -- '--strict' scripts/", "exit_code": 1, "expect_exit": 1, "commit": "3f9c2e1", "summary": "no script passes --strict"}
+  ],
+  "claims": [
+    {"text": "legacyExport has no callers in src/", "evidence": ["E1"]},
+    {"text": "No script passes --strict", "evidence": ["E2"]}
+  ],
+  "blockers": [],
+  "next_owner": "lead",
+  "integration_ready": true
+}

@@ -97,6 +97,11 @@ SRC_SKILL_NAMES="$(cd "$SRC_SKILLS" && find . -mindepth 1 -maxdepth 1 -type d | 
 SKILL_COUNT="$(printf '%s\n' "$SRC_SKILL_NAMES" | grep -c . || true)"
 FILE_COUNT="$(printf '%s\n' "$SRC_FILES" | grep -c . || true)"
 
+# A file, not a pipe: grep -q exits on its first match, and under pipefail the
+# writer's SIGPIPE would read as "not shipped" and delete a shipped file.
+SRC_LIST="$TMP/src-files.txt"
+printf '%s\n' "$SRC_FILES" > "$SRC_LIST"
+
 HASHES="$TMP/hashes.txt"
 : > "$HASHES"
 while IFS= read -r rel; do
@@ -176,7 +181,7 @@ for d in $DESTS; do
   cp -R "$SRC_SKILLS/." "$dest/"
   # Anything this installer wrote before and upstream has since dropped.
   while IFS= read -r rel; do
-    if [ -n "$rel" ] && ! printf '%s\n' "$SRC_FILES" | grep -qxF "$rel"; then
+    if [ -n "$rel" ] && ! grep -qxF -- "$rel" "$SRC_LIST"; then
       if ! safe_relpath "$rel"; then
         echo "Refused to remove unsafe path from lock: $rel" >&2
         continue

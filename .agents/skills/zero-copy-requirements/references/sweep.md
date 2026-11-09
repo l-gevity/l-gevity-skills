@@ -19,8 +19,8 @@ Sweep must not delete anything, edit an authority, or classify an artifact
 `DUPLICATE` without naming the carrier of every claim in it. Sweep proposes;
 the owner disposes.
 
-The sweep's own result is a finding, not an artifact. Emit it in the response
-or as an issue. A committed `documentation-audit.md` is the anti-pattern this
+The sweep's own result is a finding, not an artifact. Emit it in the response,
+never as an issue. A committed `documentation-audit.md` is the anti-pattern this
 skill exists to remove.
 
 ## Procedure
@@ -43,7 +43,8 @@ skill exists to remove.
    with a named carrier is **redundant** — fold and delete. A claim with no
    carrier is **unowned**, not redundant: its action is to move it into the
    authority that owns the question. Deleting an unowned claim destroys the only
-   copy of a fact, which is the one failure this skill must never cause.
+   copy of a fact, which is the one failure this skill must never cause. A
+   follow-up, idea, or reminder is not a claim: propose fixing or dropping it.
 5. **Rank.** Order by evidence strength and reversibility, cheapest and safest
    first: fully carried duplicates, then hand-maintained reports that a command
    can regenerate, then partially carried artifacts, then exceptions whose guard
@@ -61,10 +62,10 @@ never a verdict on its own.
 
 | Signature | Provisional classification | Confirm when opened by |
 | --- | --- | --- |
-| ADR file, decision log, or decision record directory | DUPLICATE | Finding the issue that argued it |
+| ADR file, decision log, or decision record directory | DUPLICATE | Finding the issue or change that argued it |
 | Hand-edited changelog, status page, roadmap, or progress board | GENERATED-REPORT | Finding a command that could compile it from history, tracker, and register |
 | Architecture or design note describing a current module | DUPLICATE | Finding the module, contract, or enforcement rule it narrates |
-| Triage, investigation, incident, or postmortem file | DUPLICATE | Finding the issue it belongs to, or creating one |
+| Triage, investigation, incident, or postmortem file | DUPLICATE | Finding the issue or change that carries it; create an issue only for an open defect |
 | Setup, contribution, or conventions guide | EXCEPTION (onboarding/tooling) | Checking whether the tooling now carries the instruction itself |
 | Dated migration note, superseded model, or import record | EXCEPTION (frozen record) | Checking the history for edits after its date |
 | Prose whose subject module churned while the prose did not | DUPLICATE | Comparing the claim against current behavior |

@@ -1,0 +1,13 @@
+{
+  "criterion": "multi-agent-governance #100: a search that proves absence passes on the exit code it declares",
+  "description": "A2 proves two no-caller findings with git grep, which exits 1 when nothing matches, and declares expect_exit 1 on each item.",
+  "command": "handoff",
+  "args": {
+    "plan": "plan.json",
+    "handoff": "handoff.json"
+  },
+  "expect": {
+    "verdict": "ACCEPT",
+    "codes": []
+  }
+}

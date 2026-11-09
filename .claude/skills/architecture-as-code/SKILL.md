@@ -302,3 +302,4 @@ step 5 (invoke) are stack-specific.
 - **`morphogenetic-architecture`** — the placement, locality,
   interface-direction, and static-topology rationale this enforces.
 - **`defect-shift-left`** — §6.2 (ADR → executable architectural rule) names this pattern.
+- **`gate-lifecycle`** — keeps a rule proven and its effective scope measured after it lands.

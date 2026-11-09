@@ -1,16 +1,14 @@
 {
   "scenario": "worth-existing-retry-wrapper",
-  "revision": "b9776d1c9335",
-  "recorded_with": "claude-code 2.1.234, model claude-opus-5[1m]",
+  "revision": "3c1799c1adc5",
+  "recorded_with": "claude-code 2.1.310, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
+    "alchemy-orchestrate",
     "architecture-as-code",
     "architecture-as-code-javascript",
     "architecture-as-code-python",
     "architecture-guidelines",
-    "artifact-capabilities",
-    "artifact-design",
-    "artifact-diagramming",
     "batch",
     "bring-down",
     "ci-cd-reliability-architecture",
@@ -22,15 +20,18 @@
     "deep-research",
     "defect-shift-left",
     "dependency-lifecycle",
+    "design",
     "design-sync",
     "doctor",
     "evolutionary-database-design",
     "fewer-permission-prompts",
     "functionality-complexity-tradeoff",
     "implementation-readiness",
+    "infrastructure-fit",
     "loop",
     "morphogenetic-architecture",
     "observability-design",
+    "plugin-authoring",
     "push-out",
     "requirements-grounding",
     "requirements-topology",
@@ -44,15 +45,23 @@
     "test-strategy",
     "update-config",
     "verify",
+    "workflow-authoring",
     "zero-copy-requirements"
   ],
   "skills_invoked": [
     "functionality-complexity-tradeoff"
   ],
-  "files_read": [],
-  "paths_searched": [
-    "."
+  "files_read": [
+    ".claude/skills/functionality-complexity-tradeoff/references/common-patterns.md",
+    ".claude/skills/functionality-complexity-tradeoff/references/forcing-questions.md",
+    ".claude/skills/functionality-complexity-tradeoff/references/asymmetric-tradeoffs.md",
+    ".claude/skills/architecture-guidelines/SKILL.md"
   ],
-  "turns": 4,
-  "output": "No code for this is in the working directory (`withRetry` has zero matches here), so this is a design-level verdict from what you described, not a measured audit.\n\n**What I found.** The wrapper is not redundant with the gateway, but it is overgrown. Keep a retry, cut it back, and re-measure before deciding whether even the cut-back version earns its place (the record calls this SIMPLIFY). The fact that decides it: the gateway can only retry calls that reached it, so the client→gateway hop (DNS, TCP/TLS, gateway 502/503/504, gateway restarts) has no other defense — the necessity gate passes. What fails is the shape: `withRetry(fn, 3)` on *every* request, with a fixed delay and no jitter, stacks multiplicatively on the gateway's two retries.\n\n**Why it matters.** Worst case a single logical call becomes up to 12 requests at the origin (4 client attempts × 3 gateway attempts; 9 if the `3` is total attempts, not retries — the ambiguity is worth resolving in the code). That amplification peaks precisely during the overload the retries exist for, which is how a brownout turns into a metastable outage. Blanket wrapping also retries non-idempotent requests, so a POST that timed out after the server committed gets re-sent — duplicate writes, silently. And a fixed 1s × 3 delay under the gateway's own backoff can exceed the caller's timeout, in which case the retries burn capacity and the caller has already given up. Not acting leaves all three live; acting costs one focused change to one wrapper.\n\n**Do this first.**\n1. Scope the retry to the first hop and to safe methods: retry only connect/TLS errors, request timeouts, and 502/503/504, and only for idempotent requests (GET/HEAD/PUT/DELETE, or anything carrying an idempotency key) — edit the `withRetry` call site in the HTTP client.\n2. Drop to one retry with exponential backoff plus jitter, so the end-to-end amplification is bounded at ~6 instead of 12, and compare the resulting total retry window against the caller timeout.\n3. Emit a counter per retry tagged with cause and final outcome, so the next pass can decide KEEP vs DELETE on data instead of on the two-year-old outage.\n\n**What I did not check.** Current retry telemetry — none exists yet, hence step 3; the gateway's actual retry policy (which status codes and methods it retries, and whether it also retries connect failures) — read the gateway config, as overlap there changes step 1; the original outage's post-mortem — `git log -S withRetry` plus the linked incident, to confirm whether the failure it fixed was on the client→gateway hop or beyond it; structural complexity (D/K/P/n) — not measurable without the code in front of me.\n\n```text\nSubject:        HTTP client withRetry(fn, 3) — fixed 1s delay, applied to all outgoing requests\nMode:           Retrospective\nNecessity:      Pass\nNecessity note: Looks like \"already-defended-elsewhere\" (§1a) but is not. The gateway's\n                two retries cover gateway→upstream only; it cannot retry a request that\n                never reached it. The client→gateway hop has no other owner, so the\n                aspect-owner map leaves a real gap. Obligation/mechanism split (§1e):\n                obligation = survive transient failure reaching the gateway; mechanism =\n                blanket fixed-delay retry on every request, which the obligation does not force.\nV scores:       U=2  user-visible 5xx/connection errors on the unprotected first hop\n                F=1  unknown — no retry telemetry; origin outage 2y ago is the only datapoint\n                R=3  wraps every outgoing request\n                I=2  no alternative mechanism covers the client→gateway hop\nC scores:       Subsystem-kinds Δ / Dependency-edges Δ / Max-chain-depth Δ / Subsystem-count Δ\n                = not measured (no source available in this directory)\n                M=1  single wrapper, low surface\n                X=3  retries non-idempotent requests (duplicate writes); up to 12 origin\n                     requests per logical call; fixed delay, no jitter → synchronized herds\n                     during the exact overload it was built for\n                E=1  localized; narrowing it touches one call site\nConfidence V:   Low    (no telemetry on retry frequency or success rate)\nConfidence C:   Medium (X derivable from the described design; structural axes unmeasured)\nOutcome evidence: none\nDecision:       SIMPLIFY\nRationale:      Necessity passes on the first hop, so OBSOLETE is wrong — removing the\n                wrapper outright would leave client→gateway failures undefended. But the\n                mechanism far exceeds the obligation: blanket application, non-idempotent\n                retries, multiplicative amplification, and no jitter put X at 3 against a\n                V whose frequency is unmeasured. Low V confidence would otherwise force\n                QUARANTINE (§6b); the X findings are design-level and need no telemetry,\n                so simplify now and instrument to settle KEEP vs DELETE later.\nNext action:    Narrow to idempotent requests + first-hop failure modes; 1 retry with\n                exponential backoff and jitter; add a retry counter tagged by cause and outcome.\nVerification:   rg -n \"withRetry\" to enumerate call sites and confirm none depend on 3\n                attempts; read the gateway retry policy for method/status overlap;\n                git log -S withRetry for the originating incident; after deploy, confirm\n                the retry counter is non-zero for first-hop causes.\nMinimal alt:    Leave the wrapper in place but gate it on method idempotency only — removes\n                the duplicate-write risk, leaves amplification and herding unaddressed.\nRevisit when:   8 weeks after the counter ships, or when first-hop retries exceed/fall below\n                a meaningful rate — sustained zero successful first-hop retries reopens\n                this as DELETE.\n```"
+  "paths_searched": [
+    ".",
+    ".",
+    ".claude/skills/architecture-guidelines/SKILL.md"
+  ],
+  "turns": 10,
+  "output": "**What I found:** Don't remove `withRetry` yet. Keep it, count what its retries actually rescue, and decide on 2026-12-04 (the record calls this QUARANTINE). The gateway makes the wrapper look redundant, but it can't retry a request that never reached it, such as a connection refused or reset during a gateway restart. Nothing yet shows how often that happens, so the case for full redundancy isn't proven.\n\n**Why it matters:**\n- **If you keep it unchanged:** assuming the gateway retries each client attempt, one failing call can hit the backend up to 12 times (4 client attempts × 3 gateway attempts). The fixed delay has no jitter, so during an outage clients retry in step, which adds load when the backend is least able to take it.\n- **If you remove it now:** any failure on the client-to-gateway hop goes straight to callers, and you'd be relying on a gateway guarantee that this code can't see or test.\n- **Possible live bug:** if both layers retry non-idempotent calls like POST, requests could be duplicated. The description says \"every outgoing request\", but I haven't confirmed this.\n\n**Do this first:**\n1. In `withRetry`, add a counter labelled by HTTP method, failure class (connect, timeout, gateway-returned 5xx) and final outcome.\n2. Compare `withRetry` and the gateway's retry config on which methods and statuses each one retries. If POST is retried without an idempotency key, fix that now without waiting for the data.\n3. Decide on 2026-12-04, and only if the data window includes at least one gateway deploy or restart.\n\n**What I did not check:** this directory has no application code or git history, and `withRetry` has no matches here. So the review relies entirely on your description.\n- **`withRetry` code:** run `rg -n \"withRetry\"` in the client repo to confirm the signature and retry conditions.\n- **Gateway behaviour:** read its retry config for methods, statuses and timeouts.\n- **Why it was added:** run `git log -S \"withRetry\"` and read the outage postmortem. If that failure was on the client-to-gateway hop, the wrapper is still needed.\n- **\"All traffic\" claim:** check for clients or paths that bypass the gateway.\n\n```\nSubject:        withRetry(fn, 3) in the HTTP client\nMode:           Retrospective\nNecessity:      Pass (provisional)\nNecessity note: Not OBSOLETE: \"fully owned by another layer\" is unproven. A\n                connect failure or reset on the client→gateway hop is a concrete\n                trigger the gateway cannot retry. The upstream hop is duplicated.\nV scores:       U=2  transient client→gateway failures would reach callers (judgment)\n                F=unmeasured  no data on how often a client retry rescues a call\n                R=unmeasured  every request is wrapped; share needing it is unknown\n                I=1  gateway covers the upstream hop, nothing covers the client hop\nC scores:       Subsystem-kinds, Dependency-edges, Max-chain-depth, Subsystem-count:\n                not measured (code not available)\n                M=1  small wrapper (assumed)\n                X=2  up to 12 upstream attempts per call; no jitter; possible\n                     duplicate non-idempotent calls\n                E=1  latency budgets and timeouts must allow for both retry layers\nConfidence V:   Low\nConfidence C:   Low\nOutcome evidence: none\nDecision:       QUARANTINE\nRationale:      The problem is partly real, so the necessity gate does not support\n                OBSOLETE at High confidence. Value is unmeasured, so the confidence\n                gate defaults to QUARANTINE rather than DELETE. The mechanism looks\n                inflated for the obligation of surviving transient hop failures\n                (§1e), which makes SIMPLIFY the likely result once measured.\nNext action:    Add telemetry to withRetry by method, failure class and outcome.\nVerification:   Not run: no client code, gateway config or telemetry here.\nMinimal alt:    Retry only connection failures that never reached the gateway:\n                once, with jitter, and only for idempotent calls.\nRevisit when:   2026-12-04, with the window covering at least one gateway deploy\n                or restart. No rescues in any class: delete. Rescues only on the\n                client→gateway hop: apply the minimal alt. Rescues on gateway-returned\n                failures: compare gateway retry config before changing anything.\n```"
 }

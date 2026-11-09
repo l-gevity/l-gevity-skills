@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #101: a command criterion passes only on exit 0, whatever the evidence expects",
+  "description": "P1 cites a failing run of its plan command REQ-12-AC1 and declares expect_exit 1 to make the failure read as a pass.",
+  "command": "handoff",
+  "args": {
+    "plan": "plan.json",
+    "handoff": "handoff.json"
+  },
+  "expect": {
+    "verdict": "REJECT",
+    "codes": [
+      "CLAIM_CONTRADICTS_EVIDENCE"
+    ]
+  }
+}

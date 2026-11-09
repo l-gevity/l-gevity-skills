@@ -123,8 +123,9 @@ the runtime transcript).
    permissions, budget. A package consuming a contract depends on the package
    producing it.
 3. **Check the plan.** Run `python <skill>/scripts/check_orchestration.py plan
-   <plan.json> --profile alchemy-workspace.json`. It rejects cycles, write
-   overlap between concurrent packages, missing contract order, self-review,
+   <plan.json> --profile alchemy-workspace.json --root .`. It rejects a work
+   tree that is not clean at the plan's base, cycles, write overlap between
+   concurrent packages, missing contract order, self-review,
    unreviewed high-risk writes, recursive delegation, a cap above the profile,
    protected paths without human approval, and any merge policy other than
    human approval. It prints waves and the derived mode.
@@ -143,9 +144,11 @@ the runtime transcript).
    agents never delegate. When the runtime cannot spawn agents, re-plan as
    `single-agent` and report the limitation: a plan nobody was delegated is
    not a multi-agent run.
-6. **Receive hand-offs.** Each package returns a hand-off record; run
-   `check_orchestration.py handoff <handoff.json> --plan <plan.json> --root
-   <workspace>`. `ACCEPT` continues; `REJECT`, `STALE`, `RETRY`, and `ESCALATE` follow
+6. **Receive hand-offs.** Each package ends its reply with its hand-off as
+   one JSON block. Save it unedited under `state_dir` and, before anyone
+   changes the workspace, run `check_orchestration.py handoff <handoff.json>
+   --plan <plan.json> --root <workspace>`. `ACCEPT` continues; `REJECT`,
+   `STALE`, `RETRY`, and `ESCALATE` follow
    [references/governance.md](references/governance.md) §4.
 7. **Integrate.** The lead merges accepted packages in wave order, resolves
    conflicts by serializing, runs the profile's verification commands on the

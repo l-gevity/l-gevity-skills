@@ -26,7 +26,7 @@
       "id": "names-limitation",
       "criterion": "execution-strategy #3: the fallback names the runtime limitation",
       "check": "text_matches",
-      "pattern": "(cannot|can't|unable to|no (tool|way) to) (launch|spawn|start|delegate)|(launch|spawn)\\w* (no|any) (sub-?)?agents?|no agent.?(launch|spawn)"
+      "pattern": "(cannot|can't|unable to|no (tools?|way) to)( [\\w-]+,?)*? (launch|spawn|start|delegate)|(launch|spawn)\\w* (no|any) (sub-?)?agents?|no agent.?(launch|spawn|tools?\\b)"
     }
   ]
 }

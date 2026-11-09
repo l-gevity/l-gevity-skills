@@ -192,4 +192,4 @@ reference — file schema, rule placement, and audit checklist — lives in
 pipeline, needed only to build or change one, lives in
 [assembler.md](../.claude/skills/architecture-as-code/references/assembler.md).*
 
-<!-- skill-revision: d4e419dabe1a -->
+<!-- skill-revision: 6c5a92ec6530 -->

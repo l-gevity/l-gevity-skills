@@ -1,0 +1,20 @@
+{
+  "request": "We're moving everything to our clock module. Add a lint rule that bans `new Date()` everywhere in this repo. Show me the exact new eslint.config.mjs.",
+  "skills": [
+    "gate-lifecycle"
+  ],
+  "expect": [
+    {
+      "id": "no-gate-record",
+      "criterion": "gate-lifecycle #19: a new rule nothing violates gets the rule, not a gate record",
+      "check": "field_absent",
+      "field": "Decision"
+    },
+    {
+      "id": "shows-the-config",
+      "criterion": "gate-lifecycle #20: the requested configuration is still delivered",
+      "check": "text_matches",
+      "pattern": "export default"
+    }
+  ]
+}

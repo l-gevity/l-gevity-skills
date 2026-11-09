@@ -1,0 +1,136 @@
+{
+  "schema": "alchemy-ledger/1",
+  "head_commit": "c47e9aa",
+  "rework_cycles": {
+    "P1": 1
+  },
+  "evidence": [
+    {
+      "id": "E7",
+      "command": "npm test -- orders",
+      "exit_code": 0,
+      "commit": "c47e9aa",
+      "produced_by": "agent-c"
+    },
+    {
+      "id": "E8",
+      "command": "npm test -- shipments",
+      "exit_code": 0,
+      "commit": "c47e9aa",
+      "produced_by": "agent-c"
+    },
+    {
+      "id": "E9",
+      "command": "npm test",
+      "exit_code": 0,
+      "commit": "c47e9aa",
+      "produced_by": "agent-c"
+    },
+    {
+      "id": "E5",
+      "command": "npm test -- orders --grep negative",
+      "exit_code": 1,
+      "commit": "3f9c2e1",
+      "produced_by": "agent-c"
+    },
+    {
+      "id": "E10",
+      "command": "npm test -- orders",
+      "exit_code": 1,
+      "expect_exit": 1,
+      "commit": "c47e9aa",
+      "produced_by": "agent-c"
+    }
+  ],
+  "criteria": [
+    {
+      "id": "REQ-12-AC1",
+      "package": "P1",
+      "status": "verified",
+      "evidence": [
+        "E10"
+      ],
+      "verified_by": "agent-c"
+    },
+    {
+      "id": "REQ-13-AC1",
+      "package": "P2",
+      "status": "verified",
+      "evidence": [
+        "E8"
+      ],
+      "verified_by": "agent-c"
+    },
+    {
+      "id": "REQ-13-AC2",
+      "package": "P2",
+      "status": "deferred",
+      "deferred_by": "human",
+      "reason": "Needs production traffic data"
+    },
+    {
+      "id": "P3-AC1",
+      "package": "P3",
+      "status": "verified",
+      "evidence": [
+        "E9"
+      ],
+      "verified_by": "lead"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "package": "P1",
+      "severity": "blocking",
+      "status": "resolved",
+      "raised_by": "agent-c",
+      "evidence": [
+        "E5"
+      ],
+      "resolution": {
+        "by": "agent-a",
+        "evidence": [
+          "E7"
+        ]
+      }
+    },
+    {
+      "id": "F2",
+      "package": "P2",
+      "severity": "minor",
+      "status": "open",
+      "raised_by": "agent-c",
+      "evidence": []
+    }
+  ],
+  "disputes": [
+    {
+      "id": "X1",
+      "subject": "Validate in handler or in repository",
+      "positions": [
+        {
+          "by": "agent-a",
+          "claim": "handler",
+          "evidence": [
+            "E7"
+          ]
+        },
+        {
+          "by": "agent-b",
+          "claim": "repository",
+          "evidence": []
+        }
+      ],
+      "status": "resolved",
+      "resolution": {
+        "basis": "evidence",
+        "decided_by": "lead",
+        "evidence": [
+          "E7"
+        ],
+        "rationale": "Only the handler position has a passing test"
+      }
+    }
+  ]
+}
