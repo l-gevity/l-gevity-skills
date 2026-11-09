@@ -819,6 +819,7 @@ REFERENCE_REQUIRED_TERMS = {
         "references/technique-selection.md": (
             "A sophisticated harness cannot repair an",
             "Human does not mean informal; automated does not mean objective",
+            "Triage each persona finding by its oracle",
             "Do not prescribe a universal unit/integration/E2E ratio",
         ),
         "references/portfolio-governance.md": (
@@ -2394,10 +2395,12 @@ def mutation_test() -> int:
     def uncover_skill(files=validator_copy):
         for path in files:
             text, crlf = read_raw(path)
-            needle = '    "test-strategy",\n)'
-            if needle not in text:
+            # Drop the last entry, whichever skill it is, so the case survives
+            # the list shrinking.
+            mutated, count = re.subn(r'(SCENARIO_UNCOVERED = \((?:\n    "[^"]+",)*)\n    "[^"]+",\n\)', r"\1\n)", text, count=1)
+            if count == 0:
                 raise RuntimeError("SCENARIO_UNCOVERED tail not found in the validator copy")
-            write_raw(path, text.replace(needle, ")", 1), crlf)
+            write_raw(path, mutated, crlf)
 
     cases.append((Case("scenarios: a skill left without a scenario", validator_copy, ("has no behavior scenario",)), uncover_skill))
 
