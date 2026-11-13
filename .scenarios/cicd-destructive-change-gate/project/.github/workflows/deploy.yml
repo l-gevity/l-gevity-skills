@@ -1,0 +1,40 @@
+name: Deploy infrastructure
+
+on:
+  pull_request:
+    paths: [infra/**]
+  push:
+    branches: [main]
+    paths: [infra/**]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  validate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: az bicep build --file infra/main.bicep
+      - run: az bicep lint --file infra/main.bicep
+
+  deploy:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - run: >-
+          az deployment group create
+          --resource-group app-prod
+          --template-file infra/main.bicep
+          --mode Complete

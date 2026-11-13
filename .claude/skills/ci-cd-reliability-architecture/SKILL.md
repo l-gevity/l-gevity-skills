@@ -248,6 +248,29 @@ the default. The scripted pattern and its rules are in
 [references/pipeline-patterns.md](references/pipeline-patterns.md) under
 *Replacement pattern*.
 
+### Destructive-Change Gate
+
+Review reads the diff; the data loss is in the effect. One renamed parameter
+can delete a database, or leave it orphaned beside a new empty one the
+application now uses. A redeploy restores neither, so **gate the effect, not
+the text**:
+
+- Run the tool's effect preview (plan, what-if, preview) against the live
+  environment at review, and **again in the deploy job, immediately before
+  mutation**: the environment can change after approval. Where the tool saves
+  a plan, apply exactly that plan.
+- Fail on any deletion or replacement of a state-holding resource, and on any
+  new state-holding resource that replaces an existing one. Only a release in
+  the same change that names each resource passes it.
+- A mode that deletes undeclared resources (complete mode, prune) is opted
+  into per change, never the default.
+- State-holding resources carry provider deletion protection the deploy
+  identity cannot remove; removing it is its own change.
+
+The preview parsing and tool mapping are in
+[references/pipeline-patterns.md](references/pipeline-patterns.md) under
+*Destructive-change gate*.
+
 ---
 
 ## 8. Release and Production Promotion
@@ -290,7 +313,7 @@ justifies the omission.
 | **Integration / every PR** | Component/integration tests; API/schema contract and backward-compatibility tests; authorization negative-path tests; container/artifact reproducibility | Block merge; test the same output that becomes the immutable artifact |
 | **Preview / every deployable candidate** | Startup smoke; critical-journey E2E; supported-browser compatibility; visual regression where rendered UI is material; broken-link validation for navigable content | Block merge where the verification stage precedes merge, otherwise withhold exposure and block promotion; run against the strategy's verification stage using the candidate artifact |
 | **Frontend preview / applicable routes** | Bundle/resource budgets; Lighthouse performance, accessibility, best-practices, and SEO assertions as applicable; dedicated automated accessibility rules | Block merge on breached budgets or new violations, or withhold exposure when the verification stage follows merge; test representative public and authenticated routes under declared mobile/desktop profiles |
-| **Pre-deploy / every target environment** | Config/schema and feature-flag consistency; secret presence/expiry; migration dry-run and reversibility; deployed-contract diff; IAM/capacity/quota/cost projection; rollback-artifact availability | Abort before mutation; attach results to the release record |
+| **Pre-deploy / every target environment** | Config/schema and feature-flag consistency; secret presence/expiry; migration dry-run and reversibility; deployed-contract diff; IaC effect preview with no unreleased deletion, replacement, or orphaning of a state-holding resource (§7); IAM/capacity/quota/cost projection; rollback-artifact availability | Abort before mutation; attach results to the release record |
 | **Environment parity / permanent stages only** | Measured drift of the verification stage from production: region and topology, runtime and dependency versions, configuration and feature-flag state, data shape and scale | Block promotion on undeclared drift; an unmeasured stage cannot carry the evidence §5 admitted it for |
 | **Deploy execution / every deployment** | Startup, readiness, dependency-connectivity, health, and rollback-trigger verification | Withhold traffic or roll back automatically on failure |
 | **Canary/staging / promotion and scheduled** | Performance regression, load/stress/soak as risk requires; resilience/fault-injection; rollback drill; backup-restore verification for stateful systems | Block promotion on threshold breach; expensive suites may be scheduled, but their evidence must be fresh enough for the release policy |
@@ -365,7 +388,8 @@ must satisfy the release's evidence-freshness policy.
 - [ ] **Frontend quality**: applicable representative routes have bundle,
       Lighthouse, and dedicated automated accessibility gates
 - [ ] **Pre-deploy tests**: config, migration, contract, secret, feature-flag,
-      IAM/capacity, and rollback-artifact checks abort before mutation
+      IaC effect preview, IAM/capacity, and rollback-artifact checks abort
+      before mutation
 - [ ] **Scheduled risk tests**: applicable load/soak, resilience, rollback, and
       restore evidence satisfies the release's freshness policy
 - [ ] **Delivery strategy**: permanent, ephemeral, or production-only
@@ -403,7 +427,7 @@ When applying this skill, emit a coder-facing pipeline decision record:
 ```
 Scope:          <workflow / job / environment / deploy path>
 Decision:       Proceed | Block | Add gate | Split job | Make idempotent | Set retention | Promote | Rollback | Remove secret
-Risk:           <idempotency | timeout | mutable artifact | retention | deploy-build | secret | static-quality | unit | integration | contract | authorization | frontend-quality | accessibility | performance | migration | health-check | e2e | resilience | restore | concurrency | IaC | provenance | preflight | rollout | production-verification | handoff>
+Risk:           <idempotency | timeout | mutable artifact | retention | deploy-build | secret | static-quality | unit | integration | contract | authorization | frontend-quality | accessibility | performance | migration | health-check | e2e | resilience | restore | concurrency | IaC | destructive-change | provenance | preflight | rollout | production-verification | handoff>
 Artifact:       <commit, digest, provenance, retention and its reader>
 Release state:  <BUILD-VERIFIED | RELEASE-READY | DEPLOYING | PRODUCTION-VERIFYING | DEPLOYED-HEALTHY | BLOCKED | ROLLBACK>
 Test evidence:  <applicable gates, reports, exclusions, and results>

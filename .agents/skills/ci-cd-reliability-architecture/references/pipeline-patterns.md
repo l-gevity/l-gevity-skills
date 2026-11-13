@@ -124,3 +124,45 @@ curl -f -X POST https://api/resource -d "${DEFINITION}"
 - Delete-before-create is an exception for provider constraints, not the default
 - Wrap creation in idempotent guard and failure handling
 - Log state transitions: "definition changed, updating"
+
+## Destructive-change gate (SKILL.md §7)
+
+Run the same gate twice: in the pull request, where its output is posted for
+the reviewer, and in the deploy job immediately before mutation, against the
+live environment. Mark state-holding resources by a tag or label the gate
+reads (for example `state=holds-data`); a hardcoded type list goes stale when
+a new resource type arrives.
+
+| Tool | Effect preview | Deletion or replacement | Orphan signal | Deletion protection |
+| --- | --- | --- | --- | --- |
+| Terraform / OpenTofu | `plan -out=tfplan`, then `show -json tfplan` | `resource_changes[].change.actions` contains `delete` | a `create` of a state-holding type in the same plan as its `delete` | `lifecycle { prevent_destroy = true }`; provider flags such as `deletion_protection` |
+| Bicep / ARM | `az deployment group what-if --no-pretty-print` | `changeType` is `Delete` | a `Create` of a state-holding type while one of that type shows `Ignore` (left out of the template, kept by incremental mode) | `CanNotDelete` resource lock; the deploy identity lacks `Microsoft.Authorization/locks/delete` |
+| Pulumi | `pulumi preview --json` | `steps[].op` is `delete`, `replace`, or `delete-replaced` | a `create` of a state-holding type beside a resource the program dropped | `protect: true` resource option |
+| CloudFormation | change set, `describe-change-set` | `Action: Remove`, or `Replacement: True` | a new logical ID for a state-holding type | `DeletionPolicy: Retain`; stack termination protection |
+
+`prevent_destroy` guards only while its block stays in the configuration:
+deleting the resource and the block in one change removes the guard with it.
+That is why the plan gate reads the effect rather than trusting the guard.
+
+```bash
+# Pseudocode: fail the job on an unreleased destructive change.
+preview_json > effect.json                      # tool-specific command above
+destructive=$(select_state_holding_deletions_replacements_and_orphans effect.json)
+released=$(cat infra/released-deletions.txt 2>/dev/null)   # same change, one resource ID per line
+unreleased=$(comm -23 <(echo "$destructive" | sort) <(echo "$released" | sort))
+if [ -n "$unreleased" ]; then
+  echo "Unreleased destructive change to a state-holding resource:"
+  echo "$unreleased"
+  exit 1
+fi
+```
+
+**Rules:**
+
+- The deploy-job run is not optional when a review-time run exists: approval
+  covers the environment as it was then, not as it is now
+- Where the tool saves a plan, apply that plan file, and fail when it is
+  stale; where it cannot (what-if), the deploy-time run is the only guard
+- A release lists resource identities, never a wildcard or a type
+- Fail too when the release names a resource the preview does not delete,
+  replace, or orphan: a stale release is a standing exception

@@ -1,0 +1,51 @@
+{
+  "request": "Run ci-cd-reliability-architecture on .github/workflows/deploy.yml. Agents will soon open large infrastructure pull requests against infra/main.bicep. Every pull request needs one approving human review before merge, and the deploy identity holds the Owner role on the subscription. The database holds customer orders and the storage account holds customer uploads. Is this pipeline safe for that?",
+  "skills": [
+    "ci-cd-reliability-architecture"
+  ],
+  "expect": [
+    {
+      "id": "applies-cicd-guidance",
+      "criterion": "destructive-change-gate #1: the verdict comes from the CI/CD skill",
+      "check": "guidance_includes",
+      "skills": [
+        "ci-cd-reliability-architecture"
+      ]
+    },
+    {
+      "id": "names-destructive-change-risk",
+      "criterion": "destructive-change-gate #1: loss of a state-holding resource is named as the risk",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Risk:[^\\n]*\\bdestructive-change\\b"
+    },
+    {
+      "id": "blocks-on-previewed-deletion",
+      "criterion": "destructive-change-gate #2: the planned effect is previewed and deletions of state-holding resources block the apply",
+      "check": "text_matches",
+      "pattern": "(?is)what-if.{0,300}\\b(fail|failing|block|blocks|abort|aborts)\\b.{0,200}\\bdelet|\\bdelet.{0,200}\\b(fail|failing|block|blocks|abort|aborts)\\b.{0,300}what-if"
+    },
+    {
+      "id": "flags-rename-orphan",
+      "criterion": "destructive-change-gate #2: a renamed state-holding resource is caught as a new empty resource beside an orphaned one, not only as a deletion",
+      "check": "text_matches",
+      "pattern": "(?is)\\brenam.{0,300}\\b(empty|orphan)|\\b(empty|orphan).{0,300}\\brenam"
+    },
+    {
+      "id": "rechecks-at-deploy",
+      "criterion": "destructive-change-gate #3: the preview runs again in the deploy job, not only at review",
+      "check": "text_matches",
+      "pattern": "(?is)what-if[^\\n]{0,250}\\b(again|re-?run|repeat|twice|two places)\\b[^\\n]{0,250}\\bdeploy|\\bin the `?deploy`? job[^\\n]{0,200}what-if|what-if[^\\n]{0,250}\\bin the `?deploy`? job"
+    },
+    {
+      "id": "deletion-protection-out-of-reach",
+      "criterion": "destructive-change-gate #4: state-holding resources carry deletion protection the deploy identity cannot remove",
+      "check": "text_matches",
+      "pattern": "(?is)(CanNotDelete|delete lock|resource lock|deletion protection).{0,600}(Owner|locks/delete|User Access Administrator|cannot remove|can't remove)"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}

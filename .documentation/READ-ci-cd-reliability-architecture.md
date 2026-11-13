@@ -36,6 +36,17 @@ state and the tool computes the difference from what exists. Imperative
 scripts can be made idempotent by hand; at scale, the declarative form does
 it by construction.
 
+That power cuts both ways. The tool computes what to delete as readily as
+what to create, and the review sees only the text. A one-line rename of a
+storage account reads as harmless; its effect is a new, empty account the
+application now writes to, with the customer data stranded in the old one.
+So the infrastructure gate reads the *effect*: the tool's own preview (a
+plan, a what-if) runs at review and again just before the deploy mutates
+anything, and it fails on any deletion, replacement, or orphaning of a
+resource that holds data unless the change names that resource explicitly.
+Under it sits deletion protection the pipeline's own identity cannot
+remove. Code can be redeployed. Data cannot.
+
 ## Self-contained steps: no invisible handoffs
 
 A pipeline step that "just knows" things — that the previous job left files
@@ -185,4 +196,4 @@ full operational reference for this concept — checklists, gate tables, and
 the promotion state machine — lives in
 [SKILL.md](../.claude/skills/ci-cd-reliability-architecture/SKILL.md).*
 
-<!-- skill-revision: 9e10f0ae9edc -->
+<!-- skill-revision: bebfc53f9d18 -->
