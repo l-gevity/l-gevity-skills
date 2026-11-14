@@ -104,7 +104,7 @@ SKILL_REQUIRED_TERMS = {
         "check_orchestration.py handoff",
         "check_orchestration.py gate",
         "A hand-off summary is a claim to test, never evidence",
-        "Gate:        PASS | FAIL | ESCALATE",
+        "Gate:        PASS | FAIL | ESCALATE | Not run + reason",
         "Merge:       human approval required",
         "it specializes **Increment**",
         "an adapter names this skill, this skill names no runtime",
@@ -1784,8 +1784,10 @@ def load_scenario(directory: Path) -> tuple[dict, dict | None]:
         for name in expectation.get("skills", []):
             if not known_skill(name):
                 fail(f"{label} expectation '{ident}' names unknown skill {name!r}")
+        # A run reads the library and the scenario's own fixture project.
+        bases = [base for base in (ROOT, scenario_fixture(directory)) if base is not None]
         for relative in expectation.get("paths", []):
-            if not isinstance(relative, str) or not (ROOT / relative).is_file():
+            if not isinstance(relative, str) or not any((base / relative).is_file() for base in bases):
                 fail(f"{label} expectation '{ident}' names a file that does not exist: {relative!r}")
         if "pattern" in arguments:
             try:

@@ -202,7 +202,7 @@ I did not check, then emit the records unchanged: the execution block, the
 result:
 
 ```text
-Gate:        PASS | FAIL | ESCALATE
+Gate:        PASS | FAIL | ESCALATE | Not run + reason
 Verified:    <criterion IDs with evidence IDs>
 Unverified:  <criterion IDs deferred by the human, or None>
 Open:        <findings, disputes, and blockers, or None>
