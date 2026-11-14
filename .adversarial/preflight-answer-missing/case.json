@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #116: a decision counts as answered only when the record states the answer",
+  "description": "D1 is marked answered by the human, but the record holds no answer for the agent to act on.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "SCHEMA"
+    ]
+  }
+}

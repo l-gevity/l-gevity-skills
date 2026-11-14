@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #105: an unattended run starts only on increments that may start",
+  "description": "I2 is PARTLY-READY without a reversible increment, so REQ-13 is uncovered.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "WORK_NOT_READY"
+    ]
+  }
+}

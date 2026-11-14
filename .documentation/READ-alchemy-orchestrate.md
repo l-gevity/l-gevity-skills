@@ -49,6 +49,32 @@ mechanically:
 These are the same rules a good tech lead applies in their head. Writing them
 as checks means they hold on a tired day too.
 
+## Runs that nobody watches
+
+A sound plan can still stall at 2 a.m. In practice the interruptions are
+rarely in the code. A token expires halfway through the night. A test account
+asks for a second factor. Two agents log in as the same test user and
+overwrite each other's data. The tests were already red before anyone started.
+An escalation goes to a channel nobody receives. Or an agent reaches a
+question only the product owner can answer and waits until morning.
+
+So a run meant to proceed unattended passes a *preflight* before the first
+agent starts. The lead runs a small probe for everything the run depends on:
+the repository, the pipeline, each test account, the build, and a deliberate
+test escalation. Each probe's result is recorded against the starting commit.
+The checker then refuses the run if:
+
+- any of those probes is missing or failed;
+- a credential expires before the window ends;
+- a step needs someone at a sign-in prompt;
+- two agents that may run at the same time share a mutable test account;
+- the baseline is red;
+- a known question is still open.
+
+Questions are answered up front, or given a reversible default the human
+confirms at the end. Human steps happen before the window or wait until the
+merge.
+
 ## Hand-offs are claims, not facts
 
 The most dangerous sentence in multi-agent work is "done, all tests pass".
@@ -98,4 +124,4 @@ the first missed and cost twice as much, use one.
 [SKILL.md](../.claude/skills/alchemy-orchestrate/SKILL.md) and its references;
 the routing it builds on is explained in [the alchemy primer](READ-alchemy.md).*
 
-<!-- skill-revision: 1ef629626174 -->
+<!-- skill-revision: fb6116e626e8 -->

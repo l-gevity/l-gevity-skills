@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #114: human steps happen before the window or are batched at its end",
+  "description": "A deploy to the test environment waits for human approval mid-run.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "HUMAN_STEP_MIDRUN"
+    ]
+  }
+}

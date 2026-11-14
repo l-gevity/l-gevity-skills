@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Deterministic checker for `alchemy-orchestrate` plan, hand-off, and ledger records.
+"""Deterministic checker for `alchemy-orchestrate` plan, preflight, hand-off, and ledger records.
 
 The skill decides who answers an engineering question and what evidence makes
 the answer acceptable. This script decides, by rule and never by judgement,
-whether a plan may run, a hand-off may be accepted, and a gate may pass. Record
+whether a plan may run, an unattended run is prepared, a hand-off may be
+accepted, and a gate may pass. Record
 shapes, check codes, and verdict precedence are defined in
 references/contracts.md; the profile defaults live in
 assets/alchemy-workspace.json and a project profile overrides only the keys it
@@ -12,6 +13,8 @@ states.
 Usage:
     check_orchestration.py plan <plan.json> [--profile <alchemy-workspace.json>]
                                 [--root <repository>]
+    check_orchestration.py preflight <preflight.json> --plan <plan.json>
+                                     [--profile <profile>] [--root <repository>]
     check_orchestration.py handoff <handoff.json> --plan <plan.json>
                                    [--profile <profile>] [--root <workspace>]
     check_orchestration.py gate <ledger.json> --plan <plan.json>
@@ -33,6 +36,7 @@ import posixpath
 import re
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -40,6 +44,7 @@ from typing import Any
 PLAN_SCHEMA = "alchemy-plan/1"
 HANDOFF_SCHEMA = "alchemy-handoff/1"
 LEDGER_SCHEMA = "alchemy-ledger/1"
+PREFLIGHT_SCHEMA = "alchemy-preflight/1"
 PROFILE_SCHEMA = "alchemy-workspace/1"
 
 DEFAULT_PROFILE = Path(__file__).resolve().parent.parent / "assets" / "alchemy-workspace.json"
@@ -100,6 +105,15 @@ CODES = {
     "WORKSPACE_MISMATCH": "FAIL",
     "DISPUTE_OPEN": "ESCALATE",
     "REWORK_LIMIT": "ESCALATE",
+    "WORK_NOT_READY": "FAIL",
+    "PREREQUISITE_UNPROVEN": "FAIL",
+    "INTERACTIVE_STEP": "FAIL",
+    "CREDENTIAL_EXPIRES": "FAIL",
+    "ACCOUNT_CONFLICT": "FAIL",
+    "BASELINE_RED": "FAIL",
+    "UNBOUNDED_RUN": "FAIL",
+    "HUMAN_STEP_MIDRUN": "FAIL",
+    "OPEN_DECISION": "ESCALATE",
 }
 
 # ESCALATE over REJECT/FAIL over STALE over RETRY over a pass: a bound reached
@@ -121,6 +135,9 @@ SEVERITIES = {"blocking", "major", "minor"}
 FINDING_STATUSES = {"open", "resolved", "rejected", "accepted-risk"}
 DISPUTE_STATUSES = {"open", "escalated", "resolved"}
 DISPUTE_BASES = {"evidence", "human"}
+READINESS = {"READY", "PARTLY-READY", "NOT-READY", "NOT-GROUNDED", "BLOCKED"}
+DECISION_STATUSES = {"answered", "default", "stop", "open"}
+HUMAN_STEP_TIMES = {"before", "end", "during"}
 
 SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-fA-F]{7,64}$")
@@ -1052,6 +1069,238 @@ def check_plan(plan: Any, profile: Any, root: str | Path | None = None) -> dict[
     return _result(report, facts)
 
 
+# ---------------------------------------------------------------- preflight
+
+def _instant(value: Any) -> datetime | None:
+    """An ISO 8601 instant with a zone; None when the value is not one."""
+    if not isinstance(value, str):
+        return None
+    try:
+        moment = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return moment if moment.tzinfo is not None else None
+
+
+def _rule_prerequisites(kind: str, entries: list[Any], evidence: dict[str, dict[str, Any]],
+                        base: str | None, end: datetime | None, report: Report) -> list[dict[str, Any]]:
+    """Proof, interactivity, and expiry for access, account, and environment entries."""
+    parsed = []
+    for index, raw in enumerate(entries):
+        label = f"preflight.{kind}" if kind == "bounds.escalation" else f"preflight.{kind}[{index}]"
+        if not isinstance(raw, dict):
+            report.add("SCHEMA", f"{label} must be an object")
+            continue
+        eid = _get(raw, "id", "str", report, label)
+        cited = _get(raw, "evidence", "strs", report, label, eid, default=[])
+        if _get(raw, "interactive", "bool", report, label, eid, required=False, default=False):
+            report.add("INTERACTIVE_STEP", f"{label} needs a person at a prompt (sign-in, second factor, "
+                       "consent, or a human check) inside the unattended window", eid)
+        if kind in ("access", "accounts"):
+            expires = _get(raw, "expires", "str", report, label, eid)
+            if expires is not None and expires.strip().casefold() != "never":
+                moment = _instant(expires)
+                if moment is None:
+                    report.add("SCHEMA", f"{label}.expires must be 'never' or an ISO 8601 instant "
+                               "with a zone", eid)
+                elif end is not None and moment <= end:
+                    report.add("CREDENTIAL_EXPIRES", f"{label} expires at {expires}, before the "
+                               "window ends", eid)
+        if not cited:
+            report.add("PREREQUISITE_UNPROVEN", f"{label} cites no executed probe", eid)
+        for ref in cited:
+            item = evidence.get(ref)
+            if item is None:
+                report.add("PREREQUISITE_UNPROVEN", f"{label} cites unknown evidence {ref}", eid)
+            elif item["exit_code"] != item["expect_exit"]:
+                report.add("PREREQUISITE_UNPROVEN", f"{label} probe {ref} exited {item['exit_code']}", eid)
+            elif base is not None and not _same_commit(item["commit"], base):
+                report.add("PREREQUISITE_UNPROVEN", f"{label} probe {ref} ran on {item['commit']}, "
+                           f"not the plan base {base}", eid)
+        parsed.append({"id": eid, "raw": raw, "label": label})
+    return parsed
+
+
+def _rule_window(preflight: dict[str, Any], report: Report) -> tuple[datetime | None, list[Any]]:
+    """UNBOUNDED_RUN unless the run has a window, a spend limit, a stop rule, and
+    a channel a blocked package reports to; returns the window end and the
+    escalation channel, whose delivery is proved like any prerequisite."""
+    window = _get(preflight, "window", "dict", report, "preflight", required=False)
+    end = None
+    if window is None:
+        report.add("UNBOUNDED_RUN", "preflight.window with start and end is required")
+    else:
+        start, end = _instant(window.get("start")), _instant(window.get("end"))
+        if start is None or end is None:
+            report.add("UNBOUNDED_RUN", "preflight.window.start and end must be ISO 8601 instants with a zone")
+        elif end <= start:
+            report.add("UNBOUNDED_RUN", "preflight.window.end is not after its start")
+    bounds = _get(preflight, "bounds", "dict", report, "preflight", required=False, default={})
+    stops = bounds.get("stop_conditions")
+    if not (_SHAPES["strs"][0](stops) and stops):
+        report.add("UNBOUNDED_RUN", "preflight.bounds.stop_conditions names no condition that ends the run")
+    if not _text(bounds.get("budget")):
+        report.add("UNBOUNDED_RUN", "preflight.bounds.budget states no spend limit")
+    escalation = bounds.get("escalation")
+    if not (isinstance(escalation, dict) and _text(escalation.get("channel"))):
+        report.add("UNBOUNDED_RUN", "preflight.bounds.escalation names no channel a blocked package reports to")
+        return end, []
+    return end, [{"id": "escalation", **escalation}]
+
+
+def _rule_work(preflight: dict[str, Any], requirements: list[str], report: Report) -> None:
+    """WORK_NOT_READY unless every plan requirement sits in an increment that may start."""
+    covered: set[str] = set()
+    for index, raw in enumerate(_get(preflight, "work", "list", report, "preflight", default=[])):
+        label = f"preflight.work[{index}]"
+        if not isinstance(raw, dict):
+            report.add("SCHEMA", f"{label} must be an object")
+            continue
+        subject = _get(raw, "subject", "str", report, label)
+        decision = _enum(raw, "decision", READINESS, report, label, subject)
+        ids = _get(raw, "requirements", "strs", report, label, subject, default=[])
+        _get(raw, "record", "str", report, label, subject)
+        if decision == "READY" or (decision == "PARTLY-READY" and raw.get("reversible") is True):
+            covered.update(ids)
+        elif decision == "PARTLY-READY":
+            report.add("WORK_NOT_READY", f"{label} is PARTLY-READY without a reversible increment", subject)
+        elif decision is not None:
+            report.add("WORK_NOT_READY", f"{label} is {decision}", subject)
+    for requirement in requirements:
+        if requirement not in covered:
+            report.add("WORK_NOT_READY", f"plan requirement {requirement} has no increment that may start",
+                       requirement)
+
+
+def _rule_decisions(preflight: dict[str, Any], report: Report) -> list[str]:
+    """OPEN_DECISION unless every known question is answered, defaulted
+    reversibly, or made a stop rule by the human; returns the queued defaults."""
+    queued = []
+    for index, raw in enumerate(_get(preflight, "decisions", "list", report, "preflight", default=[])):
+        label = f"preflight.decisions[{index}]"
+        if not isinstance(raw, dict):
+            report.add("SCHEMA", f"{label} must be an object")
+            continue
+        did = _get(raw, "id", "str", report, label)
+        _get(raw, "question", "str", report, label, did)
+        status = _enum(raw, "status", DECISION_STATUSES, report, label, did)
+        if status in ("answered", "default"):
+            # An answer the record does not state is a question the agent still asks.
+            _get(raw, "answer", "str", report, label, did)
+        if status == "open":
+            report.add("OPEN_DECISION", f"{label} is open; the human answers it, sets a reversible "
+                       "default, or makes it a stop rule before the run", did)
+        elif status is not None and not _is_human(raw.get("decided_by")):
+            report.add("OPEN_DECISION", f"{label} is {status} by {raw.get('decided_by')!r}, not the human", did)
+        elif status == "default" and raw.get("reversible") is not True:
+            report.add("OPEN_DECISION", f"{label} proceeds on a default that is not reversible", did)
+        elif status == "default":
+            queued.append(did)
+    return queued
+
+
+def _rule_accounts(accounts: list[dict[str, Any]], parsed_plan: dict[str, Any], report: Report) -> None:
+    """ACCOUNT_CONFLICT when packages that may run concurrently share a test
+    account not marked shared; the reach is the plan's dependency closure."""
+    packages = parsed_plan["packages"]
+    _graph, reach = _plan_graph(parsed_plan)
+    users: dict[str, list[str]] = {}
+    for account in accounts:
+        raw, label, aid = account["raw"], account["label"], account["id"]
+        _get(raw, "role", "str", report, label, aid)
+        _get(raw, "secret", "str", report, label, aid)
+        _get(raw, "reset", "str", report, label, aid)
+        for pid in _get(raw, "packages", "strs", report, label, aid, default=[]):
+            if pid not in packages:
+                report.add("SCHEMA", f"{label} names package {pid}, which the plan does not hold", aid)
+            elif raw.get("shared") is not True and aid is not None:
+                users.setdefault(aid, []).append(pid)
+    for aid, pids in sorted(users.items()):
+        for i, left in enumerate(pids):
+            for right in pids[i + 1:]:
+                if left != right and left not in reach[right] and right not in reach[left]:
+                    report.add("ACCOUNT_CONFLICT", f"account {aid} is used by {left} and {right}, which "
+                               "may run concurrently; give each its own account or mark it shared", aid)
+
+
+def _rule_baseline(view: dict[str, Any], evidence: dict[str, dict[str, Any]], base: str | None,
+                   report: Report) -> None:
+    """BASELINE_RED unless every profile verification command passed at the plan base."""
+    if not view["verification"]:
+        report.add("BASELINE_RED", "the profile declares no repository.verification command; "
+                   "an unattended run has no oracle")
+    for item in view["verification"]:
+        command = _command(item["command"])
+        if not any(_command(entry["command"]) == command and entry["exit_code"] == 0
+                   and _same_commit(entry["commit"], base) for entry in evidence.values()):
+            label = f"{item['id']} ({command})" if item["id"] else command
+            report.add("BASELINE_RED", f"profile verification {label} has no passing evidence at "
+                       f"the plan base {base}", item["id"])
+
+
+def _rule_human_steps(preflight: dict[str, Any], report: Report) -> list[dict[str, str]]:
+    """HUMAN_STEP_MIDRUN for a human step inside the window; returns the others."""
+    steps = []
+    for index, raw in enumerate(_get(preflight, "human_steps", "list", report, "preflight", default=[])):
+        label = f"preflight.human_steps[{index}]"
+        if not isinstance(raw, dict):
+            report.add("SCHEMA", f"{label} must be an object")
+            continue
+        action = _get(raw, "action", "str", report, label)
+        when = _enum(raw, "when", HUMAN_STEP_TIMES, report, label, action)
+        if when == "during":
+            report.add("HUMAN_STEP_MIDRUN", f"{label} '{action}' waits on a human inside the window; "
+                       "do it before the run or batch it at the merge boundary", action)
+        elif when is not None:
+            steps.append({"action": action, "when": when})
+    return steps
+
+
+def check_preflight(preflight: Any, plan: Any, profile: Any, root: str | Path | None = None) -> dict[str, Any]:
+    """Decide whether a checked plan can run unattended for its whole window.
+
+    Reads executed probe evidence and never runs a probe. With `root`, the
+    repository there must be at the plan's base and hold no change outside the
+    state directory.
+    """
+    report = Report("preflight")
+    view = _profile_view(profile, report)
+    parsed_plan = _parse_plan(plan, view, report)
+    _rule_secrets(preflight, "preflight", report, None)
+    _rule_secrets(plan, "plan", report, None)
+    facts: dict[str, Any] = {"queued": [], "human_steps": [], "head_checked": False}
+    if not isinstance(preflight, dict):
+        report.add("SCHEMA", "preflight must be a JSON object")
+        return _result(report, facts)
+    _check_schema(preflight, PREFLIGHT_SCHEMA, report, "preflight")
+    base = parsed_plan["base_commit"]
+    evidence = _parse_evidence(_get(preflight, "evidence", "list", report, "preflight", default=[]),
+                               report, "preflight", None)
+    end, escalation = _rule_window(preflight, report)
+    _rule_work(preflight, parsed_plan["requirements"], report)
+    facts["queued"] = _rule_decisions(preflight, report)
+
+    def entries(key: str, required: bool) -> list[Any]:
+        return _get(preflight, key, "list", report, "preflight", required=required, default=[])
+
+    access = _rule_prerequisites("access", entries("access", True), evidence, base, end, report)
+    if not access:
+        report.add("PREREQUISITE_UNPROVEN", "preflight.access proves no access; a run reads a repository at least")
+    accounts = _rule_prerequisites("accounts", entries("accounts", False), evidence, base, end, report)
+    _rule_prerequisites("environment", entries("environment", True), evidence, base, end, report)
+    _rule_prerequisites("bounds.escalation", escalation, evidence, base, end, report)
+    _rule_accounts(accounts, parsed_plan, report)
+    _rule_baseline(view, evidence, base, report)
+    facts["human_steps"] = _rule_human_steps(preflight, report)
+
+    if root is not None:
+        problems, facts["head_checked"] = _workspace_problems(Path(root), [base] if base else [],
+                                                              view["state_dir"], "the plan base")
+        for problem in problems:
+            report.add("WORKSPACE_MISMATCH", problem)
+    return _result(report, facts)
+
+
 # ----------------------------------------------------------------- hand-off
 
 def _parse_digests(raw: list[Any], key: str, report: Report, subject: str | None) -> list[dict[str, str]]:
@@ -1700,13 +1949,16 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     plan = commands.add_parser("plan", help="check a plan before any delegation")
     plan.add_argument("plan", type=Path, help="alchemy-plan/1 JSON file")
     plan.add_argument("--root", type=Path, help="repository that must be clean at the plan's base")
+    preflight = commands.add_parser("preflight", help="check that a run can proceed unattended")
+    preflight.add_argument("preflight", type=Path, help="alchemy-preflight/1 JSON file")
+    preflight.add_argument("--root", type=Path, help="repository that must be clean at the plan's base")
     handoff = commands.add_parser("handoff", help="check one package hand-off on receipt")
     handoff.add_argument("handoff", type=Path, help="alchemy-handoff/1 JSON file")
     handoff.add_argument("--root", type=Path, help="workspace to re-check digests against")
     gate = commands.add_parser("gate", help="check the ledger before the merge boundary")
     gate.add_argument("ledger", type=Path, help="alchemy-ledger/1 JSON file")
     gate.add_argument("--root", type=Path, help="repository whose HEAD and work tree must match the ledger")
-    for sub, needs_plan in ((plan, False), (handoff, True), (gate, True)):
+    for sub, needs_plan in ((plan, False), (preflight, True), (handoff, True), (gate, True)):
         if needs_plan:
             sub.add_argument("--plan", type=Path, required=True, help="alchemy-plan/1 JSON file")
         sub.add_argument("--profile", type=Path,
@@ -1727,6 +1979,8 @@ def main(argv: list[str] | None = None) -> int:
             raise InputError(f"{root}: --root is not a directory")
         if args.command == "plan":
             result = check_plan(_read_json(args.plan), profile, root)
+        elif args.command == "preflight":
+            result = check_preflight(_read_json(args.preflight), _read_json(args.plan), profile, root)
         elif args.command == "handoff":
             result = check_handoff(_read_json(args.handoff), _read_json(args.plan), profile, root)
         else:

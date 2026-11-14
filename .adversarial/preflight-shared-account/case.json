@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #111: packages that may run concurrently never share a mutable test account",
+  "description": "P1 and P2 have no dependency path and both use clerk account U1.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "ACCOUNT_CONFLICT"
+    ]
+  }
+}

@@ -27,7 +27,7 @@ SIZE_BUDGET_GRAIN = 100
 SIZE_BUDGET_WORDS = {
     "CLAUDE.md": 900,
     "alchemy": 2200,
-    "alchemy-orchestrate": 1800,
+    "alchemy-orchestrate": 1900,
     "architecture-as-code": 2500,
     "architecture-as-code-javascript": 1800,
     "architecture-as-code-python": 1500,
@@ -626,14 +626,21 @@ REFERENCE_REQUIRED_TERMS = {
     },
     "alchemy-orchestrate": {
         "references/contracts.md": (
-            "# Orchestration Contracts — Plan, Hand-off, Ledger, Profile",
+            "# Orchestration Contracts — Plan, Preflight, Hand-off, Ledger, Profile",
             "`alchemy-plan/1`",
+            "`alchemy-preflight/1`",
             "`alchemy-handoff/1`",
             "`alchemy-ledger/1`",
             "`alchemy-workspace/1`",
             "two write sets overlap when one entry equals or is a directory prefix of the other",
             "Majority, seniority, model, and confidence are not a basis",
             "a bound reached must stop rework rather than restart it",
+        ),
+        "references/autonomy-preflight.md": (
+            "# Autonomy Preflight — Preparing a Run That Proceeds Unattended",
+            "Preflight reads evidence; it never runs a probe.",
+            "an escalation channel proved by a deliberate test escalation that arrived",
+            "only read-only accounts are shared",
         ),
         "references/governance.md": (
             "# Multi-Agent Governance — Authority, State, Recovery, Security",
@@ -3276,7 +3283,7 @@ RUNTIME_TERMS = re.compile(
     re.I,
 )
 ADVERSARIAL_CRITERION_RE = re.compile(r"^multi-agent-governance #\d+: \S")
-ADVERSARIAL_COMMANDS = ("plan", "handoff", "gate")
+ADVERSARIAL_COMMANDS = ("plan", "preflight", "handoff", "gate")
 
 
 def orchestration_checker():
@@ -3342,6 +3349,8 @@ def run_adversarial_case(checker, directory: Path) -> tuple[dict, dict]:
     root = str(directory / args["root"]) if "root" in args else None
     if command == "plan":
         report = checker.check_plan(plan, profile, root)
+    elif command == "preflight":
+        report = checker.check_preflight(load("preflight"), plan, profile, root)
     elif command == "handoff":
         report = checker.check_handoff(load("handoff"), plan, profile, root)
     else:

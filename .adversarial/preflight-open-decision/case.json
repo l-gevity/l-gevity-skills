@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #106: a question an agent would stop to ask is decided by the human before the run",
+  "description": "D1 is still open.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "OPEN_DECISION"
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "orders-service",
+  "private": true,
+  "scripts": {
+    "test": "node --test",
+    "seed": "node scripts/seed.js"
+  }
+}

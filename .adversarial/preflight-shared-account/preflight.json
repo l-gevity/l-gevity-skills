@@ -1,0 +1,187 @@
+{
+  "schema": "alchemy-preflight/1",
+  "window": {
+    "start": "2026-11-13T18:00:00Z",
+    "end": "2026-11-14T08:00:00Z"
+  },
+  "bounds": {
+    "budget": "400 agent-minutes, USD 60",
+    "stop_conditions": [
+      "gate PASS",
+      "a bound escalates",
+      "window end"
+    ],
+    "escalation": {
+      "channel": "push notification to the owner; blocked packages park, the rest continue",
+      "evidence": [
+        "E7"
+      ]
+    }
+  },
+  "work": [
+    {
+      "subject": "I1",
+      "decision": "READY",
+      "requirements": [
+        "REQ-12"
+      ],
+      "record": "issue#12"
+    },
+    {
+      "subject": "I2",
+      "decision": "PARTLY-READY",
+      "reversible": true,
+      "requirements": [
+        "REQ-13"
+      ],
+      "record": "issue#13"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "question": "Page size for shipments?",
+      "status": "answered",
+      "decided_by": "human",
+      "answer": "50"
+    },
+    {
+      "id": "D2",
+      "question": "Sort order when dates tie?",
+      "status": "default",
+      "decided_by": "human",
+      "reversible": true,
+      "answer": "by id ascending"
+    }
+  ],
+  "access": [
+    {
+      "id": "A1",
+      "system": "source repository and CI",
+      "secret": "REPO_TOKEN",
+      "expires": "2026-12-31T00:00:00Z",
+      "interactive": false,
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "A2",
+      "system": "test cloud subscription",
+      "secret": "CLOUD_CLIENT_SECRET",
+      "expires": "never",
+      "interactive": false,
+      "evidence": [
+        "E2"
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "id": "U1",
+      "role": "order clerk",
+      "secret": "TEST_CLERK_A_PASSWORD",
+      "packages": [
+        "P1",
+        "P2"
+      ],
+      "reset": "npm run seed -- --user clerk-a",
+      "expires": "never",
+      "evidence": [
+        "E3"
+      ]
+    },
+    {
+      "id": "U2",
+      "role": "order clerk",
+      "secret": "TEST_CLERK_B_PASSWORD",
+      "packages": [
+        "P2"
+      ],
+      "reset": "npm run seed -- --user clerk-b",
+      "expires": "never",
+      "evidence": [
+        "E4"
+      ]
+    },
+    {
+      "id": "U3",
+      "role": "auditor, read-only",
+      "secret": "TEST_AUDITOR_PASSWORD",
+      "packages": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "shared": true,
+      "reset": "none needed",
+      "expires": "never",
+      "evidence": [
+        "E4"
+      ]
+    }
+  ],
+  "environment": [
+    {
+      "id": "ENV1",
+      "what": "one-command build with cached dependencies",
+      "evidence": [
+        "E5"
+      ]
+    }
+  ],
+  "human_steps": [
+    {
+      "action": "approve the plan",
+      "when": "before"
+    },
+    {
+      "action": "merge the pull request",
+      "when": "end"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "command": "git ls-remote origin HEAD",
+      "exit_code": 0,
+      "commit": "3f9c2e1"
+    },
+    {
+      "id": "E2",
+      "command": "cloud account show --non-interactive",
+      "exit_code": 0,
+      "commit": "3f9c2e1"
+    },
+    {
+      "id": "E3",
+      "command": "npm run probe:login -- clerk-a",
+      "exit_code": 0,
+      "commit": "3f9c2e1"
+    },
+    {
+      "id": "E4",
+      "command": "npm run probe:login -- clerk-b auditor",
+      "exit_code": 0,
+      "commit": "3f9c2e1"
+    },
+    {
+      "id": "E5",
+      "command": "npm ci --offline && npm run build",
+      "exit_code": 0,
+      "commit": "3f9c2e1"
+    },
+    {
+      "id": "E6",
+      "command": "npm test",
+      "exit_code": 0,
+      "commit": "3f9c2e1"
+    },
+    {
+      "id": "E7",
+      "command": "npm run probe:escalate -- --expect-delivery 60s",
+      "exit_code": 0,
+      "commit": "3f9c2e1"
+    }
+  ]
+}

@@ -1,13 +1,13 @@
-# Orchestration Contracts — Plan, Hand-off, Ledger, Profile
+# Orchestration Contracts — Plan, Preflight, Hand-off, Ledger, Profile
 
-The four records an orchestrated run exchanges, in the exact shape
+The five records an orchestrated run exchanges, in the exact shape
 `scripts/check_orchestration.py` reads. They are execution state for one
 iteration: keep them under the profile's `state_dir` (default
 `.alchemy/runs/<run-id>/`), never commit them, and never copy a requirement,
 decision, or test result into them that a canonical artifact already holds —
 link it by ID, path, commit, or command instead (`zero-copy-requirements`).
 
-All four are JSON. Every record carries a `schema` string with a version; a
+All five are JSON. Every record carries a `schema` string with a version; a
 reader rejects a version it does not know. Unknown keys are allowed and ignored,
 so a project overlay can annotate records without forking the format.
 
@@ -165,6 +165,16 @@ Kept by the lead from hand-offs, independent verification, and integration.
 | `disputes[].resolution.basis` | `evidence` with evidence IDs, only when exactly one position's evidence all exists and exited 0; when both positions or neither have it, the human decides. Or `human` with `decided_by: human`. Majority, seniority, model, and confidence are not a basis. |
 | `rework_cycles` | Correction rounds per package; above the profile's `max_rework_cycles` the gate escalates. |
 
+## Preflight — `alchemy-preflight/1`
+
+The record that proves a checked plan can run unattended for its whole
+window: work that may start, decisions the human made, access, test accounts,
+and environment proved by probes executed at the plan base, a green baseline,
+bounds with a test-delivered escalation channel, and human steps only before
+or after the window. Shape, field rules, and the checklist behind it are in
+[autonomy-preflight.md](autonomy-preflight.md). The checker reads the probe
+evidence and never runs a probe.
+
 ## Profile — `alchemy-workspace/1`
 
 The project overlay, committed at the repository root as
@@ -196,7 +206,7 @@ bound reached must stop rework rather than restart it.
 | Code | Check | Verdict | Meaning |
 |:--|:--|:--|:--|
 | `SCHEMA` | all | FAIL / REJECT | A required field is missing or mistyped, a commit is not 7 to 64 hex characters, or the schema version is unknown |
-| `SECRET_IN_RECORD` | all | FAIL / REJECT | A plan, hand-off, or ledger value matches a credential pattern or sits under a credential key; every report redacts it |
+| `SECRET_IN_RECORD` | all | FAIL / REJECT | A plan, preflight, hand-off, or ledger value matches a credential pattern or sits under a credential key; every report redacts it |
 | `MISSING_TRACE` | plan, gate | FAIL | A package has no requirement ID, no acceptance criterion, or no skill, or the plan holds no criterion |
 | `CYCLE` | plan, gate | FAIL | `depends_on` forms a cycle |
 | `UNKNOWN_DEPENDENCY` | plan, gate | FAIL | A dependency, review target, or reviewed package does not exist |
@@ -241,6 +251,15 @@ bound reached must stop rework rather than restart it.
 | `RISK_NOT_ACCEPTED_BY_HUMAN` | gate | FAIL | `accepted-risk` without `accepted_by: human` |
 | `VOTE_NOT_EVIDENCE` | gate | FAIL | A dispute resolved on a basis other than evidence or the human, on evidence it does not cite, or on a `human` basis the human did not decide |
 | `VERIFICATION_FAILED` | gate | FAIL | A profile `repository.verification` command has no passing evidence at `head_commit` |
-| `WORKSPACE_MISMATCH` | plan, gate | FAIL | With `--root`, the repository's HEAD is not the plan's base or an integrated head (plan) or `head_commit` (gate), it holds uncommitted changes outside `state_dir`, or git cannot confirm either |
+| `WORKSPACE_MISMATCH` | plan, preflight, gate | FAIL | With `--root`, the repository's HEAD is not the plan's base or an integrated head (plan), the plan's base (preflight), or `head_commit` (gate), it holds uncommitted changes outside `state_dir`, or git cannot confirm either |
 | `DISPUTE_OPEN` | gate | ESCALATE | A dispute is open or escalated, or decided on evidence while both positions, or neither, have passing evidence |
 | `REWORK_LIMIT` | gate | ESCALATE | A package exceeded `max_rework_cycles` |
+| `WORK_NOT_READY` | preflight | FAIL | A plan requirement sits in no `READY` increment and no reversible `PARTLY-READY` one |
+| `PREREQUISITE_UNPROVEN` | preflight | FAIL | An access, account, environment, or escalation entry cites no probe, unknown evidence, a failing probe, or one run on a commit other than the plan base; or no access is recorded |
+| `INTERACTIVE_STEP` | preflight | FAIL | An entry needs a person at a prompt inside the window |
+| `CREDENTIAL_EXPIRES` | preflight | FAIL | An access or account credential expires at or before the window end |
+| `ACCOUNT_CONFLICT` | preflight | FAIL | Two packages with no dependency path between them use one test account not marked `shared` |
+| `BASELINE_RED` | preflight | FAIL | The profile declares no verification command, or one has no passing evidence at the plan base |
+| `UNBOUNDED_RUN` | preflight | FAIL | The window, spend limit, stop conditions, or escalation channel is missing, or the window ends before it starts |
+| `HUMAN_STEP_MIDRUN` | preflight | FAIL | A human step is scheduled `during` the window |
+| `OPEN_DECISION` | preflight | ESCALATE | A decision is `open`, decided by anyone but the human, or a `default` that is not reversible |

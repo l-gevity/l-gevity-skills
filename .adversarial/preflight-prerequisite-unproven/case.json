@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #108: access counts only on an executed probe that passed at the plan base",
+  "description": "The cloud probe E2 failed with exit 1, and the escalation channel was never test-delivered.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "PREREQUISITE_UNPROVEN"
+    ]
+  }
+}

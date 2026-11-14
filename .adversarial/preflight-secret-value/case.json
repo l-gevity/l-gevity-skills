@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #115: a preflight record names secrets and never holds their values",
+  "description": "U1 carries a password value instead of a secret name.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "SECRET_IN_RECORD"
+    ]
+  }
+}

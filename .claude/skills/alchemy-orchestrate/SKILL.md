@@ -128,7 +128,11 @@ the runtime transcript).
    concurrent packages, missing contract order, self-review,
    unreviewed high-risk writes, recursive delegation, a cap above the profile,
    protected paths without human approval, and any merge policy other than
-   human approval. It prints waves and the derived mode.
+   human approval. It prints waves and the derived mode. For a run that
+   proceeds unattended, also run `check_orchestration.py preflight
+   <preflight.json> --plan <plan.json>` per
+   [references/autonomy-preflight.md](references/autonomy-preflight.md); the
+   first wave starts only on `PASS`.
 4. **Approve when consequential.** Ask the human before executing a plan that
    crosses a subsystem boundary, writes a protected path, or exceeds the
    profile's agent budget. Show packages, owners, and write sets.

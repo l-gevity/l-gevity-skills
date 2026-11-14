@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #112: the profile's verification commands pass at the plan base before any agent starts",
+  "description": "npm test failed at the base, so a red result later cannot be attributed to the run.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "BASELINE_RED"
+    ]
+  }
+}
