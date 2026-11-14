@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #109: no step inside the window waits on a person at a prompt",
+  "description": "A2 needs an interactive sign-in with a second factor.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "INTERACTIVE_STEP"
+    ]
+  }
+}

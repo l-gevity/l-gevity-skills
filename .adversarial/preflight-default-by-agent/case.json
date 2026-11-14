@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #107: only the human sets a default an unattended run proceeds on",
+  "description": "D2 is a reversible default the lead chose, not the human.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "OPEN_DECISION"
+    ]
+  }
+}

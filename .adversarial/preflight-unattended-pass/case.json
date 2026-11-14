@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #104: an unattended run passes preflight when every prerequisite is proved at the plan base",
+  "description": "Ready work, human-made decisions with one reversible default, proved access, one account per concurrent package plus a shared read-only one, a green baseline, and human steps only before and after the window.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

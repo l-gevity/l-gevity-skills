@@ -1,0 +1,11 @@
+{
+  "schema": "alchemy-workspace/1",
+  "repository": {
+    "verification": [
+      {
+        "id": "V1",
+        "command": "npm test"
+      }
+    ]
+  }
+}

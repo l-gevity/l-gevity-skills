@@ -1,7 +1,7 @@
 {
   "scenario": "dispatch-housekeeping-skip",
   "revision": "10ebc0c6f052",
-  "recorded_with": "claude-code 2.1.310, model claude-opus-5-5",
+  "recorded_with": "claude-code 2.1.321, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
     "alchemy-orchestrate",
@@ -54,9 +54,8 @@
   ],
   "files_read": [],
   "paths_searched": [
-    ".",
     "."
   ],
-  "turns": 5,
-  "output": "```\nDispatch:   SKIP\nCore route: None\nCompanions: None\nExecution:  single-agent — no code changes or audit; branch check only\nVerdict:    Defer\nReason:     Unknown whether everything is pushed, so don't delete the branch yet. This directory isn't a git\n            repository: it has no .git, only CLAUDE.md and .claude/skills. I also have no git or shell tool\n            here, so I couldn't check the merge, the push state or the branch.\nNext:       Run the commands below in the real clone, replacing <branch> and main with your branch names,\n            and paste the output, or point me at the repo path.\n```\n\n```powershell\ngit fetch --prune origin\ngit status -sb                                  # uncommitted work\ngit stash list                                  # stashed work\ngit log --oneline origin/<branch>..<branch>     # local commits not pushed\ngit log --oneline origin/main..<branch>         # commits not in main\ngit cherry origin/main <branch>                 # \"-\" = change is already in main\n```\n\nThe branch is safe to delete if `status` and `stash list` show nothing of yours, the first `log` is empty, and the second `log` is empty.\n\nIf the second `log` isn't empty, the merge may have been a squash or rebase, which changes the commit hashes:\n- **Rebase merge:** `git cherry` shows `-` on every line if all the changes landed.\n- **Squash merge:** `git cherry` still shows `+`, so compare with `git diff origin/main...<branch>` against the merged PR instead.\n\nOnce that's clear, run `git branch -d <branch>` and `git push origin --delete <branch>`. Avoid `-D`, because it bypasses git's unmerged-work check. If `-d` refuses after a squash merge, the comparison above is what makes `-D` safe. The remote delete is hard to undo, so run it last."
+  "turns": 4,
+  "output": "I couldn't check either thing. This directory isn't a git repository: there's no `.git` anywhere under `.`. I also have no shell tool in this session, so I can't run git against another location. I haven't deleted anything.\n\n```\nDispatch:   SKIP\nCore route: None\nCompanions: None\nExecution:  single-agent — git housekeeping, no independent parts\nVerdict:    Defer\nReason:     Checking pushes and deleting a branch asks no Alchemy question. The checks couldn't run because there is no repository here and no shell tool.\nNext:       Run the commands below in the real repo, or reopen the session there.\n```\n\nRun these in the actual repository:\n\n1. `git fetch --prune` updates your view of the remote.\n2. `git status -sb` and `git log @{u}..HEAD --oneline` should show nothing ahead or uncommitted. That means everything is pushed.\n3. `git branch --merged origin/main` should list your feature branch. That confirms the merge reached the remote main branch.\n   - If the fix was squash- or rebase-merged, the branch won't show up here even though it's merged. Check the pull request's merged status instead.\n4. If all of that checks out, delete the branch locally with `git branch -d <feature-branch>`. The `-d` flag refuses to delete unmerged work. Then delete it on the remote with `git push origin --delete <feature-branch>`.\n\nDeleting the remote branch is shared and harder to undo, so confirm before you run step 4. If you reopen the session in the repository, I can run steps 1–3 and report back first."
 }

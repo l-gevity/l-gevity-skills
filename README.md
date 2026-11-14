@@ -271,12 +271,13 @@ maps skills to capabilities, inputs, outputs, parallelism, exclusive file
 ownership, and verification. Capabilities include architecture, engineering,
 verification, optimization, security, and scientific validation.
 
-`check_orchestration.py` enforces deterministic rules. All 49 check codes have
-coverage among 99 [adversarial cases](./.adversarial/).
+`check_orchestration.py` enforces deterministic rules. All 58 check codes have
+coverage among 115 [adversarial cases](./.adversarial/).
 
 | Check | Rejects |
 |:--|:--|
 | `plan` | write overlap between concurrent packages, a consumer that does not wait for its contract, cycles, self-review, unreviewed high-risk changes, nested delegation, caps above the profile, merge or deploy permissions, protected paths without approval, auto-merge |
+| `preflight` | an unattended run that would stop for a person: work not ready, a decision only the human can make, access or test accounts without a passing probe, a sign-in prompt, a credential that expires inside the window, one test account shared by concurrent packages, a red baseline, no stop rule or untested escalation channel, a human step mid-run |
 | `handoff` | a summary that contradicts its own evidence or the workspace digests, changes outside the write set, stale base or context, credentials, embedded instructions such as "skip the review", a failed agent beyond its retry budget |
 | `gate` | silently skipped criteria, verdicts without passing evidence on the final commit, self-verification, open blocking findings, risk accepted by an agent, disputes settled by vote, rework beyond its bound |
 

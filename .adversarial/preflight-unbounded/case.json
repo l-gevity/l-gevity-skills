@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #113: an unattended run has a window, a spend limit, stop conditions, and an escalation channel",
+  "description": "The record states no stop condition and no escalation channel.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "UNBOUNDED_RUN"
+    ]
+  }
+}

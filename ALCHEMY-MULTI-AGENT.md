@@ -68,6 +68,7 @@ Objective
 → plan: owned packages, dependency waves                   §4
 → plan check                                               check_orchestration.py plan
 → human approval when consequential                        §9
+→ preflight when the run proceeds unattended               check_orchestration.py preflight
 → launch agents by wave, contracts first                   §5
 → hand-off check per package                               check_orchestration.py handoff
 → integration by the lead
@@ -242,7 +243,25 @@ Objective
     at higher cost, when packages keep conflicting, or when rework exceeds the
     time parallelism saved.
 
-## 12. Runtime Conformance
+## 12. Unattended Runs
+
+41. A run that proceeds while nobody watches MUST pass preflight before its
+    first wave: every plan requirement in an increment that may start, every
+    known question decided by the human, and access, test accounts, and
+    environment proved by probes that passed at the plan base, with a green
+    baseline. *Check:* `check_orchestration.py preflight` — `WORK_NOT_READY`,
+    `OPEN_DECISION`, `PREREQUISITE_UNPROVEN`, `BASELINE_RED`.
+42. Nothing inside the window MAY wait on a person: no interactive step, no
+    credential expiring before the window ends, no human step scheduled
+    mid-run, and no mutable test account shared by packages that may run
+    concurrently. *Check:* `INTERACTIVE_STEP`, `CREDENTIAL_EXPIRES`,
+    `HUMAN_STEP_MIDRUN`, `ACCOUNT_CONFLICT`.
+43. An unattended run MUST be bounded by a window, a spend limit, and stop
+    conditions, and MUST report through an escalation channel proved by a test
+    delivery; a blocked package parks while independent packages continue.
+    *Check:* `UNBOUNDED_RUN`, `PREREQUISITE_UNPROVEN`; *judgment* for parking.
+
+## 13. Runtime Conformance
 
 An adapter MUST provide, for its runtime, one of these execution categories,
 and MUST state which:

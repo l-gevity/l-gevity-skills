@@ -1,0 +1,42 @@
+{
+  "request": "Run alchemy-orchestrate on this: the plan .alchemy/runs/r1/plan.json passed its plan check. The lead wants to start it at 22:00 tonight and let it run unattended until 08:00 tomorrow; the preparation record is .alchemy/runs/r1/preflight.json. May the first wave start?",
+  "skills": [
+    "alchemy-orchestrate"
+  ],
+  "expect": [
+    {
+      "id": "loads-orchestration",
+      "criterion": "autonomy-preflight #1: an unattended start is decided under the orchestration contract",
+      "check": "guidance_includes",
+      "skills": [
+        "alchemy-orchestrate"
+      ]
+    },
+    {
+      "id": "reads-preflight-reference",
+      "criterion": "autonomy-preflight #1: the decision uses the preflight checklist, not general advice",
+      "check": "reads_include",
+      "paths": [
+        ".claude/skills/alchemy-orchestrate/references/autonomy-preflight.md"
+      ]
+    },
+    {
+      "id": "refuses-start",
+      "criterion": "autonomy-preflight #2: a run that would stop for a person does not start",
+      "check": "text_matches",
+      "pattern": "\\bFAIL\\b|\\bNO-GO\\b|(must|should|may|can)\\s*not\\s+start|cannot start|don't start|do not start"
+    },
+    {
+      "id": "names-expiry",
+      "criterion": "autonomy-preflight #3: a credential that expires inside the window is named",
+      "check": "text_matches",
+      "pattern": "CREDENTIAL_EXPIRES|REPO_TOKEN[^\\n]{0,160}expir|expir[^\\n]{0,160}(03:00|REPO_TOKEN|A1)"
+    },
+    {
+      "id": "names-shared-account",
+      "criterion": "autonomy-preflight #4: a mutable test account shared by concurrent packages is named",
+      "check": "text_matches",
+      "pattern": "ACCOUNT_CONFLICT|U1[^\\n]{0,200}(P1[^\\n]{0,40}P2|shar|concurren)|(shar|concurren)[^\\n]{0,200}U1"
+    }
+  ]
+}

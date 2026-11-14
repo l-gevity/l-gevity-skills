@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #110: no credential expires inside the unattended window",
+  "description": "The repository token expires at 02:00, six hours before the window ends.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "CREDENTIAL_EXPIRES"
+    ]
+  }
+}
