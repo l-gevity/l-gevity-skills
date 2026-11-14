@@ -251,8 +251,8 @@ Objective
     environment proved by probes that passed at the plan base, with a green
     baseline. *Check:* `check_orchestration.py preflight` — `WORK_NOT_READY`,
     `OPEN_DECISION`, `PREREQUISITE_UNPROVEN`, `BASELINE_RED`.
-42. Nothing inside the window MAY wait on a person: no interactive step, no
-    credential expiring before the window ends, no human step scheduled
+42. The run MUST NOT wait on a person inside the window: no interactive step,
+    no credential expiring before the window ends, no human step scheduled
     mid-run, and no mutable test account shared by packages that may run
     concurrently. *Check:* `INTERACTIVE_STEP`, `CREDENTIAL_EXPIRES`,
     `HUMAN_STEP_MIDRUN`, `ACCOUNT_CONFLICT`.

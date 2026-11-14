@@ -110,7 +110,7 @@ Kept with the plan under `state_dir`. Excerpt:
 | `window` | `start` and `end`, ISO 8601 instants with a zone; `end` after `start` |
 | `bounds` | `budget`, at least one `stop_conditions` entry, and `escalation` with a `channel` and the `evidence` of a test delivery |
 | `work[]` | `subject`, `decision` from `implementation-readiness`, `requirements`, `record`; `PARTLY-READY` counts only with `reversible: true`. Together they cover every plan requirement |
-| `decisions[].status` | `answered`, `default` (needs `reversible: true`), or `stop`, each with `decided_by: human`; `open` escalates. Defaults are reported as `queued` for the human to confirm at the merge boundary |
+| `decisions[].status` | `answered`, `default` (needs `reversible: true`), or `stop`, each with `decided_by: human`; `answered` and `default` state the `answer`; `open` escalates. Defaults are reported as `queued` for the human to confirm at the merge boundary |
 | `access[]`, `accounts[]` | `id`, `evidence`, `expires` (`never` or an instant after the window end), optional `interactive`; accounts add `role`, `secret` (a name), `packages`, `reset`, and `shared: true` only for read-only use |
 | `environment[]` | `id`, `evidence`, optional `interactive` |
 | `human_steps[].when` | `before`, `end`, or `during`; `during` fails |

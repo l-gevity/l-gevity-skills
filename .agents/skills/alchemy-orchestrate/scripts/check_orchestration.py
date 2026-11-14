@@ -1184,6 +1184,9 @@ def _rule_decisions(preflight: dict[str, Any], report: Report) -> list[str]:
         did = _get(raw, "id", "str", report, label)
         _get(raw, "question", "str", report, label, did)
         status = _enum(raw, "status", DECISION_STATUSES, report, label, did)
+        if status in ("answered", "default"):
+            # An answer the record does not state is a question the agent still asks.
+            _get(raw, "answer", "str", report, label, did)
         if status == "open":
             report.add("OPEN_DECISION", f"{label} is open; the human answers it, sets a reversible "
                        "default, or makes it a stop rule before the run", did)

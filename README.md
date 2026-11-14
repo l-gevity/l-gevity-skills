@@ -272,7 +272,7 @@ ownership, and verification. Capabilities include architecture, engineering,
 verification, optimization, security, and scientific validation.
 
 `check_orchestration.py` enforces deterministic rules. All 58 check codes have
-coverage among 115 [adversarial cases](./.adversarial/).
+coverage among 116 [adversarial cases](./.adversarial/).
 
 | Check | Rejects |
 |:--|:--|

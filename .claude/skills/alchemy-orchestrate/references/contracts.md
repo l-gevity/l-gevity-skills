@@ -206,7 +206,7 @@ bound reached must stop rework rather than restart it.
 | Code | Check | Verdict | Meaning |
 |:--|:--|:--|:--|
 | `SCHEMA` | all | FAIL / REJECT | A required field is missing or mistyped, a commit is not 7 to 64 hex characters, or the schema version is unknown |
-| `SECRET_IN_RECORD` | all | FAIL / REJECT | A plan, hand-off, or ledger value matches a credential pattern or sits under a credential key; every report redacts it |
+| `SECRET_IN_RECORD` | all | FAIL / REJECT | A plan, preflight, hand-off, or ledger value matches a credential pattern or sits under a credential key; every report redacts it |
 | `MISSING_TRACE` | plan, gate | FAIL | A package has no requirement ID, no acceptance criterion, or no skill, or the plan holds no criterion |
 | `CYCLE` | plan, gate | FAIL | `depends_on` forms a cycle |
 | `UNKNOWN_DEPENDENCY` | plan, gate | FAIL | A dependency, review target, or reviewed package does not exist |
