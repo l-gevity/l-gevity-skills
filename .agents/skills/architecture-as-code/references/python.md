@@ -1,24 +1,16 @@
----
-name: architecture-as-code-python
-description: >-
-    Python implementation of the `architecture-as-code` pattern. Per-package
-    `architecture.toml` files merged into a single `import-linter` config and
-    enforced via `lint-imports` (over a Grimp-built import graph). TRIGGER
-    when: implementing or extending architecture-as-code in a Python repo,
-    debugging an `import-linter` contract, or adapting the assembler. SKIP
-    for routine edits inside a governed package. Reads in conjunction with
-    `architecture-as-code` (the pattern, source of truth for schema, rule
-    placement, anti-patterns, and audit checklist) — this skill defines only
-    the Python-specific encoding, assembler code, and gotchas.
----
-
 # Architecture-as-Code — Python Implementation
 
-> **Prerequisite.** Read [`architecture-as-code`](../architecture-as-code/)
-> first. The schema (§1), subsystems (§2), forbidden edges (§3), rule
-> placement (§4), assembler concept (§5), and anti-patterns / audit (§6) are
-> defined there and apply identically here. This file documents only what is
-> Python-specific.
+Reference for [SKILL.md](../SKILL.md) §9: the Python implementation of the
+pattern. Per-package `architecture.toml` files are merged into a single
+`import-linter` config and enforced via `lint-imports` (over a Grimp-built
+import graph). Read when implementing or extending the pattern in a Python
+repo, debugging an `import-linter` contract, or adapting the assembler.
+
+"The pattern" below is SKILL.md, the source of truth: its schema (§1),
+subsystems (§2), forbidden edges (§3), rule placement (§4), assembler concept
+(§5), and anti-patterns / audit (§7) apply identically here. This file
+documents only what is Python-specific: the encoding, the assembler code, and
+the gotchas. Section references without a file name point inside this file.
 
 ## 1. File format
 
@@ -69,9 +61,10 @@ Parametric "not equal" syntax for cross-domain isolation:
 
 > [!NOTE] **Facade pattern in Python.** Python's idiomatic facade is a
 > sub-package (e.g. `mypkg.core.api`) exposing public API via `__init__.py`
-> and `__all__`. The "single file as facade" pattern from the JS skill maps
-> awkwardly here; prefer a public sub-package plus forbidden edges that ban
-> imports to the internal sub-packages.
+> and `__all__`. The "single file as facade" pattern from the JavaScript
+> reference ([javascript.md](javascript.md) §5) maps awkwardly here; prefer a
+> public sub-package plus forbidden edges that ban imports to the internal
+> sub-packages.
 
 ## 2. Specialized contract types
 

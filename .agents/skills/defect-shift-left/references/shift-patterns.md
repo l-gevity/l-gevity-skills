@@ -42,10 +42,9 @@ when violated. The ADR document remains as rationale; the lint config is the
 enforcement.
 
 For the encoding pattern see `architecture-as-code`, with concrete
-implementations in `architecture-as-code-javascript` or
-`architecture-as-code-python`. For first principles see
-`architecture-guidelines`; for the topology rationale this enforces, see
-`morphogenetic-architecture`.
+JavaScript / TypeScript and Python implementations in its references. For
+first principles see `architecture-guidelines`; for the topology rationale
+this enforces, see `morphogenetic-architecture`.
 
 ### 6.3 Hand-validated boundary → schema-as-code
 

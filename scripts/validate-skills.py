@@ -29,8 +29,6 @@ SIZE_BUDGET_WORDS = {
     "alchemy": 2200,
     "alchemy-orchestrate": 1900,
     "architecture-as-code": 2500,
-    "architecture-as-code-javascript": 1800,
-    "architecture-as-code-python": 1500,
     "architecture-guidelines": 1900,
     "bring-down": 2800,
     "ci-cd-reliability-architecture": 3800,
@@ -56,7 +54,7 @@ SIZE_BUDGET_WORDS = {
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
 # session carries whether or not a skill is invoked.
-DESCRIPTION_BUDGET_CHARS = 16800
+DESCRIPTION_BUDGET_CHARS = 15700
 # ADAPTIVE, FULL, and audit read this file; SKIP and DIRECT never load it.
 ALCHEMY_ROUTE = AGENT_SKILLS / "alchemy" / "references" / "adaptive-route.md"
 ALCHEMY_PIPELINE_STAGES = (
@@ -160,28 +158,6 @@ SKILL_REQUIRED_TERMS = {
         # rule stays documented until the contract step removes it.
         "`components` is accepted as a deprecated alias for `subsystems`",
         "rejects a file that carries both",
-    ),
-    "architecture-as-code-javascript": (
-        "no-restricted-syntax",
-        "ImportExpression",
-        "Production code must not import test-only code.",
-        "files: ['**/*.{js,jsx,mjs,ts,tsx}'],",
-        "second, independent gate",
-        "decides what a pattern matches, and the default is",
-        "partialMatch: false",
-        "Confine a provider SDK to its adapter",
-        "A provider SDK is an **npm package, not an element**",
-        "to: { module: { origin: 'external', source: x.package } }",
-        "Without `checkAllOrigins: true` the policy never fires",
-        "subjects every package to the block's `default`",
-        "Prove it red first",
-        "`boundaries/external` still works and is deprecated in v7",
-        "Flat config replaces a rule's options per rule id",
-    ),
-    "architecture-as-code-python": (
-        "The graph root is the coverage gate",
-        "root_package",
-        'data.get("subsystems", data.get("components", []))',
     ),
     "architecture-guidelines": (
         "## 8. Layer Self-Sufficiency",
@@ -657,8 +633,33 @@ REFERENCE_REQUIRED_TERMS = {
             "Unification guardrail — referencing-list uniformity",
         ),
     },
-    "architecture-as-code-javascript": {
+    "architecture-as-code": {
         "references/assembler.md": (
+            "# Architecture as Code — The Assembler",
+            "Forward EVERY field the subsystem schema defines",
+            "resolves to no registered subsystem",
+        ),
+        # The JavaScript and Python implementations were skills of their own
+        # until they were folded into this skill's references; their pins
+        # moved here with the text they guard.
+        "references/javascript.md": (
+            "no-restricted-syntax",
+            "ImportExpression",
+            "Production code must not import test-only code.",
+            "files: ['**/*.{js,jsx,mjs,ts,tsx}'],",
+            "second, independent gate",
+            "decides what a pattern matches, and the default is",
+            "partialMatch: false",
+            "Confine a provider SDK to its adapter",
+            "A provider SDK is an **npm package, not an element**",
+            "to: { module: { origin: 'external', source: x.package } }",
+            "Without `checkAllOrigins: true` the policy never fires",
+            "subjects every package to the block's `default`",
+            "Prove it red first",
+            "`boundaries/external` still works and is deprecated in v7",
+            "Flat config replaces a rule's options per rule id",
+        ),
+        "references/javascript-assembler.md": (
             "# Architecture as Code (JavaScript) — The Assembler",
             "'boundaries/no-unknown-files': 'error',",
             "'boundaries/dependencies': ['error', { default: 'allow', rules }],",
@@ -666,12 +667,10 @@ REFERENCE_REQUIRED_TERMS = {
             "The broad glob is the point, not an accident",
             "m.default.subsystems ?? m.default.components ?? []",
         ),
-    },
-    "architecture-as-code": {
-        "references/assembler.md": (
-            "# Architecture as Code — The Assembler",
-            "Forward EVERY field the subsystem schema defines",
-            "resolves to no registered subsystem",
+        "references/python.md": (
+            "The graph root is the coverage gate",
+            "root_package",
+            'data.get("subsystems", data.get("components", []))',
         ),
     },
     "zero-copy-requirements": {
@@ -842,6 +841,18 @@ REFERENCE_REQUIRED_TERMS = {
         ),
     },
 }
+# Triggers a description must keep. A skill folded into another leaves its
+# triggers in the surviving description, the only text a session reads before
+# it loads a skill. The description ratchet rewards trimming them, and no pin
+# on the body can report the loss.
+DESCRIPTION_REQUIRED_TERMS = {
+    "architecture-as-code": (
+        "an `eslint-plugin-boundaries` rule",
+        "an `import-linter` contract",
+        "in a JS/TS or Python repo",
+        "adapting the assembler",
+    ),
+}
 CONTRIBUTION_REQUIRED_TERMS = (
     "canonical source for generic skill method",
     "Consumer-to-library promotion loop",
@@ -851,8 +862,8 @@ CONTRIBUTION_REQUIRED_TERMS = (
     "--record-scenario",
 )
 PUBLIC_DOC_FORBIDDEN = {
-    # The router and root file are stack-neutral; each stack skill names its
-    # own enforcement file (architecture-as-code maps them).
+    # The router and root file are stack-neutral; each stack reference of
+    # architecture-as-code names its own enforcement file.
     "stack-specific router text": {
         "files": (
             ROOT / "CLAUDE.md",
@@ -993,6 +1004,9 @@ def validate_skill(path: Path) -> None:
             f"{path.relative_to(ROOT)} description too long "
             f"({len(description)} > {MAX_DESCRIPTION})"
         )
+    for term in DESCRIPTION_REQUIRED_TERMS.get(name, ()):
+        if not contains(description, term):
+            fail(f"{skill_file.relative_to(ROOT)} description missing trigger '{term}'")
     if not re.search(r"^#\s+\S", text, re.M):
         fail(f"{skill_file.relative_to(ROOT)} missing top-level heading")
     if not any(contains(text, marker) for marker in OUTPUT_MARKERS):
@@ -1148,6 +1162,10 @@ def validate_retired_skill_references() -> None:
         "implementation slice",
         "admitted slice",
         "migration unit",
+        # Folded into architecture-as-code/references: neither name is a
+        # skill any more, so a mention sends an agent to load nothing.
+        "architecture-as-code-javascript",
+        "architecture-as-code-python",
     )
     paths = [
         ROOT / "README.md",
@@ -1690,8 +1708,6 @@ ROUTE_SKILLS = {
 # Skills no scenario names yet. The list may only shrink: a skill leaves it
 # when a scenario covers it, and a new skill needs a scenario to ship.
 SCENARIO_UNCOVERED = (
-    "architecture-as-code-javascript",
-    "architecture-as-code-python",
     "architecture-guidelines",
     "bring-down",
     "continuous-improvement",
@@ -2234,17 +2250,25 @@ def mutation_test() -> int:
 
     cases.append((Case("package: __pycache__ exclusion removed", [package], ("__pycache__",)), drop_cache_exclusion))
 
-    legality = [copy / tree / "skills" / "morphogenetic-architecture" / "references" / "position-legality.md" for tree in (".agents", ".claude")]
-    moved_term = REFERENCE_REQUIRED_TERMS["morphogenetic-architecture"]["references/position-legality.md"][0]
+    # The two stack references of architecture-as-code were skills until they
+    # were folded into it; each keeps the removal case its first pin had as a
+    # skill, which the automatic cases above no longer generate.
+    for skill_name, reference_name in (
+        ("morphogenetic-architecture", "position-legality.md"),
+        ("architecture-as-code", "javascript.md"),
+        ("architecture-as-code", "python.md"),
+    ):
+        moved = [copy / tree / "skills" / skill_name / "references" / reference_name for tree in (".agents", ".claude")]
+        moved_term = REFERENCE_REQUIRED_TERMS[skill_name][f"references/{reference_name}"][0]
 
-    def remove_reference_term(files=legality, pattern=phrase_pattern(moved_term)):
-        for path in files:
-            text, crlf = read_raw(path)
-            if not pattern.search(text):
-                raise RuntimeError(f"reference term not found in {path.name}")
-            write_raw(path, pattern.sub("", text), crlf)
+        def remove_reference_term(files=moved, pattern=phrase_pattern(moved_term)):
+            for path in files:
+                text, crlf = read_raw(path)
+                if not pattern.search(text):
+                    raise RuntimeError(f"reference term not found in {path.name}")
+                write_raw(path, pattern.sub("", text), crlf)
 
-    cases.append((Case("reference: pinned phrase removed from position-legality.md", legality, ("position-legality.md",)), remove_reference_term))
+        cases.append((Case(f"reference: pinned phrase removed from {reference_name}", moved, (f"{reference_name} missing required term",)), remove_reference_term))
 
     pruner = [copy / tree / "skills" / "functionality-complexity-tradeoff" / "SKILL.md" for tree in (".agents", ".claude")]
 
@@ -2267,6 +2291,31 @@ def mutation_test() -> int:
             write_raw(path, text + "\nA cross-cutting concern belongs to one layer.\n", crlf)
 
     cases.append((Case("vocabulary: retired term reintroduced", retired, ("retired term",)), reintroduce_retired_term))
+
+    # A folded skill's name is retired with it. The reference that replaced
+    # the skill carries no size budget, so the mention is the only defect.
+    folded = [copy / tree / "skills" / "architecture-as-code" / "references" / "python.md" for tree in (".agents", ".claude")]
+
+    def name_folded_skill(files=folded):
+        for path in files:
+            text, crlf = read_raw(path)
+            write_raw(path, text + "\nSee `architecture-as-code-python` for the assembler.\n", crlf)
+
+    cases.append((Case("vocabulary: folded skill named as if it still existed", folded, ("retired term 'architecture-as-code-python'",)), name_folded_skill))
+
+    # The fold moved the stack triggers into the surviving description; a
+    # trim that drops one stops the stack request from matching the skill.
+    pattern_skill = [copy / tree / "skills" / "architecture-as-code" / "SKILL.md" for tree in (".agents", ".claude")]
+    stack_trigger = phrase_pattern(DESCRIPTION_REQUIRED_TERMS["architecture-as-code"][1])
+
+    def trim_stack_trigger(files=pattern_skill, pattern=stack_trigger):
+        for path in files:
+            text, crlf = read_raw(path)
+            if not pattern.search(text):
+                raise RuntimeError(f"stack trigger not found in {path}")
+            write_raw(path, pattern.sub("", text), crlf)
+
+    cases.append((Case("description: folded skill's trigger trimmed", pattern_skill, ("description missing trigger",)), trim_stack_trigger))
 
     # An appended pin is proven only by the case that removes it: the automatic
     # cases above remove each skill's first pin, never a later one.
@@ -2312,9 +2361,9 @@ def mutation_test() -> int:
     # The expand step of the components -> subsystems key rename must keep the
     # alias readable until the contract step; dropping the JS fallback is the
     # premature contract this case guards against.
-    js_skill = [copy / tree / "skills" / "architecture-as-code-javascript" / "references" / "assembler.md" for tree in (".agents", ".claude")]
+    js_assembler = [copy / tree / "skills" / "architecture-as-code" / "references" / "javascript-assembler.md" for tree in (".agents", ".claude")]
 
-    def drop_alias_fallback(files=js_skill):
+    def drop_alias_fallback(files=js_assembler):
         for path in files:
             text, crlf = read_raw(path)
             needle = "m.default.subsystems ?? m.default.components ?? []"
@@ -2322,7 +2371,7 @@ def mutation_test() -> int:
                 raise RuntimeError(f"alias fallback not found in {path}")
             write_raw(path, text.replace(needle, "m.default.subsystems ?? []"), crlf)
 
-    cases.append((Case("schema: components alias dropped before the contract step", js_skill, ("assembler.md",)), drop_alias_fallback))
+    cases.append((Case("schema: components alias dropped before the contract step", js_assembler, ("javascript-assembler.md missing required term",)), drop_alias_fallback))
 
     # The size ratchet has four failure paths, and each is proven on its own:
     # a file grows past its entry, a skill has no entry, an entry sits a grain

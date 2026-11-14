@@ -291,7 +291,7 @@ for runtime mechanisms.
 
 ## The skill library
 
-The library contains 26 composable skills. Each has an operational `SKILL.md`
+The library contains 24 composable skills. Each has an operational `SKILL.md`
 and a standalone primer explaining its engineering concepts. This catalog
 links to the Claude skills tree; Codex uses the matching `.agents/skills/` tree.
 
@@ -306,9 +306,7 @@ links to the Claude skills tree; Codex uses the matching `.agents/skills/` tree.
 | [`architecture-guidelines`](./.claude/skills/architecture-guidelines/SKILL.md) | Design minimal, modular subsystems and services. | [Read](./.documentation/READ-architecture-guidelines.md) |
 | [`morphogenetic-architecture`](./.claude/skills/morphogenetic-architecture/SKILL.md) | Place responsibilities and evaluate boundary changes. | [Read](./.documentation/READ-morphogenetic-architecture.md) |
 | [`structural-simplification`](./.claude/skills/structural-simplification/SKILL.md) | Measure whether a restructuring simplifies the system. | [Read](./.documentation/READ-structural-simplification.md) |
-| [`architecture-as-code`](./.claude/skills/architecture-as-code/SKILL.md) | Encode and enforce dependency boundaries. | [Read](./.documentation/READ-architecture-as-code.md) |
-| [`architecture-as-code-javascript`](./.claude/skills/architecture-as-code-javascript/SKILL.md) | Enforce boundaries in JavaScript and TypeScript. | [Read](./.documentation/READ-architecture-as-code-javascript.md) |
-| [`architecture-as-code-python`](./.claude/skills/architecture-as-code-python/SKILL.md) | Enforce boundaries in Python. | [Read](./.documentation/READ-architecture-as-code-python.md) |
+| [`architecture-as-code`](./.claude/skills/architecture-as-code/SKILL.md) | Encode and enforce dependency boundaries, with JavaScript/TypeScript and Python implementations. | [Read](./.documentation/READ-architecture-as-code.md) |
 | [`evolutionary-database-design`](./.claude/skills/evolutionary-database-design/SKILL.md) | Evolve schemas, events, APIs, and files across rollout and rollback. | [Read](./.documentation/READ-evolutionary-database-design.md) |
 | [`test-strategy`](./.claude/skills/test-strategy/SKILL.md) | Choose verification evidence from requirements and risk. | [Read](./.documentation/READ-test-strategy.md) |
 | [`defect-shift-left`](./.claude/skills/defect-shift-left/SKILL.md) | Detect defects at the earliest capable stage. | [Read](./.documentation/READ-defect-shift-left.md) |

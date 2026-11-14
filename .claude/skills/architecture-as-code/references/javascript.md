@@ -1,24 +1,17 @@
----
-name: architecture-as-code-javascript
-description: >-
-    JavaScript / TypeScript implementation of the `architecture-as-code`
-    pattern. Per-subsystem `eslint.architecture.mjs` files merged into a single
-    ESLint flat-config and enforced via `eslint-plugin-boundaries`. TRIGGER
-    when: implementing or extending architecture-as-code in a JS/TS repo,
-    debugging an `eslint-plugin-boundaries` rule, or adapting the assembler.
-    SKIP for routine edits inside a governed subsystem. Reads in conjunction with
-    `architecture-as-code` (the pattern, source of truth for schema, rule
-    placement, anti-patterns, and audit checklist) — this skill defines only
-    the JS-specific encoding, assembler code, and gotchas.
----
-
 # Architecture-as-Code — JavaScript Implementation
 
-> **Prerequisite.** Read [`architecture-as-code`](../architecture-as-code/)
-> first. The schema (§1), subsystems (§2), forbidden edges (§3), rule
-> placement (§4), assembler concept (§5), and anti-patterns / audit (§6) are
-> defined there and apply identically here. This file documents only what is
-> JavaScript-specific.
+Reference for [SKILL.md](../SKILL.md) §9: the JavaScript / TypeScript
+implementation of the pattern. Per-subsystem `eslint.architecture.mjs` files
+are merged into a single ESLint flat-config and enforced via
+`eslint-plugin-boundaries`. Read when implementing or extending the pattern in
+a JS/TS repo, debugging an `eslint-plugin-boundaries` rule, or adapting the
+assembler.
+
+"The pattern" below is SKILL.md, the source of truth: its schema (§1),
+subsystems (§2), forbidden edges (§3), rule placement (§4), assembler concept
+(§5), and anti-patterns / audit (§7) apply identically here. This file
+documents only what is JavaScript-specific: the encoding, the recipes, and the
+gotchas. Section references without a file name point inside this file.
 
 ## 1. File format
 
@@ -60,7 +53,7 @@ is `!{{from.captured.domain}}` (double braces).
 lint startup, merges and expands them, and emits one
 `eslint-plugin-boundaries` block whose `files` glob equals the linted source
 set, with the file-existence and dependency rules both at `error`. Read
-[references/assembler.md](references/assembler.md) before creating or
+[javascript-assembler.md](javascript-assembler.md) before creating or
 changing `eslint.config.js`, the assembler, or that block's `files`,
 severity, or `ignores`: it holds the code and why each line is shaped the
 way it is.

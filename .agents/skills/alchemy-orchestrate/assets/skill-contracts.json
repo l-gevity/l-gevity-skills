@@ -84,20 +84,6 @@
       "verify": "The project's architecture lint runs on the integrated head and fails on a deliberate violation",
       "completion": ["Add config", "Update config"], "failure": ["Reject rule", "Defer", "Blocked"]
     },
-    "architecture-as-code-javascript": {
-      "capability": "engineering", "stage": "E",
-      "inputs": ["architecture-as-code decision"], "outputs": ["rule files and assembler changes"],
-      "parallel": "none", "writes": "rule-files", "exclusive": ["the assembled architecture configuration"],
-      "verify": "The assembled lint config runs clean on the integrated head",
-      "completion": ["Update assembler"], "failure": ["Blocked"]
-    },
-    "architecture-as-code-python": {
-      "capability": "engineering", "stage": "E",
-      "inputs": ["architecture-as-code decision"], "outputs": ["rule files and assembler changes"],
-      "parallel": "none", "writes": "rule-files", "exclusive": ["the assembled architecture configuration"],
-      "verify": "The assembled import contracts run clean on the integrated head",
-      "completion": ["Update assembler"], "failure": ["Blocked"]
-    },
     "defect-shift-left": {
       "capability": "verification", "stage": "H",
       "inputs": ["accepted architecture and selected checks"], "outputs": ["per-gap stage placement rows"],

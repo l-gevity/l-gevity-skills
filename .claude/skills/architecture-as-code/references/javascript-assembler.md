@@ -1,9 +1,10 @@
 # Architecture as Code (JavaScript) — The Assembler
 
-Reference for [SKILL.md](../SKILL.md) §2. Read before creating or changing
+Reference for [SKILL.md](../SKILL.md) §9 and
+[javascript.md](javascript.md) §2. Read before creating or changing
 `eslint.config.js`, the assembler, or the emitted block's `files`, severity,
 or `ignores`. Writing or changing an `eslint.architecture.mjs` file needs
-only SKILL.md §1.
+only javascript.md §1. "Pattern" in the comments below is SKILL.md.
 
 ## 2. Assembler
 
@@ -51,7 +52,7 @@ function expand(spec, except) {
 const elements = SUBSYSTEMS.map(c => ({
     type: c.name,
     pattern: c.pattern,
-    ...(c.mode && { mode: c.mode }),        // REQUIRED — see § 5, matching mode
+    ...(c.mode && { mode: c.mode }),        // REQUIRED — see javascript.md § 5, matching mode
     ...(c.capture && { capture: c.capture }),
 }));
 const rules = allForbidden.map(e => ({

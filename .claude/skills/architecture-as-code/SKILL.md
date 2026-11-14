@@ -2,14 +2,17 @@
 name: architecture-as-code
 description: >-
     Stack-agnostic pattern for declaring and enforcing subsystem boundaries via
-    per-subsystem architecture configs merged into import-graph linter rules.
-    TRIGGER when designing/auditing dependency-rule enforcement, deciding what a
-    per-subsystem file should say, placing a rule, debugging a forbidden edge, or
-    extending the assembler. Consume explicit `Enforcement` handoffs from
-    `architecture-guidelines` or `morphogenetic-architecture` by turning
-    enforceable dependency constraints into architecture config rules. SKIP
-    routine edits inside a governed subsystem. For stack implementations see
-    `architecture-as-code-javascript` or `architecture-as-code-python`.
+    per-subsystem architecture configs merged into import-graph linter rules,
+    with JavaScript/TypeScript (`eslint.architecture.mjs`) and Python
+    (`architecture.toml`) implementations. TRIGGER when designing/auditing
+    dependency-rule enforcement, deciding what a per-subsystem file should say,
+    placing a rule, debugging a forbidden edge, an `eslint-plugin-boundaries`
+    rule, or an `import-linter` contract, implementing or extending the pattern
+    in a JS/TS or Python repo, or extending or adapting the assembler. Consume
+    explicit `Enforcement` handoffs from `architecture-guidelines` or
+    `morphogenetic-architecture` by turning enforceable dependency constraints
+    into architecture config rules. SKIP routine edits inside a governed
+    subsystem.
 ---
 
 # Architecture-as-Code (Pattern)
@@ -283,13 +286,20 @@ Next action:    <specific edit, rule, test, or owner question>
 
 ## 9. Implementations
 
-This skill defines the pattern. Concrete implementations live in
-sibling skills:
+Each stack's implementation is a reference. Read it when implementing or
+extending the pattern in that stack, debugging its linter's rule or contract,
+or adapting its assembler.
 
-| Stack      | Config file               | Lint tool                              | Skill |
-| ---------- | ------------------------- | -------------------------------------- | ----- |
-| JavaScript | `eslint.architecture.mjs` | ESLint + `eslint-plugin-boundaries`    | `architecture-as-code-javascript` |
-| Python     | `architecture.toml`       | `import-linter` (over Grimp)           | `architecture-as-code-python`     |
+- **JS/TS** (`eslint.architecture.mjs`, `eslint-plugin-boundaries`):
+  [references/javascript.md](references/javascript.md) for file format,
+  recipes (SDK confinement, dynamic imports, test-only code, root files), and
+  gotchas;
+  [references/javascript-assembler.md](references/javascript-assembler.md)
+  before creating or changing `eslint.config.js` or the emitted block's
+  `files`, severity, or `ignores`.
+- **Python** (`architecture.toml`, `import-linter` over Grimp):
+  [references/python.md](references/python.md) for file format,
+  `independence`/`layers` contracts, the assembler script, and gotchas.
 
 Adapting to a new stack: pick an import-graph linter that supports forbidden
 edges between named subsystem sets, then write a small assembler that emits its
