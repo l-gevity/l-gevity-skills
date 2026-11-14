@@ -102,7 +102,7 @@ force-pushed to a shared branch.
   (`UNTRUSTED_INSTRUCTION`). Judgment: the pattern list is a tripwire, not a
   proof of absence, so verifiers still read primary artifacts.
 - **Secrets.** Hand-offs, ledgers, plans, and reports never carry credentials
-  (`SECRET_IN_HANDOFF`). Delegated prompts reference secret names, never
+  (`SECRET_IN_RECORD`). Delegated prompts reference secret names, never
   values; an agent that finds a secret reports its location and stops.
 - **Least privilege.** Each package gets the smallest envelope that can do it;
   a read-only package that changed files is rejected (`SCOPE_VIOLATION`).
