@@ -23,8 +23,8 @@
     {
       "id": "reads-primary-artifact",
       "criterion": "handoff-check #2: the reviewer inspects the changed file, not only the summary",
-      "check": "text_matches",
-      "pattern": "billing\\.js[^\\n]{0,200}(no|not|never|without|does not|doesn't|lacks|missing)|(no|not|never|without|does not|doesn't|lacks|missing)[^\\n]{0,200}billing\\.js"
+      "check": "reads_include",
+      "paths": ["src/orders/billing.js"]
     }
   ]
 }

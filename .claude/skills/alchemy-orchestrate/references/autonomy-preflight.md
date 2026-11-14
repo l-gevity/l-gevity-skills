@@ -23,7 +23,7 @@ when it is missing.
 
 | # | Area | Must hold before the window opens | Code |
 |:--|:--|:--|:--|
-| 1 | Work | Every plan requirement sits in an increment that is `READY`, or `PARTLY-READY` and reversible, per `implementation-readiness`; the riskiest assumption goes first | `WORK_NOT_READY` |
+| 1 | Work | Every plan requirement sits in an increment that is `READY`, or `PARTLY-READY` and reversible, per `implementation-readiness` | `WORK_NOT_READY` |
 | 2 | Decisions | Every question an agent would stop to ask is answered, given a reversible default, or made a stop rule, by the human | `OPEN_DECISION` |
 | 3 | Access | Repository, pipeline, registries, cloud, and every external system the packages touch answer a non-interactive probe at the base, with the identity and the operation each package uses | `PREREQUISITE_UNPROVEN` |
 | 4 | No prompts | No step inside the window waits on a sign-in, second factor, consent screen, human check, license prompt, permission dialog, or a pipeline step that asks a human | `INTERACTIVE_STEP` |
@@ -56,6 +56,9 @@ Environment probes, line 7:
 
 Judgment the checker cannot make, reviewed by the lead and reported:
 
+- **The riskiest assumption goes first.** Order the increments per
+  `implementation-readiness`, so the one most likely to be wrong fails early
+  in the window instead of at its end; the checker reads readiness, not order.
 - **The decision list is complete.** Read each package's acceptance criteria
   and open technical questions, and ask which answer would change the code.
   Include the bound questions: whether the lead may raise a retry or rework
