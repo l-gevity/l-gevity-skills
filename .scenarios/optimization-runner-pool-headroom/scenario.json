@@ -19,7 +19,7 @@
       "id": "flow-signal-cites-measurement",
       "criterion": "system-optimization #3: the flow signal cites a measured quantity when measurements are supplied",
       "check": "text_matches",
-      "pattern": "(?m)^[ \\t>*_-]*Flow signal:(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*\\d"
+      "pattern": "(?m)^[ \\t>*_-]*Flow signal:(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*\\d"
     },
     {
       "id": "names-the-constraint",

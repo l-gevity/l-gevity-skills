@@ -40,13 +40,13 @@
       "id": "contract-trigger-is-evidence",
       "criterion": "evolutionary-database-design #6: the contract trigger of a staged transition names the evidence that permits the contract step",
       "check": "text_matches",
-      "pattern": "(?m)^[ \\t>*_-]*Contract trigger:\\**(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*(\\blogs?\\b|quer|metric|referenc|\\bread(?!y|i(?:ness|ly))|access|confirm|evidence|\\bzero\\b)"
+      "pattern": "(?m)^[ \\t>*_-]*Contract trigger:\\**(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*(\\blogs?\\b|quer|metric|referenc|\\bread(?!y|i(?:ness|ly))|access|confirm|evidence|\\bzero\\b)"
     },
     {
       "id": "hands-checks-to-owners",
       "criterion": "evolutionary-database-design #7: compatibility checks go to test-strategy, their placement to defect-shift-left, and deploy order to the CI/CD skill",
       "check": "text_matches",
-      "pattern": "(?m)^[ \\t>*_-]*Handoffs:(?=(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*test-strategy)(?=(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*shift-left)(?=(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*ci[/-]cd)"
+      "pattern": "(?m)^[ \\t>*_-]*Handoffs:(?=(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*test-strategy)(?=(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*shift-left)(?=(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*ci[/-]cd)"
     },
     {
       "id": "refuses-dated-drop",

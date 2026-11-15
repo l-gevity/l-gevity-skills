@@ -33,7 +33,7 @@
       "id": "hands-snapshot-gate-to-cicd",
       "criterion": "evolutionary-database-design #13: the snapshot requirement and the rollback artifact go to the CI/CD skill",
       "check": "text_matches",
-      "pattern": "(?m)^[ \\t>*_-]*Handoffs:\\**(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*ci[/-]cd"
+      "pattern": "(?m)^[ \\t>*_-]*Handoffs:\\**(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*ci[/-]cd"
     },
     {
       "id": "opens-with-report-blocks",

@@ -45,7 +45,7 @@
       "id": "names-missing-semantic-validation",
       "criterion": "requirements-topology #7: the Repository gate line of a gate that runs only a schema check names semantic validation",
       "check": "text_matches",
-      "pattern": "(?m)^[ \\t>*_-]*Repository gate:\\**(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*semantic"
+      "pattern": "(?m)^[ \\t>*_-]*Repository gate:\\**(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*semantic"
     },
     {
       "id": "hands-evidence-flags-to-traceability",
@@ -58,7 +58,7 @@
       "id": "gate-names-traceability-phase",
       "criterion": "requirements-topology #9: the Repository gate line lists traceability among the phases the gate should run",
       "check": "text_matches",
-      "pattern": "(?m)^[ \\t>*_-]*Repository gate:\\**(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*traceab"
+      "pattern": "(?m)^[ \\t>*_-]*Repository gate:\\**(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*traceab"
     }
   ]
 }
