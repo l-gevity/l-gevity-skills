@@ -31,7 +31,7 @@ systemic, root-cause adjustments, without growing bloated.
 >    in one SKILL. Other SKILLs may mention it briefly as a cross-reference when
 >    routing users to the owner would prevent misuse.
 > 5. **Operationalize Before Broadening**: For skill-library updates, add or
->    extend validation, templates, or primer checks before broad prose changes.
+>    extend validation, templates, or documentation checks before broad prose changes.
 >    If prose is still needed, keep the rule at the owning SKILL and route
 >    siblings to it.
 > 6. **Promote Before Repinning**: When a consumer project proves a reusable
