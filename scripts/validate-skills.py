@@ -65,9 +65,12 @@ ALCHEMY_PIPELINE_STAGES = (
     "A — Architecture",
 )
 ALCHEMY_DISPATCH_STATES = ("SKIP", "DIRECT", "ADAPTIVE", "FULL")
-# Four rules the adaptive route states once, each pinned at that statement.
-# The route's pre-flight checklist restated them, and an order check pinned
-# its lines until the checklist was merged into the rules it repeated.
+# Rules the adaptive route states once, each pinned at that statement. The
+# route's pre-flight checklist restated the first four, and an order check
+# pinned its lines until the checklist was merged into the rules it repeated.
+# The fifth points the Gate 3-4 handshake at fields `morphogenetic-architecture`
+# already defines: recorded runs wrote the candidate into `Decision:`, as in
+# "DEFER — candidate: SPLIT", and failed the placement-record check.
 ALCHEMY_ROUTE_RULES = {
     "Readiness before Architecture": (
         "Only `READY`, or `PARTLY-READY` as a bounded reversible increment whose unresolved "
@@ -77,6 +80,11 @@ ALCHEMY_ROUTE_RULES = {
     "Gate 5 rules in the same PR": "Ship the architecture rules in the same PR as the code they govern",
     "Gate 6 earliest catchable stage": (
         "| 6 | Shift defect detection left | `defect-shift-left` | Each error path → earliest catchable stage"
+    ),
+    "Handshake records hold one decision word": (
+        "The provisional record writes `Decision: DEFER` alone, names the candidate in "
+        "`Candidate baseline`, and asks Gate 4 for the measurement in `Next action`; the final "
+        "record's `Decision` is the one vocabulary word alone"
     ),
 }
 # Runs named companions they had not selected or not read in `Companions`, as
@@ -747,10 +755,8 @@ REFERENCE_REQUIRED_TERMS = {
             "Blocking stage:",
             # The stack-reference rule holds on the route as well as the alias.
             "only when rule files are written or changed",
-            # The pre-flight checklist stated these four rules a second time,
-            # and an order check pinned its lines. Each pin follows the one
-            # statement kept; ALCHEMY_ROUTE_RULES names them for the mutation
-            # test.
+            # Each pin follows the one statement of its rule;
+            # ALCHEMY_ROUTE_RULES names them for the mutation test.
             *ALCHEMY_ROUTE_RULES.values(),
         ),
     },
@@ -2725,13 +2731,14 @@ def mutation_test() -> int:
 
         cases.append((Case(f"companions: route swaps {label}", route_skill, (f"must preserve the {companion}",)), swap_passes))
 
-    # Rewording any of the four rules the route states once must fail on the
-    # pin at that statement, not on a later check.
+    # Rewording any of the rules the route states once must fail on the pin
+    # at that statement, not on a later check.
     for rule, (old, new) in {
         "Readiness before Architecture": ("bounded reversible increment", "bounded increment"),
         "Gate 2 smallest correct design": ("Smallest correct design", "A correct design"),
         "Gate 5 rules in the same PR": ("in the same PR as the code they govern", "soon after the code they govern"),
         "Gate 6 earliest catchable stage": ("earliest catchable stage", "a catchable stage"),
+        "Handshake records hold one decision word": ("`Decision: DEFER` alone", "`Decision: DEFER` with its candidate"),
     }.items():
         def reword_rule(files=route_skill, pattern=phrase_pattern(old), new=new, rule=rule):
             for path in files:

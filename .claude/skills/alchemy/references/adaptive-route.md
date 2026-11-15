@@ -112,6 +112,12 @@ required from Gate 4. Run the bounded handshake
 structural deltas, then Gate 3 re-enters for that unchanged candidate and
 emits the final topology decision. `SKILL.md` §1 holds Gate E until then.
 
+`morphogenetic-architecture` limits `Decision` to one vocabulary word, and its
+record already has a field for each part of the handshake. The provisional
+record writes `Decision: DEFER` alone, names the candidate in
+`Candidate baseline`, and asks Gate 4 for the measurement in `Next action`;
+the final record's `Decision` is the one vocabulary word alone.
+
 If Gate 4 rejects or redesigns the candidate, return to Gate A; a changed
 candidate starts a new bounded handshake. The Alchemy orchestrator owns the
 re-entry, the combined decision trail records both passes, and one candidate
