@@ -251,6 +251,9 @@ FENCE_CASES = (
     # opening run, which one pattern cannot do while `findall` returns bodies
     # only.
     ("block directly in four backticks", "````text\nA\n````\n", []),
+    # Not read: a line of four backticks is not a fence on the closing side
+    # either, so the block three backticks opened stays open.
+    ("closing line of four backticks", "```\nA\n````\n", []),
     # Not read: backticks after other text on a line are inline code in
     # markdown, and backticks that end a content line belong to that line.
     ("fence after a label", "**L** ```text\nA\n```\n", []),
