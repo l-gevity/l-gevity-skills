@@ -221,4 +221,4 @@ reusable capability. The full operational reference for this concept — the
 complete 12-stage ladder, a defect-class-to-stage taxonomy, and an audit
 protocol — lives in [SKILL.md](../.claude/skills/defect-shift-left/SKILL.md).*
 
-<!-- skill-revision: 6687087d5659 -->
+<!-- skill-revision: f7e8a9b61dcc -->

@@ -133,7 +133,7 @@ unrepresentable?_ If yes, the check belongs at Stage 0.
 5. **Prioritize** by rank distance × frequency × blast radius.
 6. **Move the check** to the earliest feasible stage.
 7. **Gate it.** A correct-stage check that does not block is still a detection
-   gap.
+   gap; how a check blocks belongs to `ci-cd-reliability-architecture`.
 8. **Remove later same-scope duplicates** once the earlier gate is proven.
 9. **Audit every escaped defect:** find its earliest possible stage and place a
    gate there. A recurring one goes to `continuous-improvement` to become a
