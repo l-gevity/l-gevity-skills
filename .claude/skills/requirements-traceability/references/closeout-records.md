@@ -43,8 +43,6 @@ Completion record:
 
 ## Closeout Trace Note
 
-For implementation or review closeout, append a compact note:
-
 ```text
 Trace:
 - Source: <requirement set, issue, or admitted increment>
