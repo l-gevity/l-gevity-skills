@@ -1869,7 +1869,6 @@ ROUTE_SKILLS = {
 # when a scenario covers it, and a new skill needs a scenario to ship.
 SCENARIO_UNCOVERED = (
     "architecture-guidelines",
-    "continuous-improvement",
     "dependency-lifecycle",
     "implementation-readiness",
     "observability-design",
