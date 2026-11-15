@@ -1880,9 +1880,123 @@ SCENARIO_CRITERION_RE = re.compile(r"^[a-z][a-z0-9-]* #\d+: \S")
 # open a continuation line go to the indent or to the text after it, so a
 # failing match tries every split on every line: a recording of
 # schema-rename-expand-contract kept the validator busy past five minutes.
-# An indent run followed directly by a repeat, or by text that may start with
-# a space, is that shape; `[ \t]{2,}(?![ \t])` takes the whole indent.
-UNGUARDED_CONTINUATION_RE = re.compile(r"\[ \\t\](?:\{\d+,\d*\}|[+*])(?:\)[*+]|\[\^\\n\][*+])")
+# Inside a repeated group, an indent run (`[ \t]`, `[\t ]`, `\s`, or a space,
+# repeated, optionally followed by `\S?`) is that shape when the text matcher
+# after it can take the characters it takes: `[^\n]*` in the same group, or
+# what the group opens with on its next turn. `[ \t]{2,}(?![ \t])` takes the
+# whole indent. The same run outside a repeated group splits once and is sound.
+UNGUARDED_CONTINUATION_RE = re.compile(
+    r"(?P<indent>\[ \\t\]|\[\\t \]|\\s| )(?:\{\d+,\d*\}|[+*])(?:\\S[?*])?(?P<next>\)|\[\^\\n\][*+])"
+)
+PATTERN_QUANTIFIER_RE = re.compile(r"(?:[?*+]|\{\d*(?:,\d*)?\})[?+]?")
+PATTERN_REPEAT_RE = re.compile(r"[*+]|\{\d+,")
+PATTERN_GROUP_PREFIX_RE = re.compile(r"\?(?:[:>]|P<\w+>)")
+PATTERN_ZERO_WIDTH = ("^", "$", "\\b", "\\B", "\\A", "\\Z")
+
+
+def pattern_groups(pattern: str) -> dict[int, int]:
+    """Each group of a regular expression: opening index mapped to closing
+    index. Escapes and character classes are skipped."""
+    pairs: dict[int, int] = {}
+    opened: list[int] = []
+    index = 0
+    while index < len(pattern):
+        char = pattern[index]
+        if char == "\\":
+            index += 2
+            continue
+        if char == "[":
+            index = pattern_class_end(pattern, index)
+            continue
+        if char == "(":
+            opened.append(index)
+        elif char == ")" and opened:
+            pairs[opened.pop()] = index
+        index += 1
+    return pairs
+
+
+def pattern_class_end(pattern: str, index: int) -> int:
+    """Index after the character class that opens at index; a `]` right
+    after `[` or `[^` is a member of the class."""
+    index += 2 if pattern.startswith("[^", index) else 1
+    if pattern.startswith("]", index):
+        index += 1
+    while index < len(pattern) and pattern[index] != "]":
+        index += 2 if pattern[index] == "\\" else 1
+    return index + 1
+
+
+def first_characters(pattern: str, start: int, stop: int, chars: str, pairs: dict[int, int]) -> tuple[set[str], bool]:
+    """Which of chars the expression pattern[start:stop] can open with, and
+    whether it can match nothing. Lookarounds and anchors take no character;
+    an atom the reader cannot judge is taken to open with any of chars."""
+    found: set[str] = set()
+    can_be_empty = False
+    branch_empty, branch_done = True, False
+    index = start
+    while index <= stop:
+        if index == stop or pattern[index] == "|":
+            can_be_empty |= branch_empty and not branch_done
+            branch_empty, branch_done = True, False
+            index += 1
+            continue
+        char = pattern[index]
+        if char == "\\":
+            end = index + 2
+        elif char == "[":
+            end = pattern_class_end(pattern, index)
+        elif char == "(" and index in pairs:
+            end = pairs[index] + 1
+        else:
+            end = index + 1
+        quantifier = PATTERN_QUANTIFIER_RE.match(pattern, end)
+        after = quantifier.end() if quantifier else end
+        atom = pattern[index:end]
+        if branch_done or atom in PATTERN_ZERO_WIDTH or pattern.startswith(("(?=", "(?!", "(?<=", "(?<!"), index):
+            index = after
+            continue
+        if char == "(":
+            prefix = PATTERN_GROUP_PREFIX_RE.match(pattern, index + 1)
+            if pattern.startswith("(?", index) and not prefix:
+                index = after  # inline flags or a back-reference by name
+                continue
+            inner, inner_empty = first_characters(pattern, prefix.end() if prefix else index + 1, end - 1, chars, pairs)
+        else:
+            try:
+                inner, inner_empty = {c for c in chars if re.fullmatch(atom, c)}, False
+            except re.error:
+                inner, inner_empty = set(chars), False
+        found |= inner
+        optional = quantifier is not None and re.match(r"[?*]|\{0?,|\{0\}", quantifier.group(0)) is not None
+        if not (inner_empty or optional):
+            branch_empty, branch_done = False, True
+        index = after
+    return found, can_be_empty
+
+
+def unguarded_continuation(pattern: str) -> bool:
+    """True when an indent run inside a repeated group can share characters
+    with the text matcher after it, with no guard between them."""
+    pairs = pattern_groups(pattern)
+    closing = {close: open_ for open_, close in pairs.items()}
+    repeated = [(open_, close) for open_, close in pairs.items() if PATTERN_REPEAT_RE.match(pattern, close + 1)]
+    for match in UNGUARDED_CONTINUATION_RE.finditer(pattern):
+        taken = "".join(char for char in " \t\n" if re.fullmatch(match.group("indent"), char))
+        if match.group("next") == ")":
+            close = match.start("next")
+            open_ = closing.get(close)
+            if open_ is None or (open_, close) not in repeated:
+                continue
+            prefix = PATTERN_GROUP_PREFIX_RE.match(pattern, open_ + 1)
+            shared, _ = first_characters(pattern, prefix.end() if prefix else open_ + 1, close, taken, pairs)
+            if shared:
+                return True
+        elif any(open_ < match.start() < close for open_, close in repeated):
+            return True
+    return False
+
+
 SCENARIO_TRANSCRIPT_KEYS = {
     "scenario": str,
     "revision": str,
@@ -1970,7 +2084,7 @@ def load_scenario(directory: Path) -> tuple[dict, dict | None]:
                 re.compile(expectation["pattern"])
             except re.error as error:
                 fail(f"{label} expectation '{ident}' pattern does not compile: {error}")
-            if UNGUARDED_CONTINUATION_RE.search(expectation["pattern"]):
+            if unguarded_continuation(expectation["pattern"]):
                 fail(
                     f"{label} expectation '{ident}' pattern lets indentation and text share "
                     "characters on a continuation line; guard the indent, as in "
@@ -3261,6 +3375,36 @@ def mutation_test() -> int:
                 unguard_continuation,
             )
         )
+
+        # Each indent form is its own alternative of the check, so each gets
+        # its own case: undoing one alternative fails only that case. The last
+        # case keeps the guard off a run that meets `[^\n]*` inside the
+        # repeated group, the path that reads the group's span.
+        for form, written in (
+            ("\\s{2,}", "\\\\s{2,})*"),
+            (" {2,}", " {2,})*"),
+            ("[\\t ]{2,}", "[\\\\t ]{2,})*"),
+            ("[ \\t]{2,}\\S?", "[ \\\\t]{2,}\\\\S?)*"),
+            ("[ \\t]{2,}[^\\n]* in a repeated group", "[ \\\\t]{2,}[^\\\\n]*)*"),
+        ):
+
+            def unguard_variant(files=unguarded, written=written):
+                text, crlf = read_raw(files[0])
+                guarded = "[ \\\\t]{2,}(?![ \\\\t]))*"
+                if guarded not in text:
+                    raise RuntimeError(f"no guarded continuation group in {files[0]}")
+                write_raw(files[0], text.replace(guarded, written), crlf)
+
+            cases.append(
+                (
+                    Case(
+                        f"scenario: pattern reads a wrapped value with an unguarded {form}",
+                        unguarded,
+                        (".scenarios/cicd-retention-by-reader expectation 'records-retention-reader' pattern lets indentation and text share",),
+                    ),
+                    unguard_variant,
+                )
+            )
 
     # A mutation that adds or removes words also moves a size count, and the
     # size checks run before most others: without this, a case would be judged
