@@ -123,7 +123,10 @@ stack, UX, security, accessibility, API, release, or evidence rules.
 - `SKIP` skips only the Alchemy core; it never suppresses a matching companion.
   `DIRECT` keeps the core route focused while allowing independently triggered
   companions.
-- Report companions explicitly. Use `None` when no companion trigger matches.
+- Report companions explicitly. Use `None` when no companion trigger matches,
+  and name no companion whose trigger is unmet or unknown; write a selected
+  companion whose `SKILL.md` was not read in this task as
+  `<skill> — Not run (<reason>)`.
 
 ### Execution Strategy
 

@@ -79,6 +79,15 @@ ALCHEMY_ROUTE_RULES = {
         "| 6 | Shift defect detection left | `defect-shift-left` | Each error path → earliest catchable stage"
     ),
 }
+# Runs named companions they had not selected or not read in `Companions`, as
+# pending, as joining later, or with reasons, and a parenthesis decided
+# whether the build saw it: recordings of dispatch-adaptive-structural. A
+# companion whose trigger is unmet or unknown is not named; a selected one
+# the run never read is `Not run`, the form that tells it from a claim.
+ALCHEMY_UNREAD_COMPANION = (
+    "name no companion whose trigger is unmet or unknown; write a selected companion whose "
+    "`SKILL.md` was not read in this task as `<skill> — Not run (<reason>)`"
+)
 CI_CD_RELEASE_STATES = (
     "BUILD-VERIFIED",
     "RELEASE-READY",
@@ -155,6 +164,7 @@ SKILL_REQUIRED_TERMS = {
         "select `infrastructure-fit`",
         "select `gate-lifecycle`",
         '**Claim only what ran.**',
+        ALCHEMY_UNREAD_COMPANION,
         # A design pass records constraints in the pattern's neutral form; the
         # stack implementation, now a reference of architecture-as-code, was
         # loaded in 5 of 7 recorded ADAPTIVE runs regardless.
@@ -2659,6 +2669,15 @@ def mutation_test() -> int:
             write_raw(path, new, crlf)
 
     cases.append((Case("orchestration: router stops reporting Execution", router_skill, ("must report Execution",)), hide_execution))
+
+    def unmark_unread_companion(files=router_skill, pattern=phrase_pattern("as `<skill> — Not run (<reason>)`")):
+        for path in files:
+            text, crlf = read_raw(path)
+            if not pattern.search(text):
+                raise RuntimeError(f"unread-companion form not found in {path}")
+            write_raw(path, pattern.sub("as pending", text), crlf)
+
+    cases.append((Case("companions: router stops marking an unread companion Not run", router_skill, (f"missing required term '{ALCHEMY_UNREAD_COMPANION}'",)), unmark_unread_companion))
 
     # The selection rule and the companion pass order live in the route, and
     # so do the checks on them.
