@@ -1965,10 +1965,43 @@ def logical_lines(output: str) -> list[str]:
     return lines
 
 
+TRAIL_NOTE_RE = re.compile(r"^\W*(?:not run|not triggered|not selected|deferred|skipped)\b", re.I)
+
+
+def scenario_trail_decisions(output: str) -> set[str]:
+    """Skills a decision-trail row gives a decision: the trail is the table
+    whose header has `Skill` and `Decision` columns. A multi-stage answer has
+    no `Core route` line, so its trail is where it claims a stage ran. A row
+    is a note when its Decision cell is empty or opens with a not-run word.
+    `BLOCKED` is a decision some gates return, so it does not open a note."""
+    named: set[str] = set()
+    columns = None
+    for line in output.splitlines():
+        row = line.strip(" \t>")
+        if not row.startswith("|"):
+            columns = None
+            continue
+        cells = [cell.strip() for cell in re.split(r"(?<!\\)\|", row.strip("|"))]
+        heads = [cell.strip("*_` ").lower() for cell in cells]
+        if "skill" in heads and "decision" in heads:
+            columns = heads.index("skill"), heads.index("decision")
+        elif columns and max(columns) < len(cells):
+            decision = cells[columns[1]]
+            if re.search(r"\w", decision) and not TRAIL_NOTE_RE.search(decision):
+                for token in re.findall(r"[a-z][a-z0-9-]+", cells[columns[0]]):
+                    if (CLAUDE_SKILLS / token / "SKILL.md").is_file():
+                        named.add(token)
+    return named
+
+
 def scenario_route_loaded(transcript: dict) -> bool:
     """Every routed skill was loaded, or the output reports it as not run on a
-    line that names it: a decision attributed to an unloaded skill fails."""
+    line that names it: a decision attributed to an unloaded skill fails. A
+    trail row that gives a skill a decision is a claim no other line takes
+    back, so that skill must be loaded."""
     output, loaded = transcript["output"], scenario_loaded(transcript)
+    if scenario_trail_decisions(output) - loaded:
+        return False
     lines = logical_lines(output)
     return all(
         any(skill in line and NOT_RUN_RE.search(line) for line in lines)
@@ -2827,6 +2860,33 @@ def mutation_test() -> int:
             write_raw(files[0], json.dumps(record, indent=2) + "\n", False)
 
         cases.append((Case("scenario: SKIP answer carries a report block", skip_record, ("expectation 'carries-no-report-block' not met",)), add_report_block))
+
+        # A trail row that gives a stage a decision claims the stage ran, so a
+        # row for a skill the run never read must fail. The row's last cell
+        # carries a not-run word on purpose: only the Decision cell makes a
+        # row a note.
+        trail_record = [scenario_root / "dispatch-adaptive-structural" / "transcript.json"]
+
+        def add_unloaded_stage(files=trail_record, skill="system-optimization"):
+            record = json.loads(files[0].read_text(encoding="utf-8"))
+            if skill in scenario_loaded(record):
+                raise RuntimeError(f"{skill} is loaded in {files[0]}")
+            record["output"] += (
+                "\n\n| Stage | Skill | Decision | Next action or skip rationale |\n|---|---|---|---|\n"
+                f"| Y | {skill} | Proceed | Deferred work is listed |\n"
+            )
+            write_raw(files[0], json.dumps(record, indent=2) + "\n", False)
+
+        cases.append(
+            (
+                Case(
+                    "scenario: trail gives a decision to a skill never read",
+                    trail_record,
+                    (".scenarios/dispatch-adaptive-structural expectation 'claims-only-loaded-stages' not met",),
+                ),
+                add_unloaded_stage,
+            )
+        )
 
     try:
         code, output = run()
