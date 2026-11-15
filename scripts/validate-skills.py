@@ -112,6 +112,11 @@ ALCHEMY_RESUMED_STAGE = (
     "a selected stage that did not run, or one resumed from an earlier record, appears in the "
     "trail as `Not run` with the reason"
 )
+# `SKIP` and `DIRECT` never need the route, except for one thing it holds: a
+# run that must emit the decision trail reads it for that format. Without the
+# clause the router says the trail format is out of reach of the two
+# dispatches that may owe it.
+ALCHEMY_TRAIL_FORMAT_READ = "a run that must emit the decision trail of §3 opens it for that format alone"
 CI_CD_RELEASE_STATES = (
     "BUILD-VERIFIED",
     "RELEASE-READY",
@@ -174,6 +179,7 @@ SKILL_REQUIRED_TERMS = {
         # walk lives in references/adaptive-route.md, and so do the pins on
         # the text only that route uses.
         "`SKIP` and `DIRECT` never need it",
+        ALCHEMY_TRAIL_FORMAT_READ,
         "### Change Primitives",
         "**Subsystem**",
         "**Aspect**",
@@ -2985,6 +2991,15 @@ def mutation_test() -> int:
             write_raw(path, pattern.sub("", text), crlf)
 
     cases.append((Case("claims: router stops marking a resumed stage Not run", router_skill, (f"missing required term '{ALCHEMY_RESUMED_STAGE}'",)), claim_resumed_stage))
+
+    def drop_trail_format_read(files=router_skill, pattern=phrase_pattern(f"; {ALCHEMY_TRAIL_FORMAT_READ}")):
+        for path in files:
+            text, crlf = read_raw(path)
+            if not pattern.search(text):
+                raise RuntimeError(f"trail-format clause not found in {path}")
+            write_raw(path, pattern.sub("", text), crlf)
+
+    cases.append((Case("route: SKIP and DIRECT lose the trail-format read", router_skill, (f"missing required term '{ALCHEMY_TRAIL_FORMAT_READ}'",)), drop_trail_format_read))
 
     # The selection rule and the companion pass order live in the route, and
     # so do the checks on them.
