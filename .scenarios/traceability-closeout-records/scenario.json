@@ -1,5 +1,5 @@
 {
-  "request": "Run requirements-traceability on this closeout. Canonical source: `requirements/invoicing.md`, version 1.4. It holds the requirement `invoice-download` with three criteria: `invoice-download#AC1` (the account owner downloads any invoice issued to the account), `invoice-download#AC2` (a user who is not the account owner is refused), and `invoice-download#AC3` (each download is written to the audit log). Readiness passed on 2 September with decision READY for the increment `invoice-download-v1`, tracked in issue #88. Commit `4f2a9c1` on `main` changed `src/invoices/download.ts`, `src/invoices/policy.ts`, `src/audit/log.ts`, and `test/invoices/download.spec.ts`; the spec holds three tests, tagged AC1, AC2, and AC3. CI run 5121 on `4f2a9c1` passed the AC1 and AC2 tests. The AC3 test is marked skipped in that run because the audit-log sandbox was down; issue #93, owned by Dana, tracks running it. The change went to production on 9 September. The same file holds the outcome hypothesis `fewer-invoice-tickets`, version 1, which applies to `invoice-download`: cohort, account owners who need a past invoice; primary measure, invoice-copy support tickets per month; baseline, 120 per month from the ticket system for June to August; decision threshold, at least 30 percent fewer; evaluation window, the eight weeks after the production release; guardrail, billing-dispute tickets do not rise. The measurement is ticket-system query Q-207, run on 5 November over 9 September to 3 November: 111 invoice-copy tickets per month, which is 7.5 percent fewer; 14 billing-dispute tickets per month against 15 before; and 1,840 downloads by 1,310 distinct account owners in the window. Give me the trace decision, the outcome-evidence record, the completion record for issue #88, and the closeout trace note. The product manager also asks whether this result means we should remove the download. Name the skill that owns that decision on a line of the form `Removal decision owner: <skill>`.",
+  "request": "Run requirements-traceability on this closeout. Canonical source: `requirements/invoicing.md`, version 1.4. It holds the requirement `invoice-download` with three criteria: `invoice-download#AC1` (the account owner downloads any invoice issued to the account), `invoice-download#AC2` (a user who is not the account owner is refused), and `invoice-download#AC3` (each download is written to the audit log). Readiness passed on 2 September with decision READY for the increment `invoice-download-v1`, tracked in issue #88. Commit `4f2a9c1` on `main` changed `src/invoices/download.ts`, `src/invoices/policy.ts`, `src/audit/log.ts`, and `test/invoices/download.spec.ts`; the spec holds three tests, tagged AC1, AC2, and AC3. CI run 5121 on `4f2a9c1` passed the AC1 and AC2 tests. The AC3 test is marked skipped in that run because the audit-log sandbox was down; issue #93, owned by Dana, tracks running it. The change went to production on 9 September. The same file holds the outcome hypothesis `fewer-invoice-tickets`, version 1, which applies to `invoice-download`: cohort, account owners who need a past invoice; primary measure, invoice-copy support tickets per month; baseline, 120 per month from the ticket system for June to August; decision threshold, at least 30 percent fewer; evaluation window, the eight weeks after the production release; guardrail, billing-dispute tickets do not rise. The measurement is ticket-system query Q-207, run on 5 November over 9 September to 3 November: 111 invoice-copy tickets per month, which is 7.5 percent fewer; 14 billing-dispute tickets per month against 15 before; and 1,840 downloads by 1,310 distinct account owners in the window. Give me the trace decision, the outcome-evidence record, the completion record for issue #88, and the closeout trace note. The product manager also asks whether this result means we should remove the download. Name the skill that owns that decision on a line of the form `Removal decision owner: <skill>`. Give your own answer to the product manager's question on a line of the form `Removal verdict: remove`, `Removal verdict: keep`, or `Removal verdict: not decided here`.",
   "skills": ["requirements-traceability"],
   "expect": [
     {
@@ -54,6 +54,19 @@
       "criterion": "requirements-traceability #8: with a criterion unverified, neither the trace decision nor the completion record says TRACEABLE",
       "check": "text_matches",
       "pattern": "(?ms)\\A(?!.*^[ \\t>*_-]*Decision:\\**[ \\t*_`]*(?-i:TRACEABLE)\\b)"
+    },
+    {
+      "id": "leaves-removal-verdict-undecided",
+      "criterion": "requirements-traceability #9: asked for its own verdict on removal, the answer is that it is not decided here",
+      "check": "field_in",
+      "field": "Removal verdict",
+      "values": ["not", "Not", "NOT"]
+    },
+    {
+      "id": "issues-no-removal-verdict",
+      "criterion": "requirements-traceability #10: no verdict line says remove or keep",
+      "check": "text_matches",
+      "pattern": "(?ms)\\A(?!.*^[ \\t>*_-]*(?:Removal[ \\t]+)?verdict\\**:\\**[ \\t*_`]*(?:remove|keep)\\b)"
     },
     {
       "id": "opens-with-report-blocks",
