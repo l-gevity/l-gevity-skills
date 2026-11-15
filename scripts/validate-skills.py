@@ -856,15 +856,18 @@ DESCRIPTION_REQUIRED_TERMS = {
         "`architecture.toml`",
     ),
 }
-# References that return a decision record of their own: here, the two stack
-# implementations that were skills until they were folded into this one. The
-# output marker and the composition-map check read SKILL.md, so each file
-# named here is held to both as a skill is: it keeps a marker, and the skill's
-# map row lists every decision on its Decision line. The decisions named per
-# file are the ones it must keep returning itself, so one file cannot drop a
-# decision while the other keeps the row true.
-OUTPUT_CONTRACT_REFERENCES = {
+# Skills whose references return decision records of their own: here, the two
+# stack implementations that were skills until they were folded into this
+# one. Each file named here keeps an output marker, and one row of the
+# composition map lists what all of them return: every decision on each
+# file's Decision line is in the row, and every row decision is on a line.
+# That alone lets one file stand in for another, since a decision SKILL.md
+# drops stays true of the row while a reference still returns it. So each
+# file is named with the decisions it must keep on its own line: for SKILL.md
+# all it returns, for a reference the two its own row required.
+OUTPUT_CONTRACT_FILES = {
     "architecture-as-code": {
+        "SKILL.md": ("Add config", "Update config", "Reject rule", "Defer", "Blocked"),
         "references/javascript.md": ("Update assembler", "Blocked"),
         "references/python.md": ("Update assembler", "Blocked"),
     },
@@ -1027,7 +1030,7 @@ def validate_skill(path: Path) -> None:
         fail(f"{skill_file.relative_to(ROOT)} missing top-level heading")
     if not any(contains(text, marker) for marker in OUTPUT_MARKERS):
         fail(f"{skill_file.relative_to(ROOT)} missing coder-facing output marker")
-    for relative in OUTPUT_CONTRACT_REFERENCES.get(name, {}):
+    for relative in OUTPUT_CONTRACT_FILES.get(name, {}):
         reference = path / relative
         if not reference.is_file():
             fail(f"{path.relative_to(ROOT)}/{relative} is required")
@@ -2554,10 +2557,8 @@ def mutation_test() -> int:
     cases.append((Case("orchestration: the map lists a decision the skill never returns", contracts_map, ("decision 'Rewrite assembler' does not appear",)), invent_decision))
 
     # The two stack references of architecture-as-code return decision records
-    # of their own. As skills, each was held to an output marker and to its
-    # map row; folded, each is held to both again, and each way of losing one
-    # is proven per file: the section goes, a decision is renamed, or one file
-    # stops returning a decision the other still returns.
+    # of their own. As skills, each was held to an output marker; folded, each
+    # is held to it again.
     for reference_name in ("javascript.md", "python.md"):
         stack_reference = both(f"architecture-as-code/references/{reference_name}")
 
@@ -2571,25 +2572,57 @@ def mutation_test() -> int:
 
         cases.append((Case(f"contract: Output Contract section deleted from {reference_name}", stack_reference, (f"{reference_name} missing coder-facing output marker",)), drop_output_contract))
 
-        def rename_decision(files=stack_reference):
-            for path in files:
-                text, crlf = read_raw(path)
-                new = re.sub(r"(?m)^(Decision:.*\| )Update assembler( \|)", r"\1Change assembler\2", text)
-                if new == text:
-                    raise RuntimeError(f"no Update assembler decision in {path}")
-                write_raw(path, new, crlf)
+    # One map row holds what SKILL.md and both stack references return, so a
+    # decision one file stops returning can stay true of the row through
+    # another: `Blocked` dropped from SKILL.md, which both references still
+    # return, is the case the fold first let through. Each file is therefore
+    # held to its own Decision line, and each way of breaking that is proven
+    # per file and per decision: the line goes, a decision on it is renamed,
+    # or a decision the file must keep is dropped. The decisions are spelled
+    # out here, so an entry removed from the validator's list fails its case.
+    def edit_decision_line(files, edit):
+        for path in files:
+            text, crlf = read_raw(path)
+            line = re.search(r"(?m)^(Decision:[ \t]+)(.+)\n", text)
+            if line is None:
+                raise RuntimeError(f"no Decision line in {path}")
+            values = edit([value.strip() for value in line.group(2).split("|")])
+            new = line.group(1) + " | ".join(values) + "\n" if values else ""
+            write_raw(path, text[: line.start()] + new + text[line.end() :], crlf)
 
-        cases.append((Case(f"contract: decision renamed in {reference_name}", stack_reference, (f"references/{reference_name} returns 'Change assembler'",)), rename_decision))
+    for relative, kept in (
+        ("SKILL.md", ("Add config", "Update config", "Reject rule", "Defer", "Blocked")),
+        ("references/javascript.md", ("Update assembler", "Blocked")),
+        ("references/python.md", ("Update assembler", "Blocked")),
+    ):
+        contract_file = both(f"architecture-as-code/{relative}")
 
-        def drop_decision(files=stack_reference):
-            for path in files:
-                text, crlf = read_raw(path)
-                new = re.sub(r"(?m)^(Decision:.*\| )Update assembler \| ", r"\1", text)
-                if new == text:
-                    raise RuntimeError(f"no Update assembler decision in {path}")
-                write_raw(path, new, crlf)
+        def drop_decision_line(files=contract_file):
+            edit_decision_line(files, lambda values: [])
 
-        cases.append((Case(f"contract: shared decision dropped from {reference_name}", stack_reference, (f"references/{reference_name} no longer returns 'Update assembler'",)), drop_decision))
+        cases.append((Case(f"contract: Decision line deleted from {relative}", contract_file, (f"architecture-as-code/{relative} has no Decision line",)), drop_decision_line))
+
+        def rename_decision(files=contract_file, old=kept[0]):
+            def rename(values):
+                if old not in values:
+                    raise RuntimeError(f"no {old} decision on the Decision line")
+                return ["Renamed decision" if value == old else value for value in values]
+
+            edit_decision_line(files, rename)
+
+        cases.append((Case(f"contract: decision renamed in {relative}", contract_file, (f"architecture-as-code/{relative} returns 'Renamed decision'",)), rename_decision))
+
+        for decision in kept:
+
+            def drop_decision(files=contract_file, decision=decision):
+                def drop(values):
+                    if decision not in values:
+                        raise RuntimeError(f"no {decision} decision on the Decision line")
+                    return [value for value in values if value != decision]
+
+                edit_decision_line(files, drop)
+
+            cases.append((Case(f"contract: {decision} dropped from {relative}", contract_file, (f"architecture-as-code/{relative} no longer returns '{decision}'",)), drop_decision))
 
     router_skill = both("alchemy/SKILL.md")
 
@@ -3522,9 +3555,10 @@ def validate_skill_contracts() -> None:
     """The orchestrator composes agents from one map of every skill. A skill the
     map omits cannot be delegated, and a verdict the map invents is a decision
     the skill never returns, so both directions are checked against the tree.
-    A reference that returns a decision record of its own is read with its
-    skill: the row lists every decision on its Decision line, so a hand-off
-    cannot return one the map does not know."""
+    Where a skill's references return decision records of their own, the row
+    is checked against the Decision line of every file named for the skill,
+    SKILL.md included, so a hand-off cannot return a decision the map does
+    not know and no file can stand in for a decision another one dropped."""
     path = ORCHESTRATE / "assets" / "skill-contracts.json"
     label = path.relative_to(ROOT)
     try:
@@ -3557,11 +3591,11 @@ def validate_skill_contracts() -> None:
         text = (AGENT_SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
         flat = flatten(text)
         decisions = entry["completion"] + entry["failure"]
-        references = OUTPUT_CONTRACT_REFERENCES.get(name, {})
+        contract_files = OUTPUT_CONTRACT_FILES.get(name, {})
         returned: set[str] = set()
-        for relative, required in references.items():
-            reference = (AGENT_SKILLS / name / relative).read_text(encoding="utf-8")
-            line = re.search(r"^Decision:[ \t]+(.+)$", reference, re.M)
+        for relative, required in contract_files.items():
+            contract = (AGENT_SKILLS / name / relative).read_text(encoding="utf-8")
+            line = re.search(r"^Decision:[ \t]+(.+)$", contract, re.M)
             if line is None:
                 fail(f"{label} {name}: {name}/{relative} has no Decision line")
             values = [value.strip() for value in line.group(1).split("|")]
@@ -3572,12 +3606,16 @@ def validate_skill_contracts() -> None:
                 if value not in values:
                     fail(f"{label} {name}: {name}/{relative} no longer returns '{value}'")
             returned.update(values)
-        where = f"{name}/SKILL.md" + (" or on a Decision line of its references" if references else "")
         for decision in decisions:
+            if contract_files:
+                # Each file above is held to its own decisions, so the lines
+                # together are what the skill returns.
+                if decision not in returned:
+                    fail(f"{label} {name}: decision '{decision}' does not appear on a Decision line of {name}")
             # A whole word or phrase, so an invented decision cannot pass by
             # matching inside another word.
-            if decision not in returned and not re.search(rf"(?<![\w-]){re.escape(flatten(decision))}(?![\w-])", flat):
-                fail(f"{label} {name}: decision '{decision}' does not appear in {where}")
+            elif not re.search(rf"(?<![\w-]){re.escape(flatten(decision))}(?![\w-])", flat):
+                fail(f"{label} {name}: decision '{decision}' does not appear in {name}/SKILL.md")
 
 
 def validate_execution_contract() -> None:
