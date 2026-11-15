@@ -2630,12 +2630,20 @@ def mutation_test() -> int:
 
     cases.append((Case("size: skill grown past its budget", grown, ("over its size budget",)), grow_skill))
 
+    # The three cases read the entry from the copy they mutate, so they hold
+    # whatever value the ratchet has given push-out.
+    budget_entry = re.compile(r'(?m)^    "push-out": (\d+),\n')
+
+    def budget_line(text: str) -> "re.Match[str]":
+        match = budget_entry.search(text)
+        if not match:
+            raise RuntimeError("push-out size budget not found in the validator copy")
+        return match
+
     def unbudget_skill(files=validator_copy):
         for path in files:
             text, crlf = read_raw(path)
-            needle = '    "push-out": 1300,\n'
-            if needle not in text:
-                raise RuntimeError("push-out size budget not found in the validator copy")
+            needle = budget_line(text).group(0)
             write_raw(path, text.replace(needle, "", 1), crlf)
 
     cases.append((Case("size: skill left without a budget", validator_copy, ("no size budget",)), unbudget_skill))
@@ -2643,19 +2651,16 @@ def mutation_test() -> int:
     def slacken_budget(files=validator_copy):
         for path in files:
             text, crlf = read_raw(path)
-            needle = '    "push-out": 1300,\n'
-            if needle not in text:
-                raise RuntimeError("push-out size budget not found in the validator copy")
-            write_raw(path, text.replace(needle, '    "push-out": 1500,\n', 1), crlf)
+            match = budget_line(text)
+            slack = f'    "push-out": {int(match.group(1)) + 2 * SIZE_BUDGET_GRAIN},\n'
+            write_raw(path, text.replace(match.group(0), slack, 1), crlf)
 
     cases.append((Case("size: budget left slack after a trim", validator_copy, ("which is slack",)), slacken_budget))
 
     def budget_ghost_skill(files=validator_copy):
         for path in files:
             text, crlf = read_raw(path)
-            needle = '    "push-out": 1300,\n'
-            if needle not in text:
-                raise RuntimeError("push-out size budget not found in the validator copy")
+            needle = budget_line(text).group(0)
             write_raw(path, text.replace(needle, needle + '    "retired-skill": 1300,\n', 1), crlf)
 
     cases.append((Case("size: budget kept for a skill that no longer exists", validator_copy, ("do not exist",)), budget_ghost_skill))
