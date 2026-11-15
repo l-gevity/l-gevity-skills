@@ -128,9 +128,12 @@ it only shrinks, and a new skill ships with a scenario.
       validator's pin-coverage check fails on a skill or reference without one,
       because a rule nobody pins can be reworded without failing the build.
 - [ ] `CLAUDE.md` and every `SKILL.md` stay within `SIZE_BUDGET_WORDS`, and the
-      skill descriptions together within `DESCRIPTION_BUDGET_CHARS`. The budget
+      skill descriptions together within `DESCRIPTION_BUDGET_CHARS`. The
+      `SKILL.md` files together stay within `LIBRARY_BUDGET_WORDS`, and the
+      number of skills within `LIBRARY_BUDGET_SKILLS`. Each budget
       is a ratchet: a trim lowers the entry in the same change, and a growth
-      raises it only with the rationale in the commit message. A section an
+      raises it only with the rationale in the commit message. A new skill
+      funds its words with a cut. A section an
       agent needs only on some paths moves to `references/*.md`, which carries
       no budget.
 - [ ] Every scenario whose request, named skills, or `CLAUDE.md` changed is

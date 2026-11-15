@@ -51,6 +51,13 @@ SIZE_BUDGET_WORDS = {
     "test-strategy": 2100,
     "zero-copy-requirements": 2300,
 }
+# The library as a whole, on the same ratchet: the words of every SKILL.md
+# together, and the number of skills. An entry above caps one file, so the
+# total rose with every new entry and with growth inside each file's own
+# grain, and nothing failed. A new skill funds its words with a cut. Skills
+# are counted whole, so the count is slack as soon as it is one below its cap.
+LIBRARY_BUDGET_WORDS = 54100
+LIBRARY_BUDGET_SKILLS = 24
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
 # session carries whether or not a skill is invoked.
@@ -937,6 +944,10 @@ CONTRIBUTION_REQUIRED_TERMS = (
     "project overlay",
     "SIZE_BUDGET_WORDS",
     "--record-scenario",
+    # The library caps and the rule a contributor meets them with.
+    "LIBRARY_BUDGET_WORDS",
+    "LIBRARY_BUDGET_SKILLS",
+    "A new skill funds its words with a cut",
 )
 PUBLIC_DOC_FORBIDDEN = {
     # The router and root file are stack-neutral; each stack reference of
@@ -1173,11 +1184,11 @@ def word_count(path: Path) -> int:
     return len(path.read_text(encoding="utf-8").split())
 
 
-def check_budget(label: str, key: str, actual: int, budget: int, unit: str) -> None:
+def check_budget(label: str, key: str, actual: int, budget: int, unit: str, grain: int = SIZE_BUDGET_GRAIN) -> None:
     if actual > budget:
         fail(f"{label} is {actual} {unit}, over its size budget of {budget}")
-    if budget - actual >= SIZE_BUDGET_GRAIN:
-        floor = -(-actual // SIZE_BUDGET_GRAIN) * SIZE_BUDGET_GRAIN
+    if budget - actual >= grain:
+        floor = -(-actual // grain) * grain
         fail(
             f"{label} is {actual} {unit} but its size budget is {budget}, "
             f"which is slack; lower {key} to {floor} in the same change"
@@ -1189,7 +1200,8 @@ def validate_size_budget() -> None:
     and no link check, so the only thing that can report it is a ceiling.
     Mirrors are proven identical before this runs, so one tree is measured.
     A skill without an entry is unbudgeted, which the per-file check can
-    never report, so coverage fails first."""
+    never report, so coverage fails first. The library caps come after the
+    per-file checks, so a file over its own entry is reported as that file."""
     check_budget(
         "CLAUDE.md",
         'SIZE_BUDGET_WORDS["CLAUDE.md"]',
@@ -1212,6 +1224,14 @@ def validate_size_budget() -> None:
     stale = sorted(set(SIZE_BUDGET_WORDS) - {"CLAUDE.md"} - {path.name for path in skills})
     if stale:
         fail(f"SIZE_BUDGET_WORDS budgets skills that do not exist: {', '.join(stale)}")
+    check_budget(
+        "the skill library",
+        "LIBRARY_BUDGET_WORDS",
+        sum(word_count(path / "SKILL.md") for path in skills),
+        LIBRARY_BUDGET_WORDS,
+        "words",
+    )
+    check_budget("the skill library", "LIBRARY_BUDGET_SKILLS", len(skills), LIBRARY_BUDGET_SKILLS, "skills", grain=1)
     descriptions = sum(
         len(parse_frontmatter(path / "SKILL.md").get("description", "")) for path in skills
     )
@@ -2555,6 +2575,75 @@ def mutation_test() -> int:
             write_raw(path, text.replace(needle, needle + '    "retired-skill": 1300,\n', 1), crlf)
 
     cases.append((Case("size: budget kept for a skill that no longer exists", validator_copy, ("do not exist",)), budget_ghost_skill))
+
+    # The library caps have four failure paths of their own. The word cap is
+    # the only check that can report growth spread over files that each stay
+    # within their own entry, so that is how it is broken: filler goes to
+    # each skill up to its own budget, in both trees, until the total is one
+    # word over the cap.
+    library = [copy / tree / "skills" / path.name / "SKILL.md" for path in skill_dirs(AGENT_SKILLS) for tree in (".agents", ".claude")]
+
+    def grow_library(files=library):
+        needed = LIBRARY_BUDGET_WORDS + 1 - sum(word_count(path) for path in files[::2])
+        for agents, claude in zip(files[::2], files[1::2]):
+            room = min(needed, SIZE_BUDGET_WORDS[agents.parent.name] - word_count(agents))
+            if room <= 0:
+                continue
+            for path in (agents, claude):
+                text, crlf = read_raw(path)
+                write_raw(path, text + "\n" + " ".join(["filler"] * room) + "\n", crlf)
+            needed -= room
+        if needed > 0:
+            raise RuntimeError("the per-file budgets leave no room to pass the library word cap")
+
+    cases.append(
+        (
+            Case(
+                "size: library grown past its word cap, each skill within its own budget",
+                library,
+                (f"the skill library is {LIBRARY_BUDGET_WORDS + 1} words, over its size budget of {LIBRARY_BUDGET_WORDS}",),
+            ),
+            grow_library,
+        )
+    )
+
+    # The other three paths are a cap that no longer fits the tree, so the
+    # cap moves in the validator copy: the word cap left two grains above the
+    # total, and the skill cap one below and one above the count. A skill
+    # added to the copy would fail pin coverage before any budget is read.
+    def move_library_cap(name: str, step: int):
+        def move(files=validator_copy):
+            for path in files:
+                text, crlf = read_raw(path)
+                mutated, count = re.subn(rf"(?m)^{name} = (\d+)$", lambda m: f"{name} = {int(m.group(1)) + step}", text)
+                if count != 1:
+                    raise RuntimeError(f"{name} not found in the validator copy")
+                write_raw(path, mutated, crlf)
+
+        return move
+
+    skill_count = len(skill_dirs(AGENT_SKILLS))
+    for label, name, step, expected in (
+        ("size: library word cap left slack", "LIBRARY_BUDGET_WORDS", 2 * SIZE_BUDGET_GRAIN, "which is slack; lower LIBRARY_BUDGET_WORDS to"),
+        ("size: one skill more than the library skill cap", "LIBRARY_BUDGET_SKILLS", -1, f"the skill library is {skill_count} skills, over its size budget of {skill_count - 1}"),
+        ("size: library skill cap left slack", "LIBRARY_BUDGET_SKILLS", 1, f"which is slack; lower LIBRARY_BUDGET_SKILLS to {skill_count}"),
+    ):
+        cases.append((Case(label, validator_copy, (expected,)), move_library_cap(name, step)))
+
+    # The contribution guide states both caps and the rule that goes with
+    # them. Each statement is pinned and removed in turn; the three are
+    # spelled out here, so a pin dropped from the validator's list fails its
+    # case.
+    guide = copy / "CONTRIBUTING.md"
+    for term in ("LIBRARY_BUDGET_WORDS", "LIBRARY_BUDGET_SKILLS", "A new skill funds its words with a cut"):
+
+        def drop_cap_statement(path=guide, pattern=phrase_pattern(term), term=term):
+            text, crlf = read_raw(path)
+            if not pattern.search(text):
+                raise RuntimeError(f"{term!r} not found in CONTRIBUTING.md")
+            write_raw(path, pattern.sub("", text), crlf)
+
+        cases.append((Case(f"contributing: {term!r} no longer stated", [guide], (f"CONTRIBUTING.md missing promotion term '{term}'",)), drop_cap_statement))
 
     # The router and root file stay stack-neutral.
     router_files = [copy / tree / "skills" / "alchemy" / "SKILL.md" for tree in (".agents", ".claude")]
