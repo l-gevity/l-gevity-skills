@@ -55,7 +55,7 @@ what oracle it asserts.
   blocks nothing stays there.
 - `test-strategy` owns the oracle and per-test quarantine, whose fields a `TRIAL`
   reuses. The aggregator enforcing that oracle needs a negative control here.
-- `architecture-as-code`, its stack skills, and `continuous-improvement` own a
+- `architecture-as-code`, its stack references, and `continuous-improvement` own a
   new rule; this skill takes over when §2 fires.
 - `functionality-complexity-tradeoff` owns whether an obligation stands: `RETIRE`
   cites its verdict rather than reaching one.
