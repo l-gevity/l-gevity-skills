@@ -74,7 +74,7 @@ work to undo later.
 | **Public Surface**         | One route per view of the same aggregate, same data at multiple addresses, rights/roles vocabulary larger than the behavior it guards, one-user wrappers around an existing primitive |
 | **Testing Strategy**       | Coverage gaps, flaky tests, defects caught late                     |
 | **Tooling & Dependencies** | Unused packages, outdated tooling, manual steps                     |
-| **Documentation**          | Stale docs, missing ADRs, over-documentation                        |
+| **Documentation**          | Stale docs, separate decision documents, over-documentation         |
 | **Observability**          | Missing metrics, silent failures, unclear alerts                    |
 
 A layer's own rules stay with the skill that owns them, and this skill measures
