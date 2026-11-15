@@ -295,9 +295,3 @@ decision.
   the admitted IDs and evidence obligations to `requirements-traceability`.
 - If grounding or topology changes materially, refresh the readiness package or
   state exactly what is stale.
-
-## See also
-
-- `requirements-grounding` — problem, source, evidence, and canonical meaning.
-- `requirements-topology` — stable IDs, typed graph, repository validation, and order.
-- `requirements-traceability` — implementation and executed verification after readiness.
