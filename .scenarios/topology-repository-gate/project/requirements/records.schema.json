@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Requirement records",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "statement",
+      "actor",
+      "role",
+      "kind",
+      "requirement_scope",
+      "holds_across",
+      "priority",
+      "status",
+      "basis",
+      "source_refs",
+      "complete_when_ref"
+    ],
+    "properties": {
+      "id": { "type": "string", "pattern": "^[a-z]+(-[a-z]+){0,3}$" },
+      "statement": { "type": "string", "minLength": 1 },
+      "actor": { "type": "string", "minLength": 1 },
+      "role": { "enum": ["foundation", "workflow", "output", "constraint", "evidence-primitive", "decision-input"] },
+      "kind": { "enum": ["capability", "business-rule", "data", "integration", "security", "compliance", "operational"] },
+      "requirement_scope": { "enum": ["invoices", "statements", "document-store"] },
+      "holds_across": { "type": "array", "items": { "enum": ["invoices", "statements", "document-store", "all"] } },
+      "priority": { "enum": ["must", "should", "could", "won't-now"] },
+      "status": { "enum": ["draft", "accepted", "deprecated", "superseded", "lapsing"] },
+      "basis": { "enum": ["authoritative", "interpreted", "evidenced", "hypothesized"] },
+      "source_refs": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+      "complete_when_ref": { "type": "string", "pattern": "^requirements/grounding\\.md#[a-z-]+$" },
+      "implemented": { "type": "boolean" },
+      "verified": { "type": "boolean" },
+      "notes": { "type": "string" }
+    }
+  }
+}

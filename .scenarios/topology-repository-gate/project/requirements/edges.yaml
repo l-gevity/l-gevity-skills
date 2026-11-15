@@ -1,0 +1,21 @@
+# Typed edges between the records in records.yaml.
+# Direction: `from` <type> `to`; "A depends_on B" means A cannot be satisfied
+# unless B exists first. Evidence cites the grounding section the edge rests on.
+
+- from: invoice-download
+  type: depends_on
+  to: document-archive
+  evidence: "grounding.md#invoice-download: a listed invoice is fetched from the archive as it was issued"
+  inferred: false
+
+- from: statement-download
+  type: depends_on
+  to: document-archive
+  evidence: "grounding.md#statement-download: a listed statement is fetched from the archive as it was issued"
+  inferred: false
+
+- from: owner-only-access
+  type: constrains
+  to: invoice-download
+  evidence: "grounding.md#owner-only-access: Holds across invoices"
+  inferred: false

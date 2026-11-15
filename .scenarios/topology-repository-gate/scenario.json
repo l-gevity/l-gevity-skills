@@ -1,0 +1,57 @@
+{
+  "request": "Run requirements-topology on this: the requirements for our invoicing self-service work live in this repository under `requirements/`. `grounding.md` is the source, and `records.yaml` and `edges.yaml` are the graph. CI runs a schema check on the records and it is green. The records also carry `implemented` and `verified` flags that teams set by hand. Before we hand the graph to implementation planning: is it stable, what does the repository gate still need, and do those flags belong in the records? If they do not, name the skill that owns that state.",
+  "skills": ["requirements-topology"],
+  "expect": [
+    {
+      "id": "applies-topology-guidance",
+      "criterion": "requirements-topology #1: a question about a requirement graph loads the topology method",
+      "check": "guidance_includes",
+      "skills": ["requirements-topology"]
+    },
+    {
+      "id": "inspects-edge-list",
+      "criterion": "requirements-topology #2: graph checks are run on the recorded edges, not assumed",
+      "check": "reads_include",
+      "paths": ["requirements/edges.yaml"]
+    },
+    {
+      "id": "cycle-check-passes",
+      "criterion": "requirements-topology #3: an acyclic depends_on projection is reported as Pass",
+      "check": "field_in",
+      "field": "Cycle",
+      "values": ["Pass"]
+    },
+    {
+      "id": "finds-uncovered-aspect-scope",
+      "criterion": "requirements-topology #4: an aspect that names a scope with no constrains edge into it fails aspect coverage",
+      "check": "field_in",
+      "field": "Aspect coverage",
+      "values": ["Fail"]
+    },
+    {
+      "id": "graph-needs-refactor",
+      "criterion": "requirements-topology #5: an uncovered scope that has a node the aspect should constrain yields NEEDS-REFACTOR",
+      "check": "field_in",
+      "field": "Decision",
+      "values": ["NEEDS-REFACTOR"]
+    },
+    {
+      "id": "reports-repository-gate",
+      "criterion": "requirements-topology #6: the record states which repository checks exist and which are missing",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Repository gate:\\**[ \\t]*(\\S|\\n[ \\t]{2,}\\S)"
+    },
+    {
+      "id": "names-missing-semantic-validation",
+      "criterion": "requirements-topology #7: a gate that runs only a schema check lacks semantic validation",
+      "check": "text_matches",
+      "pattern": "semantic"
+    },
+    {
+      "id": "hands-evidence-flags-to-traceability",
+      "criterion": "requirements-topology #8: asked who owns implementation and verification state, the answer names requirements-traceability",
+      "check": "text_matches",
+      "pattern": "requirements-traceability"
+    }
+  ]
+}
