@@ -244,13 +244,3 @@ first.
 > [!IMPORTANT] If no axis improves, state: *"Complexity Warning:
 > Subsystem-kinds Δ [X], Dependency-edges Δ [Y], Max-chain-depth Δ [Z],
 > Subsystem-count Δ [W]. A simpler alternative is [...]."*
-
----
-
-## 9. See also
-
-- **`architecture-guidelines`** — first-principles discipline that informs Δ scoring (YAGNI, Rule of 3, DRY, SoC).
-- **`morphogenetic-architecture`** — placement and topology rationale; static cycles remain forbidden while explicit runtime feedback is modeled separately.
-- **`functionality-complexity-tradeoff`** — consumes `D, K, P, n` deltas in its cost ledger.
-- **`defect-shift-left`** — earliest stage to catch each axis violation.
-- **`continuous-improvement`** — when a recurring axis violation signals a missing rule.

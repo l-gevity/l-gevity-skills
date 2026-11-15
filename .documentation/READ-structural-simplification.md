@@ -175,4 +175,4 @@ decision record — lives in
 operation catalogue used to propose a simpler alternative lives in
 [reduction-operations.md](../.claude/skills/structural-simplification/references/reduction-operations.md).*
 
-<!-- skill-revision: a8ecde14b484 -->
+<!-- skill-revision: fa5dd14549e2 -->

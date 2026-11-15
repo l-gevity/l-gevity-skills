@@ -46,7 +46,7 @@ SIZE_BUDGET_WORDS = {
     "requirements-grounding": 2300,
     "requirements-topology": 1700,
     "requirements-traceability": 2100,
-    "structural-simplification": 2100,
+    "structural-simplification": 2000,
     "system-optimization": 2620,
     "test-strategy": 2100,
     "zero-copy-requirements": 1800,
