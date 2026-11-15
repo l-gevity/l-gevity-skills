@@ -424,7 +424,8 @@ following:
 - Return `DIRECT` for one clear gate question, `ADAPTIVE` for structural work,
   and `FULL` only for explicit full-traversal language.
 - Read the adaptive route before selecting stages for `ADAPTIVE`, `FULL`, and
-  `audit`, and never for `SKIP` or `DIRECT`.
+  `audit`; a `SKIP` or `DIRECT` run reads it only when it must emit the
+  decision trail, and then for that format alone.
 - Load each stage only when the route reaches it, and end a candidate's route
   at its first blocking decision.
 - Route an already-grounded request directly to M.

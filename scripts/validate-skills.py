@@ -62,7 +62,8 @@ LIBRARY_BUDGET_SKILLS = 24
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
 # session carries whether or not a skill is invoked.
 DESCRIPTION_BUDGET_CHARS = 15700
-# ADAPTIVE, FULL, and audit read this file; SKIP and DIRECT never load it.
+# ADAPTIVE, FULL, and audit read this file; SKIP and DIRECT load it only to
+# emit the decision trail, for that format alone.
 ALCHEMY_ROUTE = AGENT_SKILLS / "alchemy" / "references" / "adaptive-route.md"
 ALCHEMY_PIPELINE_STAGES = (
     "Requirements Grounding",
