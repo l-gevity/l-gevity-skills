@@ -163,4 +163,4 @@ outcome-hypothesis record lives in
 and the recovery protocol for existing projects in
 [recovery-mode.md](../.claude/skills/requirements-grounding/references/recovery-mode.md).*
 
-<!-- skill-revision: f3b980a3fdf8 -->
+<!-- skill-revision: eee953e57a25 -->

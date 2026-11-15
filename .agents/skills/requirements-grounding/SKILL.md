@@ -106,7 +106,8 @@ record, and the promotion rule.
 ## Workflow
 
 1. **Orient**: inventory the input, source classes, existing decisions, and domain
-   overlay.
+   overlay (project instructions, glossaries, role catalogs, policy files when
+   present).
 2. **Frame the problem**: state actor, situation, desired outcome, and current
    obstacle without naming a feature or technical design.
 3. **Confirm decisive assumptions**: confirm the problem, done state, and
