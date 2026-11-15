@@ -1749,6 +1749,10 @@ SCENARIO_CHECKS = {
     "guidance_within": {"skills": list},
     "guidance_excludes": {"skills": list},
     "blocks_in_order": {},
+    # A SKIP answers with the compact output alone: recordings of the two
+    # SKIP scenarios carried the four report blocks on some runs and not on
+    # others.
+    "blocks_absent": {},
     "text_matches": {"pattern": str},
     "route_loaded": {},
     # A reference loads on demand, so whether a run read it is part of the
@@ -2008,11 +2012,13 @@ def scenario_passes(expectation: dict, transcript: dict) -> bool:
     if check.startswith("reads_"):
         read, named = set(transcript["files_read"]), set(expectation["paths"])
         return named <= read if check == "reads_include" else not read & named
-    if check == "blocks_in_order":
+    if check in ("blocks_in_order", "blocks_absent"):
         positions = []
         for block in REPORT_BLOCKS:
             match = re.search(rf"^[ \t>#*_-]*{re.escape(block)}\b", output, re.M)
             positions.append(match.start() if match else -1)
+        if check == "blocks_absent":
+            return all(position == -1 for position in positions)
         return -1 not in positions and positions == sorted(positions)
     return re.search(expectation["pattern"], output, re.I) is not None
 
@@ -2803,6 +2809,17 @@ def mutation_test() -> int:
             raise RuntimeError("no scenario meets an expectation that could be listed as a known failure")
 
         cases.append((Case("scenario: known failure that passes again", specs, ("now passes",)), list_passing_as_known))
+
+        # A SKIP answers with the compact output alone, so a report block in
+        # its transcript must fail the expectation that says so.
+        skip_record = [scenario_root / "dispatch-routine-skip" / "transcript.json"]
+
+        def add_report_block(files=skip_record):
+            record = json.loads(files[0].read_text(encoding="utf-8"))
+            record["output"] += f"\n\n**{REPORT_BLOCKS[0]}:** mutation\n"
+            write_raw(files[0], json.dumps(record, indent=2) + "\n", False)
+
+        cases.append((Case("scenario: SKIP answer carries a report block", skip_record, ("expectation 'carries-no-report-block' not met",)), add_report_block))
 
     try:
         code, output = run()

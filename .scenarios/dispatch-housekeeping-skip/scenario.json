@@ -39,6 +39,11 @@
       "criterion": "execution-strategy #1: SKIP and DIRECT never load orchestration",
       "check": "guidance_excludes",
       "skills": ["alchemy-orchestrate"]
+    },
+    {
+      "id": "carries-no-report-block",
+      "criterion": "adaptive-dispatch #1: a skip answers with the compact output alone",
+      "check": "blocks_absent"
     }
   ]
 }
