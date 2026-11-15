@@ -402,11 +402,12 @@ preserves the shortest useful route for local and already-grounded decisions.
 The dispatch preflight adds no subsystem and no mandatory gate depth: `SKIP`
 returns before sibling loading, while `DIRECT` and `ADAPTIVE` replace ad hoc
 route inference with one explicit classification. The router is split the same
-way: its `SKILL.md` holds only dispatch, aliases, gate prerequisites, the
-companion and execution defaults, and the compact output block, and the
-qualification route, hand-offs, handshakes, companion triggers and pass order,
-execution selection, retrospective order, and the decision trail load from
-`references/adaptive-route.md` only for `ADAPTIVE`, `FULL`, and `audit`.
+way: its `SKILL.md` holds only dispatch, aliases, gate prerequisites,
+companions, the execution default, and the output contract, and the
+qualification route, hand-offs, handshakes, two-pass companion order,
+execution selection, retrospective order, and the decision-trail format load
+from `references/adaptive-route.md` for `ADAPTIVE`, `FULL`, and `audit`, and
+for any other run only when it must emit that trail.
 
 ## Acceptance Criteria
 

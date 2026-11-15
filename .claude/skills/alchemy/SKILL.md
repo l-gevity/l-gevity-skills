@@ -101,13 +101,29 @@ whose trigger independently matches the subject, and read only the selected
 companion bodies. A project profile may require companions for its domain,
 stack, UX, security, accessibility, API, release, or evidence rules.
 
+- When the subject decides where a fact, decision, or document belongs — a
+  proposed document, a decision record, an architecture note, a status page, or
+  a documentation-tree audit — select `zero-copy-requirements`. It names the
+  artifact that owns the question; `push-out` prunes prose already covered by an
+  executable source, and `requirements-traceability` anchors evidence once the
+  location exists. None of the three is a qualification stage, gate, or acronym
+  letter.
+- When an advisory, drift, abandonment, license change, or end-of-life date
+  names an owned dependency, select `dependency-lifecycle`; it classifies the
+  bump, and only a contract-preserving bump is `SKIP`.
+- When a risk survives verification into production, or alerts or telemetry
+  are under review, select `observability-design`.
+- When infrastructure is chosen, inherited, or questioned, select
+  `infrastructure-fit`.
+- When a gate is added over violations, narrowed, suspended, or removed, passes
+  on a known-bad input, or cannot evaluate, or a baseline churns, select
+  `gate-lifecycle`; it never places a check or decides how it blocks.
+- `test-strategy` and `evolutionary-database-design` are two-pass companions
+  that bracket A/L/C/E; the route in §2 orders their passes.
 - `SKIP` skips only the Alchemy core; it never suppresses a matching companion.
   `DIRECT` keeps the core route focused while allowing independently triggered
   companions.
 - Report companions explicitly. Use `None` when no companion trigger matches.
-- Library companions beyond the aliases above are `gate-lifecycle` and the
-  two-pass companions `test-strategy` and `evolutionary-database-design`; the
-  route in §2 adds what each companion owns and the pass order.
 
 ### Execution Strategy
 
@@ -140,8 +156,10 @@ Requirements Grounding, when evidence or meaning is absent or stale
 Qualification stages are conditional and never become acronym letters. Before
 selecting stages for `ADAPTIVE`, `FULL`, or `audit`, read
 [references/adaptive-route.md](references/adaptive-route.md): routing rules,
-hand-offs, the gates and their handshake, companions, execution, and the
-decision trail. `SKIP` and `DIRECT` never need it.
+hand-offs, the gates and their handshake, the two-pass companion order,
+execution selection, and the decision-trail format. The default `SKIP` and
+`DIRECT` never need it; a run that must emit the decision trail of §3 opens it
+for that format alone.
 
 Read [references/failure-modes.md](references/failure-modes.md) when a run's
 result looks wrong, an audit shows a symptom, or a trail has an unexplained
@@ -151,7 +169,7 @@ skip; route the recovery to the named stage instead of rerunning every gate.
 
 ## 3. Output Contract
 
-`SKIP`, `DIRECT`, and any single-gate or simple routed request emit:
+Default output for a single-gate or simple routed request:
 
 ```
 Dispatch:   <SKIP | DIRECT | ADAPTIVE | FULL>
@@ -164,17 +182,20 @@ Next:       <one concrete action>
 ```
 
 For `SKIP`, emit this compact output alone with `Core route: None`; do not
-load a core sibling merely to justify the skip. Multi-stage runs, non-trivial
-design/refactor passes, audits, and explicit requests for detail emit the
-combined decision trail and scope block the route in §2 defines instead.
+load a core sibling merely to justify the skip.
+
+Multi-stage runs, non-trivial design/refactor passes, audits, and explicit
+requests for detail emit one combined decision trail in execution order,
+including every stage used and every conditional stage skipped, then the scope
+block; the route in §2 gives both formats.
 
 Lead any run that reaches a verdict with the four report blocks the root
 instruction file defines, What I found, Why it matters, Do this first, and
-What I did not check, then emit the records unchanged: the block above or the
-trail and scope block, then each stage that ran in execution order, with the
-decision record its skill's output contract defines. The block or trail
-summarizes stages; it never replaces a stage's record. When implementing
-changes, add the normal coding summary after the verdict.
+What I did not check, then emit the records unchanged: the trail and scope
+block, then each stage that ran in execution order, with the decision record
+its skill's output contract defines. The trail summarizes stages; it never
+replaces a stage's record. When implementing changes, add the normal coding
+summary after the verdict.
 
 ## 4. Discipline
 

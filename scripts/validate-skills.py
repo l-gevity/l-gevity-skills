@@ -26,7 +26,7 @@ MAX_DESCRIPTION = 1024
 SIZE_BUDGET_GRAIN = 100
 SIZE_BUDGET_WORDS = {
     "CLAUDE.md": 900,
-    "alchemy": 1600,
+    "alchemy": 1800,
     "alchemy-orchestrate": 1900,
     "architecture-as-code": 2500,
     "architecture-guidelines": 1900,
@@ -65,6 +65,20 @@ ALCHEMY_PIPELINE_STAGES = (
     "A — Architecture",
 )
 ALCHEMY_DISPATCH_STATES = ("SKIP", "DIRECT", "ADAPTIVE", "FULL")
+# Four rules the adaptive route states once, each pinned at that statement.
+# The route's pre-flight checklist restated them, and an order check pinned
+# its lines until the checklist was merged into the rules it repeated.
+ALCHEMY_ROUTE_RULES = {
+    "Readiness before Architecture": (
+        "Only `READY`, or `PARTLY-READY` as a bounded reversible increment whose unresolved "
+        "requirements cannot change its meaning or verification, may enter A"
+    ),
+    "Gate 2 smallest correct design": "| 2 | First principles | `architecture-guidelines` | Smallest correct design",
+    "Gate 5 rules in the same PR": "Ship the architecture rules in the same PR as the code they govern",
+    "Gate 6 earliest catchable stage": (
+        "| 6 | Shift defect detection left | `defect-shift-left` | Each error path → earliest catchable stage"
+    ),
+}
 CI_CD_RELEASE_STATES = (
     "BUILD-VERIFIED",
     "RELEASE-READY",
@@ -116,10 +130,13 @@ SKILL_REQUIRED_TERMS = {
         "Dispatch:   <SKIP | DIRECT | ADAPTIVE | FULL>",
         "Core route:",
         "Companions:",
+        "requirements-traceability",
         "Focused aliases never silently run requirements qualification",
         "C₀",
         "L candidate → C measurement → L acceptance",
         "Gate E remains blocked",
+        # Stated once, here, since the route stopped repeating it.
+        "Gate Y runs in iteration 2, the iteration after the increment ships",
         # SKIP and DIRECT pay only for this file; the route they never
         # walk lives in references/adaptive-route.md, and so do the pins on
         # the text only that route uses.
@@ -129,9 +146,14 @@ SKILL_REQUIRED_TERMS = {
         "**Aspect**",
         "**Increment**",
         "**Iteration**",
-        # Companion triggers moved to the route; the names a SKIP or DIRECT
-        # run must still weigh stay here.
-        "`gate-lifecycle` and the two-pass companions `test-strategy` and `evolutionary-database-design`",
+        # Companions apply on every dispatch, so the selection rule and the
+        # library's triggers stay in the file every dispatch loads.
+        "select any non-Alchemy skill whose trigger independently matches the subject",
+        "select `zero-copy-requirements`",
+        "select `dependency-lifecycle`",
+        "select `observability-design`",
+        "select `infrastructure-fit`",
+        "select `gate-lifecycle`",
         '**Claim only what ran.**',
         # A design pass records constraints in the pattern's neutral form; the
         # stack implementation, now a reference of architecture-as-code, was
@@ -712,15 +734,14 @@ REFERENCE_REQUIRED_TERMS = {
             "A blocking decision in the route's hand-off table ends the route",
             "Gate E also waits for a passing readiness decision in a full pass",
             "Decomposition and aspect extraction are different cuts",
-            "select `zero-copy-requirements`",
-            "select `dependency-lifecycle`",
-            "select `observability-design`",
-            "select `infrastructure-fit`",
-            "select `gate-lifecycle`",
-            "requirements-traceability",
             "Blocking stage:",
             # The stack-reference rule holds on the route as well as the alias.
             "only when rule files are written or changed",
+            # The pre-flight checklist stated these four rules a second time,
+            # and an order check pinned its lines. Each pin follows the one
+            # statement kept; ALCHEMY_ROUTE_RULES names them for the mutation
+            # test.
+            *ALCHEMY_ROUTE_RULES.values(),
         ),
     },
     "morphogenetic-architecture": {
@@ -2653,18 +2674,48 @@ def mutation_test() -> int:
 
     cases.append((Case("orchestration: route stops naming the multi-agent setting", route_skill, ("Execution missing '`execution.multi_agent`'",)), drop_execution_setting))
 
-    for companion, first, second in (
-        ("Test Strategy", "Obligation", "Portfolio"),
-        ("Evolutionary Database Design", "Compatibility", "Transition"),
+    # The block is the route's one statement of pass order, so each pair of
+    # lines whose order the prose used to repeat is swapped in turn.
+    for label, companion, early, late in (
+        ("the two Test Strategy passes", "Test Strategy", "Test Strategy — Obligation", "Test Strategy — Portfolio"),
+        (
+            "the two Evolutionary Database Design passes",
+            "Evolutionary Database Design",
+            "Evolutionary Database Design — Compatibility",
+            "Evolutionary Database Design — Transition",
+        ),
+        (
+            "the Transition and Portfolio passes",
+            "Evolutionary Database Design",
+            "Evolutionary Database Design — Transition",
+            "Test Strategy — Portfolio",
+        ),
     ):
-        def swap_passes(files=route_skill, early=f"→ {companion} — {first} pass\n", late=f"→ {companion} — {second} pass\n"):
+        def swap_passes(files=route_skill, early=f"→ {early} pass\n", late=f"→ {late} pass\n"):
             for path in files:
                 text, crlf = read_raw(path)
                 if early not in text or late not in text:
                     raise RuntimeError(f"companion pass lines not found in {path}")
                 write_raw(path, text.replace(early, "\0", 1).replace(late, early, 1).replace("\0", late, 1), crlf)
 
-        cases.append((Case(f"companions: route swaps the two {companion} passes", route_skill, (f"must preserve the {companion}",)), swap_passes))
+        cases.append((Case(f"companions: route swaps {label}", route_skill, (f"must preserve the {companion}",)), swap_passes))
+
+    # Rewording any of the four rules the route states once must fail on the
+    # pin at that statement, not on a later check.
+    for rule, (old, new) in {
+        "Readiness before Architecture": ("bounded reversible increment", "bounded increment"),
+        "Gate 2 smallest correct design": ("Smallest correct design", "A correct design"),
+        "Gate 5 rules in the same PR": ("in the same PR as the code they govern", "soon after the code they govern"),
+        "Gate 6 earliest catchable stage": ("earliest catchable stage", "a catchable stage"),
+    }.items():
+        def reword_rule(files=route_skill, pattern=phrase_pattern(old), new=new, rule=rule):
+            for path in files:
+                text, crlf = read_raw(path)
+                if not pattern.search(text):
+                    raise RuntimeError(f"{rule}: statement not found in {path}")
+                write_raw(path, pattern.sub(new, text), crlf)
+
+        cases.append((Case(f"route: {rule} reworded", route_skill, (f"missing required term '{ALCHEMY_ROUTE_RULES[rule]}'",)), reword_rule))
 
     case_dirs = sorted(path for path in (copy / ".adversarial").iterdir() if path.is_dir()) if (copy / ".adversarial").is_dir() else []
     if case_dirs:
@@ -2832,9 +2883,11 @@ def validate_readme_install_table() -> None:
 
 
 def validate_alchemy_companion_order() -> None:
-    """One block in the route orders both two-pass companions around A/L/C/E.
-    The pre-flight checklist used to restate that order line by line; its
-    lines were merged into the block, and both order checks followed them."""
+    """One block in the route orders both two-pass companions around A/L/C/E,
+    and it is the route's only statement of that order. The pre-flight
+    checklist and the prose around the block used to restate it; the order
+    checks and the contract terms that pinned those restatements follow the
+    block."""
     route = ALCHEMY_ROUTE.relative_to(ROOT).as_posix()
     block = re.search(r"```text\n(Implementation Readiness\n.*?)```", ALCHEMY_ROUTE.read_text(encoding="utf-8"), re.S)
     if not block:
@@ -2878,11 +2931,14 @@ def validate_test_strategy_contract() -> None:
             "`test-strategy`",
             "two-pass companions",
         ),
+        # The order block is the route's one statement of pass order, and
+        # validate_alchemy_companion_order holds it; the terms here hold the
+        # pass and what the block cannot say.
         ALCHEMY_ROUTE: (
             "`test-strategy`",
             "two-pass task-matched companion",
-            "Obligation pass before A",
-            "Portfolio pass after final A/L/C/E and before H",
+            "Test Strategy — Obligation pass",
+            "The Portfolio pass consumes final accepted architecture and enforcement",
             "earliest capable stage",
             "executed-evidence state",
         ),
@@ -2955,8 +3011,8 @@ def validate_evolutionary_database_design_contract() -> None:
             "two-pass task-matched companion",
             "Compatibility pass",
             "Transition pass",
-            "grades reversibility from before A",
-            "before the Test Strategy Portfolio pass and H",
+            "supplies the data facts Gate 3 grades reversibility from",
+            "The Transition pass consumes final accepted architecture",
             "Expand and contract never ship in one deployable",
         ),
         ROOT / "ALCHEMY-PIPELINE-DESIGN.md": (

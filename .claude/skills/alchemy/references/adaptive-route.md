@@ -2,11 +2,11 @@
 
 Read before selecting stages when dispatch is `ADAPTIVE` or `FULL`, or the
 alias is `audit`. `SKILL.md` owns dispatch, the stage set each dispatch
-selects, aliases, focused-gate prerequisites, and the compact output block;
-this file owns the route those dispatches walk, its companions, the execution
-selection, and the decision trail. For each stage selected, read the sibling
-skill's `SKILL.md` and follow its procedure and output contract; this file
-does not duplicate that content.
+selects, aliases, companion selection, focused-gate prerequisites, and the
+output contract; this file owns the route those dispatches walk, the two-pass
+companion order, the execution selection, and the decision-trail format. For
+each stage selected, read the sibling skill's `SKILL.md` and follow its
+procedure and output contract; this file does not duplicate that content.
 
 ## 1. Adaptive Requirements Qualification
 
@@ -24,10 +24,11 @@ Routing rules:
 2. **Ground conditionally.** Route a new or stale ungrounded request through
    `requirements-grounding`. Route current grounded requirements directly to M.
 3. **M owns worth.** Grounding validates evidence and meaning and may supply
-   linked outcome hypotheses as value evidence, recorded as N/A for an
-   authoritative obligation and kept separate from completion criteria, so
-   that no capability shipped or acceptance passed is reported as outcome
-   success; M alone issues the worth verdict.
+   linked outcome hypotheses as value evidence; M alone issues the worth
+   verdict. Hypotheses are linked when decision-relevant and kept separate
+   from completion criteria, so that no capability shipped or acceptance
+   passed is reported as outcome success; authoritative obligations may be
+   N/A.
 4. **Topology is conditional.** Use `requirements-topology` when multiple
    requirements have prerequisites, constraints, conflicts, shared foundations,
    or non-trivial sequencing. Skip it for one bounded independent requirement
@@ -65,9 +66,9 @@ grounding.
 
 After an increment passes readiness and enters architecture/implementation, use
 `requirements-traceability` to connect canonical IDs to implementation and
-executed completion and outcome evidence. Traceability and the companions of
-§3 are follow-through or companions, never a qualification stage,
-A.L.C.H.E.M.Y. gate, acronym letter, or prerequisite for A.
+executed completion and outcome evidence. Traceability, Test Strategy, and
+Evolutionary Database Design are follow-through or companions, never a
+qualification stage, A.L.C.H.E.M.Y. gate, acronym letter, or prerequisite for A.
 
 When current outcome evidence reaches a revisit trigger, rerun only M in
 Retrospective mode on the bounded functionality. This is a new worth decision
@@ -75,6 +76,10 @@ over new evidence, not a backward pipeline edge. Grounding still owns
 hypothesis meaning, and Traceability owns evidence state and freshness:
 refresh or bound stale or inconclusive evidence there before it justifies KEEP
 or DROP.
+
+For an existing project, implementation is evidence rather than intent.
+Code-derived requirements remain `PROVISIONAL` until an authoritative artifact
+or independent confirmation supports them.
 
 ## 2. The Gates
 
@@ -104,18 +109,18 @@ candidate. A proposed `MOVE`, `SPLIT`, `MERGE`, or `INTRODUCE-BOUNDARY` first
 emits a provisional `DEFER` with one named candidate and the measurement
 required from Gate 4. Run the bounded handshake
 `L candidate → C measurement → L acceptance`: Gate 4 reports the four
-structural deltas, then Gate 3 re-enters once for that unchanged candidate and
-emits the final topology decision.
+structural deltas, then Gate 3 re-enters for that unchanged candidate and
+emits the final topology decision. `SKILL.md` §1 holds Gate E until then.
 
-Gate E remains blocked until Gate 3 records final acceptance. If Gate 4 rejects
-or redesigns the candidate, return to Gate A; a changed candidate starts a new
-bounded handshake. The Alchemy orchestrator owns the re-entry, the combined
-decision trail records both passes, and one candidate may re-enter Gate 3 only
-once. That single re-entry bounds the measurement handshake alone: a
-Close-the-Loop revisit after a prediction window or probation expiry closes
-re-enters Gate 3 as a new bounded audit, and a probationary acceptance's
-expiry, instrumentation task, and prediction recheck travel in the combined
-decision trail to Gate 6, which places the standing check.
+If Gate 4 rejects or redesigns the candidate, return to Gate A; a changed
+candidate starts a new bounded handshake. The Alchemy orchestrator owns the
+re-entry, the combined decision trail records both passes, and one candidate
+may re-enter Gate 3 only once. That single re-entry bounds the measurement
+handshake alone: a Close-the-Loop revisit after a prediction window or
+probation expiry closes re-enters Gate 3 as a new bounded audit, and a
+probationary acceptance's expiry, instrumentation task, and prediction recheck
+travel in the combined decision trail to Gate 6, which places the standing
+check.
 
 ### Core directives
 
@@ -140,34 +145,15 @@ decision trail to Gate 6, which places the standing check.
    subsystem, or copies its mechanism per subsystem, has confused the two.
    [change-primitives.md](change-primitives.md) defines the four primitives.
 
-## 3. Companions
+## 3. Two-Pass Companions
 
-`SKILL.md` §1 states how companions are selected and reported. The library's
-own:
-
-- When the subject decides where a fact, decision, or document belongs — a
-  proposed document, a decision record, an architecture note, a status page, or
-  a documentation-tree audit — select `zero-copy-requirements`. It names the
-  artifact that owns the question; `push-out` prunes prose already covered by an
-  executable source, and `requirements-traceability` anchors evidence once the
-  location exists.
-- When an advisory, drift, abandonment, license change, or end-of-life date
-  names an owned dependency, select `dependency-lifecycle`; it classifies the
-  bump, and only a contract-preserving bump is `SKIP`.
-- When a risk survives verification into production, or alerts or telemetry
-  are under review, select `observability-design`.
-- When infrastructure is chosen, inherited, or questioned, select
-  `infrastructure-fit`.
-- When a gate is added over violations, narrowed, suspended, or removed, passes
-  on a known-bad input, or cannot evaluate, or a baseline churns, select
-  `gate-lifecycle`; it never places a check or decides how it blocks.
-- When verification design is material and architecture can change the
-  evidence boundary, select `test-strategy`. When an admitted increment
-  changes persisted or serialized data shape — a schema, event or message
-  payload, API body, or file format — select `evolutionary-database-design`.
-
-The last two are two-pass task-matched companions that bracket A/L/C/E. Each
-line below applies only when its companion is selected:
+`SKILL.md` §1 selects and reports companions. Two are two-pass task-matched
+companions that bracket A/L/C/E. When verification design is material and
+architecture can change the evidence boundary, use `test-strategy`. When an
+admitted increment changes persisted or serialized data shape — a schema,
+event or message payload, API body, or file format — use
+`evolutionary-database-design`. This block is the order of their passes; each
+line applies only when its companion is selected:
 
 ```text
 Implementation Readiness
@@ -179,24 +165,23 @@ Implementation Readiness
 → H
 ```
 
-The Obligation pass before A defines risks, failure modes, oracles, and
-required confidence. The Portfolio pass after final A/L/C/E and before H
-consumes final accepted architecture and enforcement to finalize technique,
-scope, fidelity, dependencies, data, environment, and stimulus; architecture
-may refine the portfolio but must not silently erase an admitted risk or
-oracle. Gate H still owns the earliest capable stage, CI/CD owns pipeline
-execution triggers and gating, and traceability owns executed-evidence state.
+The Obligation pass defines risks, failure modes, oracles, and required
+confidence. The Portfolio pass consumes final accepted architecture and
+enforcement to finalize technique, scope, fidelity, dependencies, data,
+environment, and stimulus; architecture may refine the portfolio but must not
+silently erase an admitted risk or oracle. Gate H still owns the earliest
+capable stage, CI/CD owns pipeline execution triggers and gating, and
+traceability owns executed-evidence state.
 
 The Compatibility pass inventories readers, writers, the coexistence window,
 and the obligations that bind the data, classifies the change and its
 compatibility mode, and supplies the data facts Gate 3 grades reversibility
-from before A. The Transition pass consumes final accepted architecture to fix
-the staged expand/contract path, migration increments, backfill, contract
-trigger, and reversal step per stage before the Test Strategy Portfolio pass
-and H. Gate 3 still owns placement and the reversibility grade, CI/CD the
-deploy order and gating, and traceability the migration anchor. Expand and
-contract never ship in one deployable, and the contract step is gated on
-evidence, not a date.
+from. The Transition pass consumes final accepted architecture to fix the
+staged expand/contract path, migration increments, backfill, contract trigger,
+and reversal step per stage. Gate 3 still owns placement and the reversibility
+grade, CI/CD the deploy order and gating, and traceability the migration
+anchor. Expand and contract never ship in one deployable, and the contract
+step is gated on evidence, not a date.
 
 Collapse a companion's passes into a Combined pass only for stable accepted
 architecture (Test Strategy) or a stable accepted target shape (Evolutionary
@@ -220,9 +205,7 @@ changes or audits code; it plans, launches, verifies, and gates the agents.
 Auditing existing code starts with `C₀`, a read-only structural baseline. `C₀`
 is the existing retrospective complexity scan, not a new permanent gate. Use
 requirements recovery only when current intent is missing, stale,
-contradictory, or disputed; implementation is evidence rather than intent, so
-code-derived requirements remain `PROVISIONAL` until an authoritative artifact
-or independent confirmation supports them.
+contradictory, or disputed:
 
 | Step | Skill | Action |
 |:--|:--|:--|
@@ -235,11 +218,10 @@ or independent confirmation supports them.
 
 ## 6. Decision Trail
 
-Multi-stage runs, non-trivial design/refactor passes, audits, and explicit
-requests for detail emit one combined decision trail in execution order,
-including every stage used and every conditional stage skipped. A skipped
-stage requires a one-line rationale; a skip without one is a defect and an
-over-engineering risk for the next audit.
+`SKILL.md` §3 decides which runs emit this trail, what it lists, and what goes
+before and after it; this section is its format. A skipped stage requires a
+one-line rationale; a skip without one is a defect and an over-engineering
+risk for the next audit.
 
 | Stage | Skill | Decision | Evidence / hand-off | Files/checks | Next action or skip rationale |
 | ----- | ----- | -------- | ------------------- | ------------ | ----------------------------- |
@@ -256,6 +238,3 @@ Blocking stage: <first non-passing qualification decision or gate, or None>
 Decision:       Proceed | Redesign | Drop | Defer
 Verification:   <commands, lint rules, tests, or Not run + reason>
 ```
-
-`SKILL.md` §3 puts the four report blocks before this trail and each stage's
-own decision record after it.
