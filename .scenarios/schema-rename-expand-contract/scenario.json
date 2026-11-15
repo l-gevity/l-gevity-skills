@@ -1,5 +1,5 @@
 {
-  "request": "Run evolutionary-database-design on this: design the transition for renaming the column `customers.surname` to `customers.family_name` in our PostgreSQL database. The target shape, the owning service, and the deployment topology are accepted and will not change. The `accounts` service owns the table and is its only writer. The readers, taken from 13 months of query logs, are the `accounts` service, the `billing` service through a read-only role, and a nightly finance export job that lives in another repository. Deploys are rolling: the old and the new release of a service run side by side for about ten minutes, and the rollback target is the previous release. Nothing outside our servers reads this column: no browser bundle, mobile app, or SDK, and the public API keeps its `surname` field. The table holds 4 million rows and takes about 50 writes per second at peak. Customer records fall under a seven-year retention rule and are in the nightly backup. The team has two questions: can the old column be dropped on a fixed date, 1 December, and can the migration's down step serve as the production rollback?",
+  "request": "Run evolutionary-database-design on this: design the transition for renaming the column `customers.surname` to `customers.family_name` in our PostgreSQL database. The target shape, the owning service, and the deployment topology are accepted and will not change. The `accounts` service owns the table and is its only writer. The readers, taken from 13 months of query logs, are the `accounts` service, the `billing` service through a read-only role, and a nightly finance export job that lives in another repository. Deploys are rolling: the old and the new release of a service run side by side for about ten minutes, and the rollback target is the previous release. Nothing outside our servers reads this column: no browser bundle, mobile app, or SDK, and the public API keeps its `surname` field. The table holds 4 million rows and takes about 50 writes per second at peak. Customer records fall under a seven-year retention rule and are in the nightly backup. The team has two questions: can the old column be dropped on a fixed date, 1 December, and can the migration's down step serve as the production rollback? Answer each question on its own line, in exactly this form: `Dated drop: yes` or `Dated drop: no`, and `Down step as rollback: yes` or `Down step as rollback: no`.",
   "skills": ["evolutionary-database-design"],
   "expect": [
     {
@@ -37,16 +37,30 @@
       "values": ["STAGED"]
     },
     {
-      "id": "names-contract-trigger",
-      "criterion": "evolutionary-database-design #6: a staged transition names what permits the contract step",
+      "id": "contract-trigger-is-evidence",
+      "criterion": "evolutionary-database-design #6: the contract trigger of a staged transition names the evidence that permits the contract step",
       "check": "text_matches",
-      "pattern": "(?m)^[ \\t>*_-]*Contract trigger:\\**[ \\t]*(\\S|\\n[ \\t]{2,}\\S)"
+      "pattern": "(?m)^[ \\t>*_-]*Contract trigger:\\**(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*(\\blogs?\\b|quer|metric|referenc|\\bread|access|confirm|evidence|\\bzero\\b)"
     },
     {
       "id": "hands-checks-to-owners",
-      "criterion": "evolutionary-database-design #7: compatibility checks go to test-strategy and deploy order to the CI/CD skill",
+      "criterion": "evolutionary-database-design #7: compatibility checks go to test-strategy, their placement to defect-shift-left, and deploy order to the CI/CD skill",
       "check": "text_matches",
-      "pattern": "(?m)^[ \\t>*_-]*Handoffs:(?=(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*test-strategy)(?=(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*ci[/-]cd)"
+      "pattern": "(?m)^[ \\t>*_-]*Handoffs:(?=(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*test-strategy)(?=(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*shift-left)(?=(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*ci[/-]cd)"
+    },
+    {
+      "id": "refuses-dated-drop",
+      "criterion": "evolutionary-database-design #8: the contract step is not scheduled by date",
+      "check": "field_in",
+      "field": "Dated drop",
+      "values": ["no", "No", "NO"]
+    },
+    {
+      "id": "refuses-down-step-rollback",
+      "criterion": "evolutionary-database-design #9: a down-migration is not the production rollback path",
+      "check": "field_in",
+      "field": "Down step as rollback",
+      "values": ["no", "No", "NO"]
     },
     {
       "id": "opens-with-report-blocks",
