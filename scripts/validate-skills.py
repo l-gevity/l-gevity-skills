@@ -3258,6 +3258,29 @@ def mutation_test() -> int:
             )
         )
 
+    # A mutation that adds or removes words also moves a size count, and the
+    # size checks run before most others: without this, a case would be judged
+    # on whether a count sat near its budget, not on the check it targets. So
+    # every case outside "size:" re-budgets the copy to the mutated tree, as a
+    # change that moved those words would; the size cases keep the real budgets.
+    validator_text = validator.read_bytes()
+
+    def rebudget() -> None:
+        text, crlf = read_raw(validator)
+        skills = skill_dirs(copy / ".agents" / "skills")
+        actual = {"CLAUDE.md": word_count(copy / "CLAUDE.md")}
+        actual.update({path.name: word_count(path / "SKILL.md") for path in skills})
+        caps = {"LIBRARY_BUDGET_WORDS": sum(actual[path.name] for path in skills)}
+        try:
+            caps["DESCRIPTION_BUDGET_CHARS"] = sum(len(parse_frontmatter(path / "SKILL.md").get("description", "")) for path in skills)
+        except ValueError:
+            pass  # frontmatter broken: validate_root fails before any budget is read
+        for key, value in actual.items():
+            text = re.sub(rf'(?m)^    "{re.escape(key)}": \d+,$', f'    "{key}": {value},', text)
+        for key, value in caps.items():
+            text = re.sub(rf"(?m)^{key} = \d+$", f"{key} = {value}", text)
+        write_raw(validator, text, crlf)
+
     try:
         code, output = run()
         if code != 0:
@@ -3266,10 +3289,13 @@ def mutation_test() -> int:
         failures = []
         for case, mutate in cases:
             mutate()
+            if not case.label.startswith("size:"):
+                rebudget()
             try:
                 code, output = run()
             finally:
                 case.restore()
+                validator.write_bytes(validator_text)
             first = output.splitlines()[0] if output else ""
             if code == 0:
                 failures.append(f"{case.label}: validator still passed")
