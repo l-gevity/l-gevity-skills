@@ -43,7 +43,7 @@ SIZE_BUDGET_WORDS = {
     "morphogenetic-architecture": 2800,
     "observability-design": 1800,
     "push-out": 1300,
-    "requirements-grounding": 2700,
+    "requirements-grounding": 2300,
     "requirements-topology": 2000,
     "requirements-traceability": 2100,
     "structural-simplification": 2100,
@@ -56,7 +56,7 @@ SIZE_BUDGET_WORDS = {
 # total rose with every new entry and with growth inside each file's own
 # grain, and nothing failed. A new skill funds its words with a cut. Skills
 # are counted whole, so the count is slack as soon as it is one below its cap.
-LIBRARY_BUDGET_WORDS = 53700
+LIBRARY_BUDGET_WORDS = 53300
 LIBRARY_BUDGET_SKILLS = 24
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
@@ -289,9 +289,8 @@ SKILL_REQUIRED_TERMS = {
         "canonical editable requirement source",
         "Completion is not impact",
         "## Outcome Hypothesis Shape",
-        "Hypothesis confidence:",
-        "Evidence state: unmeasured | supported | rejected | inconclusive | stale",
-        "Evidence reference:",
+        "references/outcome-hypothesis.md",
+        "Record `unknown` plus the measurement needed",
         "Outcome hypotheses:",
         "M alone",
         "assess evidence state and freshness",
@@ -891,6 +890,16 @@ REFERENCE_REQUIRED_TERMS = {
         ),
     },
     "requirements-grounding": {
+        # The record shape loads when a run writes a hypothesis; its field
+        # pins moved here with it. The rule against an invented baseline or
+        # target stays in SKILL.md.
+        "references/outcome-hypothesis.md": (
+            "# Requirements Grounding — Outcome Hypothesis",
+            "Hypothesis confidence:",
+            "Evidence state: unmeasured | supported | rejected | inconclusive | stale",
+            "Evidence reference:",
+            "Decision threshold: <target or minimum meaningful change>",
+        ),
         "references/recovery-mode.md": (
             "# Requirements Grounding — Recovery Mode",
             "Evidence strength is contextual, not a universal ranking",

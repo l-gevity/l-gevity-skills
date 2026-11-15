@@ -48,18 +48,10 @@ uncertainty.
 
 ## Boundary
 
-Use this skill for problem framing, scope, sources, actors, requirement wording,
-priority, evidence, assumptions, validation confidence, and linked outcome
-hypotheses when expected downstream impact is decision-relevant.
-
 Use `requirements-topology` after grounding when stable IDs, typed relationships,
 dependency order, duplicate/conflict checks, or a graph package are needed. Use
 `implementation-readiness` after topology when developers and architects need a
 build-preparation package.
-
-When a project provides a requirements profile or overlay, apply it alongside
-this skill. Do not copy generic workflow into the profile and do not move project
-facts into this skill.
 
 Do not introduce graph edges, domain entities, APIs, services, ADRs, or
 implementation increments here. Record them only as questions for later stages.
@@ -88,9 +80,7 @@ Before relying on a project-specific source:
    normative.
 3. Preserve source wording and provenance; interpret it separately.
 4. Surface conflicting sources or interpretations instead of silently choosing.
-5. Read project instructions, domain glossaries, role catalogs, and policy files
-   when present. Treat them as the domain overlay for this run.
-6. Identify the canonical editable requirement source and distinguish it from
+5. Identify the canonical editable requirement source and distinguish it from
    generated registers, diagrams, code constants, reports, and implementation
    evidence. Never author meaning in a derived view.
 
@@ -212,49 +202,19 @@ carry `Holds across`. Omit the line for a requirement that holds in one scope.
 
 ## Outcome Hypothesis Shape
 
-Keep three artifacts distinct:
-
-| Artifact | Question answered | Evidence that closes it |
-| --- | --- | --- |
-| Problem outcome | What must become possible for the actor? | Problem and source validation |
-| Requirement completion | Does the capability work as specified? | Complete-when verification |
-| Outcome hypothesis | Did use of the capability produce the expected downstream impact? | Outcome measurement after representative use |
-
 Create an outcome hypothesis when an expected customer, product, commercial, or
 operational impact could change the decision to build, retain, simplify, expand,
 or stop the capability. Link it to one or more requirement slugs; do not embed it
-inside each requirement.
+inside each requirement. Read
+[references/outcome-hypothesis.md](references/outcome-hypothesis.md) before
+writing one: it holds the record shape and the three artifacts a hypothesis is
+kept apart from.
 
-Use this shape:
-
-```text
-Outcome hypothesis: <readable-slug>
-Applies to requirements: <one or more requirement slugs>
-Actor or cohort: <who is expected to experience the impact>
-If: <capability is used in the relevant situation>
-Then: <measurable downstream change expected>
-Because: <causal rationale>
-Primary measure: <metric and direction>
-Baseline: <known value, unknown, or evidence reference>
-Decision threshold: <target or minimum meaningful change>
-Evaluation window: <when and for how long to assess>
-Guardrails: <measures that must not materially worsen>
-Evidence plan: <instrumentation, comparison, or study>
-Hypothesis confidence: low | medium | high
-Evidence state: unmeasured | supported | rejected | inconclusive | stale
-Evidence reference: <requirements-traceability record or none>
-Owner: <decision owner>
-Revisit when: <event, evidence threshold, or date>
-```
-
-Do not invent a baseline or target. Record `unknown` plus the measurement needed.
-At creation, set `Evidence state` to `unmeasured`. Later states and references are
-projections from `requirements-traceability`, not edits to hypothesis meaning.
-For an applicable law, contract, policy, or safety obligation, record outcome
-hypotheses as `not applicable` rather than creating a hypothesis record; lack of a
-product-value experiment must not delay the obligation. Completion evidence does
-not support an outcome hypothesis, and a supported hypothesis does not prove
-implementation completeness.
+Do not invent a baseline, target, or causal claim to make a hypothesis look
+complete. Record `unknown` plus the measurement needed. At creation, set
+`Evidence state` to `unmeasured`. Later states and references are projections
+from `requirements-traceability`, not edits to hypothesis meaning. Lack of a
+product-value experiment must not delay an authoritative obligation.
 
 After representative use, use `requirements-traceability` to link measurements,
 assess evidence state and freshness for the exact hypothesis version, and feed
@@ -284,9 +244,9 @@ the uncertainty. Strengthen the source, reduce the commitment, or define a
 reversible test.
 
 This gate decides whether a requirement is grounded enough to move forward. It
-does not decide whether proposed functionality earns its complexity. Use
-`functionality-complexity-tradeoff` for BUILD / DEFER / DROP decisions and consume
-its verdict rather than recreating its value and cost ledger here.
+does not decide whether proposed functionality earns its complexity; consume the
+`functionality-complexity-tradeoff` verdict rather than recreating its value and
+cost ledger here.
 
 ## Output Contract
 
@@ -342,28 +302,12 @@ stale. Never leave silent divergence.
 
 ## Guardrails
 
-- Do not convert stakeholder requests directly into implementation commitments.
-- Do not convert code structure, class names, database tables, or tests directly
-  into intended requirements.
-- Do not promote observed behavior above `PROVISIONAL` without the confirmation
-  or authoritative artifact required by recovery mode.
-- Do not turn defects, dead paths, disabled experiments, or compatibility shims
-  into requirements merely because they exist.
-- Do not make an authoritative source say more than it says.
-- Do not use priority as a proxy for certainty or source authority.
 - Do not turn a quality characteristic into a requirement or a numeric target
   without an actor, source, or evidence; an open characteristic is a finding
   with an owner, not a manufactured non-functional requirement.
 - Do not give a requirement `Holds across` without a source or evidence that
   binds it to each scope named; `all` is a claim about every scope, not a
   default.
-- Do not place outcome hypotheses inside requirement completion conditions.
-- Do not mark an outcome hypothesis `supported` from acceptance, integration, or
-  implementation evidence alone.
-- Do not invent baselines, thresholds, or causal claims to make a hypothesis look
-  complete.
-- Do not delay an authoritative obligation merely because its product-value
-  outcome hypothesis is absent or untested.
 - Do not bury unresolved decisions inside polished requirement prose.
 - Do not create broken links to prerequisites; name missing artifacts explicitly.
 - Do not optimize this output for developers at the expense of product, domain,

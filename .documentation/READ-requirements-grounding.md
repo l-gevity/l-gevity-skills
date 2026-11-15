@@ -158,7 +158,9 @@ grounded requirements into a dependency graph, and
 decides whether a grounded capability justifies its cost. The full
 operational reference — modes, record shapes, and the validation gate —
 lives in [SKILL.md](../.claude/skills/requirements-grounding/SKILL.md); the
-recovery protocol for existing projects lives in
+outcome-hypothesis record lives in
+[outcome-hypothesis.md](../.claude/skills/requirements-grounding/references/outcome-hypothesis.md),
+and the recovery protocol for existing projects in
 [recovery-mode.md](../.claude/skills/requirements-grounding/references/recovery-mode.md).*
 
-<!-- skill-revision: a5b9bab2da59 -->
+<!-- skill-revision: f3b980a3fdf8 -->
