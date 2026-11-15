@@ -176,9 +176,10 @@ SKILL_REQUIRED_TERMS = {
         "Gate E remains blocked",
         # Stated once, here, since the route stopped repeating it.
         "Gate Y runs in iteration 2, the iteration after the increment ships",
-        # SKIP and DIRECT pay only for this file; the route they never
-        # walk lives in references/adaptive-route.md, and so do the pins on
-        # the text only that route uses.
+        # SKIP and DIRECT pay for this file, and for the route in
+        # references/adaptive-route.md only to emit the decision trail, for
+        # that format alone; the route they never walk lives there, and so do
+        # the pins on the text only that route uses.
         "`SKIP` and `DIRECT` never need it",
         ALCHEMY_TRAIL_FORMAT_READ,
         "### Change Primitives",
