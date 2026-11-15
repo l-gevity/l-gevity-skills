@@ -1735,18 +1735,12 @@ ROUTE_SKILLS = {
 # when a scenario covers it, and a new skill needs a scenario to ship.
 SCENARIO_UNCOVERED = (
     "architecture-guidelines",
-    "bring-down",
     "continuous-improvement",
     "dependency-lifecycle",
-    "evolutionary-database-design",
     "implementation-readiness",
     "observability-design",
     "push-out",
-    "requirements-grounding",
-    "requirements-topology",
-    "requirements-traceability",
     "structural-simplification",
-    "system-optimization",
 )
 SCENARIO_CRITERION_RE = re.compile(r"^[a-z][a-z0-9-]* #\d+: \S")
 SCENARIO_TRANSCRIPT_KEYS = {
