@@ -84,7 +84,7 @@
       "id": "new-skill-bar-named",
       "criterion": "continuous-improvement #13: a skill is added only for a distinct trigger, lifecycle, and output contract",
       "check": "text_matches",
-      "pattern": "trigger[^\\n]{0,30}lifecycle[^\\n]{0,40}output contract"
+      "pattern": "(?m)^(?:(?!without|not need|n't need|needs? no\\b|regardless of)[^\\n])*\\btrigger[^\\n]{0,30}\\blifecycle[^\\n]{0,30}\\boutput\\b"
     },
     {
       "id": "opens-with-report-blocks",
