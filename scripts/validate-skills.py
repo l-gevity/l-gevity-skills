@@ -48,7 +48,7 @@ SIZE_BUDGET_WORDS = {
     "requirements-traceability": 2100,
     "structural-simplification": 2000,
     "system-optimization": 2620,
-    "test-strategy": 2100,
+    "test-strategy": 1900,
     "zero-copy-requirements": 1800,
 }
 # The library as a whole, on the same ratchet: the words of every SKILL.md
@@ -56,7 +56,7 @@ SIZE_BUDGET_WORDS = {
 # total rose with every new entry and with growth inside each file's own
 # grain, and nothing failed. A new skill funds its words with a cut. Skills
 # are counted whole, so the count is slack as soon as it is one below its cap.
-LIBRARY_BUDGET_WORDS = 51600
+LIBRARY_BUDGET_WORDS = 51400
 LIBRARY_BUDGET_SKILLS = 24
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every

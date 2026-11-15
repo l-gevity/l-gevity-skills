@@ -28,7 +28,7 @@ pyramid ratio, coverage target, or preferred tool.
 2. **Oracle before harness.** State how correct and incorrect behavior can be
    distinguished before selecting a test level, framework, or environment.
 3. **Minimum sufficient fidelity.** Use the smallest scope that can faithfully
-   observe the named failure. Add broader tests only for distinct confidence.
+   observe the named failure.
 4. **Evidence over percentages.** Coverage locates unexecuted code; it does not
    prove useful assertions, satisfied requirements, or acceptable residual risk.
 5. **Real boundaries where semantics matter.** A fast double cannot prove
@@ -73,36 +73,6 @@ Consume:
 If requirement meaning, actors, permissions, or completion conditions are
 unclear, return to `requirements-grounding` or `implementation-readiness`.
 Existing tests and code are evidence, not product intent.
-
-This skill owns:
-
-- the risk-to-evidence mapping;
-- the oracle, technique, scope, fidelity, dependency, data, and environment
-  decisions for each test obligation;
-- portfolio adequacy, duplication, and residual-risk analysis.
-
-This skill does not own:
-
-- requirement meaning or readiness;
-- implementation recipes for a specific test framework;
-- the earliest pipeline stage, job structure, blocking action, or evidence
-  freshness;
-- the distinction between implemented and executed/verified evidence;
-- specialist security, accessibility, safety, or domain policy.
-
-Use this Alchemy hand-off when both passes apply:
-
-```text
-Implementation Readiness
-→ Test Strategy — Obligation pass: risks, failure modes, oracles, confidence
-→ A → L/C → E, as justified: accepted architecture and enforcement
-→ Test Strategy — Portfolio pass: technique, scope, fidelity, dependencies,
-  data, environment, stimulus
-→ Defect Shift-Left: earliest capable stage
-→ CI/CD Reliability: execution trigger, gate, artifact, freshness, failure action
-→ Requirements Traceability: implementation and executed-evidence state
-→ System Optimization: suite flow, cost, duplication, and bottlenecks
-```
 
 Do not restart the Obligation pass after architecture unless the architecture
 changes requirement meaning, a failure mode, or an oracle. If accepted
@@ -205,8 +175,7 @@ Compare candidate scopes on speed, maintainability, utilization, reliability,
 and fidelity with the scorecard in
 [references/portfolio-governance.md](references/portfolio-governance.md).
 
-Prefer the smallest candidate whose fidelity can observe the failure. Keep a
-broader test only when it covers composition, environment, or behavior the
+Keep a broader test only when it covers composition, environment, or behavior the
 smaller test cannot.
 
 ### 6. Decide dependencies, data, and environment
@@ -221,8 +190,6 @@ Apply these defaults:
 - Stub slow, nondeterministic, destructive, or unavailable side effects when
   testing local decisions.
 - Use a mock only when the interaction itself is required behavior.
-- Exercise the real dependency when compatibility or provider semantics are
-  the risk.
 - Protect every double that represents an external boundary with a shared
   schema, executable contract, or real-boundary backstop.
 - Make data self-contained, resettable, privacy-safe, versioned where needed,
@@ -259,7 +226,7 @@ In Audit mode:
    technique, oracle, fidelity, or placement decision.
 4. Treat flakes, order dependence, uncontrolled time, shared state, and
    environment leakage as test defects.
-5. Use coverage as a gap locator. Use mutation testing selectively on changed
+5. Use mutation testing selectively on changed
    or high-risk deterministic logic when assertion strength is uncertain.
 6. Remove a redundant broader test only after the smaller replacement proves
    the same scope; keep distinct broader backstops.
@@ -324,11 +291,8 @@ Verification:         <portfolio/test review, commands, results, or Not run + re
 
 ## Guardrails
 
-- Do not invent requirement meaning, thresholds, users, traffic, or risk
-  acceptance.
-- Do not use a test framework preference as a strategy.
+- Do not invent users, traffic, or risk acceptance.
 - Do not require every technique for every system.
 - Do not equate mocks with isolation or real dependencies with confidence.
 - Do not automate subjective evaluation merely to make it countable.
 - Do not retain expensive tests because they were expensive to create.
-- Do not claim an ownership boundary listed under Boundary; hand it off.
