@@ -1877,6 +1877,13 @@ SCENARIO_UNCOVERED = (
     "structural-simplification",
 )
 SCENARIO_CRITERION_RE = re.compile(r"^[a-z][a-z0-9-]* #\d+: \S")
+# A wrapped field value read as `(?:[^\n]*\n[ \t]{2,})*` lets the spaces that
+# open a continuation line go to the indent or to the text after it, so a
+# failing match tries every split on every line: a recording of
+# schema-rename-expand-contract kept the validator busy past five minutes.
+# An indent run followed directly by a repeat, or by text that may start with
+# a space, is that shape; `[ \t]{2,}(?![ \t])` takes the whole indent.
+UNGUARDED_CONTINUATION_RE = re.compile(r"\[ \\t\](?:\{\d+,\d*\}|[+*])(?:\)[*+]|\[\^\\n\][*+])")
 SCENARIO_TRANSCRIPT_KEYS = {
     "scenario": str,
     "revision": str,
@@ -1964,6 +1971,12 @@ def load_scenario(directory: Path) -> tuple[dict, dict | None]:
                 re.compile(expectation["pattern"])
             except re.error as error:
                 fail(f"{label} expectation '{ident}' pattern does not compile: {error}")
+            if UNGUARDED_CONTINUATION_RE.search(expectation["pattern"]):
+                fail(
+                    f"{label} expectation '{ident}' pattern lets indentation and text share "
+                    "characters on a continuation line; guard the indent, as in "
+                    "\\n[ \\t]{2,}(?![ \\t])"
+                )
         ids.append(ident)
     if len(ids) != len(set(ids)):
         fail(f"{label} repeats an expectation id")
@@ -3222,6 +3235,26 @@ def mutation_test() -> int:
                     (".scenarios/dispatch-adaptive-structural expectation 'claims-only-loaded-stages' not met",),
                 ),
                 add_unloaded_stage,
+            )
+        )
+
+        unguarded = [scenario_root / "cicd-retention-by-reader" / "scenario.json"]
+
+        def unguard_continuation(files=unguarded):
+            text, crlf = read_raw(files[0])
+            guarded = "{2,}(?![ \\\\t]))*"
+            if guarded not in text:
+                raise RuntimeError(f"no guarded continuation group in {files[0]}")
+            write_raw(files[0], text.replace(guarded, "{2,})*"), crlf)
+
+        cases.append(
+            (
+                Case(
+                    "scenario: pattern reads a wrapped value with an unguarded indent",
+                    unguarded,
+                    (".scenarios/cicd-retention-by-reader expectation 'records-retention-reader' pattern lets indentation and text share",),
+                ),
+                unguard_continuation,
             )
         )
 
