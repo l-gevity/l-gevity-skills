@@ -66,7 +66,10 @@ RETIRED_FIELDS = ("Natural lens", "Lens contribution", "Lens falsifier", "Transf
 GENERATORS = ("algorithmic cut", "natural lens", "manual")
 
 FIELD_RE = re.compile(r"^(?P<name>[A-Z][A-Za-z ]*):[ \t]*(?P<value>.*)$")
-BLOCK_RE = re.compile(r"```(?:text)?[ \t]*\r?\n(.*?)```", re.S)
+# A line of three backticks with any info string opens a block; the next line
+# of three bare backticks closes it. Either line may be indented. A line of
+# four or more backticks, or of tildes, is not a fence.
+BLOCK_RE = re.compile(r"^[ \t]*```[^`\r\n]*\r?\n(.*?)^[ \t]*```[ \t]*\r?$", re.S | re.M)
 NOT_REQUIRED_RE = re.compile(r"^not required\b", re.I)
 
 
@@ -231,6 +234,18 @@ SELF_TEST_CASES = (
             "Reversibility:       low - external consumers depend on the contract.")),
 )
 
+# Each case is one fence shape and the block bodies it must yield.
+FENCE_CASES = (
+    ("bare fence", "```\nA\n```\n", ["A\n"]),
+    ("tagged fence before another block", "```js\nA\n```\n\n```\nB\n```\n", ["A\n", "B\n"]),
+    ("tagged line inside a block is content", "```text\nA\n```js\nB\n```\n", ["A\n```js\nB\n"]),
+    ("indented fence", "  ```text\n  A\n  ```\n", ["  A\n"]),
+    ("CRLF line endings", "```js\r\nA\r\n```\r\n", ["A\r\n"]),
+    ("four backticks are not a fence", "````md\n```js\nA\n```\n````\n", ["A\n"]),
+    ("tildes are not a fence", "~~~\nA\n~~~\n", []),
+    ("unclosed fence", "```\nA\n", []),
+)
+
 
 def self_test() -> int:
     failures = []
@@ -238,6 +253,16 @@ def self_test() -> int:
     problems = check(CONFORMING, "conforming")
     if problems:
         failures.append("conforming fixture rejected: " + "; ".join(problems))
+
+    for label, markdown, expected in FENCE_CASES:
+        found = BLOCK_RE.findall(markdown)
+        if found != expected:
+            failures.append(f"fence pairing, {label}: expected {expected!r}, found {found!r}")
+
+    # A record that follows a tagged fence is still found, and still conforms.
+    after_tagged = topology_blocks(f"```js\nconst x = 1;\n```\n\n```text\n{CONFORMING}\n```\n")
+    if len(after_tagged) != 1 or check(after_tagged[0], "after tagged fence"):
+        failures.append("fence pairing: a record after a tagged fence is not found as one conforming block")
 
     for rule, (old, new) in SELF_TEST_CASES:
         if old not in CONFORMING:
