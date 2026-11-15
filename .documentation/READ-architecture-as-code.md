@@ -363,4 +363,4 @@ in
 the Python file format, contract types, assembler code, and gotchas in
 [python.md](../.claude/skills/architecture-as-code/references/python.md).*
 
-<!-- skill-revision: ba81b1a7ee42 -->
+<!-- skill-revision: c3c7fcc8d863 -->

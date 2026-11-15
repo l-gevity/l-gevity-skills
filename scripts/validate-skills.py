@@ -28,7 +28,7 @@ SIZE_BUDGET_WORDS = {
     "CLAUDE.md": 900,
     "alchemy": 1800,
     "alchemy-orchestrate": 1900,
-    "architecture-as-code": 2500,
+    "architecture-as-code": 2300,
     "architecture-guidelines": 1900,
     "bring-down": 2800,
     "ci-cd-reliability-architecture": 3800,
@@ -56,7 +56,7 @@ SIZE_BUDGET_WORDS = {
 # total rose with every new entry and with growth inside each file's own
 # grain, and nothing failed. A new skill funds its words with a cut. Skills
 # are counted whole, so the count is slack as soon as it is one below its cap.
-LIBRARY_BUDGET_WORDS = 52100
+LIBRARY_BUDGET_WORDS = 51900
 LIBRARY_BUDGET_SKILLS = 24
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
@@ -209,8 +209,10 @@ SKILL_REQUIRED_TERMS = {
         "Coverage is two independent gates",
         "A file-existence rule is what catches an undeclared directory",
         "The same catch-all at the repository root inverts",
-        "The emitted rule block's file scope equals the linted source set.",
-        "Every file at repository root belongs to a declared subsystem.",
+        # Moved from the pre-merge checklist lines that restated Directives 7
+        # and 6.
+        "The emitted rule MUST cover every linted source file.",
+        "Declare the root's real files explicitly",
         "A passing lint is not evidence of coverage.",
         # Expand step of the components -> subsystems key rename: the alias
         # rule stays documented until the contract step removes it.
