@@ -919,13 +919,15 @@ DESCRIPTION_REQUIRED_TERMS = {
 # file's Decision line is in the row, and every row decision is on a line.
 # That alone lets one file stand in for another, since a decision SKILL.md
 # drops stays true of the row while a reference still returns it. So each
-# file is named with the decisions it must keep on its own line: for SKILL.md
-# all it returns, for a reference the two its own row required.
+# file is named with the decisions it must keep on its own line, which is
+# every decision it returns: for a reference, the two its own row required
+# and the two of its stack. With only the shared two listed, a stack decision
+# moved to the other reference's line was still on a line and in the row.
 OUTPUT_CONTRACT_FILES = {
     "architecture-as-code": {
         "SKILL.md": ("Add config", "Update config", "Reject rule", "Defer", "Blocked"),
-        "references/javascript.md": ("Update assembler", "Blocked"),
-        "references/python.md": ("Update assembler", "Blocked"),
+        "references/javascript.md": ("Add eslint.architecture.mjs", "Update ESLint config", "Update assembler", "Blocked"),
+        "references/python.md": ("Add architecture.toml", "Update import-linter config", "Update assembler", "Blocked"),
     },
 }
 CONTRIBUTION_REQUIRED_TERMS = (
@@ -2716,8 +2718,8 @@ def mutation_test() -> int:
 
     for relative, kept in (
         ("SKILL.md", ("Add config", "Update config", "Reject rule", "Defer", "Blocked")),
-        ("references/javascript.md", ("Update assembler", "Blocked")),
-        ("references/python.md", ("Update assembler", "Blocked")),
+        ("references/javascript.md", ("Add eslint.architecture.mjs", "Update ESLint config", "Update assembler", "Blocked")),
+        ("references/python.md", ("Add architecture.toml", "Update import-linter config", "Update assembler", "Blocked")),
     ):
         contract_file = both(f"architecture-as-code/{relative}")
 
@@ -2747,6 +2749,28 @@ def mutation_test() -> int:
                 edit_decision_line(files, drop)
 
             cases.append((Case(f"contract: {decision} dropped from {relative}", contract_file, (f"architecture-as-code/{relative} no longer returns '{decision}'",)), drop_decision))
+
+    # A stack decision moved to the other reference's line is still on a
+    # Decision line and still in the row, so the only check that can report it
+    # is the list of the reference it left.
+    for decision, home, other in (
+        ("Add eslint.architecture.mjs", "references/javascript.md", "references/python.md"),
+        ("Update ESLint config", "references/javascript.md", "references/python.md"),
+        ("Add architecture.toml", "references/python.md", "references/javascript.md"),
+        ("Update import-linter config", "references/python.md", "references/javascript.md"),
+    ):
+        left, joined = both(f"architecture-as-code/{home}"), both(f"architecture-as-code/{other}")
+
+        def move_decision(left=left, joined=joined, decision=decision):
+            def drop(values):
+                if decision not in values:
+                    raise RuntimeError(f"no {decision} decision on the Decision line")
+                return [value for value in values if value != decision]
+
+            edit_decision_line(left, drop)
+            edit_decision_line(joined, lambda values: values + [decision])
+
+        cases.append((Case(f"contract: {decision} moved from {home} to {other}", left + joined, (f"architecture-as-code/{home} no longer returns '{decision}'",)), move_decision))
 
     router_skill = both("alchemy/SKILL.md")
 
