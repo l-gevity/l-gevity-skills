@@ -31,7 +31,7 @@
       "id": "red-run-never-writes",
       "criterion": "gate-lifecycle #8: a red run never rewrites the baseline it failed against",
       "check": "text_matches",
-      "pattern": "(?i)(red|failing|failure)[^.\\n]{0,80}\\b(never|not|no longer|stop\\w*)\\b[^.\\n]{0,80}(writ|regenerat|updat)|\\b(never|not|no longer|stop\\w*|remove|delete)\\b[^.\\n]{0,80}(regenerat|rewrit|failure path)|\\bmay only (tighten|shrink|lower|remove)|\\bwrites? nothing\\b[^.\\n]{0,40}\\b(red|failing|failure)\\b|\\b(red|failing|failure)\\b[^.\\n]{0,40}\\bwrites? nothing\\b"
+      "pattern": "(?i)\\b(?:red|failing|failed)\\s+runs?\\b[^.\\n]{0,20}?(?:\\b(?:never|not|cannot)|n't)\\s+(?:re|over)?writ|\\b(?:red|fail(?:s|ed|ing|ure)?)\\b[^.\\n]{0,40}(?:\\bwrites?\\s+nothing\\b|\\bnothing\\s+is\\s+written\\b|(?:\\b(?:never|not|cannot)|n't)\\s+(?:re|over)?writes?\\s+(?:to\\s+)?(?:\\w+\\s+){0,2}?\\b(?:baseline|json|file|list)\\b|\\b(?:baseline|json|file|list)\\b[^.\\n]{0,12}?(?:\\b(?:never|not|cannot)|n't)\\s+(?:be\\s+)?(?:re|over)?written\\b(?!\\s+by\\b))|(?:\\bwrites?\\s+nothing\\b|\\bnothing\\s+is\\s+written\\b|(?:\\b(?:never|not|cannot)|n't)\\s+(?:re|over)?writes?\\s+(?:to\\s+)?(?:\\w+\\s+){0,2}?\\b(?:baseline|json|file|list)\\b|\\b(?:baseline|json|file|list)\\b[^.\\n]{0,12}?(?:\\b(?:never|not|cannot)|n't)\\s+(?:be\\s+)?(?:re|over)?written\\b(?!\\s+by\\b))[^.\\n]{0,40}\\b(?:red|fail(?:s|ed|ing|ure)?)\\b"
     },
     {
       "id": "guard-ends-the-decision",
