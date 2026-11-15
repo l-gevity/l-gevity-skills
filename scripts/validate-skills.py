@@ -3125,6 +3125,33 @@ def mutation_test() -> int:
             )
         )
 
+        # A searched path that lies beneath an excluded path fails too, and
+        # the case above cannot show it: its path equals the excluded one, so
+        # it is caught just as well when paths are compared for equality.
+        # An expectation can name only a file (load_scenario), so this case
+        # searches a path that continues the excluded file's own path.
+        def search_beneath_excluded_path(files=searched_record, ident="reads-no-stack-reference"):
+            spec = json.loads(files[0].read_text(encoding="utf-8"))
+            excluded = [e["paths"][0] for e in spec["expect"] if e["id"] == ident and e["check"] == "reads_exclude"]
+            if not excluded:
+                raise RuntimeError(f"no reads_exclude expectation '{ident}' in {files[0]}")
+            record = json.loads(files[1].read_text(encoding="utf-8"))
+            if any(str(path).startswith(excluded[0]) for path in record["files_read"] + record["paths_searched"]):
+                raise RuntimeError(f"{excluded[0]} is already read or searched in {files[1]}")
+            record["paths_searched"].append(excluded[0] + "/beneath")
+            write_raw(files[1], json.dumps(record, indent=2) + "\n", False)
+
+        cases.append(
+            (
+                Case(
+                    "scenario: run searched beneath a path it must not read",
+                    searched_record,
+                    (".scenarios/dispatch-missing-prerequisite expectation 'reads-no-stack-reference' not met",),
+                ),
+                search_beneath_excluded_path,
+            )
+        )
+
         # A trail row that gives a stage a decision claims the stage ran, so a
         # row for a skill the run never read must fail. The row's last cell
         # carries a not-run word on purpose: only the Decision cell makes a
