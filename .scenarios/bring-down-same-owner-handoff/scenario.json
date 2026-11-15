@@ -18,7 +18,7 @@
       "id": "names-the-landing",
       "criterion": "bring-down #3: a move names the exact capability it lands in",
       "check": "text_matches",
-      "pattern": "(?m)^[ \\t>*_-]*Landing:\\**(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]|[-*][ \\t]|\\**(?-i:[A-Z])[A-Za-z /-]{0,30}\\**:\\**(?:[ \\t]|$)))*[^\\n]*\\bgot\\b"
+      "pattern": "(?m)^([ \\t]*)(?![ \\t])[ \\t>*_-]*Landing:\\**(?:[^\\n]*\\n(?=[ \\t]{2})\\1[ \\t]+(?![ \\t]|[-*][ \\t]|\\**[A-Za-z][A-Za-z /-]{0,30}\\**:\\**(?:[ \\t]|$)))*[^\\n]*\\bgot\\b"
     },
     {
       "id": "records-owner-change",
