@@ -49,14 +49,14 @@ SIZE_BUDGET_WORDS = {
     "structural-simplification": 2100,
     "system-optimization": 2620,
     "test-strategy": 2100,
-    "zero-copy-requirements": 2300,
+    "zero-copy-requirements": 1800,
 }
 # The library as a whole, on the same ratchet: the words of every SKILL.md
 # together, and the number of skills. An entry above caps one file, so the
 # total rose with every new entry and with growth inside each file's own
 # grain, and nothing failed. A new skill funds its words with a cut. Skills
 # are counted whole, so the count is slack as soon as it is one below its cap.
-LIBRARY_BUDGET_WORDS = 53000
+LIBRARY_BUDGET_WORDS = 52500
 LIBRARY_BUDGET_SKILLS = 24
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every

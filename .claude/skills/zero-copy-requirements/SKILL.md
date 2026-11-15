@@ -49,17 +49,10 @@ a second authority that will disagree with the first.
 qualification stage, gate, or acronym letter. It runs in a single pass, at any
 point where an artifact's home is in question.
 
-This skill decides *where* a fact lives. It does not decide what the fact means,
-whether the work is worth doing, or whether evidence proves it.
-
-- `requirements-grounding` owns requirement meaning, source authority, and
-  evidence quality.
-- `requirements-topology` owns identifiers, lineage, and graph semantics.
-- `requirements-traceability` owns anchors and evidence state once a location
-  exists; this skill decides the location it anchors into.
-- `push-out` owns the general directive that executable sources beat prose
-  duplicates, and the ladder that moves operational work outward; this skill
-  names which artifact owns which question in the first place.
+It does not decide whether the work is worth doing. `push-out` owns the general
+directive that executable sources beat prose duplicates, and the ladder that
+moves operational work outward; this skill names which artifact owns which
+question in the first place.
 
 Apply a project profile for concrete paths, tracker names, schemas, identifier
 formats, and validation commands. Keep none of those here.
@@ -170,25 +163,7 @@ first match.
 
 A document that needs two answers is two artifacts. Split it before keeping it.
 
-## 5. Anti-Patterns
-
-| Anti-pattern | Correction |
-| --- | --- |
-| A decision document or ADR file recording a decision already argued on an issue or change request | Close the decision where it was argued; cite that ID where the decision is needed |
-| A decision log appended to a requirement | The requirement cites the deciding issue or change; it is not the decision record |
-| A finding, follow-up, idea, or reminder filed as an issue | Fix it in the change at hand or drop it |
-| A reversible technical decision raised as a question or an issue | Decide it and name the choice in the commit or change request |
-| An owner question with no default, or a new one while an answer sits unbuilt | Give it a default, or build the answer first |
-| Hand-maintained changelog, status page, or progress board | Generate it from history, the tracker, and the register |
-| Architecture or design note narrating what the code already does | Point at the module, contract, or enforcement rule |
-| Triage, investigation, or incident write-up committed as a repository file | An open defect is an issue and its comments; the rest is fixed or dropped |
-| Requirement text restating a dependency's acceptance conditions | Reference the criterion identifier |
-| Compliance deliverable hand-authored every cycle | Compile it from the authorities; the deliverable is a report |
-| Compliance sign-off recorded in an editable comment or page | Land it in a merged commit or change request |
-| A frozen record edited to stay current | Either freeze it or promote its content into an authority; it cannot be both |
-| "Documentation debt" resolved by writing more prose | Locate the owning authority first; prose that duplicates it increases the debt |
-
-## 6. Output Contract
+## 5. Output Contract
 
 ```text
 Subject:              <document, tree, or proposed artifact>
@@ -210,11 +185,3 @@ In Sweep, emit one ranked row per artifact opened, then the unreached count:
 
 `Carried by` names what already holds the content: file and symbol, commit,
 issue ID, or requirement ID. Empty means unowned, not redundant.
-
-## 7. See Also
-
-- **`push-out`** - executable sources beat prose duplicates; documentation-pruning pattern.
-- **`requirements-traceability`** - anchors and evidence state once the location is decided.
-- **`requirements-grounding`** - requirement meaning, source authority, and evidence.
-- **`requirements-topology`** - stable identifiers, lineage, and generated views.
-- **`continuous-improvement`** - promoting a recurring duplication finding into a check.

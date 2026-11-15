@@ -1,13 +1,11 @@
 {
   "scenario": "ownership-tracker-scope",
-  "revision": "30139eec9fb4",
-  "recorded_with": "claude-code 2.1.310, model claude-opus-5-5",
+  "revision": "34cd3892a5d0",
+  "recorded_with": "claude-code 2.1.321, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
     "alchemy-orchestrate",
     "architecture-as-code",
-    "architecture-as-code-javascript",
-    "architecture-as-code-python",
     "architecture-guidelines",
     "batch",
     "bring-down",
@@ -26,6 +24,7 @@
     "evolutionary-database-design",
     "fewer-permission-prompts",
     "functionality-complexity-tradeoff",
+    "gate-lifecycle",
     "implementation-readiness",
     "infrastructure-fit",
     "loop",
@@ -53,10 +52,8 @@
   ],
   "files_read": [],
   "paths_searched": [
-    ".",
-    ".",
-    ".claude/skills"
+    "."
   ],
-  "turns": 6,
-  "output": "**What I found:** Only the crash gets its own issue. The helper note gets no artifact: drop it rather than file it (the record calls this Delete). The other three each go in an existing kind of artifact.\n\n**Why it matters:** Filing all five as issues would bury the crash in reminders. If the paid-plan note goes in a commit, an owner decision about price would look like a settled technical choice.\n\n**Do this first:**\n1. Open the defect issue for note 5, or fix the crash in this change.\n2. Then post the note 2 question.\n3. Then add the note 4 check.\n\n**What I did not check:** The repo has no project profile, tracker or register, so the artifact names below are the skill's generic ones. Replace them with your real locations. I also couldn't check how many owner questions are open or whether any answer is still unbuilt, and either could delay note 2.\n\n**Record**\n\n1. **Commit or change request for this export (Keep):** name the streaming-writer choice and its immediate why there; open no issue and write no decision document.\n2. **Standing questions issue (Keep):** ask in plain language, \"Should report export be paid-only? Default: available on all plans unless you object.\" That default assumes the export ships ungated. Don't gate it before an answer.\n3. **No artifact (Delete):** drop the note and open no issue, because the helper works and is outside this change.\n4. **Milestone checklist for first customer go-live (Keep):** add the penetration test as a check now; it closes when the test has run or the owner accepts the risk for that milestone.\n5. **New defect issue in the tracker (Keep):** open it now with the empty-report reproduction. If you fix it in this change instead, the commit carries the fix and no issue is needed."
+  "turns": 4,
+  "output": "1. **Streaming vs. buffered writer** → **the commit message or change request for the export change.** Name the choice and its reason there. It doesn't change what users see, privacy, or cost, so it's a reversible technical decision and needs neither an issue nor a decision document.\n2. **Export behind the paid plan** → **the standing questions issue.** Add it as a plain-language owner question with a default that applies if nobody objects (for example \"export ships to all plans\"). It changes what users see and what they pay, so the owner decides, not the code. If that issue already has three open questions, wait for an answer before adding it.\n3. **Ugly helper in another module** → **no artifact.** Drop it and don't open the issue. It works and it's outside this change, and fixing it here would be a refactor this change doesn't need. A reminder like this doesn't belong in the tracker.\n4. **Penetration test before the first customer goes live** → **the milestone checklist for \"first customer live\".** Add it as a check now. It's done when the test has run, or when the owner accepts the risk for that milestone.\n5. **Crash on an empty report** → **a defect issue, or the current change.** If you fix it now, add a test for the empty report in this change and say so in the commit message. If you don't, open a defect issue now. Your change touches the export, so fixing it here is the better choice.\n\nNo project profile exists in this repo, so I used the skill's generic names. Replace them with your tracker's real issue, checklist, and commit paths."
 }
