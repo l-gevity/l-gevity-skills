@@ -1,5 +1,5 @@
 {
-  "request": "Run alchemy on this: we want to move the billing logic out of the orders module into a billing module of its own, beside orders and shipping in the same deployable, because billing rules change most weeks while the rest of orders rarely changes. The requirement is docs/requirements/billing-rule-isolation.md and the change history it rests on is docs/evidence/change-history.md. Leave code out of the answer: we will write it once this is decided.",
+  "request": "Run alchemy on this: we want to move the billing logic out of the orders module into a billing module of its own, beside orders and shipping in the same deployable, because billing rules change most weeks while the rest of orders rarely changes. The requirement is docs/requirements/billing-rule-isolation.md and the change history it rests on is docs/evidence/change-history.md.",
   "skills": ["alchemy", "morphogenetic-architecture"],
   "expect": [
     {
