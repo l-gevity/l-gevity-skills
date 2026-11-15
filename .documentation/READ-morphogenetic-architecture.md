@@ -252,4 +252,4 @@ evidence fields, observed-pressure findings, and restructuring proof it loads
 only for full analysis live in
 [full-analysis.md](../.claude/skills/morphogenetic-architecture/references/full-analysis.md).*
 
-<!-- skill-revision: ef6db92fd752 -->
+<!-- skill-revision: 05599595d322 -->

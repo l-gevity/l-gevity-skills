@@ -40,7 +40,7 @@ SIZE_BUDGET_WORDS = {
     "gate-lifecycle": 1600,
     "implementation-readiness": 1900,
     "infrastructure-fit": 2000,
-    "morphogenetic-architecture": 2800,
+    "morphogenetic-architecture": 2700,
     "observability-design": 1800,
     "push-out": 1300,
     "requirements-grounding": 2300,
@@ -56,7 +56,7 @@ SIZE_BUDGET_WORDS = {
 # total rose with every new entry and with growth inside each file's own
 # grain, and nothing failed. A new skill funds its words with a cut. Skills
 # are counted whole, so the count is slack as soon as it is one below its cap.
-LIBRARY_BUDGET_WORDS = 51900
+LIBRARY_BUDGET_WORDS = 51800
 LIBRARY_BUDGET_SKILLS = 24
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
