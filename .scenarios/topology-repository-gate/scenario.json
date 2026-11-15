@@ -1,5 +1,5 @@
 {
-  "request": "Run requirements-topology on this: the requirements for our invoicing self-service work live in this repository under `requirements/`. `grounding.md` is the source, and `records.yaml` and `edges.yaml` are the graph. CI runs a schema check on the records and it is green. The records also carry `implemented` and `verified` flags that teams set by hand. Before we hand the graph to implementation planning: is it stable, what does the repository gate still need, and do those flags belong in the records? If they do not, name the skill that owns that state.",
+  "request": "Run requirements-topology on this: the requirements for our invoicing self-service work live in this repository under `requirements/`. `grounding.md` is the source, and `records.yaml` and `edges.yaml` are the graph. CI runs a schema check on the records and it is green. The records also carry `implemented` and `verified` flags that teams set by hand. Before we hand the graph to implementation planning: is it stable? In the record's Repository gate line, list every phase the repository gate should run and say which of them this repository has. Do those flags belong in the records? Name the skill that owns that state on a line of the form `Flags owner: <skill>`.",
   "skills": ["requirements-topology"],
   "expect": [
     {
@@ -43,15 +43,22 @@
     },
     {
       "id": "names-missing-semantic-validation",
-      "criterion": "requirements-topology #7: a gate that runs only a schema check lacks semantic validation",
+      "criterion": "requirements-topology #7: the Repository gate line of a gate that runs only a schema check names semantic validation",
       "check": "text_matches",
-      "pattern": "semantic"
+      "pattern": "(?m)^[ \\t>*_-]*Repository gate:\\**(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*semantic"
     },
     {
       "id": "hands-evidence-flags-to-traceability",
       "criterion": "requirements-topology #8: asked who owns implementation and verification state, the answer names requirements-traceability",
+      "check": "field_in",
+      "field": "Flags owner",
+      "values": ["requirements-traceability"]
+    },
+    {
+      "id": "gate-names-traceability-phase",
+      "criterion": "requirements-topology #9: the Repository gate line lists traceability among the phases the gate should run",
       "check": "text_matches",
-      "pattern": "requirements-traceability"
+      "pattern": "(?m)^[ \\t>*_-]*Repository gate:\\**(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*traceab"
     }
   ]
 }

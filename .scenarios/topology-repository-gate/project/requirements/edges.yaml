@@ -5,17 +5,17 @@
 - from: invoice-download
   type: depends_on
   to: document-archive
-  evidence: "grounding.md#invoice-download: a listed invoice is fetched from the archive as it was issued"
+  evidence: "grounding.md#invoice-download: Relies on: document-archive keeps every issued invoice retrievable as issued."
   inferred: false
 
 - from: statement-download
   type: depends_on
   to: document-archive
-  evidence: "grounding.md#statement-download: a listed statement is fetched from the archive as it was issued"
+  evidence: "grounding.md#statement-download: Relies on: document-archive keeps every issued statement retrievable as issued."
   inferred: false
 
 - from: owner-only-access
   type: constrains
   to: invoice-download
-  evidence: "grounding.md#owner-only-access: Holds across invoices"
+  evidence: "grounding.md#owner-only-access: Holds across: invoices, statements"
   inferred: false

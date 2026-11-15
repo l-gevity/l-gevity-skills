@@ -42,6 +42,7 @@ Must be able to: obtain any invoice issued to their account.
 Complete when:
 - the account owner can list the invoices issued to the account;
 - the account owner can download each listed invoice as it was issued.
+Relies on: document-archive keeps every issued invoice retrievable as issued.
 Basis: evidenced
 Source or evidence: support tickets, third-quarter count
 Priority: must
@@ -53,6 +54,7 @@ Must be able to: obtain any monthly statement issued to their account.
 Complete when:
 - the account owner can list the statements issued to the account;
 - the account owner can download each listed statement as it was issued.
+Relies on: document-archive keeps every issued statement retrievable as issued.
 Basis: evidenced
 Source or evidence: support tickets, third-quarter count
 Priority: should
