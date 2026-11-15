@@ -178,4 +178,4 @@ The full operational reference for this concept — detection heuristics,
 scoring axes, the worth matrix, and verdicts — lives in
 [SKILL.md](../.claude/skills/functionality-complexity-tradeoff/SKILL.md).*
 
-<!-- skill-revision: d306ce073e6c -->
+<!-- skill-revision: 8c043c46ffde -->

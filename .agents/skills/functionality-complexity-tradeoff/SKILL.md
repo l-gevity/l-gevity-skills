@@ -19,7 +19,8 @@ Two stages, in both modes: a **necessity gate** (does the problem this code
 addresses occur in this context?), then a **worth ledger** (does the value
 justify the cost?). Complexity itself is measured by
 `structural-simplification`; the upstream principles (YAGNI, scope control,
-proportionality) live in `architecture-guidelines`.
+proportionality) live in `architecture-guidelines`, which with the stack's own
+ADRs also owns the architectural invariants the necessity gate consumes.
 
 > **Core Directives**
 >
@@ -43,7 +44,11 @@ proportionality) live in `architecture-guidelines`.
 > 7. **Outcome evidence informs worth; it is not the verdict.** Consume current
 >    linked outcome evidence when available. Completion, deployment, or adoption
 >    alone cannot prove downstream value, and no hypothesis state automatically
->    dictates a worth decision.
+>    dictates a worth decision. `requirements-grounding` owns the hypothesis's
+>    meaning, thresholds, cohorts, guardrails, and revisit intent;
+>    `requirements-traceability` owns its measurement links, evidence state,
+>    and freshness for the exact version. This skill consumes both and alone
+>    issues the functionality-worth verdict.
 
 ---
 
@@ -113,6 +118,10 @@ anything that merely *looks* like a non-problem.
 Record the distinction so a later audit does not reintroduce the same code:
 "it cost more than it returned" invites debate about thresholds; "client/server
 version skew cannot occur in a single-artifact deploy" closes the question.
+Repeated OBSOLETE findings in one area signal adding the invariant to
+`architecture-guidelines` through `continuous-improvement`, and verdicts that
+repeatedly contradict current practice or sibling skills signal a skill
+update, not case-by-case overrides.
 
 ### 1e. Obligation vs. mechanism
 
@@ -146,7 +155,8 @@ caller already fetches.
 ## 2. The Worth Model
 
 Once necessity passes, worth is the relation between **Value (V)** delivered
-and **Cost (C)** imposed over lifetime `L`. Both sides are multi-dimensional.
+and **Cost (C)** imposed over the feature's `lifetime`. Both sides are
+multi-dimensional.
 
 ### Value axes
 
@@ -170,95 +180,44 @@ are handled separately in §8.
 Structural cost is **delegated** to `structural-simplification`: the
 **Subsystem-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Subsystem-count Δ**
 (`ΔD, ΔK, ΔP, Δn` in its Reporting Vocabulary) introduced (prospective) or
-already present (retrospective). This skill adds three ongoing-cost axes that
-structure alone does not capture:
+already present (retrospective). Cyclomatic, cognitive, and similar metrics
+enter the `C` side only through it and the churn × complexity heuristic. This
+skill adds three ongoing-cost axes that structure alone does not capture:
 
 | Axis | Symbol | What it measures | Measurability |
 |:--|:--|:--|:--|
-| **Maintenance** | `M` | Tests, docs, reviews, dependency updates the feature demands | Measurable (test/doc count, churn) |
-| **Risk** | `X` | Bug surface × blast radius; security, privacy, performance exposure | Measurable (defect history, incidents) |
-| **Evolution tax** | `E` | Degree to which the feature constrains future change | Judgment, changelog trace |
+| **Maintenance** | `Maintenance` | Tests, docs, reviews, dependency updates the feature demands | Measurable (test/doc count, churn) |
+| **Risk** | `Risk` | Bug surface × blast radius; security, privacy, performance exposure | Measurable (defect history, incidents) |
+| **Evolution tax** | `Evolution` | Degree to which the feature constrains future change | Judgment, changelog trace |
 
-`Aggregate cost ≈ (ΔD + ΔK + ΔP + Δn) + (M + X + E) × L`
+`Aggregate cost ≈ (ΔD + ΔK + ΔP + Δn) + (Maintenance + Risk + Evolution) × lifetime`
 
 ### The worth inequality
 
 ```
-Worth > 0   ⇔   V × L   >   C_structural + (M + X + E) × L
+Worth > 0   ⇔   V × lifetime   >   C_structural + (Maintenance + Risk + Evolution) × lifetime
 ```
 
 For short-lived code, the structural footprint dominates. For long-lived code,
-`M + X + E` dominates. **Most production features are long-lived; plan for the
-ongoing term.**
+`Maintenance + Risk + Evolution` dominates. **Most production features are
+long-lived; plan for the ongoing term.**
 
-> [!WARNING] Evolution tax (`E`) is the most-underestimated axis because it is
-> invisible in the current code review. It shows up later, as the PR that
+> [!WARNING] Evolution tax (`Evolution`) is the most-underestimated axis
+> because it is invisible in the current code review. It shows up later, as the PR that
 > "should have been small but touched twelve files."
 
 ---
 
 ## 3. Two Modes
 
-The model is the same; the inputs differ.
+The model and the steps (§6) are the same; the inputs differ.
 
-### 3a. Prospective — evaluating proposed functionality
-
-Applied to tickets, specs, PRDs, loose ideas, or PR scope **before
-implementation**. All inputs are estimates; record confidence explicitly.
-
-1. State the functionality in one sentence: _"This allows [who] to [do what] so
-   that [outcome]."_
-2. **Run the necessity gate (§1):** the failure mode must be reachable in the
-   target stack and not already owned by another layer. A prospective
-   necessity failure is rare but consequential: it stops a build that would
-   have produced dead code on day one.
-3. Score `V` axes with **evidence**: user interviews, request tickets,
-   analytics of the workaround, competitor behavior. Opinions are not
-   evidence and cannot support a high-confidence build decision. Cite linked
-   outcome hypotheses when present; before release they express expected
-   value, not observed impact.
-4. Score `C` axes against a **concrete implementation sketch**: files
-   touched, new abstractions or dependencies introduced, tests required,
-   failure modes created.
-5. Apply the Decision Protocol (§6). Verdicts are prospective (§7a).
-
-### 3b. Retrospective — auditing existing functionality
-
-Applied to code, subsystems, features, capabilities, or flags that **already
-exist**. Inputs are observable; bias toward measurement over judgment.
-
-1. Define the boundary: files, symbols, entry points, feature flags, routes,
-   or callers.
-2. **Run the necessity gate (§1):** walk the §1b heuristics before any worth
-   scoring. A positive finding short-circuits the rest of the audit to
-   OBSOLETE.
-3. Score `V` from usage data:
-    - Telemetry hits per time window, per user cohort.
-    - Reach: unique users or flows that enter this code path.
-    - Irreplaceability: does an alternative path exist? Do users already use
-      it?
-    - **If `V` cannot be measured, that itself is a finding** — instrument,
-      identify an external floor (§8c), or keep confidence Low.
-    - Consume current outcome-evidence records from
-      `requirements-traceability`. Preserve the canonical hypothesis version,
-      cohort, threshold, window, and guardrails. `stale` or `inconclusive`
-      evidence cannot support High value confidence; `rejected` evidence lowers
-      the supported value claim but does not by itself prove zero value.
-4. Score `C` from current observable state:
-    - Structural: measure `D, K, P, n` per `structural-simplification`.
-    - `M`: dedicated tests, doc pages, recent commit churn, dependency drift.
-    - `X`: bug ticket history, incident postmortems, security/perf hotspot
-      reports.
-    - `E`: count of PRs / design docs where this feature caused scope
-      expansion, workarounds, or delays.
-5. Apply the Decision Protocol (§6). Verdicts are retrospective (§7b).
-
-> [!NOTE] A retrospective audit with no telemetry available should first
-> return an instrumentation task, not a verdict — **unless** the necessity
-> gate has already produced a finding: you cannot measure usage of a code
-> path that cannot be triggered. Deleting a feature merely because you cannot
-> see it being used is survivorship bias in reverse; removing it because the
-> failure mode it guards against cannot occur is structural reasoning.
+- **Prospective** — tickets, specs, PRDs, loose ideas, or PR scope **before
+  implementation**. All inputs are estimates; record confidence explicitly.
+  Verdicts are prospective (§7a).
+- **Retrospective** — code, subsystems, features, capabilities, or flags that
+  **already exist**. Inputs are observable; bias toward measurement over
+  judgment. Verdicts are retrospective (§7b).
 
 ---
 
@@ -267,41 +226,73 @@ exist**. Inputs are observable; bias toward measurement over judgment.
 Fast worth signals — usage silence, workaround in the wild, single caller,
 flag defaulted off, orphan test, churn hotspot, churn × complexity, defect
 clustering, bug-fix-to-feature ratio, blocked PRs, documentation rot — and the
-axis each one moves. The necessity heuristics in §1b run first. Read
+axis each one moves. Read
 [references/worth-signals.md](references/worth-signals.md) when scoring `V`
-or `C` in retrospective mode, and run churn × complexity before any
-subjective judgment.
+or `C` in retrospective mode.
 
 ---
 
 ## 5. Forcing Questions
 
 Four interrogations — necessity, value, cost, counterfactual — each exposing a
-common failure mode. Answers MUST be written, not implicit. Read
-[references/forcing-questions.md](references/forcing-questions.md) and answer
-the necessity questions before any value scoring. A removal cost in 12 months
-that exceeds the build cost today is a one-way door: apply §8 before
-committing.
+common failure mode. Read
+[references/forcing-questions.md](references/forcing-questions.md) before any
+value scoring.
 
 ---
 
 ## 6. Decision Protocol
 
-1. **Run the necessity gate** (§1). On failure, emit per §1 and skip the
-   remaining steps.
-2. **Score `V` axes** (`U, F, R, I`) on a 0–3 scale with one-line evidence
-   per axis. When outcome evidence exists, cite its hypothesis ID, state,
-   freshness, and observation identity; do not replace its threshold or
-   guardrails with a more favorable interpretation.
-3. **Score `C` axes**:
-    - Delegate `D, K, P, n` to `structural-simplification` (deltas for
-      prospective; absolute measured values for retrospective).
-    - Score `M, X, E` on 0–3 with one-line evidence per axis.
-4. **Record confidence** (Low / Medium / High) for each side independently.
-5. **Compare across both ledgers** without summing.
-6. **Classify** using the Worth Matrix (§6a) and apply the confidence gate
+1. **Frame the subject.** Prospective: state it in one sentence, _"This
+   allows [who] to [do what] so that [outcome]."_ Retrospective: define the
+   boundary — files, symbols, entry points, feature flags, routes, or callers.
+2. **Run the necessity gate** (§1); in retrospective mode walk the §1b
+   heuristics before any worth scoring. On failure, emit per §1 and skip the
+   remaining steps. A prospective necessity failure is rare but
+   consequential: it stops a build that would have produced dead code on day
+   one.
+3. **Score `V` axes** (`U, F, R, I`) on a 0–3 scale with one-line evidence
+   per axis.
+    - Prospective evidence: user interviews, request tickets, analytics of the
+      workaround, competitor behavior. Opinions are not evidence and cannot
+      support a high-confidence build decision. Linked outcome hypotheses
+      before release express expected value, not observed impact.
+    - Retrospective evidence is usage data: telemetry hits per time window and
+      user cohort; reach as the unique users or flows that enter the path;
+      irreplaceability as whether an alternative path exists and users
+      already use it. **If `V` cannot be measured, that itself is a finding**
+      — instrument, identify an external floor (§8c), or keep confidence Low.
+    - Consume current outcome-evidence records from
+      `requirements-traceability`: cite the hypothesis ID, state, freshness,
+      and observation identity, and preserve the canonical hypothesis
+      version, cohort, threshold, window, and guardrails; never replace them
+      with a more favorable interpretation. `stale` or `inconclusive`
+      evidence cannot support High value confidence; `rejected` evidence
+      lowers the supported value claim but does not by itself prove zero
+      value.
+4. **Score `C` axes**:
+    - Delegate `D, K, P, n` to `structural-simplification`: deltas against a
+      **concrete implementation sketch** (files touched, new abstractions or
+      dependencies introduced, tests required, failure modes created) in
+      prospective mode; absolute measured values in retrospective mode.
+    - Score `Maintenance, Risk, Evolution` on 0–3 with one-line evidence per
+      axis. Retrospective sources: `Maintenance` from dedicated tests, doc
+      pages, recent commit churn, and dependency drift; `Risk` from bug ticket
+      history, incident postmortems, and security or performance hotspot
+      reports; `Evolution` from the count of PRs or design docs where the
+      feature caused scope expansion, workarounds, or delays.
+5. **Record confidence** (Low / Medium / High) for each side independently.
+6. **Compare across both ledgers** without summing.
+7. **Classify** using the Worth Matrix (§6a) and apply the confidence gate
    (§6b).
-7. **Emit** the Output Contract (§9).
+8. **Emit** the Output Contract (§9).
+
+> [!NOTE] A retrospective audit with no telemetry available should first
+> return an instrumentation task, not a verdict — **unless** the necessity
+> gate has already produced a finding: you cannot measure usage of a code
+> path that cannot be triggered. Deleting a feature merely because you cannot
+> see it being used is survivorship bias in reverse; removing it because the
+> failure mode it guards against cannot occur is structural reasoning.
 
 ### 6a. The Worth Matrix
 
@@ -321,8 +312,8 @@ confidence is **Low**:
 
 - **Prospective** → default to DEFER. Gather evidence before committing to
   high-cost action.
-- **Retrospective** → default to QUARANTINE. Add instrumentation, revisit
-  after N weeks with measured data.
+- **Retrospective** → default to QUARANTINE (§7b) and revisit with measured
+  data for the low side.
 
 Do not commit to irreversible verdicts (BUILD, DELETE) on low-confidence
 estimates. **OBSOLETE is exempt from the confidence gate** when the
@@ -358,7 +349,7 @@ outcome hypothesis.
 | **QUARANTINE** | `V` is unmeasured. Add telemetry; revisit after N weeks. |
 | **DEPRECATE** | Marginal or negative worth; removal is non-trivial. Announce, migrate callers, remove on schedule. |
 | **DELETE** | Negative worth, removal is feasible. Prefer removal over patching, but migrate callers, preserve compatibility promises, and keep rollback possible. |
-| **OBSOLETE** | Necessity gate (§1) fails. Remove or deprecate the code without scoring worth; the rationale is structural, not budgetary, so the verdict resists re-litigation. If the code documents an invariant nothing else captures, downgrade to **SIMPLIFY** instead (§1c). |
+| **OBSOLETE** | Necessity gate (§1) fails. Remove or deprecate the code without scoring worth; the rationale is structural (§1d). An invariant record nothing else captures is **SIMPLIFY** instead (§1c). |
 
 > [!WARNING] "Interesting", "clever", and "elegant" are not verdicts.
 > Cleverness imposes cost but rarely contributes measurable value. If a
@@ -401,7 +392,7 @@ Necessity note: <if Fail: which §1a category, which invariant violated /
 V scores:       U=<0-3>  F=<0-3>  R=<0-3>  I=<0-3>       (1-line evidence each; OMIT if Necessity=Fail)
 C scores:       Subsystem-kinds Δ=<±n>  Dependency-edges Δ=<±n>
                 Max-chain-depth Δ=<±n>  Subsystem-count Δ=<±n>   (prospective: deltas; retrospective: measured absolutes; OMIT if Necessity=Fail)
-                M=<0-3>  X=<0-3>  E=<0-3>                 (1-line evidence each; OMIT if Necessity=Fail)
+                Maintenance=<0-3>  Risk=<0-3>  Evolution=<0-3>   (1-line evidence each; OMIT if Necessity=Fail)
 Confidence V:   Low | Medium | High                       (OMIT if Necessity=Fail)
 Confidence C:   Low | Medium | High                       (OMIT if Necessity=Fail)
 Outcome evidence: <hypothesis IDs, states, freshness, observation links, or none / not applicable>
@@ -432,24 +423,3 @@ integrations of unknown usage, compliance paths, benchmarked optimizations —
 with the verdict each typically earns and the section that decides it. Read
 [references/common-patterns.md](references/common-patterns.md) to calibrate a
 verdict against precedent; the pattern never replaces the ledger.
-
----
-
-## 11. Composition with Sibling Skills
-
-- **`requirements-grounding`** owns outcome-hypothesis meaning, thresholds,
-  cohorts, guardrails, and revisit intent; **`requirements-traceability`** owns
-  measurement links, evidence state, and freshness for the exact hypothesis
-  version. This skill consumes both and alone issues the functionality-worth
-  verdict.
-- **`structural-simplification`** owns the complexity measurement
-  (`D, K, P, n`); cyclomatic, cognitive, and similar metrics enter the `C`
-  side only through it and the churn × complexity heuristic.
-- **`architecture-guidelines`** and the stack's own ADRs own the principles
-  and the architectural invariants the necessity gate consumes as the basis
-  for impossibility findings.
-- **`continuous-improvement`** — verdicts that repeatedly contradict current
-  practice or sibling skills signal a skill update, not case-by-case
-  overrides. Repeated OBSOLETE findings in one area signal adding the
-  relevant invariant to `architecture-guidelines`, so future contributors do
-  not reintroduce the same non-problem-solving code.
