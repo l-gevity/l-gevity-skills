@@ -199,12 +199,3 @@ In a sweep, emit one row per dependency, then the unreached count:
 | Dependency | Tier | Trigger | Reachability | Response | Guard |
 | ---------- | ---- | ------- | ------------ | -------- | ----- |
 ```
-
-## 8. See Also
-
-- **`bring-down`** - whether to depend on an external capability at all, and which one.
-- **`defect-shift-left`** - the earliest stage that can catch an advisory, a license conflict, or an unused package.
-- **`ci-cd-reliability-architecture`** - whether a finding blocks merge or release.
-- **`functionality-complexity-tradeoff`** - whether the functionality the dependency serves is still worth keeping.
-- **`evolutionary-database-design`** - upgrades that move a persisted or serialized shape.
-- **`architecture-as-code`** - enforcing an isolation boundary so it survives the next contributor.
