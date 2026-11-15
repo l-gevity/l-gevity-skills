@@ -40,7 +40,7 @@
       "id": "contract-trigger-is-evidence",
       "criterion": "evolutionary-database-design #6: the contract trigger of a staged transition names the evidence that permits the contract step",
       "check": "text_matches",
-      "pattern": "(?m)^[ \\t>*_-]*Contract trigger:\\**(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*(\\blogs?\\b|quer|metric|referenc|\\bread|access|confirm|evidence|\\bzero\\b)"
+      "pattern": "(?m)^[ \\t>*_-]*Contract trigger:\\**(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*(\\blogs?\\b|quer|metric|referenc|\\bread(?!y|i(?:ness|ly))|access|confirm|evidence|\\bzero\\b)"
     },
     {
       "id": "hands-checks-to-owners",
