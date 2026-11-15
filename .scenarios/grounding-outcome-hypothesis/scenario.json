@@ -39,7 +39,7 @@
       "id": "does-not-invent-threshold",
       "criterion": "requirements-grounding #6: a target nobody set is recorded as unknown, not invented",
       "check": "text_matches",
-      "pattern": "(?m)^[ \\t>*_-]*Decision threshold:[^\\n]*\\bunknown\\b"
+      "pattern": "(?m)^[ \\t>*_-]*Decision threshold:\\**(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*\\bunknown\\b"
     },
     {
       "id": "opens-with-report-blocks",
