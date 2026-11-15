@@ -98,4 +98,4 @@ inventory, change taxonomy, staged path, migration increments, data contract, an
 decision rules — lives in
 [SKILL.md](../.claude/skills/evolutionary-database-design/SKILL.md).*
 
-<!-- skill-revision: 8a108db1b8b6 -->
+<!-- skill-revision: 25e2999435dd -->

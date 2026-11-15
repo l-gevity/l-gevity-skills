@@ -227,10 +227,7 @@ code that never gets the gate.
 | --------------------------------------------- | ---------------------------------------------------------- |
 | Hardcoded list of "all other subsystems".        | Use `'*'` + `except` / `except_to`.                        |
 | Renaming a subsystem without updating consumers. | Use prefix wildcards (`<prefix>-*`) so renames stay local. |
-| Subsystem has rules but no catch-all bucket.     | Add the whole-subsystem entry as the last `subsystems` row.   |
 | Dynamic / unresolved imports evade rules.     | Make imports static and resolvable, or document the loophole and ban the dynamic style where possible. |
-| Rule block scoped to a subset of the linted source set. | Apply the rule to every linted source file; the registry cannot fire on a file the rule never sees. |
-| Relying on dependency rules to catch an undeclared directory. | Use the file-existence rule; a file with no imports has no edge to judge. |
 | Assembler maps a subset of the schema's subsystem fields. | Forward every field, `mode` included — a dropped field silently deletes that part of the schema. |
 
 Before merge:

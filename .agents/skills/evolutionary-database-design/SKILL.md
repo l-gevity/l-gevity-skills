@@ -205,8 +205,8 @@ Rules:
 - Each stage is independently deployable and compatible with the previous
   stage's code.
 - Expand and contract never ship in the same deployable.
-- The contract trigger is evidence — access logs, query metrics, a closed
-  deprecation window with consumer confirmation — not a date.
+- The contract trigger is evidence: access logs, query metrics, a closed
+  deprecation window with consumer confirmation.
 - Collapse stages only when the coexistence window proves them unnecessary,
   and record the proof.
 
