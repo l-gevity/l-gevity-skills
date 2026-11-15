@@ -60,11 +60,9 @@ same compatibility model applies to all of them.
 
 ## Boundary
 
-Use this skill when an admitted increment changes a persisted or serialized
-shape, or retrospectively when an existing store, contract, migration history,
-or data incident provides a bounded subject. In Design mode, use two passes
-when architecture can still change the target shape, its write owner, or the
-deployment topology that determines which versions coexist:
+In Design mode, use two passes when architecture can still change the target
+shape, its write owner, or the deployment topology that determines which
+versions coexist:
 
 1. **Compatibility pass — after readiness, before A.** Inventory the current
    shape, its readers and writers, the coexistence window, and the
@@ -80,60 +78,17 @@ Use a **Combined pass** only for Audit mode against a stable store, or when
 the target shape, ownership, and topology are already accepted and will not
 change.
 
-Consume:
+Also consume the readiness package's data ownership and lifecycle,
+domain-model seeds, contract candidates, and aspects; the
+`morphogenetic-architecture` reversibility grade when a boundary moves; and
+historical migration incidents, escaped defects, and production signals. If
+data ownership or the completion conditions of the increment are unclear,
+return to `implementation-readiness`. Existing schemas and access code are
+evidence of readers and writers, not product intent.
 
-- the readiness package's data ownership and lifecycle, domain-model seeds,
-  contract candidates, and aspects;
-- current declared schemas, contracts, serializers, and migration history;
-- deployment topology and rollout strategy: which versions coexist, and what
-  the rollback target is;
-- the `morphogenetic-architecture` reversibility grade when a boundary moves;
-- data volume, write rate, lock behavior, and retention windows;
-- historical migration incidents, escaped defects, and production signals.
-
-If requirement meaning, data ownership, or the completion conditions of the
-increment are unclear, return to `requirements-grounding` or
-`implementation-readiness`. Existing schemas and access code are evidence of
-readers and writers, not proof of their absence and not product intent.
-
-This skill owns:
-
-- the change classification and required compatibility mode;
-- the transition design: staged path, reversal step per stage, contract
-  trigger;
-- the migration increments: schema change, data migration, and access-code
-  change per stage, and the backfill strategy;
-- the data contract between a shape's writer and its consumers;
-- the compatibility obligations handed to verification, placement, pipeline,
-  and traceability skills.
-
-This skill does not own:
-
-- subsystem placement, write-ownership assignment across boundaries, or the
-  reversibility grade of a boundary move;
-- requirement meaning, readiness, or the worth of the functionality the data
-  serves;
-- the structural complexity deltas of the data model;
-- test technique, scope, or fidelity; the earliest pipeline stage for a
-  check; pipeline preflight, gating, rollout, or rollback execution; or
-  implemented-versus-verified evidence state;
-- the choice of migration tooling, online-DDL tool, or schema registry;
-- specialist privacy, security, or domain data policy.
-
-Use this Alchemy hand-off when both passes apply:
-
-```text
-Implementation Readiness
-→ Evolutionary Database Design — Compatibility pass: current shape, readers
-  and writers, coexistence window, obligations, change class, mode
-→ A → L/C → E, as justified: target shape, ownership, reversibility grade
-→ Evolutionary Database Design — Transition pass: staged path, migration
-  increments, backfill, contract trigger, reversal per stage, data contract
-→ Test Strategy — Portfolio pass: compatibility and migration evidence
-→ Defect Shift-Left: earliest capable stage for each check
-→ CI/CD Reliability: dry-run, reversibility gate, deploy order, rollback
-→ Requirements Traceability: migration anchors and executed evidence
-```
+This skill does not own write-ownership assignment across boundaries,
+readiness, the worth of the functionality the data serves, or the structural
+complexity deltas of the data model; hand them off.
 
 When `test-strategy` also applies, the Transition pass precedes its Portfolio
 pass so the migration increments are inside the evidence scope. Do not restart
@@ -398,16 +353,3 @@ Residual risk:        <accepted, blocked, deferred, unknown, or none identified>
 Next action:          <one concrete stage, evidence, or owner question>
 Verification:         <dry-run, dual-read comparison, counts, commands, or Not run + reason>
 ```
-
-## Guardrails
-
-- Do not infer absence of readers from absence of imports.
-- Do not reinterpret an existing element in place.
-- Do not ship expand and contract in one deployable.
-- Do not schedule the contract step by date.
-- Do not use a down-migration as the production rollback path.
-- Do not run a large backfill inside the deploy step.
-- Do not treat a green migration on an empty or synthetic database as
-  compatibility evidence.
-- Do not leave an expansion open without an owner and a closing condition.
-- Do not claim an ownership boundary listed under Boundary; hand it off.

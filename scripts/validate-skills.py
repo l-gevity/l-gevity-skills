@@ -35,7 +35,7 @@ SIZE_BUDGET_WORDS = {
     "continuous-improvement": 1300,
     "defect-shift-left": 2120,
     "dependency-lifecycle": 2000,
-    "evolutionary-database-design": 3300,
+    "evolutionary-database-design": 2900,
     "functionality-complexity-tradeoff": 3900,
     "gate-lifecycle": 1600,
     "implementation-readiness": 1900,
@@ -56,7 +56,7 @@ SIZE_BUDGET_WORDS = {
 # total rose with every new entry and with growth inside each file's own
 # grain, and nothing failed. A new skill funds its words with a cut. Skills
 # are counted whole, so the count is slack as soon as it is one below its cap.
-LIBRARY_BUDGET_WORDS = 52500
+LIBRARY_BUDGET_WORDS = 52100
 LIBRARY_BUDGET_SKILLS = 24
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
@@ -462,7 +462,8 @@ SKILL_REQUIRED_TERMS = {
         "Reversibility input:",
         "reversible data change",
         "irreversible data migration",
-        "Do not infer absence of readers from absence of imports",
+        # Moved from the Guardrails line that restated Directive 7.
+        "read a shape without importing anything",
         "Coexisting clients:",
         "The coexistence window does not end where the deployment ends",
         "names the consumers it covers",
