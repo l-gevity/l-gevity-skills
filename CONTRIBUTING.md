@@ -82,11 +82,11 @@ the skill also says not run, not triggered, not selected, deferred, skipped,
 or blocked. A stage that `Core route` itself marks with one of those words is
 not named. It also fails when a row of the decision trail, the table whose
 header has `Skill` and `Decision` columns, gives a decision to a skill the run
-did not load, and no other line takes that back. A row is a note, not a
-decision, when its `Decision` cell is empty or opens with one of those words
-other than blocked. A run loads a skill by invoking it or by reading its
-`SKILL.md`: a decision attributed to a skill that did not load is a claim, not
-a result. A
+did not load, even when another line says the skill was not run. A row is a
+note, not a decision, when its `Decision` cell is empty or opens with one of
+those words other than blocked. A run loads a skill by invoking it or by
+reading its `SKILL.md`: a decision attributed to a skill that did not load is
+a claim, not a result. A
 `reads_include` or `reads_exclude` expectation names files a run must or must
 not read, in the library or in the scenario's `project/`: the route a
 structural run needs, the changed file a reviewer inspects, or the cost a skip
