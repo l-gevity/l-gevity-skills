@@ -148,4 +148,4 @@ The full operational reference — the fit profile, doors and defaults, the
 walking skeleton, tripwires, review triggers, and the verdict set — lives in
 [SKILL.md](../.claude/skills/infrastructure-fit/SKILL.md).*
 
-<!-- skill-revision: 65a8877f43d4 -->
+<!-- skill-revision: 8db8bb5d4c13 -->
