@@ -1780,6 +1780,8 @@ SCENARIO_CHECKS = {
     "route_loaded": {},
     # A reference loads on demand, so whether a run read it is part of the
     # behavior: the route an ADAPTIVE run needs, or the cost a SKIP must not pay.
+    # A SKIP pays that cost by searching inside the file as well as by reading
+    # it, so reads_exclude counts both.
     "reads_include": {"paths": list},
     "reads_exclude": {"paths": list},
     # Every placement record (a fenced block with `Analysis mode:`) passes
@@ -2067,7 +2069,15 @@ def scenario_passes(expectation: dict, transcript: dict) -> bool:
         return not seen & named
     if check.startswith("reads_"):
         read, named = set(transcript["files_read"]), set(expectation["paths"])
-        return named <= read if check == "reads_include" else not read & named
+        if check == "reads_include":
+            return named <= read
+        # A search takes text in as a read does, so a searched path that is an
+        # excluded path, or lies beneath one, fails too. Paths compare by
+        # component, as in scenario_guidance: a broader search above an
+        # excluded path is not counted.
+        searched = [str(path).split("/") for path in transcript["paths_searched"]]
+        excluded = [str(path).split("/") for path in named]
+        return not read & named and not any(parts[: len(path)] == path for parts in searched for path in excluded)
     if check in ("blocks_in_order", "blocks_absent"):
         positions = []
         for block in REPORT_BLOCKS:
@@ -2938,6 +2948,35 @@ def mutation_test() -> int:
             write_raw(files[0], json.dumps(record, indent=2) + "\n", False)
 
         cases.append((Case("scenario: SKIP answer carries a report block", skip_record, ("expectation 'carries-no-report-block' not met",)), add_report_block))
+
+        # A run that searched inside a file it must not read took the file's
+        # text in without a read, so the search must fail the expectation
+        # that excludes the file. The path is taken from the expectation, and
+        # the file sits in a skill the run may consult, so no other
+        # expectation of the scenario can report the search.
+        searched_record = [scenario_root / "dispatch-missing-prerequisite" / name for name in ("scenario.json", "transcript.json")]
+
+        def search_excluded_path(files=searched_record, ident="reads-no-stack-reference"):
+            spec = json.loads(files[0].read_text(encoding="utf-8"))
+            excluded = [e["paths"][0] for e in spec["expect"] if e["id"] == ident and e["check"] == "reads_exclude"]
+            if not excluded:
+                raise RuntimeError(f"no reads_exclude expectation '{ident}' in {files[0]}")
+            record = json.loads(files[1].read_text(encoding="utf-8"))
+            if excluded[0] in record["files_read"] + record["paths_searched"]:
+                raise RuntimeError(f"{excluded[0]} is already read or searched in {files[1]}")
+            record["paths_searched"].append(excluded[0])
+            write_raw(files[1], json.dumps(record, indent=2) + "\n", False)
+
+        cases.append(
+            (
+                Case(
+                    "scenario: run searched inside a file it must not read",
+                    searched_record,
+                    (".scenarios/dispatch-missing-prerequisite expectation 'reads-no-stack-reference' not met",),
+                ),
+                search_excluded_path,
+            )
+        )
 
         # A trail row that gives a stage a decision claims the stage ran, so a
         # row for a skill the run never read must fail. The row's last cell

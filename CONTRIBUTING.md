@@ -82,7 +82,9 @@ attributed to a skill that did not load is a claim, not a result. A
 `reads_include` or `reads_exclude` expectation names files a run must or must
 not read, in the library or in the scenario's `project/`: the route a
 structural run needs, the changed file a reviewer inspects, or the cost a skip
-must not pay. Name the gate or skill in the request, as in `Run alchemy L on
+must not pay. A search of an excluded path, or of a path beneath one, fails
+`reads_exclude` as a read does; a broader search above it does not. Name the
+gate or skill in the request, as in `Run alchemy L on
 this: …`: a natural request can be answered without loading any skill, and
 that run tests nothing the skill says.
 `SCENARIO_UNCOVERED` in the validator lists the skills no scenario names yet;
