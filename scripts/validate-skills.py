@@ -722,6 +722,8 @@ REFERENCE_REQUIRED_TERMS = {
             "The graph root is the coverage gate",
             "root_package",
             'data.get("subsystems", data.get("components", []))',
+            # The alias rule is in the pattern's section 1; no directive states it.
+            "(pattern §1): warn on it, reject a file that carries both",
         ),
     },
     "zero-copy-requirements": {
@@ -952,6 +954,8 @@ CONTRIBUTION_REQUIRED_TERMS = (
     "LIBRARY_BUDGET_WORDS",
     "LIBRARY_BUDGET_SKILLS",
     "A new skill funds its words with a cut",
+    # What route_loaded does with a trail row: no other line rescues it.
+    "gives a decision to a skill the run did not load, even when another line says the skill was not run",
 )
 PUBLIC_DOC_FORBIDDEN = {
     # The router and root file are stack-neutral; each stack reference of
@@ -2538,6 +2542,30 @@ def mutation_test() -> int:
 
     cases.append((Case("schema: components alias dropped before the contract step", js_assembler, ("javascript-assembler.md missing required term",)), drop_alias_fallback))
 
+    # The Python assembler once pointed at "pattern Directive 1" for the alias
+    # rule, which no directive states; the case puts that pointer back. The
+    # expected text is the pin without its section sign: the validator's
+    # output reaches this process through a pipe, whose encoding may differ.
+    py_reference = [copy / tree / "skills" / "architecture-as-code" / "references" / "python.md" for tree in (".agents", ".claude")]
+
+    def restore_directive_pointer(files=py_reference):
+        for path in files:
+            text, crlf = read_raw(path)
+            if "(pattern §1)" not in text:
+                raise RuntimeError(f"alias pointer not found in {path}")
+            write_raw(path, text.replace("(pattern §1)", "(pattern Directive 1)"), crlf)
+
+    cases.append(
+        (
+            Case(
+                "reference: alias rule pointed at a directive again in python.md",
+                py_reference,
+                ("1): warn on it, reject a file that carries both'",),
+            ),
+            restore_directive_pointer,
+        )
+    )
+
     # The size ratchet has four failure paths, and each is proven on its own:
     # a file grows past its entry, a skill has no entry, an entry sits a grain
     # or more above its file, and an entry outlives its skill. Filler words
@@ -2651,6 +2679,29 @@ def mutation_test() -> int:
             write_raw(path, pattern.sub("", text), crlf)
 
         cases.append((Case(f"contributing: {term!r} no longer stated", [guide], (f"CONTRIBUTING.md missing promotion term '{term}'",)), drop_cap_statement))
+
+    # The guide once said a trail row fails when "no other line takes that
+    # back", which reads as a way to rescue the row; route_loaded has none.
+    # The case puts that wording back. The pin is spelled out here, so it
+    # fails when the pin is dropped from the validator's list.
+    trail_row = "gives a decision to a skill the run did not load, even when another line says the skill was not run"
+
+    def restore_rescue_clause(path=guide, pattern=phrase_pattern("even when another line says the skill was not run")):
+        text, crlf = read_raw(path)
+        if not pattern.search(text):
+            raise RuntimeError("the trail-row clause was not found in CONTRIBUTING.md")
+        write_raw(path, pattern.sub("and no other line takes that back", text), crlf)
+
+    cases.append(
+        (
+            Case(
+                "contributing: trail row said to pass when another line takes it back",
+                [guide],
+                (f"CONTRIBUTING.md missing promotion term '{trail_row}'",),
+            ),
+            restore_rescue_clause,
+        )
+    )
 
     # The router and root file stay stack-neutral.
     router_files = [copy / tree / "skills" / "alchemy" / "SKILL.md" for tree in (".agents", ".claude")]
