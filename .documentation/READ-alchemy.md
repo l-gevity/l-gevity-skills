@@ -204,4 +204,4 @@ handshakes, two-pass companion order, agent selection, and decision-trail
 format it loads for structural work live in
 [adaptive-route.md](../.claude/skills/alchemy/references/adaptive-route.md).*
 
-<!-- skill-revision: 19757fec7e70 -->
+<!-- skill-revision: f425c60ee1ea -->

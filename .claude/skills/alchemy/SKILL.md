@@ -204,7 +204,8 @@ summary after the verdict.
 
 - **Claim only what ran.** `Core route` and the trail name a stage's decision
   only when its `SKILL.md` was read in this task; a selected stage that did not
-  run appears in the trail as `Not run` with the reason.
+  run, or one resumed from an earlier record, appears in the trail as `Not run`
+  with the reason.
 - **When a gate is consistently skipped across tasks**, that's a signal for
   `continuous-improvement` to update THIS skill, not for case-by-case
   reminders.

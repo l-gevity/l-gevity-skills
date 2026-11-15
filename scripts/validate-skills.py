@@ -96,6 +96,15 @@ ALCHEMY_UNREAD_COMPANION = (
     "name no companion whose trigger is unmet or unknown; write a selected companion whose "
     "`SKILL.md` was not read in this task as `<skill> — Not run (<reason>)`"
 )
+# A run resumed grounding from a current record and wrote that record's
+# decision into the trail without reading the skill: a recording of
+# dispatch-adaptive-structural. A resumed stage is written like any other
+# stage that did not run, so the trail names a decision only for a skill
+# that was read.
+ALCHEMY_RESUMED_STAGE = (
+    "a selected stage that did not run, or one resumed from an earlier record, appears in the "
+    "trail as `Not run` with the reason"
+)
 CI_CD_RELEASE_STATES = (
     "BUILD-VERIFIED",
     "RELEASE-READY",
@@ -172,6 +181,7 @@ SKILL_REQUIRED_TERMS = {
         "select `infrastructure-fit`",
         "select `gate-lifecycle`",
         '**Claim only what ran.**',
+        ALCHEMY_RESUMED_STAGE,
         ALCHEMY_UNREAD_COMPANION,
         # A design pass records constraints in the pattern's neutral form; the
         # stack implementation, now a reference of architecture-as-code, was
@@ -2723,6 +2733,15 @@ def mutation_test() -> int:
             write_raw(path, pattern.sub("as pending", text), crlf)
 
     cases.append((Case("companions: router stops marking an unread companion Not run", router_skill, (f"missing required term '{ALCHEMY_UNREAD_COMPANION}'",)), unmark_unread_companion))
+
+    def claim_resumed_stage(files=router_skill, pattern=phrase_pattern(", or one resumed from an earlier record,")):
+        for path in files:
+            text, crlf = read_raw(path)
+            if not pattern.search(text):
+                raise RuntimeError(f"resumed-stage clause not found in {path}")
+            write_raw(path, pattern.sub("", text), crlf)
+
+    cases.append((Case("claims: router stops marking a resumed stage Not run", router_skill, (f"missing required term '{ALCHEMY_RESUMED_STAGE}'",)), claim_resumed_stage))
 
     # The selection rule and the companion pass order live in the route, and
     # so do the checks on them.
