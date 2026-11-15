@@ -1,0 +1,50 @@
+{
+  "request": "Run requirements-grounding on this: over the last three months our support lead counted about 120 tickets a month in the ticket system from customers of our invoicing product who ask for a copy of a past invoice. Product has confirmed the problem: an account owner who needs a past invoice for bookkeeping cannot get it without contacting support. Done when an account owner can obtain any invoice issued to their account without contacting support. Not the problem: changing what an invoice contains, credit notes, or access for anyone other than the account owner. The head of support expects this to cut those tickets and says that expectation is what justifies the work; nobody has set a target, and nobody has measured how many of those tickets a self-serve path would replace. Ground this and tell me whether it is ready for dependency modeling.",
+  "skills": ["requirements-grounding"],
+  "expect": [
+    {
+      "id": "applies-grounding-guidance",
+      "criterion": "requirements-grounding #1: a raw problem report loads the grounding method",
+      "check": "guidance_includes",
+      "skills": ["requirements-grounding"]
+    },
+    {
+      "id": "does-not-refuse-confirmed-problem",
+      "criterion": "requirements-grounding #2: a confirmed, evidenced, bounded problem is not returned as NOT-GROUNDED",
+      "check": "field_in",
+      "field": "Decision",
+      "values": ["GROUNDED", "PROVISIONAL"]
+    },
+    {
+      "id": "classifies-requirement-basis",
+      "criterion": "requirements-grounding #3: a need shown by counted tickets is classed as evidenced",
+      "check": "field_in",
+      "field": "Basis",
+      "values": ["evidenced", "Evidenced"]
+    },
+    {
+      "id": "links-hypothesis-to-requirement",
+      "criterion": "requirements-grounding #4: a decision-relevant expected impact becomes an outcome hypothesis linked to requirement slugs",
+      "check": "field_present",
+      "field": "Applies to requirements"
+    },
+    {
+      "id": "new-hypothesis-is-unmeasured",
+      "criterion": "requirements-grounding #5: a hypothesis is created with evidence state unmeasured",
+      "check": "field_in",
+      "field": "Evidence state",
+      "values": ["unmeasured"]
+    },
+    {
+      "id": "does-not-invent-threshold",
+      "criterion": "requirements-grounding #6: a target nobody set is recorded as unknown, not invented",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Decision threshold:[^\\n]*\\bunknown\\b"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}
