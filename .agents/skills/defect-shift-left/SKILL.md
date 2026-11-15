@@ -79,10 +79,6 @@ unrepresentable?_ If yes, the check belongs at Stage 0.
 
 ## 3. Defect Taxonomy → Earliest Stage
 
-> **Stage vs rank.** The `Stage` column is the label from §1; for distance
-> math use the **rank**. Labels `0`–`7` equal their rank, then `8a`→8, `8b`→9,
-> `9`→10, `10`→11, `11`→12 — never subtract stage labels.
-
 | Defect class                                    | Stage | Mechanism (fallback)                             |
 | ----------------------------------------------- | ----- | ------------------------------------------------ |
 | Type mismatch, null deref, semantic-type mixing | 0     | Type system                                      |
@@ -138,10 +134,10 @@ unrepresentable?_ If yes, the check belongs at Stage 0.
 6. **Move the check** to the earliest feasible stage.
 7. **Gate it.** A correct-stage check that does not block is still a detection
    gap.
-8. **Remove later same-scope duplicates** once the earlier gate is proven. Keep
-   only broader or less-bypassable backstops.
+8. **Remove later same-scope duplicates** once the earlier gate is proven.
 9. **Audit every escaped defect:** find its earliest possible stage and place a
-   gate there.
+   gate there. A recurring one goes to `continuous-improvement` to become a
+   permanent gate.
 
 | Situation                                      | Action                                         |
 | ---------------------------------------------- | ---------------------------------------------- |
@@ -151,8 +147,10 @@ unrepresentable?_ If yes, the check belongs at Stage 0.
 | No check; defects only found in production     | Critical — work backward from Stage 10         |
 | Check requires target-env state                | Stage 8a is earliest — do not push to Stage 10 |
 | Check exists but does not block                | Promote to blocking gate or remove as theatre  |
-| Later check covers same scope as earlier check | Remove later duplicate after proof             |
 | Later check covers broader / unbypassable scope | Keep as backstop; record distinct scope        |
+
+`gate-lifecycle` keeps a placed gate proven and in scope; removal as theatre
+takes its criterion from its §6.
 
 Emit one coder-facing row per gap:
 
@@ -168,26 +166,18 @@ currently at Stage [Y] (rank [Yr]). Mechanism: [...]."_
 
 | Pattern                                    | Actual / earliest             |
 | ------------------------------------------ | ----------------------------- |
-| Runtime check for type errors              | Stage 10 / Stage 0            |
-| CI formatting check with no editor support | Stage 5 / Stage 2             |
 | Linter only in CI                          | Stage 5 / Stage 2 + Stage 5   |
 | Code review as primary defect filter       | Manual / Stage 2–5            |
 | Production monitor for known-bad input     | Stage 10 / Stage 0            |
-| Compile errors hidden behind dynamic types | Stage 6+ / Stage 0            |
 | Manual deployment checklist                | Manual / Stage 5 or 8a        |
-| Documentation as the contract              | Stage 7+ / Stage 1            |
 | Deploy-and-pray monitoring                 | Stage 10 / Stage 8a           |
-| Migration applied without dry-run          | Stage 8b–10 / Stage 8a        |
-| Secrets / config validated only at runtime | Stage 10 / Stage 8a           |
 | Manual rollback on deploy failure          | Stage 10 / Stage 8b           |
 | No canary, full traffic on new artifact    | Stage 10 / Stage 9            |
 
-These three do not detect late — they **suppress** a defect rather than move it
-earlier, so they have no "earliest stage":
+This one does not detect late — it **suppresses** a defect rather than move it
+earlier, so it has no "earliest stage":
 
 - **Retry as error handling** — masks a Stage 10 failure indefinitely instead of surfacing it.
-- **Catch-and-log silent failure** — swallows the error, violating "fail loud at the origin" (Directive 4).
-- **Warnings nobody reads** — detection with no gate; see §6.4.
 
 ---
 
@@ -225,13 +215,3 @@ specific products only on request, each cited with a source and a currency
 signal. Read [references/tooling-survey.md](references/tooling-survey.md) for
 the stage-to-category table and the output row. A tool that does not map to a
 rung on the ladder has no place in the output.
-
-## 8. See also
-
-- **`architecture-as-code`** — the codified-architecture pattern this skill names in §6.2.
-- **`architecture-guidelines`** — first-principles rules whose violations this skill places on the ladder.
-- **`ci-cd-reliability-architecture`** — pipeline rules that staff Stages 5–10.
-- **`push-out`** — move recurring operational work out of human/manual execution into durable systems.
-- **`bring-down`** — move bespoke or duplicated code down into reusable capability.
-- **`continuous-improvement`** — how to promote a recurring escaped-defect into a permanent gate (Directive 1).
-- **`gate-lifecycle`** — keeps a placed gate proven and in scope; §4's "remove as theatre" takes its criterion there.
