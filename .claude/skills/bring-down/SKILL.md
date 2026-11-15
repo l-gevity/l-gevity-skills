@@ -272,12 +272,15 @@ Do not emit `L4 CODE to L4 CODE` moves.
 
 `bring-down` changes reuse/specificity altitude. It does not assign domain,
 tier, layer, or dependency direction: `morphogenetic-architecture` places the
-result once bring-down has chosen the reuse level.
+result once bring-down has chosen the reuse level, and checks observed boundary
+pressure after it.
 
 When the best answer is to extract a subsystem or patternize inside the
 codebase, use `morphogenetic-architecture`, `architecture-guidelines`, and
 `architecture-as-code` instead. Use `structural-simplification` to verify any
-externalization or platform move actually reduces complexity.
+externalization or platform move actually reduces complexity. Once a move
+lands, `architecture-as-code` enforces it as code, such as an import ban on the
+retired path.
 
 Here, "down" means less bespoke and more systemic, not lower in the dependency
 graph.
