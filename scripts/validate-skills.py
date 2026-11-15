@@ -1270,7 +1270,12 @@ def validate_retired_skill_references() -> None:
 
 
 # Fenced report block inside a sample section, tolerant of CRLF checkouts.
-REPORT_BLOCK_RE = re.compile(r"```(?:text)?\s*\r?\n(.*?)```", re.S)
+# Fences pair as in scripts/check_topology_report.py: a line of three
+# backticks with any info string opens a block, and the next line of three
+# bare backticks closes it. When only a bare or `text` fence opened one, the
+# closing line of a fence with another info string was read as an opening
+# line, and the text under it as the sample's block.
+REPORT_BLOCK_RE = re.compile(r"^[ \t]*```[^`\r\n]*\r?\n(.*?)^[ \t]*```[ \t]*\r?$", re.S | re.M)
 
 
 def markdown_section(path: Path, heading: str) -> str:
@@ -2611,6 +2616,36 @@ def mutation_test() -> int:
         write_raw(path, text.replace(row, "| `.claude/skills/` | `AGENTS.md` |", 1), crlf)
 
     cases.append((Case("docs: README install table names the wrong tree", [readme], ("no row for codex",)), misstate_install_tree))
+
+    # A sample's record is the first fenced block of its section. Here the
+    # section's first block is a `js` fence and the record sits under it,
+    # outside any fence, so the record the check reads has no fields. Read
+    # from the closing line of the `js` fence instead, the record passed. The
+    # trailing empty block keeps the fences of the later samples paired.
+    samples_doc = copy / ".documentation" / "sample-reports-verification.md"
+    sample_heading = "## (a) Prospective complexity report"
+
+    def unfence_sample_record(path=samples_doc, heading=sample_heading):
+        text, crlf = read_raw(path)
+        fence = "\n```\n"
+        opening = text.index(fence, text.index(heading)) + 1
+        closing = text.index(fence, opening) + 1
+        write_raw(
+            path,
+            text[:opening] + "```js\nconst x = 1;\n```\n" + text[opening + 4 : closing] + "```\n```\n" + text[closing + 4 :],
+            crlf,
+        )
+
+    cases.append(
+        (
+            Case(
+                "samples: record left outside its fence, under a tagged block",
+                [samples_doc],
+                (f"sample-reports-verification.md section '{sample_heading}' missing report field",),
+            ),
+            unfence_sample_record,
+        )
+    )
 
     # Orchestration: each check is proven on its own. Every mutation edits
     # both skill trees so the mirror check passes, and each check runs before
