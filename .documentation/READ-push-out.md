@@ -166,4 +166,4 @@ into maintained, reusable capability. The full operational reference for this
 concept — the complete ladder, target-rank heuristics, and move patterns —
 lives in [SKILL.md](../.claude/skills/push-out/SKILL.md).*
 
-<!-- skill-revision: 94936c4d09ec -->
+<!-- skill-revision: e55a9a254a1d -->
