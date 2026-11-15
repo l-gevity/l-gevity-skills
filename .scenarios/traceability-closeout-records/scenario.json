@@ -1,0 +1,56 @@
+{
+  "request": "Run requirements-traceability on this closeout. Canonical source: `requirements/invoicing.md`, version 1.4. It holds the requirement `invoice-download` with three criteria: `invoice-download#AC1` (the account owner downloads any invoice issued to the account), `invoice-download#AC2` (a user who is not the account owner is refused), and `invoice-download#AC3` (each download is written to the audit log). Readiness passed on 2 September with decision READY for the increment `invoice-download-v1`, tracked in issue #88. Commit `4f2a9c1` on `main` changed `src/invoices/download.ts`, `src/invoices/policy.ts`, `src/audit/log.ts`, and `test/invoices/download.spec.ts`; the spec holds three tests, tagged AC1, AC2, and AC3. CI run 5121 on `4f2a9c1` passed the AC1 and AC2 tests. The AC3 test is marked skipped in that run because the audit-log sandbox was down; issue #93, owned by Dana, tracks running it. The change went to production on 9 September. The same file holds the outcome hypothesis `fewer-invoice-tickets`, version 1, which applies to `invoice-download`: cohort, account owners who need a past invoice; primary measure, invoice-copy support tickets per month; baseline, 120 per month from the ticket system for June to August; decision threshold, at least 30 percent fewer; evaluation window, the eight weeks after the production release; guardrail, billing-dispute tickets do not rise. The measurement is ticket-system query Q-207, run on 5 November over 9 September to 3 November: 111 invoice-copy tickets per month, which is 7.5 percent fewer; 14 billing-dispute tickets per month against 15 before; and 1,840 downloads by 1,310 distinct account owners in the window. Give me the trace decision, the outcome-evidence record, the completion record for issue #88, and the closeout trace note. The product manager also asks whether this result means we should remove the download.",
+  "skills": ["requirements-traceability"],
+  "expect": [
+    {
+      "id": "applies-traceability-guidance",
+      "criterion": "requirements-traceability #1: a closeout that must prove what was verified loads the traceability method",
+      "check": "guidance_includes",
+      "skills": ["requirements-traceability"]
+    },
+    {
+      "id": "unexecuted-criterion-keeps-decision-partial",
+      "criterion": "requirements-traceability #2: a criterion whose test did not run is not verified, so the trace is PARTIAL",
+      "check": "field_in",
+      "field": "Decision",
+      "values": ["PARTIAL"]
+    },
+    {
+      "id": "threshold-evaluated-as-missed",
+      "criterion": "requirements-traceability #3: the outcome-evidence record evaluates the declared threshold as missed",
+      "check": "field_in",
+      "field": "Threshold evaluation",
+      "values": ["missed"]
+    },
+    {
+      "id": "missed-threshold-rejects-hypothesis",
+      "criterion": "requirements-traceability #4: current evidence that misses the declared threshold classes the hypothesis as rejected",
+      "check": "field_in",
+      "field": "Evidence state",
+      "values": ["rejected"]
+    },
+    {
+      "id": "emits-completion-record",
+      "criterion": "requirements-traceability #5: the completion record states the completion boundary",
+      "check": "field_present",
+      "field": "Completion boundary"
+    },
+    {
+      "id": "appends-closeout-trace-note",
+      "criterion": "requirements-traceability #6: a closeout appends the compact trace note with its requirement and criterion IDs",
+      "check": "field_present",
+      "field": "IDs"
+    },
+    {
+      "id": "hands-worth-verdict-to-owner",
+      "criterion": "requirements-traceability #7: a removal question is handed to functionality-complexity-tradeoff, not decided here",
+      "check": "text_matches",
+      "pattern": "functionality-complexity-tradeoff"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}
