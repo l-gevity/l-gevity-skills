@@ -1,6 +1,6 @@
 {
   "scenario": "dispatch-housekeeping-skip",
-  "revision": "c967fcafcc61",
+  "revision": "170ceb73641f",
   "recorded_with": "claude-code 2.1.321, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
@@ -52,9 +52,8 @@
   ],
   "files_read": [],
   "paths_searched": [
-    ".",
     "."
   ],
-  "turns": 5,
-  "output": "I couldn't confirm either one: this folder is not a git repository, so there's no branch or remote here to check.\n\n```\nDispatch:   SKIP\nCore route: None\nCompanions: None\nExecution:  single-agent — branch housekeeping, no gate question\nVerdict:    Defer\nReason:     The working directory has no .git (searched for .git* and **/.git/HEAD, nothing found), so there's no branch, remote or merge history to inspect.\nNext:       Run the checks below in the actual clone.\n```\n\nI also have no shell tool in this session, so I can't run git myself. Run these in the clone where the fix was made:\n\n1. `git fetch --prune origin`\n2. `git status -sb` shows whether there are uncommitted changes or unpushed commits.\n3. `git log origin/<feature-branch>..<feature-branch> --oneline` must print nothing. If it prints commits, they haven't been pushed.\n4. `git branch --merged origin/main`: the feature branch must appear in this list. If the PR was squash- or rebase-merged it won't appear, so check that the PR is marked merged instead.\n5. If all of those pass: `git branch -d <feature-branch>` and `git push origin --delete <feature-branch>`. Use lowercase `-d`, not `-D`, so git refuses if anything is unmerged.\n\nIf you paste the output of steps 2–4, I'll tell you whether it's safe to delete."
+  "turns": 4,
+  "output": "```\nDispatch:   SKIP\nCore route: None\nCompanions: None\nExecution:  single-agent — read-only repository-state question\nVerdict:    Defer\nReason:     Checking whether a branch is pushed and safe to delete is a git-state question, not a design question, so no gate applies. I also couldn't answer it: this directory isn't a git repository (no `.git` found), and this session has no shell to run git.\nNext:       Run the commands below in the real clone and paste the output.\n```\n\nI haven't checked whether everything is pushed or whether the branch can be deleted. From the repo's actual clone, run:\n\n```\ngit fetch --prune\ngit status -sb                                   # uncommitted changes, ahead/behind on current branch\ngit log origin/<branch>..<branch> --oneline      # local commits not pushed (empty = pushed)\ngit branch -r --merged origin/main | grep <branch>   # merged into main by ancestry\ngit cherry -v origin/main <branch>               # \"+\" lines = commits whose changes aren't in main\n```\n\nThe branch is safe to delete if:\n- `git log origin/<branch>..<branch>` prints nothing,\n- the branch shows up in `--merged`, or `git cherry` shows no `+` lines (squash or rebase merges fail the `--merged` check but pass `cherry`),\n- `git status` is clean.\n\nIf all three hold, run `git branch -d <branch>` and `git push origin --delete <branch>`. Use `-d`, not `-D`, so git refuses to delete the branch if it isn't merged."
 }
