@@ -92,9 +92,6 @@ Select a mode:
 - **Audit** — assess an existing portfolio against current requirements, risks,
   incidents, and architecture.
 
-In Design mode, also select the strategy pass defined under Boundary:
-Obligation, Portfolio, or Combined.
-
 Define the subject as a requirement increment, subsystem, contract, workflow,
 change, release risk, or bounded system. Do not strategize for “the whole
 application” when no risk or decision boundary is stated.

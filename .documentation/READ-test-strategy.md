@@ -150,4 +150,4 @@ executed evidence actually verifies. The full operational reference — the
 risk ledger, technique selection, portfolio governance, and decision rules
 — lives in [SKILL.md](../.claude/skills/test-strategy/SKILL.md).*
 
-<!-- skill-revision: ea810df1eb5e -->
+<!-- skill-revision: 2657b44da290 -->
