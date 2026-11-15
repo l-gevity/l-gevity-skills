@@ -115,7 +115,7 @@ arch_files = sorted(
 )
 
 # 2. Concat. [[components]] is the deprecated alias for [[subsystems]]
-#    (pattern Directive 1): warn on it, reject a file that carries both.
+#    (pattern §1): warn on it, reject a file that carries both.
 subsystems, forbidden = [], []
 for f in arch_files:
     data = tomllib.loads(f.read_text(encoding="utf-8"))

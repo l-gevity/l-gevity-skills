@@ -917,6 +917,10 @@ DESCRIPTION_REQUIRED_TERMS = {
         # The config file a stack request names is a trigger too.
         "`eslint.architecture.mjs`",
         "`architecture.toml`",
+        # The stack keywords the two folded skills carried.
+        "ESLint flat-config",
+        "`lint-imports`",
+        "Grimp",
     ),
 }
 # Skills whose references return decision records of their own: here, the two
@@ -2463,6 +2467,9 @@ def mutation_test() -> int:
         DESCRIPTION_REQUIRED_TERMS["architecture-as-code"][1],
         "`eslint.architecture.mjs`",
         "`architecture.toml`",
+        "ESLint flat-config",
+        "`lint-imports`",
+        "Grimp",
     ):
 
         def trim_stack_trigger(files=pattern_skill, pattern=phrase_pattern(trigger)):

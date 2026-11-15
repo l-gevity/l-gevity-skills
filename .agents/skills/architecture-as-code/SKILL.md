@@ -1,18 +1,18 @@
 ---
 name: architecture-as-code
 description: >-
-    Stack-agnostic pattern for declaring and enforcing subsystem boundaries via
-    per-subsystem architecture configs merged into import-graph linter rules,
-    with JavaScript/TypeScript (`eslint.architecture.mjs`) and Python
-    (`architecture.toml`) implementations. TRIGGER when designing/auditing
-    dependency-rule enforcement, deciding what a per-subsystem file should say,
-    placing a rule, debugging a forbidden edge, an `eslint-plugin-boundaries`
-    rule, or an `import-linter` contract, implementing or extending the pattern
-    in a JS/TS or Python repo, or extending or adapting the assembler. Consume
-    explicit `Enforcement` handoffs from `architecture-guidelines` or
-    `morphogenetic-architecture` by turning enforceable dependency constraints
-    into architecture config rules. SKIP routine edits inside a governed
-    subsystem.
+    Stack-agnostic pattern for declaring/enforcing subsystem boundaries via
+    per-subsystem architecture configs merged into import-graph linter rules;
+    JavaScript/TypeScript (`eslint.architecture.mjs`, ESLint flat-config) and
+    Python (`architecture.toml`, `lint-imports`, Grimp) implementations.
+    TRIGGER when designing/auditing dependency-rule enforcement, deciding what
+    a per-subsystem file should say, placing a rule, debugging a forbidden
+    edge, an `eslint-plugin-boundaries` rule, or an `import-linter` contract,
+    implementing/extending the pattern in a JS/TS or Python repo, or
+    extending/adapting the assembler. Consume explicit `Enforcement` handoffs
+    from `architecture-guidelines` or `morphogenetic-architecture`, turning
+    enforceable dependency constraints into architecture config rules. SKIP
+    routine edits inside a governed subsystem.
 ---
 
 # Architecture-as-Code (Pattern)
