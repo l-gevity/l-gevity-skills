@@ -68,7 +68,8 @@ GENERATORS = ("algorithmic cut", "natural lens", "manual")
 FIELD_RE = re.compile(r"^(?P<name>[A-Z][A-Za-z ]*):[ \t]*(?P<value>.*)$")
 # A line of three backticks with any info string opens a block; the next line
 # of three bare backticks closes it. Either line may be indented. A line of
-# four or more backticks, or of tildes, is not a fence.
+# four or more backticks, or of tildes, is not a fence, and neither are
+# backticks that share their line with other text.
 BLOCK_RE = re.compile(r"^[ \t]*```[^`\r\n]*\r?\n(.*?)^[ \t]*```[ \t]*\r?$", re.S | re.M)
 NOT_REQUIRED_RE = re.compile(r"^not required\b", re.I)
 
@@ -244,6 +245,22 @@ FENCE_CASES = (
     ("four backticks are not a fence", "````md\n```js\nA\n```\n````\n", ["A\n"]),
     ("tildes are not a fence", "~~~\nA\n~~~\n", []),
     ("unclosed fence", "```\nA\n", []),
+    # Not read: a longer fence quotes markdown that has three-backtick fences
+    # of its own, and those are the blocks read ("four backticks are not a
+    # fence"). Reading its own body needs the closing run matched to the
+    # opening run, which one pattern cannot do while `findall` returns bodies
+    # only.
+    ("block directly in four backticks", "````text\nA\n````\n", []),
+    # Not read: backticks after other text on a line are inline code in
+    # markdown, and backticks that end a content line belong to that line.
+    ("fence after a label", "**L** ```text\nA\n```\n", []),
+    ("closing fence on the last content line", "```text\nA```\n", []),
+    # Not read: a fence after a list marker belongs to the list item, so its
+    # lines are indented under it, and `parse` reads fields at column 0 only.
+    ("fence after a list marker", "1. ```text\n   A\n   ```\n", []),
+    # The closing line of a fence that is not read is still a bare fence line:
+    # it opens a block, and a bare fence that follows closes that block empty.
+    ("bare fence after a fence that is not read", "1. ```text\n   A\n   ```\n\n```\nB\n```\n", ["\n"]),
 )
 
 
