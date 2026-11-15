@@ -44,7 +44,7 @@ SIZE_BUDGET_WORDS = {
     "observability-design": 1800,
     "push-out": 1300,
     "requirements-grounding": 2300,
-    "requirements-topology": 2000,
+    "requirements-topology": 1700,
     "requirements-traceability": 2100,
     "structural-simplification": 2100,
     "system-optimization": 2620,
@@ -56,7 +56,7 @@ SIZE_BUDGET_WORDS = {
 # total rose with every new entry and with growth inside each file's own
 # grain, and nothing failed. A new skill funds its words with a cut. Skills
 # are counted whole, so the count is slack as soon as it is one below its cap.
-LIBRARY_BUDGET_WORDS = 53300
+LIBRARY_BUDGET_WORDS = 53000
 LIBRARY_BUDGET_SKILLS = 24
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
@@ -305,8 +305,7 @@ SKILL_REQUIRED_TERMS = {
         "implementation-readiness",
         "requirements-traceability",
         "Repository Operationalization",
-        "Semantic validation",
-        "Generated views",
+        "references/repository-operationalization.md",
         "Cycle:             Pass | Fail | Not evaluated",
         "STABLE",
         "BLOCKED",
@@ -877,6 +876,16 @@ REFERENCE_REQUIRED_TERMS = {
             "## Destructive-change gate (SKILL.md §7)",
             "approval covers the environment as it was then, not as it is now",
             "a stale release is a standing exception",
+        ),
+    },
+    "requirements-topology": {
+        # The repository section loads when requirements live in a
+        # repository; its pins moved here with it.
+        "references/repository-operationalization.md": (
+            "# Requirements Topology — Repository Operationalization",
+            "Semantic validation",
+            "Generated views",
+            "generation, generated-drift checking, and traceability",
         ),
     },
     "requirements-traceability": {
