@@ -26,7 +26,7 @@ MAX_DESCRIPTION = 1024
 SIZE_BUDGET_GRAIN = 100
 SIZE_BUDGET_WORDS = {
     "CLAUDE.md": 900,
-    "alchemy": 2200,
+    "alchemy": 1600,
     "alchemy-orchestrate": 1900,
     "architecture-as-code": 2500,
     "architecture-guidelines": 1900,
@@ -116,33 +116,27 @@ SKILL_REQUIRED_TERMS = {
         "Dispatch:   <SKIP | DIRECT | ADAPTIVE | FULL>",
         "Core route:",
         "Companions:",
-        "requirements-traceability",
         "Focused aliases never silently run requirements qualification",
-        "Blocking stage:",
         "C₀",
         "L candidate → C measurement → L acceptance",
         "Gate E remains blocked",
-        "Gate E also waits for a passing readiness decision in a full pass",
         # SKIP and DIRECT pay only for this file; the route they never
-        # walk lives in references/adaptive-route.md.
+        # walk lives in references/adaptive-route.md, and so do the pins on
+        # the text only that route uses.
         "`SKIP` and `DIRECT` never need it",
         "### Change Primitives",
         "**Subsystem**",
         "**Aspect**",
         "**Increment**",
         "**Iteration**",
-        "Decomposition and aspect extraction are different cuts",
-        "select `zero-copy-requirements`",
-        "select `dependency-lifecycle`",
-        "select `observability-design`",
-        "select `infrastructure-fit`",
-        "select `gate-lifecycle`",
+        # Companion triggers moved to the route; the names a SKIP or DIRECT
+        # run must still weigh stay here.
+        "`gate-lifecycle` and the two-pass companions `test-strategy` and `evolutionary-database-design`",
         '**Claim only what ran.**',
-        "Load each stage when the route reaches it",
         # A design pass records constraints in the pattern's neutral form; the
-        # stack skill was loaded in 5 of 7 recorded ADAPTIVE runs regardless.
+        # stack implementation, now a reference of architecture-as-code, was
+        # loaded in 5 of 7 recorded ADAPTIVE runs regardless.
         "only when rule files are written or changed",
-        "A blocking decision in the route's hand-off table ends the route",
         # Multi-gate runs summarised L in the trail and dropped its record.
         "it never replaces a stage's record",
     ),
@@ -710,8 +704,23 @@ REFERENCE_REQUIRED_TERMS = {
             "NOT-GROUNDED",
             "NOT-READY",
             "`PROVISIONAL` passes with its confirmation",
-            "load each one only when the route reaches",
             "A deferral without them never reopens",
+            # Moved from SKILL.md with their text: only ADAPTIVE, FULL, and
+            # audit runs use these rules. The stage-loading rule was stated
+            # in both files; its two pins follow the one statement kept.
+            "Load each stage when the route reaches it",
+            "A blocking decision in the route's hand-off table ends the route",
+            "Gate E also waits for a passing readiness decision in a full pass",
+            "Decomposition and aspect extraction are different cuts",
+            "select `zero-copy-requirements`",
+            "select `dependency-lifecycle`",
+            "select `observability-design`",
+            "select `infrastructure-fit`",
+            "select `gate-lifecycle`",
+            "requirements-traceability",
+            "Blocking stage:",
+            # The stack-reference rule holds on the route as well as the alias.
+            "only when rule files are written or changed",
         ),
     },
     "morphogenetic-architecture": {
@@ -2630,6 +2639,33 @@ def mutation_test() -> int:
 
     cases.append((Case("orchestration: router stops reporting Execution", router_skill, ("must report Execution",)), hide_execution))
 
+    # The selection rule and the companion pass order live in the route, and
+    # so do the checks on them.
+    route_skill = both("alchemy/references/adaptive-route.md")
+
+    def drop_execution_setting(files=route_skill):
+        for path in files:
+            text, crlf = read_raw(path)
+            needle = "`execution.multi_agent`"
+            if needle not in text:
+                raise RuntimeError(f"execution setting not found in {path}")
+            write_raw(path, text.replace(needle, "its execution setting", 1), crlf)
+
+    cases.append((Case("orchestration: route stops naming the multi-agent setting", route_skill, ("Execution missing '`execution.multi_agent`'",)), drop_execution_setting))
+
+    for companion, first, second in (
+        ("Test Strategy", "Obligation", "Portfolio"),
+        ("Evolutionary Database Design", "Compatibility", "Transition"),
+    ):
+        def swap_passes(files=route_skill, early=f"→ {companion} — {first} pass\n", late=f"→ {companion} — {second} pass\n"):
+            for path in files:
+                text, crlf = read_raw(path)
+                if early not in text or late not in text:
+                    raise RuntimeError(f"companion pass lines not found in {path}")
+                write_raw(path, text.replace(early, "\0", 1).replace(late, early, 1).replace("\0", late, 1), crlf)
+
+        cases.append((Case(f"companions: route swaps the two {companion} passes", route_skill, (f"must preserve the {companion}",)), swap_passes))
+
     case_dirs = sorted(path for path in (copy / ".adversarial").iterdir() if path.is_dir()) if (copy / ".adversarial").is_dir() else []
     if case_dirs:
         flipped = [case_dirs[0] / "case.json"]
@@ -2795,6 +2831,37 @@ def validate_readme_install_table() -> None:
             fail(f"README.md Installation details has no row for {agent}: '{row}'")
 
 
+def validate_alchemy_companion_order() -> None:
+    """One block in the route orders both two-pass companions around A/L/C/E.
+    The pre-flight checklist used to restate that order line by line; its
+    lines were merged into the block, and both order checks followed them."""
+    route = ALCHEMY_ROUTE.relative_to(ROOT).as_posix()
+    block = re.search(r"```text\n(Implementation Readiness\n.*?)```", ALCHEMY_ROUTE.read_text(encoding="utf-8"), re.S)
+    if not block:
+        fail(f"{route} missing the two-pass companion order block")
+    orders = {
+        "Test Strategy Readiness → Obligation → A/L/C/E → Portfolio → H": (
+            "Implementation Readiness",
+            "Test Strategy — Obligation pass",
+            "A → L/C → E",
+            "Test Strategy — Portfolio pass",
+            "\n→ H",
+        ),
+        "Evolutionary Database Design Compatibility → A/L/C/E → Transition → Test Strategy Portfolio → H": (
+            "Test Strategy — Obligation pass",
+            "Evolutionary Database Design — Compatibility pass",
+            "A → L/C → E",
+            "Evolutionary Database Design — Transition pass",
+            "Test Strategy — Portfolio pass",
+            "\n→ H",
+        ),
+    }
+    for label, terms in orders.items():
+        positions = [block.group(1).find(term) for term in terms]
+        if any(position < 0 for position in positions) or positions != sorted(positions):
+            fail(f"{route} must preserve the {label} order")
+
+
 def validate_test_strategy_contract() -> None:
     skill = AGENT_SKILLS / "test-strategy"
     for relative in (
@@ -2841,22 +2908,6 @@ def validate_test_strategy_contract() -> None:
         fail(
             ".agents/skills/test-strategy/SKILL.md uses ambiguous 'trigger' "
             "for a test stimulus"
-        )
-
-    alchemy_text = ALCHEMY_ROUTE.read_text(encoding="utf-8")
-    ordered_terms = (
-        "Readiness — READY or bounded reversible PARTLY-READY before Architecture",
-        "Test strategy — Obligation pass before A",
-        "Gate 2 — Smallest correct design",
-        "Gate 5 — architecture rules in the SAME PR as the code",
-        "Test strategy — Portfolio pass after final A/L/C/E and before H",
-        "Gate 6 — Every error path mapped to earliest catchable stage",
-    )
-    positions = [alchemy_text.find(term) for term in ordered_terms]
-    if any(position < 0 for position in positions) or positions != sorted(positions):
-        fail(
-            f"{ALCHEMY_ROUTE.relative_to(ROOT).as_posix()} must preserve the Test Strategy "
-            "Obligation → A/L/C/E → Portfolio → H checklist order"
         )
 
 
@@ -2936,24 +2987,6 @@ def validate_evolutionary_database_design_contract() -> None:
                 f"{grading.relative_to(ROOT).as_posix()} no longer "
                 f"grades from '{term}', which evolutionary-database-design emits"
             )
-
-    alchemy_text = ALCHEMY_ROUTE.read_text(encoding="utf-8")
-    ordered_terms = (
-        "Test strategy — Obligation pass before A",
-        "Data shape — Compatibility pass before A",
-        "Gate 2 — Smallest correct design",
-        "Gate 5 — architecture rules in the SAME PR as the code",
-        "Data shape — Transition pass after final A/L/C/E",
-        "Test strategy — Portfolio pass after final A/L/C/E and before H",
-        "Gate 6 — Every error path mapped to earliest catchable stage",
-    )
-    positions = [alchemy_text.find(term) for term in ordered_terms]
-    if any(position < 0 for position in positions) or positions != sorted(positions):
-        fail(
-            f"{ALCHEMY_ROUTE.relative_to(ROOT).as_posix()} must preserve the Evolutionary "
-            "Database Design Compatibility -> A/L/C/E -> Transition -> Test "
-            "Strategy Portfolio -> H checklist order"
-        )
 
 
 def validate_outcome_hypothesis_contract() -> None:
@@ -3615,7 +3648,9 @@ def validate_skill_contracts() -> None:
 def validate_execution_contract() -> None:
     """Execution is decided by the router, after dispatch and apart from it: a
     fifth dispatch state, or orchestration the user must invoke by name, would
-    break the four states every scenario pins."""
+    break the four states every scenario pins. SKILL.md holds the decision and
+    the default every dispatch needs; the route holds the selection that only
+    ADAPTIVE, FULL, and audit runs make."""
     router = AGENT_SKILLS / "alchemy" / "SKILL.md"
     text = router.read_text(encoding="utf-8")
     preflight = text.find("### Dispatch Preflight")
@@ -3625,11 +3660,18 @@ def validate_execution_contract() -> None:
         fail(f"{router.relative_to(ROOT)} must decide execution after dispatch and before qualification")
     section = text[execution:qualification]
     for term in ("never a fifth dispatch", "`alchemy-orchestrate`", "`single-agent`", "`multi-agent`",
-                 "`execution.multi_agent`", "the user never names agents",
-                 "`SKIP` and `DIRECT` run `single-agent` and never load orchestration",
-                 "one writer and one independent reviewer is `multi-agent`"):
+                 "the user never names agents",
+                 "`SKIP` and `DIRECT` run `single-agent` and never load orchestration"):
         if not contains(section, term):
             fail(f"{router.relative_to(ROOT)} Execution Strategy missing '{term}'")
+    route = ALCHEMY_ROUTE.relative_to(ROOT).as_posix()
+    selection = re.search(r"^## \d+\. Execution\n(.*?)(?=^## |\Z)", ALCHEMY_ROUTE.read_text(encoding="utf-8"), re.M | re.S)
+    if not selection:
+        fail(f"{route} must hold the Execution selection the router points at")
+    for term in ("`alchemy-orchestrate`", "`single-agent`", "`multi-agent`", "`execution.multi_agent`",
+                 "one writer and one independent reviewer is `multi-agent`"):
+        if not contains(selection.group(1), term):
+            fail(f"{route} Execution missing '{term}'")
     if not re.search(r"^Execution:\s+<single-agent \| multi-agent>", text, re.M):
         fail(f"{router.relative_to(ROOT)} output contract must report Execution")
     public = {
@@ -3668,6 +3710,7 @@ def main() -> int:
     validate_runtime_neutrality()
     validate_skill_contracts()
     validate_execution_contract()
+    validate_alchemy_companion_order()
     validate_adversarial_cases()
     validate_verdict_classification()
     validate_morphogenetic_mode_selection()

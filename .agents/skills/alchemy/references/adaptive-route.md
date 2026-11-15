@@ -1,18 +1,18 @@
 # Adaptive Route — Qualification, Gates, and Handshakes
 
 Read before selecting stages when dispatch is `ADAPTIVE` or `FULL`, or the
-alias is `audit`. `SKILL.md` owns dispatch, aliases, companions, gate
-prerequisites, and the output contract; this file owns the route those
-dispatches walk. For each qualification stage or gate selected, read the
-sibling skill's `SKILL.md` and follow its procedure and output contract; this
-file does not duplicate that content.
+alias is `audit`. `SKILL.md` owns dispatch, the stage set each dispatch
+selects, aliases, focused-gate prerequisites, and the compact output block;
+this file owns the route those dispatches walk, its companions, the execution
+selection, and the decision trail. For each stage selected, read the sibling
+skill's `SKILL.md` and follow its procedure and output contract; this file
+does not duplicate that content.
 
 ## 1. Adaptive Requirements Qualification
 
 The requirements skills are conditional qualification stages around **M —
 Minimum**, in the order `SKILL.md` §2 draws. They qualify work entering
-Architecture; they do not replace any gate or become new A.L.C.H.E.M.Y.
-letters.
+Architecture and replace no gate.
 
 Routing rules:
 
@@ -24,8 +24,10 @@ Routing rules:
 2. **Ground conditionally.** Route a new or stale ungrounded request through
    `requirements-grounding`. Route current grounded requirements directly to M.
 3. **M owns worth.** Grounding validates evidence and meaning and may supply
-   linked outcome hypotheses as value evidence; M alone issues the worth
-   verdict.
+   linked outcome hypotheses as value evidence, recorded as N/A for an
+   authoritative obligation and kept separate from completion criteria, so
+   that no capability shipped or acceptance passed is reported as outcome
+   success; M alone issues the worth verdict.
 4. **Topology is conditional.** Use `requirements-topology` when multiple
    requirements have prerequisites, constraints, conflicts, shared foundations,
    or non-trivial sequencing. Skip it for one bounded independent requirement
@@ -39,8 +41,8 @@ Routing rules:
    and compares declared topology with observed coupling fields.
 7. **Keep the solid path acyclic.** Rework is explicit:
    `PROVISIONAL → grounding`, `NEEDS-REFACTOR/BLOCKED → grounding`,
-   `NOT-READY → grounding`, `C redesign → A`, and the bounded topology
-   handshake `L candidate → C measurement → L acceptance`.
+   `NOT-READY → grounding`, `C redesign → A`, and the bounded Gate 3–4
+   handshake of §2.
 
 Decision hand-offs:
 
@@ -49,86 +51,42 @@ Decision hand-offs:
 | Requirements Grounding | `GROUNDED`; `PROVISIONAL` with its confirmation queue | `NOT-GROUNDED` | Grounded requirements, linked outcome hypotheses when relevant, evidence, assumptions, confirmation queue |
 | M — Minimum | `BUILD`, `BUILD-minimal`, `KEEP`, `SIMPLIFY`, `QUARANTINE` | `NEGOTIATE`, `DEFER`, `DROP`, `DEPRECATE`, `DELETE`, `OBSOLETE` | Functionality/complexity decision per candidate |
 | Requirements Topology | `STABLE` | `NEEDS-REFACTOR`, `BLOCKED` | Atomic typed graph, stable IDs, conflicts, dependency order |
-| Implementation Readiness | `READY`, bounded `PARTLY-READY` | `NOT-READY` | Smallest coherent increment, verification obligations, blockers |
+| Implementation Readiness | `READY`, bounded `PARTLY-READY` | `NOT-READY` | Smallest coherent increment, verification obligations, blockers, and an aspect matrix with every aspect the increment touches covered or explicitly open |
 
-Walk the stages in this order and load each one only when the route reaches
-it. A blocking decision ends the route for its candidate, and the stages after
-it stay unloaded (`SKILL.md` §4). `PROVISIONAL` passes with its confirmation
-queue, and Readiness decides whether the unconfirmed requirements can change
-the increment (rule 5); a confirmation that contradicts it reopens grounding
-(`PROVISIONAL → grounding`).
+**Load each stage when the route reaches it.** Walk the stages in this order
+and read a stage's or companion pass's `SKILL.md` only once every stage before
+it has passed, never ahead. A blocking decision in the route's hand-off table
+ends the route for that candidate: the stages after it stay unloaded and
+appear in the trail as `Not run` with that decision as the reason. Only
+candidates with a passing decision continue. `PROVISIONAL` passes with its
+confirmation queue, and Readiness decides whether the unconfirmed requirements
+can change the increment (rule 5); a confirmation that contradicts it reopens
+grounding.
 
 After an increment passes readiness and enters architecture/implementation, use
 `requirements-traceability` to connect canonical IDs to implementation and
-executed completion and outcome evidence. Traceability, Test Strategy, and
-Evolutionary Database Design are follow-through or companions, never a
-qualification stage, A.L.C.H.E.M.Y. gate, acronym letter, or prerequisite for A.
+executed completion and outcome evidence. Traceability and the companions of
+§3 are follow-through or companions, never a qualification stage,
+A.L.C.H.E.M.Y. gate, acronym letter, or prerequisite for A.
 
-When current outcome evidence reaches a revisit trigger, route the bounded
-functionality back to M in Retrospective mode. This is a new worth decision over
-new evidence, not a backward pipeline edge or permission to rerun every gate.
-Grounding still owns hypothesis meaning; Traceability owns evidence state and
-freshness; M alone owns the worth verdict.
-
-When verification design is material and architecture can change the evidence
-boundary, use `test-strategy` as a two-pass task-matched companion:
-
-```text
-Implementation Readiness
-→ Test Strategy — Obligation pass
-→ A → L/C → E, as justified
-→ Test Strategy — Portfolio pass
-→ H
-```
-
-The Obligation pass defines risks, failure modes, oracles, and required
-confidence before A. The Portfolio pass consumes final accepted architecture
-and enforcement to finalize technique, scope, fidelity, dependencies, data,
-environment, and stimulus before H. Collapse them into a Combined pass only
-for stable accepted architecture. Gate H still owns the earliest capable
-stage, CI/CD owns pipeline execution triggers and gating, and traceability owns
-executed-evidence state.
-
-When an admitted increment changes persisted or serialized data shape — a schema,
-event or message payload, API body, or file format — use
-`evolutionary-database-design` as a two-pass task-matched companion:
-
-```text
-Implementation Readiness
-→ Evolutionary Database Design — Compatibility pass
-→ A → L/C → E, as justified
-→ Evolutionary Database Design — Transition pass
-→ Test Strategy — Portfolio pass, when it applies
-→ H
-```
-
-The Compatibility pass inventories readers, writers, the coexistence window,
-and the obligations that bind the data, classifies the change, and supplies
-the data facts Gate 3 grades reversibility from before A. The Transition pass
-consumes final accepted architecture to fix the staged expand/contract path,
-migration increments, backfill, contract trigger, and reversal step per stage
-before the Test Strategy Portfolio pass and H. Collapse them into a Combined
-pass only for a stable accepted target shape. Gate 3 still owns placement and
-the reversibility grade, Gate H the earliest capable stage, CI/CD the deploy
-order and gating, and traceability the migration anchor. Expand and contract
-never ship in one deployable, and the contract step is gated on evidence, not
-a date.
-
-For an existing project, implementation is evidence rather than intent.
-Code-derived requirements remain `PROVISIONAL` until an authoritative artifact
-or independent confirmation supports them.
+When current outcome evidence reaches a revisit trigger, rerun only M in
+Retrospective mode on the bounded functionality. This is a new worth decision
+over new evidence, not a backward pipeline edge. Grounding still owns
+hypothesis meaning, and Traceability owns evidence state and freshness:
+refresh or bound stale or inconclusive evidence there before it justifies KEEP
+or DROP.
 
 ## 2. The Gates
 
 | # | Gate | Skill | Decision record |
 |:--|:--|:--|:--|
-| 1 | Necessity check | `functionality-complexity-tradeoff` | BUILD / KEEP / SIMPLIFY or stop per candidate |
-| 2 | First principles | `architecture-guidelines` | Smallest correct design |
-| 3 | Morphogenetic topology | `morphogenetic-architecture` | Rapid/Full mode + declared Domain / tier / layer + final decision, or one restructuring candidate requiring measurement; probation expiry, instrumentation task, and prediction recheck ride the decision trail to Gate 6 |
-| 4 | Complexity measurement | `structural-simplification` | Subsystem-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Subsystem-count Δ; then Gate 3 acceptance when restructuring |
-| 5 | Architecture as code | `architecture-as-code` (pattern); `-javascript` / `-python` (impl) only when rule files are written or changed | Per-subsystem constraints, in the pattern's encoding-neutral form until the stack's files are written |
+| 1 | Necessity check | `functionality-complexity-tradeoff` | BUILD / KEEP / SIMPLIFY or stop per candidate, down to every proposed type, method, and parameter |
+| 2 | First principles | `architecture-guidelines` | Smallest correct design (SoC + SRP + DI; pure core, I/O at edges) |
+| 3 | Morphogenetic topology | `morphogenetic-architecture` | Rapid/Full mode and selection reason; each subsystem's declared Domain / tier / layer, allowed edges, and observed fields; final decision, or one restructuring candidate requiring measurement |
+| 4 | Complexity measurement | `structural-simplification` | Subsystem-kinds Δ, Dependency-edges Δ, Max-chain-depth Δ, Subsystem-count Δ for the design against the status quo |
+| 5 | Architecture as code | `architecture-as-code`, plus its stack reference only when rule files are written or changed | Per-subsystem constraints, in the pattern's encoding-neutral form until the stack's files are written |
 | 6 | Shift defect detection left | `defect-shift-left` | Each error path → earliest catchable stage |
-| 7 | Optimize value stream | `system-optimization` | Constraint analysis (iteration 2: the iteration after the increment ships, from its stable, measured baseline) |
+| 7 | Optimize value stream | `system-optimization` | Constraint analysis, or the deferral record of directive 4 |
 
 ### Gate 3–4 topology handshake
 
@@ -162,92 +120,142 @@ decision trail to Gate 6, which places the standing check.
 ### Core directives
 
 1. Order matters. Qualification and Gates 1-4 shape the design; Gates 5-6
-   enforce it. Never run Gate 5 before a passing readiness decision in a full
-   pass, or before final Gate 3 acceptance when a topology restructuring uses
-   the Gate 3–4 handshake.
-2. Name the second instance before writing an abstraction. Rule of 3 is the
-   null hypothesis. If absent, DROP.
-3. Ship the architecture rules with the code they govern. Follow-up PRs to
-   "add the rules" are drift.
-4. Defer Gate 7 to iteration 2 — the iteration after the increment ships,
-   starting from its stable, measured baseline — unless the request is
-   explicitly about an existing bottleneck. The deferral names its baseline
+   enforce it. Gate E also waits for a passing readiness decision in a full
+   pass.
+2. Name the second concrete instance before writing an abstraction. Rule of 3
+   is the null hypothesis. If absent, DROP.
+3. Ship the architecture rules in the same PR as the code they govern.
+   Follow-up PRs to "add the rules" are drift.
+4. Gate 7 is deferred as `SKILL.md` §1 states. The deferral names its baseline
    metric, where that metric is read, and the date or event that opens
    iteration 2; when the increment adds pipeline work or stored output, the
    metric includes what it consumes. A deferral without them never reopens.
-5. Audit starts at `C₀`, conditionally recovers intent, then resumes the
-   qualification phase and remaining gates from the earliest failed decision.
-6. Before deleting either of two duplicate implementations, inventory their
+5. Before deleting either of two duplicate implementations, inventory their
    divergences and invariants, then run the same conformance cases against every
    adapter. Backend-specific tests or a fake that repeats one adapter's
    assumptions do not prove equivalence.
-7. When verification design is material, preserve the Test Strategy two-pass
-   handshake. Architecture may refine the portfolio but must not silently erase
-   an admitted risk or oracle.
-8. When an increment changes persisted or serialized data shape, preserve the
-   Evolutionary Database Design two-pass handshake. Expand and contract never
-   ship in one deployable; the contract step is gated on evidence, not a date.
+6. Decomposition and aspect extraction are different cuts: decomposition
+   splits one subsystem into several; extraction pulls one aspect out of
+   several subsystems into one mechanism. A design that models an aspect as a
+   subsystem, or copies its mechanism per subsystem, has confused the two.
+   [change-primitives.md](change-primitives.md) defines the four primitives.
 
-## 3. Pre-Flight Checklist
+## 3. Companions
 
+`SKILL.md` §1 states how companions are selected and reported. The library's
+own:
+
+- When the subject decides where a fact, decision, or document belongs — a
+  proposed document, a decision record, an architecture note, a status page, or
+  a documentation-tree audit — select `zero-copy-requirements`. It names the
+  artifact that owns the question; `push-out` prunes prose already covered by an
+  executable source, and `requirements-traceability` anchors evidence once the
+  location exists.
+- When an advisory, drift, abandonment, license change, or end-of-life date
+  names an owned dependency, select `dependency-lifecycle`; it classifies the
+  bump, and only a contract-preserving bump is `SKIP`.
+- When a risk survives verification into production, or alerts or telemetry
+  are under review, select `observability-design`.
+- When infrastructure is chosen, inherited, or questioned, select
+  `infrastructure-fit`.
+- When a gate is added over violations, narrowed, suspended, or removed, passes
+  on a known-bad input, or cannot evaluate, or a baseline churns, select
+  `gate-lifecycle`; it never places a check or decides how it blocks.
+- When verification design is material and architecture can change the
+  evidence boundary, select `test-strategy`. When an admitted increment
+  changes persisted or serialized data shape — a schema, event or message
+  payload, API body, or file format — select `evolutionary-database-design`.
+
+The last two are two-pass task-matched companions that bracket A/L/C/E. Each
+line below applies only when its companion is selected:
+
+```text
+Implementation Readiness
+→ Test Strategy — Obligation pass
+→ Evolutionary Database Design — Compatibility pass
+→ A → L/C → E, as justified
+→ Evolutionary Database Design — Transition pass
+→ Test Strategy — Portfolio pass
+→ H
 ```
-- [ ] Qualification — Current grounded requirements with predecessors retired,
-                      or grounding decision
-- [ ] Outcomes — Linked outcome hypotheses when decision-relevant, kept separate
-                 from completion criteria; authoritative obligations may be N/A
-- [ ] Gate 1 — Necessity check on every proposed type/method/parameter
-            For each abstraction: name the second concrete instance.
-- [ ] Topology — Typed graph when relationships are non-trivial, or recorded skip
-- [ ] Readiness — READY or bounded reversible PARTLY-READY before Architecture
-- [ ] Aspects — every aspect the increment touches is covered or explicitly open
-               (readiness matrix)
-- [ ] Test strategy — Obligation pass before A: risks, failure modes, oracles,
-                       and required confidence
-- [ ] Data shape — Compatibility pass before A: readers, writers, coexistence
-                    window, obligations, change class, and compatibility mode
-- [ ] Gate 2 — Smallest correct design (SoC + SRP + DI; pure core, I/O at edges)
-- [ ] Gate 3 — Rapid/Full mode and selection reason recorded; each subsystem placed at Domain / Tier / Layer; allowed edges and observed fields recorded
-- [ ] Gate 4 — Subsystem-kinds / Dependency-edges / Max-chain-depth / Subsystem-count Δ computed for design vs status quo
-- [ ] Gate 3 acceptance — MOVE / SPLIT / MERGE / INTRODUCE-BOUNDARY re-entered
-                              once with Gate 4 measurement; final decision recorded
-- [ ] Gate 5 — architecture rules in the SAME PR as the code
-- [ ] Data shape — Transition pass after final A/L/C/E and before the Test
-                    strategy Portfolio pass: staged path, migration increments,
-                    backfill, contract trigger, and reversal step per stage
-- [ ] Test strategy — Portfolio pass after final A/L/C/E and before H: technique,
-                       scope, fidelity, dependencies, data, environment, stimulus
-- [ ] Gate 6 — Every error path mapped to earliest catchable stage
-- [ ] Gate 7 — Deferred to iteration 2 (after the increment ships, from its
-            stable, measured baseline); metric, source, and opening date
-            or event recorded
-- [ ] Follow-through — When implementation is in scope, hand admitted IDs and
-                       completion and outcome-evidence obligations to
-                       requirements-traceability
-- [ ] Trail — Evidence, skipped-stage rationales, first blocker, and next action
-```
 
-## 4. Retrospective Mode
+The Obligation pass before A defines risks, failure modes, oracles, and
+required confidence. The Portfolio pass after final A/L/C/E and before H
+consumes final accepted architecture and enforcement to finalize technique,
+scope, fidelity, dependencies, data, environment, and stimulus; architecture
+may refine the portfolio but must not silently erase an admitted risk or
+oracle. Gate H still owns the earliest capable stage, CI/CD owns pipeline
+execution triggers and gating, and traceability owns executed-evidence state.
+
+The Compatibility pass inventories readers, writers, the coexistence window,
+and the obligations that bind the data, classifies the change and its
+compatibility mode, and supplies the data facts Gate 3 grades reversibility
+from before A. The Transition pass consumes final accepted architecture to fix
+the staged expand/contract path, migration increments, backfill, contract
+trigger, and reversal step per stage before the Test Strategy Portfolio pass
+and H. Gate 3 still owns placement and the reversibility grade, CI/CD the
+deploy order and gating, and traceability the migration anchor. Expand and
+contract never ship in one deployable, and the contract step is gated on
+evidence, not a date.
+
+Collapse a companion's passes into a Combined pass only for stable accepted
+architecture (Test Strategy) or a stable accepted target shape (Evolutionary
+Database Design).
+
+## 4. Execution
+
+Select `multi-agent` only when the work changes or audits code and at least
+two parts are independent — different subsystems, disjoint files, no ordering
+between them — or a high-risk change (security, public contract, persisted
+shape) needs a reviewer that did not write it. Count every agent: one writer
+and one independent reviewer is `multi-agent`. The number of gates or skills
+on the route is never a reason. Stay `single-agent` and say why when neither
+holds, when the project's `alchemy-workspace.json` sets
+`execution.multi_agent` to `off`, or when the runtime cannot launch agents.
+On `multi-agent`, load `alchemy-orchestrate` before the first stage that
+changes or audits code; it plans, launches, verifies, and gates the agents.
+
+## 5. Retrospective Mode
 
 Auditing existing code starts with `C₀`, a read-only structural baseline. `C₀`
 is the existing retrospective complexity scan, not a new permanent gate. Use
 requirements recovery only when current intent is missing, stale,
-contradictory, or disputed:
+contradictory, or disputed; implementation is evidence rather than intent, so
+code-derived requirements remain `PROVISIONAL` until an authoritative artifact
+or independent confirmation supports them.
 
 | Step | Skill | Action |
 |:--|:--|:--|
 | 1 — `C₀` | `structural-simplification` | Score current Subsystem-kinds / Dependency-edges / Max-chain-depth / Subsystem-count — expose hot-spots and bound recovery |
-| 2 — conditional recovery | `requirements-grounding` | Recover provisional, evidence-linked intent only when trustworthy current requirements are absent |
+| 2 — conditional recovery | `requirements-grounding` | Recover provisional, evidence-linked intent |
 | 3 | `functionality-complexity-tradeoff` | Run the retrospective necessity decision on the bounded functionality |
 | 4 — conditional topology | `requirements-topology` | Structure remediation requirements when relationships are non-trivial |
 | 5 — conditional readiness | `implementation-readiness` | Identify the smallest coherent remediation increment that may enter Architecture |
 | 6 | Remaining A.L.C.H.E.M.Y. gates | Redesign, enforce, and shift left only as the remediation requires |
 
-## 5. Recurring Failure Modes
+## 6. Decision Trail
 
-`SKILL.md` links the full symptom table. Two symptoms recur often enough to
-stay on this path: a capability shipped or acceptance passed is reported as
-outcome success (Requirements Grounding skipped; separate completion evidence
-from the linked outcome hypothesis and measure impact after representative
-use), and stale or inconclusive outcome evidence silently justifies KEEP or
-DROP (refresh or bound the evidence in `requirements-traceability`, then rerun
-only M in Retrospective mode).
+Multi-stage runs, non-trivial design/refactor passes, audits, and explicit
+requests for detail emit one combined decision trail in execution order,
+including every stage used and every conditional stage skipped. A skipped
+stage requires a one-line rationale; a skip without one is a defect and an
+over-engineering risk for the next audit.
+
+| Stage | Skill | Decision | Evidence / hand-off | Files/checks | Next action or skip rationale |
+| ----- | ----- | -------- | ------------------- | ------------ | ----------------------------- |
+
+Then state:
+
+```
+Scope:          <subsystem / service / refactor / PR>
+Mode:           Design | Refactor | Audit
+Dispatch:       SKIP | DIRECT | ADAPTIVE | FULL
+Companions:     <None | task-matched skills>
+Execution:      single-agent | multi-agent
+Blocking stage: <first non-passing qualification decision or gate, or None>
+Decision:       Proceed | Redesign | Drop | Defer
+Verification:   <commands, lint rules, tests, or Not run + reason>
+```
+
+`SKILL.md` §3 puts the four report blocks before this trail and each stage's
+own decision record after it.
