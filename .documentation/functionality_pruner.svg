@@ -145,7 +145,7 @@
 <!-- Cost side -->
 <rect x="350" y="1110" width="290" height="90" rx="12" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
 <text x="366" y="1134" font-size="14" font-weight="500" fill="#712B13">Cost (C)</text>
-<text x="366" y="1156" font-size="13" fill="#993C1D">ΔD + ΔK + ΔP + Δn</text>
+<text x="366" y="1156" font-size="13" fill="#993C1D">ΔD + ΔK + ΔP + Δn<tspan dx="8" font-size="11" fill="#5F5E5A">structural cost</tspan></text>
 <text x="366" y="1176" font-size="12" fill="#993C1D">+ (Maintenance + Risk + Evolution)</text>
 <text x="366" y="1194" font-size="12" fill="#993C1D">× lifetime</text>
 
