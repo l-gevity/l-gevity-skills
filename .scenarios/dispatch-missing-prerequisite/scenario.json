@@ -23,6 +23,16 @@
       "skills": ["alchemy", "architecture-as-code"]
     },
     {
+      "id": "reads-no-stack-reference",
+      "criterion": "adaptive-dispatch #3: a named stage with a missing prerequisite runs nothing else",
+      "check": "reads_exclude",
+      "paths": [
+        ".claude/skills/architecture-as-code/references/javascript.md",
+        ".claude/skills/architecture-as-code/references/javascript-assembler.md",
+        ".claude/skills/architecture-as-code/references/python.md"
+      ]
+    },
+    {
       "id": "names-missing-placement",
       "criterion": "adaptive-dispatch #3: the result names the missing prerequisite",
       "check": "text_matches",

@@ -79,10 +79,11 @@
     },
     "architecture-as-code": {
       "capability": "architecture", "stage": "E",
-      "inputs": ["final L acceptance", "passing readiness in a full pass"], "outputs": ["architecture config rules"],
+      "inputs": ["final L acceptance", "passing readiness in a full pass"], "outputs": ["architecture config rules", "rule files and assembler changes"],
       "parallel": "none", "writes": "rule-files", "exclusive": ["the assembled architecture configuration"],
       "verify": "The project's architecture lint runs on the integrated head and fails on a deliberate violation",
-      "completion": ["Add config", "Update config"], "failure": ["Reject rule", "Defer", "Blocked"]
+      "completion": ["Add config", "Update config", "Add eslint.architecture.mjs", "Update ESLint config", "Add architecture.toml", "Update import-linter config", "Update assembler"],
+      "failure": ["Reject rule", "Defer", "Blocked"]
     },
     "defect-shift-left": {
       "capability": "verification", "stage": "H",
