@@ -1,0 +1,47 @@
+{
+  "request": "Run bring-down on this: assess two candidates in our Node.js 22 TypeScript API, one repository owned by one team of four. First: `src/lib/retry.ts` is 140 lines of hand-written retry with exponential backoff around outbound HTTP calls. It took six bug-fix commits last quarter, two of them after production incidents in which it retried non-idempotent POST requests. Every outbound call already goes through `got` 14, which is in `package.json` and on our platform team's approved list; `got` has a built-in `retry` option that we switch off, and nothing in our wrapper is specific to our domain. Second: three modules in this repository each carry a copy of a 40-line `isEligibleForDiscount` function that encodes our own discount policy. The copies are identical, and a teammate proposes moving them into `src/shared/discount.ts`, which this same team would maintain. What should move down, and where does each one land?",
+  "skills": ["bring-down"],
+  "expect": [
+    {
+      "id": "applies-bring-down-guidance",
+      "criterion": "bring-down #1: a question about replacing custom code with a lower-level capability loads the bring-down method",
+      "check": "guidance_includes",
+      "skills": ["bring-down"]
+    },
+    {
+      "id": "moves-retry-to-library-level",
+      "criterion": "bring-down #2: commodity code covered by an approved library moves from L4 CODE to L3 LIB, named by level and acronym",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Move:\\**[ \\t]*`?L4 CODE`?[ \\t]*(->|\u2192|to)[ \\t]*`?L3 LIB"
+    },
+    {
+      "id": "names-the-landing",
+      "criterion": "bring-down #3: a move names the exact capability it lands in",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Landing:[^\\n]*\\bgot\\b"
+    },
+    {
+      "id": "records-owner-change",
+      "criterion": "bring-down #4: a move names the current and the target maintenance owner",
+      "check": "field_present",
+      "field": "Owners"
+    },
+    {
+      "id": "excludes-same-owner-move",
+      "criterion": "bring-down #5: a move that keeps the same maintenance owner is excluded with its reason",
+      "check": "field_present",
+      "field": "Reason excluded"
+    },
+    {
+      "id": "hands-internal-extraction-to-architecture",
+      "criterion": "bring-down #6: an extraction inside the same repository is handed to the architecture skills",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Better skill:[^\\n]*(architecture|structural-simplification|refactor)"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}
