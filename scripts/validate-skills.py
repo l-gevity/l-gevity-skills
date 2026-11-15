@@ -45,7 +45,7 @@ SIZE_BUDGET_WORDS = {
     "push-out": 1300,
     "requirements-grounding": 2700,
     "requirements-topology": 2000,
-    "requirements-traceability": 2500,
+    "requirements-traceability": 2100,
     "structural-simplification": 2100,
     "system-optimization": 2620,
     "test-strategy": 2100,
@@ -56,7 +56,7 @@ SIZE_BUDGET_WORDS = {
 # total rose with every new entry and with growth inside each file's own
 # grain, and nothing failed. A new skill funds its words with a cut. Skills
 # are counted whole, so the count is slack as soon as it is one below its cap.
-LIBRARY_BUDGET_WORDS = 54100
+LIBRARY_BUDGET_WORDS = 53700
 LIBRARY_BUDGET_SKILLS = 24
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
@@ -398,7 +398,7 @@ SKILL_REQUIRED_TERMS = {
         "Do not issue BUILD, KEEP, SIMPLIFY, DROP",
         "do not create an outcome-evidence record",
         "Formal Completion Records",
-        "Completion record:",
+        "references/closeout-records.md",
         "CI Enforcement",
         "TRACEABLE",
         "Stale references:",
@@ -410,7 +410,6 @@ SKILL_REQUIRED_TERMS = {
         "domain and data model views",
         "| Domain or data model view |",
         "Representation gaps: <class, artifact, and expiry condition, or none>",
-        "representation gaps carry expiry",
         "lapsing",
         "`aspect-uncovered`",
     ),
@@ -879,6 +878,16 @@ REFERENCE_REQUIRED_TERMS = {
             "## Destructive-change gate (SKILL.md §7)",
             "approval covers the environment as it was then, not as it is now",
             "a stale release is a standing exception",
+        ),
+    },
+    "requirements-traceability": {
+        # The completion record and the trace note load when a closeout
+        # writes them; their pins moved here with the two blocks.
+        "references/closeout-records.md": (
+            "# Requirements Traceability — Closeout Records",
+            "Completion record:",
+            "Completion boundary: <acceptance | release | production | other>",
+            "representation gaps carry expiry",
         ),
     },
     "requirements-grounding": {
