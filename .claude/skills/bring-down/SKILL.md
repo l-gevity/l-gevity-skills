@@ -68,7 +68,7 @@ internal platform product, or external service.
 | **L4** | **CODE** | Custom code | Local implementation maintained by this codebase/team | Bespoke logic, wrappers, scripts, or repeated copies |
 | **L3** | **LIB** | Library/framework | Approved package, framework/library API, or shared capability | Consumers import/call one maintained implementation |
 | **L2** | **STD** | Standard path | External standard, framework convention, generator, policy, or reference architecture | New instances start from the standard path |
-| **L1** | **PLP** | Platform product | Internal self-service capability maintained outside this codebase | Teams consume it with validation, observability, and support |
+| **L1** | **PLP** | Platform product | Internal self-service capability maintained outside this codebase, such as a reusable deployment workflow, auth gateway, logging pipeline, hosted data module, or policy-enforced cloud resource | Teams consume it with validation, observability, and support |
 | **L0** | **SRVC** | External service | External SaaS, PaaS, managed cloud service, or commodity provider with minimal custom code | Local implementation is gone or only integration remains |
 
 ```
@@ -78,22 +78,10 @@ bring-down distance = current level - target level
 In reports, name levels as `<level> <acronym>` (for example, `L3 LIB`) and
 reserve the full prose name for narrative explanation.
 
-`L1 PLP` means an internal platform product: a supported self-service
-capability owned outside this codebase, such as a reusable deployment workflow,
-auth gateway, logging pipeline, hosted data module, or policy-enforced cloud
-resource. It is not just a shared subsystem in the repo.
-
-`L0 SRVC` means an external service or managed commodity: SaaS, PaaS, managed
-cloud service, or provider-owned capability where this codebase keeps only the
-integration.
-
 `L2 STD` counts only when the standard path is maintained outside the consuming
 code owner or is imposed by a framework, platform, or external specification.
 A repo-local template, helper, or manifest maintained by the same team is still
 `L4 CODE` for this skill.
-
-Lower is not automatically better. The target is the lowest level that removes
-real duplication while preserving legitimate variation.
 
 ---
 
@@ -138,8 +126,7 @@ and list it under gaps or handoffs.
 
 The first bring-down move is discovery inside the current technology stack.
 Look for a lower placement or alternative that already exists before creating
-or buying anything. If the best move is only a repo-local subsystem or
-template, stop and use the architecture skills instead.
+or buying anything.
 
 Search for:
 
@@ -250,8 +237,7 @@ capabilities, pricing, SLAs, regions, and compliance posture are time-sensitive.
    remove it from bring-down recommendations and hand it off.
 11. **Compute distance.** Current level - target level.
 12. **Choose one move.** Move down one level unless the intermediate level is
-   already satisfied. If the move is purely internal subsystem extraction or
-   patternization, hand off to architecture skills.
+   already satisfied.
 13. **Prove and retire.** Migrate at least one real consumer and remove the old
    duplicate path.
 
@@ -278,15 +264,15 @@ If the improvement is mainly about human execution rather than code shape, use
 Each move must include migration and deletion criteria. A new abstraction with
 all old copies still alive is inventory, not simplification.
 
-Do not emit `L4 CODE to L4 CODE` moves. Do not emit `L4 CODE to L2 STD` unless
-the named standard path is maintained outside the consuming code owner.
+Do not emit `L4 CODE to L4 CODE` moves.
 
 ---
 
 ## 9. Do Not Confuse With Placement
 
 `bring-down` changes reuse/specificity altitude. It does not assign domain,
-tier, layer, or dependency direction.
+tier, layer, or dependency direction: `morphogenetic-architecture` places the
+result once bring-down has chosen the reuse level.
 
 When the best answer is to extract a subsystem or patternize inside the
 codebase, use `morphogenetic-architecture`, `architecture-guidelines`, and
@@ -302,21 +288,9 @@ graph.
 
 | Anti-pattern | Correction |
 | ------------ | ---------- |
-| Replacing custom code only because it exists | Prove commodity fit, maintenance burden, risk reduction, or repetition |
-| Shared abstraction hiding real variation | Split stable core from explicit extension points |
-| Building a new shared thing before looking locally | Search the current stack for existing lower placements first |
-| Library recommendation from stale memory | Search stack-native indexes and current primary sources before recommending new L3 LIB |
-| GitHub stars as library proof | Require exact fit, compatibility, maintenance, security, license, migration, and deletion evidence |
-| Triggering bring-down for repo-local subsystem extraction | Use architecture skills unless the target is an external/library/platform capability |
-| Recommendation has no landing capability | Name the exact package/API, standard, platform product, or service before recommending it |
-| Target has the same maintenance owner | Exclude it from bring-down and hand off to the relevant skill |
 | Platform product without adoption | Measure consumers, escape hatches, and support load |
 | Template with no enforcement | Add lint, generator checks, or review gate where feasible |
-| Managed service for differentiating logic | Keep local or extracted as a subsystem where domain value lives |
-| Service selection from stale memory | Browse current primary sources before recommending alternatives |
 | Wrapper around commodity service with no added policy | Delete wrapper or state the invariant it enforces |
-| Replacement without deleting custom code | Require migration and retirement criteria |
-| Treating bring-down as layer movement | Use `morphogenetic-architecture` for placement and dependency direction |
 
 ---
 
@@ -379,15 +353,3 @@ Service comparison:
   - Migration cost: <small/medium/large plus reason>
   - Rollback path: <how to return to current approach>
 ```
-
----
-
-## 12. See Also
-
-- **`functionality-complexity-tradeoff`** - decide whether the functionality should exist before replacing it.
-- **`structural-simplification`** - verify the externalization actually reduces subsystem kinds, edges, depth, or count.
-- **`morphogenetic-architecture`** - place the resulting subsystem and check
-  observed boundary pressure after bring-down chooses the reuse level.
-- **`push-out`** - move recurring operational work outward.
-- **`defect-shift-left`** - move defect detection earlier.
-- **`architecture-as-code`** - enforce accepted patterns as code.

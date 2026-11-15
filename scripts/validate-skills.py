@@ -30,7 +30,7 @@ SIZE_BUDGET_WORDS = {
     "alchemy-orchestrate": 1900,
     "architecture-as-code": 2300,
     "architecture-guidelines": 1800,
-    "bring-down": 2800,
+    "bring-down": 2400,
     "ci-cd-reliability-architecture": 3300,
     "continuous-improvement": 1300,
     "defect-shift-left": 1900,
@@ -56,7 +56,7 @@ SIZE_BUDGET_WORDS = {
 # total rose with every new entry and with growth inside each file's own
 # grain, and nothing failed. A new skill funds its words with a cut. Skills
 # are counted whole, so the count is slack as soon as it is one below its cap.
-LIBRARY_BUDGET_WORDS = 50600
+LIBRARY_BUDGET_WORDS = 50200
 LIBRARY_BUDGET_SKILLS = 24
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
