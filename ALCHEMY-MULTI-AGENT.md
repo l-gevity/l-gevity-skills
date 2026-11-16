@@ -305,7 +305,9 @@ their verified status are in the
     amendment MUST stay inside the approved plan's write sets, permissions, and
     risk, and off protected paths, unless the human approved a revision that
     holds it; an approval written into the amendment during the run grants
-    nothing. A write no
+    nothing. The plan and gate checks of a run with amendments, an
+    extension, or recorded rework MUST name that revision with `--approved`.
+    A write no
     package owns MUST fail the gate. *Check:* `AMENDMENT_INVALID`,
     `AMENDMENT_BROADENS`, `PROTECTED_PATH`, `SELF_REVIEW`, `UNOWNED_WRITE`.
 47. More cycles than `max_rework_cycles` MUST come from an extension the

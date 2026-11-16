@@ -1,0 +1,10 @@
+[
+  {
+    "id": "F3",
+    "package": "P1-R1",
+    "severity": "major",
+    "location": "src/orders/validate.js:41",
+    "problem": "rounding still drops the last cent",
+    "evidence": "npm test -- orders exit 1"
+  }
+]

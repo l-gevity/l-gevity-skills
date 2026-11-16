@@ -217,8 +217,16 @@ Kept by the lead from hand-offs, independent verification, and integration.
 | `--review` | The last reviewer's own output, a file the reviewing step wrote. Each of its blocking or major findings appears in the ledger under its ID, at no lower severity, for the same package, with every `related_to` link, `introduced_by` when it is a `regression`, and `reopened_after` on the finding it `reopens` (`SILENT_SKIP` otherwise). The gate checks that the ledger keeps what the reviewer recorded; whether a finding is related, a regression, or reopened is the reviewer's judgment, which no check confirms. Without `--review` the gate reads the ledger alone. |
 | `findings[].severity` | `blocking`, `major`, or `minor`. Blocking and major must end `resolved` with `resolution.evidence`, `rejected` with `resolution.evidence` showing the finding is wrong — sharing no evidence, by ID or identity, with the raiser's own `evidence` — or `accepted-risk` with `accepted_by: human`. |
 | `disputes[].resolution.basis` | `evidence` with evidence IDs, only when exactly one position's evidence all exists and exited 0; when both positions or neither have it, the human decides. Or `human` with `decided_by: human`. Majority, seniority, model, and confidence are not a basis. |
-| `rework_cycles` | A claim of correction rounds per package, summed along each origin chain. The gate counts the chain's rework amendments and takes the larger number, so neither a rename nor a new rework package starts at zero; above the bound it escalates. A ledger without amendments works as before. |
+| `rework_cycles` | A claim of correction rounds per package, summed along each origin chain. The gate counts the chain's rework amendments and takes the larger number, so neither a rename nor a new rework package starts at zero; above the bound it escalates. A ledger that records it, even for a plan without amendments, needs `--approved` on the gate (`AMENDMENT_INVALID` otherwise; see the upgrade table below). |
 | `changed_files` | Optional: the paths of the integrated diff from the plan base. With `--root` the gate reads them from git instead, without rename detection, so a moved file counts at its source and its destination. Each lies in an `implement` package's write set, amendments included, or under `state_dir` (`UNOWNED_WRITE`). |
+
+A plan or gate check that passed without the approved revision before rework
+was anchored fails after the upgrade:
+
+| Fails with | Because | Add |
+|:--|:--|:--|
+| `AMENDMENT_INVALID` (gate: `the plan carries recorded rework but no approved revision anchors it`) | The ledger records `rework_cycles` or a finding with `after`, `introduced_by`, or `reopened_after`, or the plan carries `execution.rework_extension`; this holds for a plan without amendments too, which used to pass | `--approved <digest>` on the gate: the `approved_digest` the plan check printed when the human approved the plan, or the digest of the amended revision the human approved since |
+| `AMENDMENT_INVALID` (plan: `the plan carries amendments but no approved revision anchors it`) | A plan with amendments is checked without the anchor | `--approved <digest>` on the plan check, the same digest |
 
 ## Preflight — `alchemy-preflight/1`
 

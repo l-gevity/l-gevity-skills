@@ -690,6 +690,8 @@ REFERENCE_REQUIRED_TERMS = {
             "never one per finding",
             "whether a finding is related, a regression, or reopened is the reviewer's judgment, which no check confirms",
             "without rename detection, so a moved file counts at its source and its destination",
+            "this holds for a plan without amendments too, which used to pass",
+            "`--approved <digest>` on the gate: the `approved_digest` the plan check printed",
         ),
         "references/autonomy-preflight.md": (
             "# Autonomy Preflight — Preparing a Run That Proceeds Unattended",
@@ -3343,6 +3345,11 @@ def mutation_test() -> int:
          "Authorizations: {granted(report)}; ", "", "honoured authorizations in the gate summary"),
         ("the plan summary hides the extension", actions,
          "authorizations {granted(report)}; ", "", "honoured authorizations in the plan summary"),
+        ("the summaries drop the rework extension", actions,
+         '    extension = report.get("extension")\n    if isinstance(extension, dict):',
+         '    extension = None\n    if isinstance(extension, dict):', "summary omits"),
+        ("the summaries drop the honoured authorizations", actions,
+         'for item in report.get("authorizations") or []:', "for item in []:", "summary omits"),
         # The two quoting defects of e6516a2, each restored on its own.
         ("an apostrophe inside a single-quoted pipeline scalar", pipelines,
          "the profile''s rework bound", "the profile's rework bound", "closes before"),
@@ -4697,6 +4704,28 @@ def validate_correction_loop() -> None:
                         ("Authorizations: {granted(report)}", "list honoured authorizations in the gate summary")):
         if needed not in source:
             fail(f"{action.relative_to(ROOT)} must {why}")
+    # The summaries the human approves from show every honoured authorization and
+    # the rework extension, read from real reports of cases that carry them.
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("alchemy_check_action", action)
+    summaries = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(summaries)
+    checker = orchestration_checker()
+    for name, mode in (("plan-amendment-broadens-approved-pass", "plan"), ("plan-extension-reported-pass", "plan"),
+                       ("gate-extension-anchored-reported-pass", "gate")):
+        _, report = run_adversarial_case(checker, ADVERSARIAL / name)
+        shown = summaries.summarize(mode, report)
+        needles = [value for item in report.get("authorizations") or []
+                   for value in (item.get("amendment") or item.get("extension"), item.get("ref"), *(item.get("grants") or []))]
+        extension = report.get("extension")
+        if isinstance(extension, dict):
+            needles += [f"ceiling {extension.get('ceiling')}", *(extension.get("conditions") or []), extension.get("ref")]
+        if not needles:
+            fail(f".adversarial/{name} reports no authorization or extension for the {mode} summary to show")
+        missing = [str(needle) for needle in needles if " ".join(str(needle).split()) not in shown]
+        if missing:
+            fail(f"{action.relative_to(ROOT)} {mode} summary omits {'; '.join(missing)}, which .adversarial/{name} reports")
     for path in sorted((UNSTOPPABLE / "pipelines").glob("*.yaml")):
         for problem in yaml_single_quote_problems(path.read_text(encoding="utf-8")):
             fail(f"{path.relative_to(ROOT)}:{problem}")

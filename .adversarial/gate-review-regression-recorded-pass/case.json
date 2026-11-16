@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #217: a regression recorded with the fix that introduced it passes",
+  "description": "Same as gate-review-regression-unlinked, but the ledger records F3 introduced_by A1.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "review": "review.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

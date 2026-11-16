@@ -272,7 +272,7 @@ ownership, and verification. Capabilities include architecture, engineering,
 verification, optimization, security, and scientific validation.
 
 `check_orchestration.py` enforces deterministic rules. All 67 check codes have
-coverage among 212 [adversarial cases](./.adversarial/).
+coverage among 223 [adversarial cases](./.adversarial/).
 
 | Check | Rejects |
 |:--|:--|
@@ -449,10 +449,16 @@ evidence, findings, disputes). Re-check any of them yourself:
 ```sh
 C=.agents/skills/alchemy-orchestrate/scripts/check_orchestration.py
 R=.alchemy/runs/<id>
-python $C plan    $R/plan.json                          --profile alchemy-workspace.json
+D=<approved_digest>  # printed by the plan check for the plan the human approved
+python $C plan    $R/plan.json                          --profile alchemy-workspace.json --approved $D
 python $C handoff $R/handoffs/P1.json --plan $R/plan.json --profile alchemy-workspace.json --root .
-python $C gate    $R/ledger.json      --plan $R/plan.json --profile alchemy-workspace.json --root .
+python $C gate    $R/ledger.json      --plan $R/plan.json --profile alchemy-workspace.json --root . --approved $D
 ```
+
+Without `--approved`, a plan with amendments, and a gate whose plan carries an
+extension or whose ledger records rework, fail `AMENDMENT_INVALID`; a setup
+that passed before rework was anchored adds it, as the
+[upgrade table](./.agents/skills/alchemy-orchestrate/references/contracts.md#ledger--alchemy-ledger1) states.
 
 Your runtime's transcript shows which agents were spawned and which skills
 each loaded.

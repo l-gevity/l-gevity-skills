@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #220: a plan carrying a rework extension needs the approved revision even before any rework",
+  "description": "Same as gate-full-pass with the ledger recording no rework, but the plan carries a rework extension and the gate gets no --approved.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AMENDMENT_INVALID",
+      "AUTHORIZATION_UNPROVEN"
+    ]
+  }
+}
