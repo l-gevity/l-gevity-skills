@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #125: a package whose command criteria run on tools declares an environment need",
+  "description": "P1 runs 'npm test -- orders' but dropped N-BUILD from its needs; P2 still declares it, so coverage alone would pass.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "NEEDS_UNDECLARED"
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #118: a preflight fails when an access need a package declares has no entry",
+  "description": "The passing record without A2: P1 and P2 declare N-CLOUD, and the remaining access entry proves only the repository.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "PREREQUISITE_UNCOVERED"
+    ]
+  }
+}

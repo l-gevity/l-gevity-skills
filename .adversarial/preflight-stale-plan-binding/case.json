@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #128: a preflight made for another plan revision is stale",
+  "description": "The passing record, bound to the revision before max_parallel_agents was lowered to 2.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "STALE",
+    "codes": [
+      "PREFLIGHT_STALE"
+    ]
+  }
+}

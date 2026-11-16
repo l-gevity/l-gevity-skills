@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #119: a preflight fails when an account need a package declares has no entry",
+  "description": "The passing record without U2: P2 declares its own clerk N-CLERK-B, and no account covers it.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "PREREQUISITE_UNCOVERED"
+    ]
+  }
+}

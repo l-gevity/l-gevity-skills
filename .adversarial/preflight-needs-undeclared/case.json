@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #124: an unattended run refuses a package that states no needs",
+  "description": "P3 declares no needs, so its omissions cannot be detected; the record is bound to this plan.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "NEEDS_UNDECLARED"
+    ]
+  }
+}

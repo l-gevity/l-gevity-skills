@@ -3,8 +3,8 @@
 # deterministic checks, and stops at human checkpoints. It never merges.
 pipeline:
   name: 'ALCHEMY Multi-Agent'
-  version: '3.0'
-  description: 'Route with alchemy, plan and check, execute with native sub-agents after approval, review across two providers, gate, and open a pull request only after a second approval. Never merges.'
+  version: '3.1'
+  description: 'Route with alchemy, plan and check, prove the prerequisites of an unattended run, execute with native sub-agents after approval, review across two providers, gate, and open a pull request only after a second approval. Never merges.'
   scope: [directory, worktree]
   on:
     dispatch:
@@ -92,6 +92,10 @@ pipeline:
       "plan":{"type":"string","description":"The complete alchemy-plan/1 record as JSON text, or an empty string when planning stops"},
       "report":{"type":"string","description":"The alchemy decision trail and the alchemy-orchestrate execution block, or why planning stopped"}},
       "required":["plan","report"]}
+    PREFLIGHT_SCHEMA: >-
+      {"type":"object","additionalProperties":false,"properties":{
+      "report":{"type":"string","description":"Each probe with command, exit code, and commit; what could not be proved; the preflight verdict"}},
+      "required":["report"]}
     EXECUTE_SCHEMA: >-
       {"type":"object","additionalProperties":false,"properties":{
       "status":{"type":"string","enum":["INTEGRATED","BLOCKED","ESCALATE"]},
@@ -157,7 +161,7 @@ pipeline:
 
               1. Route. Read `<skills>/alchemy/SKILL.md` and apply it to the objective exactly as an explicit `alchemy` invocation (`/alchemy` or `$alchemy`) would, reading the references and sibling skills it routes to. Record the dispatch, route, companions, and execution decision.
               2. Plan. Read `<skills>/alchemy-orchestrate/SKILL.md`, its `references/contracts.md` and `references/governance.md`, and the profile `alchemy-workspace.json` at the root (defaults in `<skills>/alchemy-orchestrate/assets/alchemy-workspace.json`). Write one alchemy-plan/1 record by section 4 steps 1 and 2. Its base commit is ${{ needs.start.outputs.head_commit }}.
-              3. The plan must fit this pipeline: the next job runs the plan check and stops on any verdict but PASS; a human approves the plan before execution; writing packages run as `alchemy-implementer` sub-agents in isolated worktrees and read-only packages as `alchemy-analyst` sub-agents, each owned by a distinct label such as `agent-a`; packages you hold are owned by `lead`; after integration two reviewers on different providers review the integrated diff independently and their findings enter the ledger, in addition to the plan's own `verify` packages; merge_policy is `human-approval`.
+              3. The plan must fit this pipeline: the next job runs the plan check and stops on any verdict but PASS; a human approves the plan before execution; writing packages run as `alchemy-implementer` sub-agents in isolated worktrees and read-only packages as `alchemy-analyst` sub-agents, each owned by a distinct label such as `agent-a`; packages you hold are owned by `lead`; after integration two reviewers on different providers review the integrated diff independently and their findings enter the ledger, in addition to the plan's own `verify` packages; merge_policy is `human-approval`. Set `execution.unattended` to true only when the objective says the run proceeds while nobody watches between this plan's approval and the pull request approval; then every package states its `needs` per `references/autonomy-preflight.md`, and execution starts only after a preflight bound to this plan passes.
               4. If section 4 step 1 stops, or the route does not proceed, return an empty `plan` and say why in `report`.
 
               You cannot edit files in this step. Return `plan` as the complete plan JSON text and `report` as the alchemy decision trail and the execution block of alchemy-orchestrate section 2.
@@ -174,6 +178,8 @@ pipeline:
         plan_file: ${{ steps.check.outputs.plan_file }}
         base_commit: ${{ steps.check.outputs.base_commit }}
         run_dir: ${{ steps.check.outputs.run_dir }}
+        unattended: ${{ steps.check.outputs.unattended }}
+        plan_digest: ${{ steps.check.outputs.plan_digest }}
       steps:
         - id: check
           uses: project/alchemy-check
@@ -194,15 +200,59 @@ pipeline:
           uses: builtin/request-input
           with:
             title: Execute this ALCHEMY plan?
-            message: '${{ needs.plan_check.outputs.summary }}. Plan: ${{ needs.plan_check.outputs.plan_file }}. Check report: ${{ needs.plan_check.outputs.report_file }}. Continue launches the planned sub-agents in this worktree; stop ends the run.'
+            message: '${{ needs.plan_check.outputs.summary }}. Plan: ${{ needs.plan_check.outputs.plan_file }}. Check report: ${{ needs.plan_check.outputs.report_file }}. Continue launches the planned sub-agents in this worktree; an unattended plan first proves its prerequisites and executes only on a passing preflight. Stop ends the run.'
             fields: '[{"key":"decision","label":"Decision","type":"choice","options":["continue","stop"],"required":true}]'
+
+    # An unattended run proves every prerequisite its packages declare before the
+    # first wave; execute runs it only on a preflight PASS. An attended run skips both.
+    preflight:
+      name: Prove Unattended Prerequisites
+      needs:
+        - plan_check
+        - approve_plan
+      if: needs.approve_plan.result == 'success' && needs.approve_plan.outputs.decision == 'continue' && needs.plan_check.outputs.unattended == 'true'
+      steps:
+        - id: preflight
+          uses: builtin/agent-prompt
+          with:
+            model: lead
+            thinking_effort: high
+            permission_preset: dangerous_all
+            structured_output_schema: ${{ env.PREFLIGHT_SCHEMA }}
+            prompt: |
+              You are the lead of an approved ALCHEMY run that will proceed unattended. ${{ env.SKILLS_NOTE }} ${{ env.UNTRUSTED_NOTE }}
+
+              - Approved plan: ${{ needs.plan_check.outputs.plan_file }}; plan digest ${{ needs.plan_check.outputs.plan_digest }}; base ${{ needs.plan_check.outputs.base_commit }}
+              - Run directory: ${{ needs.plan_check.outputs.run_dir }}
+
+              Read `<skills>/alchemy-orchestrate/SKILL.md` section 4 step 3 and `references/autonomy-preflight.md`, then write one alchemy-preflight/1 record to `<run directory>/preflight.json`, bound to the digest and base above. Run each probe non-interactively at the base and record its command, exit code, and commit; cover every need each package and the profile declare. Record a decision as decided by the human only when the human made it in the objective or the canonical issue; every other question is `open`. Create, change, or commit nothing else. ${{ env.CHECK_NOTE }} Run the `preflight` command on your record and report its verdict; do not start any package.
+
+    preflight_check:
+      name: Check Preflight
+      needs:
+        - plan
+        - plan_check
+        - preflight
+      if: needs.preflight.result == 'success'
+      outputs:
+        verdict: ${{ steps.check.outputs.verdict }}
+        summary: ${{ steps.check.outputs.summary }}
+      steps:
+        - id: check
+          uses: project/alchemy-check
+          with:
+            mode: preflight
+            plan: ${{ needs.plan.outputs.response_file }}
+            plan_field: plan
+            record: ${{ needs.plan_check.outputs.run_dir }}/preflight.json
 
     execute:
       name: Execute Plan
       needs:
         - plan_check
         - approve_plan
-      if: needs.approve_plan.result == 'success' && needs.approve_plan.outputs.decision == 'continue'
+        - preflight_check
+      if: needs.approve_plan.result == 'success' && needs.approve_plan.outputs.decision == 'continue' && (needs.plan_check.outputs.unattended != 'true' || (needs.preflight_check.result == 'success' && needs.preflight_check.outputs.verdict == 'PASS'))
       outputs:
         status: ${{ parseJson(steps.execute.outputs.json_response).status }}
         head_commit: ${{ parseJson(steps.execute.outputs.json_response).head_commit }}
@@ -222,6 +272,7 @@ pipeline:
               - Approved plan: ${{ needs.plan_check.outputs.plan_file }}. Change nothing in it but `base.integrated`; the pipeline checks against the planning step's own record plus the integrated heads you return.
               - Run directory: ${{ needs.plan_check.outputs.run_dir }}
               - Plan check: ${{ needs.plan_check.outputs.summary }}
+              - Preflight: ${{ needs.preflight_check.outputs.summary }}
 
               Read `<skills>/alchemy-orchestrate/SKILL.md` and its references, then carry out section 4 steps 5 to 7. Do not re-plan; a plan that cannot run as written is BLOCKED.
               - ${{ env.SPAWN_NOTE }}
@@ -338,6 +389,7 @@ pipeline:
             plan: ${{ needs.plan.outputs.response_file }}
             plan_field: plan
             record: ${{ needs.plan_check.outputs.run_dir }}/ledger.json
+            preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json
             integrated: ${{ needs.execute.outputs.integrated_heads }}
             enforce: 'false'
 
@@ -457,6 +509,7 @@ pipeline:
             plan: ${{ needs.plan.outputs.response_file }}
             plan_field: plan
             record: ${{ needs.plan_check.outputs.run_dir }}/ledger.json
+            preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json
             integrated: '${{ needs.execute.outputs.integrated_heads }},${{ needs.correct.outputs.integrated_heads }}'
             enforce: 'false'
 
@@ -484,6 +537,7 @@ pipeline:
             plan: ${{ needs.plan.outputs.response_file }}
             plan_field: plan
             record: ${{ needs.plan_check.outputs.run_dir }}/ledger.json
+            preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json
             integrated: '${{ needs.execute.outputs.integrated_heads }},${{ needs.correct.outputs.integrated_heads }}'
 
     approve_pr:
@@ -507,6 +561,7 @@ pipeline:
             plan: ${{ needs.plan.outputs.response_file }}
             plan_field: plan
             record: ${{ needs.plan_check.outputs.run_dir }}/ledger.json
+            preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json
             integrated: '${{ needs.execute.outputs.integrated_heads }},${{ needs.correct.outputs.integrated_heads }}'
         - id: ask
           uses: builtin/request-input

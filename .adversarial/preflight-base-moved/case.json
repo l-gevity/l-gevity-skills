@@ -1,0 +1,18 @@
+{
+  "criterion": "multi-agent-governance #129: a later iteration on a new base cannot reuse probes from the old one",
+  "description": "The next iteration's plan starts from a1b2c3d; the record and every probe are for 3f9c2e1.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "BASELINE_RED",
+      "PREFLIGHT_STALE",
+      "PREREQUISITE_UNPROVEN"
+    ]
+  }
+}

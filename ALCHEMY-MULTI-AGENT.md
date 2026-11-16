@@ -260,6 +260,19 @@ Objective
     conditions, and MUST report through an escalation channel proved by a test
     delivery; a blocked package parks while independent packages continue.
     *Check:* `UNBOUNDED_RUN`, `PREREQUISITE_UNPROVEN`; *judgment* for parking.
+44. Preflight MUST check coverage against what the work needs, not only the
+    entries a record submits: an unattended plan states each package's needs
+    (systems, identities, environment and tools, fixtures and inputs), a
+    package with a command criterion states an environment need, and every
+    need a package or the profile declares is covered by an entry of its
+    kind. *Check:* `NEEDS_UNDECLARED`, `PREREQUISITE_UNCOVERED`; *judgment*
+    for a need nobody declared.
+45. A preflight MUST be bound to the plan revision and base it was made for.
+    An amended plan or a moved base makes it stale until the changed needs
+    are proved again, and the gate of an unattended plan fails without a
+    current, passing preflight. A workflow adapter runs the preflight before
+    the first wave and executes only on `PASS`. *Check:* `PREFLIGHT_STALE`,
+    `PREFLIGHT_REQUIRED`; the validator's adapter check for the workflow.
 
 ## 13. Runtime Conformance
 

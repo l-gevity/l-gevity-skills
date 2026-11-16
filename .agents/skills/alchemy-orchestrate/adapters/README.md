@@ -80,7 +80,7 @@ and the plan check fails a multi-agent plan under `off` with `MODE_MISMATCH`.
 | `.claude/settings.json` | Depth 1, the concurrency cap, `worktree.baseRef: head`, and the ask, deny, and allow rules |
 | `.codex/agents/alchemy-analyst.toml`, `alchemy-implementer.toml` | The same two envelopes as Codex custom agents |
 | `.codex/config.toml` | The concurrency cap, plus `[features] multi_agent = false` under `off` |
-| `.unstoppable-code/actions/alchemy-check/` | Runs `check_orchestration.py` from the skills tree in `plan`, `handoff` (one file or a directory), or `gate` mode. Keeps the JSON report and outputs `verdict`, `summary`, and `report_file`. Fails unless the verdict is PASS or ACCEPT; `enforce: 'false'` only reports. It can extract the plan from a structured-output file (`plan_field`). `integrated` adds wave heads to the checked copy's `base.integrated`. `digests: 'false'` checks hand-offs structurally, without `--root`. In plan mode it can also require the plan's base (`expect_base`) and publish the plan to `<state_dir>/<run id>/plan.json` (`publish`). Commit prefixes match only when both sides have at least 7 hex characters. |
+| `.unstoppable-code/actions/alchemy-check/` | Runs `check_orchestration.py` from the skills tree in `plan`, `preflight`, `handoff` (one file or a directory), or `gate` mode. Keeps the JSON report and outputs `verdict`, `summary`, and `report_file`. Fails unless the verdict is PASS or ACCEPT; `enforce: 'false'` only reports. It can extract the plan from a structured-output file (`plan_field`). `integrated` adds wave heads to the checked copy's `base.integrated`. `digests: 'false'` checks hand-offs structurally, without `--root`. In plan mode it can also require the plan's base (`expect_base`) and publish the plan to `<state_dir>/<run id>/plan.json` (`publish`), and it outputs `unattended` and the `plan_digest` a preflight record binds to. Preflight mode checks the record with `--root` at the repository root, so the repository must still be at the plan base. In gate mode, `preflight` names the preflight record, passed when the file exists; a gate on an unattended plan without a passing one fails. Commit prefixes match only when both sides have at least 7 hex characters. |
 | `.unstoppable-code/actions/alchemy-snapshot/` | Outputs the head commit. Given a base, it writes the diff from that base to the working tree for reviewers that cannot run git. `require_clean` fails on uncommitted changes. |
 | `.unstoppable-code/pipelines/alchemy-multi-agent.yaml` | The preconfigured workflow below |
 | `.unstoppable-code/review-tracks/alchemy-independent-review.md` | Cross-provider review track for the bundled multi-provider review pipeline |
@@ -96,26 +96,34 @@ Dispatch it with an `objective`. The `lead`, `reviewer_claude`, and
 3. `plan_check` extracts and checks the plan, requires its base to be the
    recorded head, and publishes it to the run directory.
 4. `approve_plan` asks the human: continue or stop.
-5. `execute` has the lead run the packages through native sub-agents. It saves
+5. When the plan sets `execution.unattended`, `preflight` has the lead run a
+   probe for every need the packages and the profile declare, at the base,
+   and write `preflight.json` to the run directory, bound to the plan digest.
+   `preflight_check` checks it and fails on any verdict but `PASS`. An
+   attended plan skips both jobs.
+6. `execute` runs only when the plan is attended or the preflight verdict is
+   `PASS`. It has the lead run the packages through native sub-agents. It saves
    each hand-off to `handoffs/<package>.json` and checks it on receipt, digests
    included. It integrates and commits the accepted packages, records each
    wave's head in the run plan's `base.integrated`, and returns those heads as
    `integrated_heads`.
-6. `handoff_check` re-checks every hand-off structurally and snapshots the
+7. `handoff_check` re-checks every hand-off structurally and snapshots the
    diff from the base. It passes the returned heads as `integrated` and does
    not check digests, because later waves legitimately change files that
    earlier hand-offs relied on or changed. `rereview` repeats this check after
    the correction pass, adding that pass's heads.
-7. `review` runs two read-only reviewers on different providers, in parallel.
+8. `review` runs two read-only reviewers on different providers, in parallel.
    They see the plan, the diff, and the test commands, not the hand-offs.
-8. `consolidate` has the lead re-run the checks and build `ledger.json`.
-9. `gate` runs the ledger through the gate check.
-10. On `FAIL`, one bounded correction pass follows: `correct`, then
+9. `consolidate` has the lead re-run the checks and build `ledger.json`.
+10. `gate` runs the ledger through the gate check, with the run's
+    `preflight.json` when it exists, so unattended work without a passing
+    preflight bound to the plan cannot pass (`PREFLIGHT_REQUIRED`).
+11. On `FAIL`, one bounded correction pass follows: `correct`, then
     `rereview` with one reviewer, then `reconsolidate`, then `regate`.
-11. `escalate` follows `ESCALATE`, a failed correction, a failed re-gate, or
+12. `escalate` follows `ESCALATE`, a failed correction, a failed re-gate, or
     an execution that did not integrate. It asks the human, re-runs the gate,
     and ends the run failed unless the gate now passes.
-12. After a `PASS`, `approve_pr` re-runs the gate and asks the human: open a
+13. After a `PASS`, `approve_pr` re-runs the gate and asks the human: open a
     pull request or stop. `create_pr` then opens it.
 
 Every check after planning re-extracts the plan from the planning step's own
@@ -168,7 +176,7 @@ whether or not the jobs it needs succeeded, so each such condition tests
 - **`pipelines validate` checks structure only.** It accepted a missing
   project action, an unknown model alias, and a malformed `if:`. The pipeline
   has been validated and its two actions run locally; the pipeline itself has
-  not been executed end to end.
+  not been executed end to end, and neither have its preflight jobs.
 - **One run costs several context loads.** A run takes a planning context, a
   lead execution context with one context per sub-agent, two reviewer
   contexts, and a ledger context. The correction pass adds three more. Measure

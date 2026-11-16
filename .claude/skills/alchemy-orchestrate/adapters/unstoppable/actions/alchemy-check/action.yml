@@ -1,11 +1,11 @@
 name: ALCHEMY Check
 description: >-
-  Run alchemy-orchestrate check_orchestration.py on a plan, hand-off, or gate
-  ledger, keep its JSON report, and fail the step unless the verdict is PASS or
-  ACCEPT.
+  Run alchemy-orchestrate check_orchestration.py on a plan, preflight record,
+  hand-off, or gate ledger, keep its JSON report, and fail the step unless the
+  verdict is PASS or ACCEPT.
 inputs:
   mode:
-    description: plan, handoff, or gate.
+    description: plan, preflight, handoff, or gate.
     required: true
   plan:
     description: >-
@@ -15,8 +15,10 @@ inputs:
     required: true
   record:
     description: >-
-      handoff mode, an alchemy-handoff/1 file or a directory whose *.json files
-      are each checked; gate mode, the alchemy-ledger/1 file. Ignored in plan mode.
+      preflight mode, the alchemy-preflight/1 file, checked with the repository
+      root as --root, so the repository must still be at the plan base; handoff
+      mode, an alchemy-handoff/1 file or a directory whose *.json files are each
+      checked; gate mode, the alchemy-ledger/1 file. Ignored in plan mode.
     required: false
     default: ''
   profile:
@@ -43,6 +45,14 @@ inputs:
       Commit IDs the lead integrated a wave at, separated by commas or spaces.
       They are added to the checked copy of the plan's base.integrated, so a
       hand-off based on one of them is not stale. The input file is not changed.
+    required: false
+    default: ''
+  preflight:
+    description: >-
+      gate mode, the alchemy-preflight/1 file, passed as --preflight when it
+      exists. A gate on a plan with execution.unattended true fails
+      (PREFLIGHT_REQUIRED) when the file is missing or no longer passes against
+      the plan; an attended plan needs none.
     required: false
     default: ''
   plan_field:
@@ -77,6 +87,10 @@ outputs:
     description: The plan that was checked; in plan mode with publish, the published copy.
   base_commit:
     description: plan mode, the plan's base.commit.
+  unattended:
+    description: plan mode, "true" when the plan sets execution.unattended, otherwise "false".
+  plan_digest:
+    description: plan mode, the plan revision digest a preflight record binds to in its plan.digest.
   run_dir:
     description: plan mode with publish, the run directory holding plan.json.
 runs:

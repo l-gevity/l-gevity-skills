@@ -1,0 +1,13 @@
+{
+  "criterion": "multi-agent-governance #127: an unattended plan whose packages state their needs passes the plan check",
+  "description": "The same plan with every package's needs, including an environment need for each command criterion.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

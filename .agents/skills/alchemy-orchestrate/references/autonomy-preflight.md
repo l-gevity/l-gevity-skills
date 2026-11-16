@@ -9,8 +9,11 @@ or to the merge boundary.
 
 Run it after the plan check passes and before the first spawn, whenever the
 run is meant to proceed while nobody watches: overnight, over a weekend, or
-across more than one wave. A run the human attends end to end may skip it and
-says so under What I did not check.
+across more than one wave. Such a plan sets `execution.unattended: true`, and
+its gate passes only with a preflight record that still passes against it
+(`PREFLIGHT_REQUIRED`), so work done without one never reaches the merge
+boundary. A run the human attends end to end may skip it and says so under
+What I did not check.
 
 **Preflight reads evidence; it never runs a probe.** The lead executes each
 probe at the plan's base, records command, exit code, and commit, and the
@@ -34,6 +37,8 @@ when it is missing.
 | 9 | Bounds | A window, a spend limit, stop conditions, and an escalation channel proved by a deliberate test escalation that arrived | `UNBOUNDED_RUN`, `PREREQUISITE_UNPROVEN` |
 | 10 | Human steps | Approvals happen before the window; merge, deploy, and accepted risk are batched at its end | `HUMAN_STEP_MIDRUN` |
 | 11 | Secrets | The record names secrets; it never holds a value | `SECRET_IN_RECORD` |
+| 12 | Coverage | Every package states its needs, and every need a package or the profile declares is claimed by an entry of its kind (section 2) | `NEEDS_UNDECLARED`, `PREREQUISITE_UNCOVERED` |
+| 13 | Binding | The record names the plan revision and base it was made for, and the plan has not changed since (section 3) | `PREFLIGHT_STALE` |
 
 Environment probes, line 7:
 
@@ -69,6 +74,11 @@ Judgment the checker cannot make, reviewed by the lead and reported:
   pinned by architecture tests, and sequence-numbered migrations are written
   by more than one package unless the plan serializes them; a criterion that
   contradicts the increment's goal is a plan defect, not a finding.
+- **The needs list is complete.** For each package, read its write set,
+  permissions, and acceptance commands, and ask what it must reach, act as,
+  run on, and read that its needs do not name. The checker counts coverage
+  against the declared needs, so a need nobody declared is a gap it cannot
+  see (section 2).
 - **Probes probe the right thing.** A repository read does not prove a deploy
   permission, and a sign-in does not prove a role.
 - **Outcomes are distinguishable.** A check reports "could not evaluate"
@@ -79,13 +89,84 @@ Judgment the checker cannot make, reviewed by the lead and reported:
   sized to finish within one context; a run that sleeps through waits is
   bounded by the window, not by progress.
 
-## 2. Record — `alchemy-preflight/1`
+## 2. Needs and Coverage
+
+Validating the entries a record submits proves those entries, not that the
+run's prerequisites are all there: an emptied `environment` list has no entry
+left to fail. Coverage needs a list of what the work requires, and the plan
+is where a package states it. Each package of an unattended plan
+carries `needs`, each `{"id", "kind", "what"}`:
+
+| `kind` | What the package needs | Proved in |
+|:--|:--|:--|
+| `access` | A system it must reach: repository, pipeline, registry, cloud, an external service | `access[]` |
+| `account` | An identity it acts as: a test account or role | `accounts[]`, naming the package |
+| `environment` | The environment and tools it runs in, the tools its commands call included | `environment[]` |
+| `fixture` | Inputs and fixtures it reads: seed data, recorded responses, test files | `fixtures[]` |
+
+Packages that share a need repeat its `id` with the same kind. A preflight
+entry claims needs with `covers`, a list of need IDs; one entry may cover
+several. Every declared need, and every need the profile lists under
+`preflight.needs`, must be claimed by an entry of its kind
+(`PREREQUISITE_UNCOVERED`); an account claims a package's need only when its
+`packages` names that package. Whether the claiming entry is proved stays
+`PREREQUISITE_UNPROVEN`'s question.
+
+A package that declares nothing has not said what it needs. `needs` absent is
+`NEEDS_UNDECLARED`, so an omitted prerequisite cannot pass by omitting the
+declaration too; `needs: []` is a claim a reviewer can test. Declaring fewer
+needs than the work has is held back three ways:
+
+- **A rule.** A package with a `command` acceptance criterion declares an
+  `environment` need for the tools that command calls (`NEEDS_UNDECLARED`).
+- **The profile.** `preflight.needs` in the project overlay lists what every
+  unattended run in the project needs. The library names kinds; the overlay
+  names the systems and their probes, and no plan can drop them.
+- **A reviewer question.** "The needs list is complete" (section 1) is
+  judgment.
+
+The checker cannot see a need that no package, rule, or profile entry names,
+nor a `what` that describes the wrong system; the lead reads those against
+the work and reports them.
+
+## 3. Binding and Revalidation
+
+A preflight is worth something only for the plan revision it was checked
+against. Its `plan` field names that revision: `digest`, the SHA-256 of the
+plan's canonical JSON (keys sorted, no whitespace, `base.integrated` left out
+because the lead appends wave heads to it), which the plan and preflight
+checks print as `plan_digest`; and `base`, the plan's base commit, at which
+every probe ran. A record whose digest or base is not the checked plan's is
+stale (`PREFLIGHT_STALE`), and so is every probe on another commit
+(`PREREQUISITE_UNPROVEN`, `BASELINE_RED`).
+
+When a plan amendment or a later iteration changes the plan, the old record
+no longer passes, and the gate refuses the run until a new one does. The lead
+writes a new record bound to the new revision:
+
+- **Prove again** every need that is new or whose kind, `what`, or packages
+  changed, every entry whose system or identity changed, and everything when
+  the base moved: a later iteration starts from a new base, so every probe
+  and the baseline run there.
+- **Carry over**, on the same base, every other entry with its evidence
+  unchanged: its probe still ran at the base the plan names. A small
+  amendment re-runs only the probes of what it changed, and a relevant one
+  cannot be skipped, because the new need stays uncovered until an entry
+  claims it.
+- **Re-check the window.** A changed window re-tests every expiry against it.
+
+A plan amendment record that names the revision it supersedes can attach to
+the digest; until one exists, the digest of the plan as it stands is the
+binding.
+
+## 4. Record — `alchemy-preflight/1`
 
 Kept with the plan under `state_dir`. Excerpt:
 
 ```json
 {
   "schema": "alchemy-preflight/1",
+  "plan": {"digest": "<plan_digest from the plan check>", "base": "3f9c2e1"},
   "window": {"start": "2026-11-13T18:00:00Z", "end": "2026-11-14T08:00:00Z"},
   "bounds": {
     "budget": "400 agent-minutes, USD 60",
@@ -97,11 +178,15 @@ Kept with the plan under `state_dir`. Excerpt:
   "decisions": [{"id": "D2", "question": "Sort order when dates tie?", "status": "default",
                  "decided_by": "human", "reversible": true, "answer": "by id ascending"}],
   "access": [{"id": "A1", "system": "repository and pipeline", "secret": "REPO_TOKEN",
-              "expires": "2026-12-31T00:00:00Z", "interactive": false, "evidence": ["E1"]}],
+              "expires": "2026-12-31T00:00:00Z", "interactive": false,
+              "covers": ["N-REPO"], "evidence": ["E1"]}],
   "accounts": [{"id": "U1", "role": "order clerk", "secret": "TEST_CLERK_A_PASSWORD",
                 "packages": ["P1"], "reset": "npm run seed -- --user clerk-a",
-                "expires": "never", "evidence": ["E3"]}],
-  "environment": [{"id": "ENV1", "what": "one-command build", "evidence": ["E5"]}],
+                "expires": "never", "covers": ["N-CLERK-A"], "evidence": ["E3"]}],
+  "environment": [{"id": "ENV1", "what": "one-command build", "covers": ["N-BUILD"],
+                   "evidence": ["E5"]}],
+  "fixtures": [{"id": "F1", "what": "orders seed data", "covers": ["N-ORDERS-SEED"],
+                "evidence": ["E8"]}],
   "human_steps": [{"action": "approve the plan", "when": "before"},
                   {"action": "merge the pull request", "when": "end"}],
   "evidence": [{"id": "E1", "command": "git ls-remote origin HEAD", "exit_code": 0, "commit": "3f9c2e1"}]
@@ -110,22 +195,26 @@ Kept with the plan under `state_dir`. Excerpt:
 
 | Field | Rule |
 |:--|:--|
+| `plan` | `digest`, 64 hex characters, and `base`, a commit: the revision the record was made for (section 3) |
 | `window` | `start` and `end`, ISO 8601 instants with a zone; `end` after `start` |
 | `bounds` | `budget`, at least one `stop_conditions` entry, and `escalation` with a `channel` and the `evidence` of a test delivery |
 | `work[]` | `subject`, `decision` from `implementation-readiness`, `requirements`, `record`; `PARTLY-READY` counts only with `reversible: true`. Together they cover every plan requirement |
 | `decisions[].status` | `answered`, `default` (needs `reversible: true`), or `stop`, each with `decided_by: human`; `answered` and `default` state the `answer`; `open` escalates. Defaults are reported as `queued` for the human to confirm at the merge boundary |
 | `access[]`, `accounts[]` | `id`, `evidence`, `expires` (`never` or an instant after the window end), optional `interactive`; accounts add `role`, `secret` (a name), `packages`, `reset`, and `shared: true` only for read-only use |
-| `environment[]` | `id`, `evidence`, optional `interactive` |
+| `environment[]`, `fixtures[]` | `id`, `evidence`, optional `interactive`; `fixtures` may be absent when no need is a fixture |
+| `covers` | On an access, account, environment, or fixture entry: the IDs of the needs it proves; an ID that no package and no profile need declares is `SCHEMA` |
 | `human_steps[].when` | `before`, `end`, or `during`; `during` fails |
 | `evidence[]` | As in the hand-off: `id`, `command`, `exit_code`, `commit`, optional `expect_exit`. A probe counts only when it passed at the plan base |
 
 `check_orchestration.py preflight <preflight.json> --plan <plan.json>
---profile alchemy-workspace.json --root .` returns `PASS`, `FAIL`, or
-`ESCALATE` with the codes in [contracts.md](contracts.md). `PASS` with a
+--profile alchemy-workspace.json --root .` returns `PASS`, `FAIL`, `STALE`,
+or `ESCALATE` with the codes in [contracts.md](contracts.md). `PASS` with a
 non-empty `queued` list means the run proceeds on reversible defaults the
-human confirms at the merge boundary.
+human confirms at the merge boundary. The first wave starts only on `PASS`,
+and the gate of an unattended plan re-checks the same record with
+`--preflight <preflight.json>`.
 
-## 3. During the Run
+## 5. During the Run
 
 Preflight removes the known interruptions; the run handles the rest without
 stopping everything:

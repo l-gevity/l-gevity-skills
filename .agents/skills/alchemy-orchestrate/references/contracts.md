@@ -86,6 +86,8 @@ omitted.
 | `permissions` | Subset of `read`, `test`, `edit`, `commit`, and of the package's envelope. `push` and `pull_request` belong to the lead after human approval; `merge` and `deploy` never appear in a plan. |
 | `approved_by` | `human` on a package that writes a protected path. A protected entry guards itself and every path under it, with or without a trailing `/`, case-insensitively. |
 | `may_delegate` | Absent or `false`. Delegation depth is 1. |
+| `execution.unattended` | `true` when the run proceeds while nobody watches; absent is `false`. Every package then states `needs`, and the gate requires a passing preflight bound to the plan. |
+| `needs` | Package prerequisites for an unattended run, each `{"id", "kind", "what"}` with `kind` `access`, `account`, `environment`, or `fixture`; absent is undeclared, `[]` declares none. Shared needs repeat one `id` with one kind. Coverage rules are in [autonomy-preflight.md](autonomy-preflight.md). |
 | required | `id`, `kind`, `owner`, `envelope` (a profile envelope), `risk` (`low`, `medium`, `high`), `requirements`, `writes`, `depends_on`, `acceptance`, `permissions`. Package and criterion IDs are unique. |
 | `conflicts` | `{"between": [ids], "resolution": null}` until a human or evidence resolves it: `{"basis": "human", "decided_by": "human", "rationale": "..."}` or `{"basis": "evidence", "evidence": [...], "rationale": "..."}`. |
 
@@ -171,7 +173,9 @@ The record that proves a checked plan can run unattended for its whole
 window: work that may start, decisions the human made, access, test accounts,
 and environment proved by probes executed at the plan base, a green baseline,
 bounds with a test-delivered escalation channel, and human steps only before
-or after the window. Shape, field rules, and the checklist behind it are in
+or after the window. It is bound to the plan revision by the plan's digest
+and base, and covers every need the packages and the profile declare. Shape,
+field rules, and the checklist behind it are in
 [autonomy-preflight.md](autonomy-preflight.md). The checker reads the probe
 evidence and never runs a probe.
 
@@ -192,6 +196,7 @@ a project file overrides only the keys it states.
 | `execution.max_rework_cycles` | `2` | Correction rounds per package before escalation |
 | `repository.protected_paths` | `[]` | Writes need `approved_by: human` |
 | `repository.verification` | `[]` | Commands, as `{"id", "command"}` or plain strings, the integrated head must pass; the gate needs passing ledger evidence for each at `head_commit` |
+| `preflight.needs` | `[]` | Needs every unattended run of the project has, shaped as a package's `needs`; a preflight covers them too |
 | `repository.state_dir` | `.alchemy/runs/` | Run records; never committed; the only uncommitted changes `gate --root` tolerates |
 | `approval` | human for `merge`, `push`, `pull_request`, `destructive`, `external` | Actions the lead may not take without the human |
 | `envelopes` | `analyst`, `implementer` | Permission envelopes the adapters render |
@@ -263,3 +268,7 @@ bound reached must stop rework rather than restart it.
 | `UNBOUNDED_RUN` | preflight | FAIL | The window, spend limit, stop conditions, or escalation channel is missing, or the window ends before it starts |
 | `HUMAN_STEP_MIDRUN` | preflight | FAIL | A human step is scheduled `during` the window |
 | `OPEN_DECISION` | preflight | ESCALATE | A decision is `open`, decided by anyone but the human, or a `default` that is not reversible |
+| `NEEDS_UNDECLARED` | plan, preflight, gate | FAIL | In an unattended plan, a package has no `needs`, or has a `command` criterion and no `environment` need |
+| `PREREQUISITE_UNCOVERED` | preflight | FAIL | A need a package or the profile declares is covered by no preflight entry of its kind, or an account need only by accounts that do not name the package |
+| `PREFLIGHT_STALE` | preflight | STALE | The record's `plan.digest` or `plan.base` is not the checked plan's: the plan changed, or the base moved, after the preflight |
+| `PREFLIGHT_REQUIRED` | gate | FAIL | The plan is unattended and the gate has no preflight record, or a given record does not pass against the plan: missing, failed, or stale |

@@ -159,6 +159,8 @@ SKILL_REQUIRED_TERMS = {
         "Merge:       human approval required",
         "it specializes **Increment**",
         "an adapter names this skill, this skill names no runtime",
+        "set `execution.unattended`, give every package its `needs`",
+        "`--preflight <preflight.json>` for an unattended plan",
     ),
     "alchemy": (
         "Adaptive Requirements Qualification",
@@ -670,12 +672,18 @@ REFERENCE_REQUIRED_TERMS = {
             "two write sets overlap when one entry equals or is a directory prefix of the other",
             "Majority, seniority, model, and confidence are not a basis",
             "a bound reached must stop rework rather than restart it",
+            "absent is undeclared, `[]` declares none",
         ),
         "references/autonomy-preflight.md": (
             "# Autonomy Preflight — Preparing a Run That Proceeds Unattended",
             "Preflight reads evidence; it never runs a probe.",
             "an escalation channel proved by a deliberate test escalation that arrived",
             "only read-only accounts are shared",
+            "A package that declares nothing has not said what it needs.",
+            "must be claimed by an entry of its kind",
+            "an account claims a package's need only when its `packages` names that package",
+            "A record whose digest or base is not the checked plan's is stale",
+            "the new need stays uncovered until an entry claims it",
         ),
         "references/governance.md": (
             "# Multi-Agent Governance — Authority, State, Recovery, Security",
@@ -3217,6 +3225,30 @@ def mutation_test() -> int:
 
     cases.append((Case("orchestration: a check code no adversarial case exercises", checkers, ("MUTATION_UNTESTED",)), declare_untested_code))
 
+    # The workflow adapter's preflight wiring, each link broken on its own.
+    pipelines = both("alchemy-orchestrate/adapters/unstoppable/pipelines/alchemy-multi-agent.yaml")
+    actions = both("alchemy-orchestrate/adapters/unstoppable/actions/alchemy-check/check.py")
+    for label, files, old, new, expected in (
+        ("pipeline executes an unattended plan without a preflight PASS", pipelines,
+         " && (needs.plan_check.outputs.unattended != 'true' || (needs.preflight_check.result == 'success' "
+         "&& needs.preflight_check.outputs.verdict == 'PASS'))", "",
+         "must run an unattended plan only on a preflight PASS"),
+        ("a pipeline gate check is not given the preflight record", pipelines,
+         "            preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json\n", "",
+         "without the run's preflight record"),
+        ("the check action drops preflight mode", actions,
+         'MODES = ("plan", "preflight", "handoff", "gate")', 'MODES = ("plan", "handoff", "gate")',
+         "MODES must include preflight"),
+    ):
+        def break_adapter(files=files, old=old, new=new, label=label):
+            for path in files:
+                text, crlf = read_raw(path)
+                if old not in text:
+                    raise RuntimeError(f"{label}: text not found in {path}")
+                write_raw(path, text.replace(old, new, 1), crlf)
+
+        cases.append((Case(f"adapter: {label}", files, (expected,)), break_adapter))
+
     # A scenario transcript fails four ways, each proven on its own. The last
     # two take their subject from the recorded outcomes, so they hold whichever
     # expectations the baseline meets or misses.
@@ -4244,7 +4276,7 @@ def run_adversarial_case(checker, directory: Path) -> tuple[dict, dict]:
     elif command == "handoff":
         report = checker.check_handoff(load("handoff"), plan, profile, root)
     else:
-        report = checker.check_gate(load("ledger"), plan, profile, root)
+        report = checker.check_gate(load("ledger"), plan, profile, root, load("preflight"))
     return case, report
 
 
@@ -4274,6 +4306,58 @@ def validate_adversarial_cases() -> None:
     for code in checker.CODES:
         if f"| `{code}` |" not in reference:
             fail(f"check code {code} is not documented in alchemy-orchestrate/references/contracts.md")
+
+
+UNSTOPPABLE = ORCHESTRATE / "adapters" / "unstoppable"
+
+
+def pipeline_jobs(text: str) -> dict[str, str]:
+    """Job name -> its block in a pipeline YAML, read by indentation: jobs sit
+    four spaces in under `jobs:`. No YAML parser is assumed."""
+    start = re.search(r"(?m)^  jobs:\n", text)
+    if not start:
+        return {}
+    body = text[start.end():]
+    heads = list(re.finditer(r"(?m)^    ([A-Za-z_][\w-]*):[ \t]*$", body))
+    return {head.group(1): body[head.end(): heads[i + 1].start() if i + 1 < len(heads) else len(body)]
+            for i, head in enumerate(heads)}
+
+
+def validate_unattended_adapter() -> None:
+    """The workflow adapter enforces the unattended-run preflight (ORCH-1a):
+    the check action runs preflight mode, the pipeline runs a preflight check
+    before the first execution wave and executes an unattended plan only on
+    PASS, and every gate check is handed the run's preflight record. The
+    runtime cannot run here, so the wiring is held by its text."""
+    action = UNSTOPPABLE / "actions" / "alchemy-check" / "check.py"
+    modes = re.search(r"^MODES = \(([^)]*)\)", action.read_text(encoding="utf-8"), re.M)
+    if not modes or '"preflight"' not in modes.group(1):
+        fail(f"{action.relative_to(ROOT)} MODES must include preflight")
+    path = UNSTOPPABLE / "pipelines" / "alchemy-multi-agent.yaml"
+    label = path.relative_to(ROOT)
+    jobs = pipeline_jobs(path.read_text(encoding="utf-8"))
+    if "unattended: ${{ steps.check.outputs.unattended }}" not in jobs.get("plan_check", ""):
+        fail(f"{label} plan_check must output the plan's unattended switch")
+    checks = [name for name, block in jobs.items()
+              if "uses: project/alchemy-check" in block and re.search(r"(?m)^\s+mode: preflight\s*$", block)]
+    if len(checks) != 1:
+        fail(f"{label} needs exactly one job running alchemy-check in preflight mode, found {checks}")
+    check = checks[0]
+    execute = jobs.get("execute", "")
+    condition = re.search(r"(?m)^      if: (.*)$", execute)
+    needs = re.search(r"(?ms)^      needs:\n((?:        - .*\n)+)", execute)
+    if not needs or f"- {check}\n" not in needs.group(1):
+        fail(f"{label} execute must need the preflight check job {check}")
+    required = (f"needs.plan_check.outputs.unattended != 'true' || (needs.{check}.result == 'success' "
+                f"&& needs.{check}.outputs.verdict == 'PASS')")
+    if not condition or required not in condition.group(1):
+        fail(f"{label} execute must run an unattended plan only on a preflight PASS: its if: needs "
+             f"({required})")
+    for name, block in jobs.items():
+        for step in re.split(r"(?m)^        - id: ", block)[1:]:
+            if re.search(r"(?m)^\s+mode: gate\s*$", step) and not re.search(
+                    r"(?m)^\s+preflight: \$\{\{ needs\.plan_check\.outputs\.run_dir \}\}/preflight\.json\s*$", step):
+                fail(f"{label} job {name} runs a gate check without the run's preflight record")
 
 
 SKILL_CONTRACT_CAPABILITIES = (
@@ -4416,6 +4500,7 @@ def main() -> int:
     validate_execution_contract()
     validate_alchemy_companion_order()
     validate_adversarial_cases()
+    validate_unattended_adapter()
     validate_verdict_classification()
     validate_morphogenetic_mode_selection()
     validate_morphogenetic_graph_analyzer()

@@ -59,12 +59,18 @@ An escalation goes to a channel nobody receives. Or an agent reaches a
 question only the product owner can answer and waits until morning.
 
 So a run meant to proceed unattended passes a *preflight* before the first
-agent starts. The lead runs a small probe for everything the run depends on:
-the repository, the pipeline, each test account, the build, and a deliberate
-test escalation. Each probe's result is recorded against the starting commit.
+agent starts. The plan is marked unattended, and each package states what it
+needs: the systems it reaches, the accounts it acts as, the tools it runs,
+and the data it reads. The lead runs a small probe for each of those needs,
+plus a deliberate test escalation. Each probe's result is recorded against
+the starting commit, and the record names the exact plan it was made for.
 The checker then refuses the run if:
 
+- a package states no needs, or runs tests without naming the tools they
+  need;
+- a stated need has no probe at all;
 - any of those probes is missing or failed;
+- the plan changed after the preflight was made;
 - a credential expires before the window ends;
 - a step needs someone at a sign-in prompt;
 - two agents that may run at the same time share a mutable test account;
@@ -73,7 +79,9 @@ The checker then refuses the run if:
 
 Questions are answered up front, or given a reversible default the human
 confirms at the end. Human steps happen before the window or wait until the
-merge.
+merge. The final gate checks the preflight again, so work from an unattended
+run without a current, passing preflight never reaches a pull request. When
+the plan changes, only the probes for what changed run again.
 
 ## Hand-offs are claims, not facts
 
@@ -124,4 +132,4 @@ the first missed and cost twice as much, use one.
 [SKILL.md](../.claude/skills/alchemy-orchestrate/SKILL.md) and its references;
 the routing it builds on is explained in [the alchemy primer](READ-alchemy.md).*
 
-<!-- skill-revision: 4a3ebb36d5de -->
+<!-- skill-revision: d3d57d61a7d1 -->

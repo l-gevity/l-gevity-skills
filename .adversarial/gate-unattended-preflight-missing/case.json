@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #132: an unattended run cannot pass the gate without its preflight record",
+  "description": "Every criterion verified at head, but the unattended plan's gate is given no preflight.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "PREFLIGHT_REQUIRED"
+    ]
+  }
+}

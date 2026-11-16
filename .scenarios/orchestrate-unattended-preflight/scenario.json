@@ -37,6 +37,18 @@
       "criterion": "autonomy-preflight #4: a mutable test account shared by concurrent packages is named",
       "check": "text_matches",
       "pattern": "ACCOUNT_CONFLICT|U1[^\\n]{0,200}(P1[^\\n]{0,40}P2|shar|concurren)|(shar|concurren)[^\\n]{0,200}U1"
+    },
+    {
+      "id": "names-undeclared-needs",
+      "criterion": "autonomy-preflight #5: coverage is counted against the needs each package declares, so a plan whose packages declare none is refused",
+      "check": "text_matches",
+      "pattern": "NEEDS_UNDECLARED|PREREQUISITE_UNCOVERED|`needs`|(no|without|lacks?|missing|undeclared|declares? no)[^\\n]{0,60}\\bneeds\\b[^\\n]{0,60}(declar|package|plan|cover)"
+    },
+    {
+      "id": "names-unbound-record",
+      "criterion": "autonomy-preflight #6: a preflight record counts only for the plan revision it is bound to",
+      "check": "text_matches",
+      "pattern": "PREFLIGHT_STALE|plan[_ .-]?digest|`plan`[^\\n]{0,40}(binding|field|digest)|not bound to|unbound|binds? (to )?no plan|bound to (the|this|a) plan"
     }
   ]
 }

@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #131: after an amendment only the new need is proved again; unchanged entries carry over",
+  "description": "Rebound to the amended plan: every earlier entry and probe is carried over unchanged, and F2 proves the new need with probe E9 at the plan base.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

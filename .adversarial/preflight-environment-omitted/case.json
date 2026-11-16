@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #117: a preflight fails when an environment need a package declares has no entry",
+  "description": "The issue's reproduction: the passing record with environment emptied. P1 and P2 declare N-BUILD; nothing covers it.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "PREREQUISITE_UNCOVERED"
+    ]
+  }
+}

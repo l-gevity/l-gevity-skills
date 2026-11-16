@@ -19,6 +19,7 @@ Usage:
                                    [--profile <profile>] [--root <workspace>]
     check_orchestration.py gate <ledger.json> --plan <plan.json>
                                 [--profile <profile>] [--root <repository>]
+                                [--preflight <preflight.json>]
 
 Without --profile the CLI reads alchemy-workspace.json from the current
 directory when one exists, and reports which profile it used. Prints one JSON
@@ -114,6 +115,10 @@ CODES = {
     "UNBOUNDED_RUN": "FAIL",
     "HUMAN_STEP_MIDRUN": "FAIL",
     "OPEN_DECISION": "ESCALATE",
+    "NEEDS_UNDECLARED": "FAIL",
+    "PREREQUISITE_UNCOVERED": "FAIL",
+    "PREFLIGHT_STALE": "STALE",
+    "PREFLIGHT_REQUIRED": "FAIL",
 }
 
 # ESCALATE over REJECT/FAIL over STALE over RETRY over a pass: a bound reached
@@ -138,6 +143,8 @@ DISPUTE_BASES = {"evidence", "human"}
 READINESS = {"READY", "PARTLY-READY", "NOT-READY", "NOT-GROUNDED", "BLOCKED"}
 DECISION_STATUSES = {"answered", "default", "stop", "open"}
 HUMAN_STEP_TIMES = {"before", "end", "during"}
+# Kind of prerequisite a package needs -> the preflight section that proves it.
+NEED_KINDS = {"access": "access", "account": "accounts", "environment": "environment", "fixture": "fixtures"}
 
 SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-fA-F]{7,64}$")
@@ -439,6 +446,7 @@ def _profile_view(profile: Any, report: Report) -> dict[str, Any]:
         "verification": [],
         "state_dir": None,
         "envelopes": {},
+        "preflight_needs": [],
     }
     where = "profile"
     if not isinstance(profile, dict):
@@ -491,7 +499,32 @@ def _profile_view(profile: Any, report: Report) -> dict[str, Any]:
                 report.add("SCHEMA", f"profile.envelopes.{name}.permissions must be an array of strings")
                 continue
             view["envelopes"][name] = set(permissions)
+    # Needs every unattended run of this project has, owned by the overlay.
+    preflight = _get(profile, "preflight", "dict", report, where, required=False)
+    if preflight is not None:
+        raw = _get(preflight, "needs", "list", report, f"{where}.preflight", required=False, default=[])
+        view["preflight_needs"] = _parse_needs(raw, report, f"{where}.preflight", None)
     return view
+
+
+def _parse_needs(raw: list[Any], report: Report, label: str, subject: str | None) -> list[dict[str, str]]:
+    """Each need's id and kind; an id repeated inside one list is SCHEMA."""
+    needs: list[dict[str, str]] = []
+    for index, item in enumerate(raw):
+        where = f"{label}.needs[{index}]"
+        if not isinstance(item, dict):
+            report.add("SCHEMA", f"{where} must be an object", subject)
+            continue
+        nid = _get(item, "id", "str", report, where, subject)
+        kind = _enum(item, "kind", set(NEED_KINDS), report, where, subject)
+        _get(item, "what", "str", report, where, subject)
+        if nid is None or kind is None:
+            continue
+        if any(need["id"] == nid for need in needs):
+            report.add("SCHEMA", f"{where} repeats need id '{nid}'", subject)
+            continue
+        needs.append({"id": nid, "kind": kind})
+    return needs
 
 
 # -------------------------------------------------------------------- plan
@@ -509,6 +542,7 @@ def _empty_plan() -> dict[str, Any]:
             "integration_owner": "lead",
             "independent_review": False,
             "merge_policy": None,
+            "unattended": False,
         },
         "packages": {},
     }
@@ -610,6 +644,9 @@ def _parse_package(raw: Any, index: int, profile: dict[str, Any], report: Report
     criteria = _parse_acceptance(acceptance or [], report, label, pid)
     pkg["acceptance"] = [criterion["id"] for criterion in criteria]
     pkg["checks"] = {criterion["id"]: criterion for criterion in criteria}
+    # Absent means undeclared, which an unattended run refuses; [] is a claim.
+    needs = _get(raw, "needs", "list", report, label, pid, required=False)
+    pkg["needs"] = None if needs is None else _parse_needs(needs, report, label, pid)
     return pkg
 
 
@@ -643,12 +680,16 @@ def _parse_plan(plan: Any, profile: dict[str, Any], report: Report, where: str =
             "independent_review": _get(execution, "independent_review", "bool", report, label,
                                        default=False),
             "merge_policy": _get(execution, "merge_policy", "str", report, label),
+            # The run proceeds while nobody watches, so it needs a passing preflight.
+            "unattended": _get(execution, "unattended", "bool", report, label, required=False,
+                               default=False),
         }
         _enum(execution, "strategy", STRATEGIES, report, label, required=False)
     packages = _get(plan, "packages", "list", report, where, default=[])
     if isinstance(plan.get("packages"), list) and not packages:
         report.add("SCHEMA", f"{where}.packages needs at least one package")
     seen_criteria: dict[str, str] = {}
+    seen_needs: dict[str, str] = {}
     for index, raw in enumerate(packages):
         pkg = _parse_package(raw, index, profile, report, where)
         if pkg is None:
@@ -662,6 +703,11 @@ def _parse_plan(plan: Any, profile: dict[str, Any], report: Report, where: str =
                            f"{seen_criteria[criterion]} and {pkg['id']}", criterion)
             else:
                 seen_criteria[criterion] = pkg["id"]
+        for need in pkg["needs"] or []:
+            kind = seen_needs.setdefault(need["id"], need["kind"])
+            if kind != need["kind"]:
+                report.add("SCHEMA", f"need '{need['id']}' is declared as {kind} and as {need['kind']}; "
+                           "packages that share a need repeat its id with the same kind", pkg["id"])
         parsed["packages"][pkg["id"]] = pkg
     return parsed
 
@@ -925,6 +971,33 @@ def _rule_conflicts(parsed: dict[str, Any], report: Report) -> None:
                        "the human resolves it", conflict["id"])
 
 
+def _rule_needs_declared(packages: dict[str, Any], report: Report) -> None:
+    """NEEDS_UNDECLARED for an unattended run: a package that states no needs,
+    or whose command criteria run on tools it declares no environment need for.
+    Coverage is counted against these needs, so declaring fewer must not pass."""
+    for pid, pkg in packages.items():
+        if pkg["needs"] is None:
+            report.add("NEEDS_UNDECLARED", f"{pid} declares no needs; an unattended run states what each "
+                       "package needs, [] included, so an omitted prerequisite can be detected", pid)
+            continue
+        commands = sorted(_command_criteria(pkg))
+        if commands and not any(need["kind"] == "environment" for need in pkg["needs"]):
+            report.add("NEEDS_UNDECLARED", f"{pid} runs command criteria {', '.join(commands)} but declares "
+                       "no environment need for the tools they call", pid)
+
+
+def plan_digest(plan: Any) -> str | None:
+    """The plan revision a preflight is bound to: the SHA-256 of the plan's
+    canonical JSON without base.integrated, the one field a run appends to."""
+    if not isinstance(plan, dict):
+        return None
+    body = dict(plan)
+    if isinstance(body.get("base"), dict):
+        body["base"] = {key: value for key, value in body["base"].items() if key != "integrated"}
+    text = json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
 def _plan_facts(parsed: dict[str, Any], graph: dict[str, list[str]], owners: list[str],
                 profile: dict[str, Any]) -> dict[str, Any]:
     packages = parsed["packages"]
@@ -1043,6 +1116,8 @@ def _plan_rules(parsed: dict[str, Any], view: dict[str, Any], report: Report) ->
     _rule_merge_policy(parsed, report)
     _rule_mode(parsed, owners, view, report)
     _rule_conflicts(parsed, report)
+    if parsed["execution"]["unattended"]:
+        _rule_needs_declared(packages, report)
     return {"graph": graph, "owners": owners}
 
 
@@ -1059,6 +1134,8 @@ def check_plan(plan: Any, profile: Any, root: str | Path | None = None) -> dict[
     _rule_secrets(plan, "plan", report, None)
     shape = _plan_rules(parsed, view, report)
     facts = _plan_facts(parsed, shape["graph"], shape["owners"], view)
+    facts["unattended"] = parsed["execution"]["unattended"]
+    facts["plan_digest"] = plan_digest(plan)
     facts["head_checked"] = False
     if root is not None:
         heads = [parsed["base_commit"], *parsed["integrated"]] if parsed["base_commit"] else []
@@ -1117,8 +1194,49 @@ def _rule_prerequisites(kind: str, entries: list[Any], evidence: dict[str, dict[
             elif base is not None and not _same_commit(item["commit"], base):
                 report.add("PREREQUISITE_UNPROVEN", f"{label} probe {ref} ran on {item['commit']}, "
                            f"not the plan base {base}", eid)
-        parsed.append({"id": eid, "raw": raw, "label": label})
+        covers = _get(raw, "covers", "strs", report, label, eid, required=False, default=[])
+        parsed.append({"id": eid, "raw": raw, "label": label, "covers": covers})
     return parsed
+
+
+def _rule_coverage(parsed_plan: dict[str, Any], view: dict[str, Any],
+                   sections: dict[str, list[dict[str, Any]]], report: Report) -> None:
+    """PREREQUISITE_UNCOVERED unless every need a package or the profile declares
+    is claimed by an entry of its kind; an account covers a package's need only
+    when it names that package. Whether the claim is proved is
+    PREREQUISITE_UNPROVEN's question, so a failing probe is reported once."""
+    needs: dict[str, dict[str, Any]] = {}
+    for pid, pkg in sorted(parsed_plan["packages"].items()):
+        for need in pkg["needs"] or []:
+            needs.setdefault(need["id"], {"kind": need["kind"], "packages": [], "profile": False})
+            needs[need["id"]]["packages"].append(pid)
+    for need in view["preflight_needs"]:
+        entry = needs.setdefault(need["id"], {"kind": need["kind"], "packages": [], "profile": False})
+        if entry["kind"] != need["kind"]:
+            report.add("SCHEMA", f"profile need '{need['id']}' is {need['kind']} but the plan declares it "
+                       f"as {entry['kind']}", need["id"])
+        entry["profile"] = True
+    for kind, entries in sections.items():
+        for entry in entries:
+            for nid in entry["covers"]:
+                if nid not in needs:
+                    report.add("SCHEMA", f"{entry['label']} covers '{nid}', which no package and no profile "
+                               "need declares", entry["id"])
+    for nid, need in sorted(needs.items()):
+        section = NEED_KINDS[need["kind"]]
+        claims = [entry for entry in sections.get(section, []) if nid in entry["covers"]]
+        holders = need["packages"] if section == "accounts" else []
+        if not claims:
+            who = ", ".join(need["packages"]) or "the profile"
+            report.add("PREREQUISITE_UNCOVERED", f"{need['kind']} need {nid} of {who} has no preflight."
+                       f"{section} entry that covers it", nid)
+            continue
+        for pid in holders:
+            named = [entry for entry in claims if isinstance(entry["raw"].get("packages"), list)
+                     and pid in entry["raw"]["packages"]]
+            if not named:
+                report.add("PREREQUISITE_UNCOVERED", f"account need {nid} of {pid} is covered only by "
+                           f"accounts that do not name {pid}", nid)
 
 
 def _rule_window(preflight: dict[str, Any], report: Report) -> tuple[datetime | None, list[Any]]:
@@ -1256,6 +1374,25 @@ def _rule_human_steps(preflight: dict[str, Any], report: Report) -> list[dict[st
     return steps
 
 
+def _rule_binding(preflight: dict[str, Any], base: str | None, digest: str | None, report: Report) -> None:
+    """PREFLIGHT_STALE unless the record names the revision it was checked for:
+    the plan's digest and its base. A plan that changed since, a later
+    iteration on a new base, or a record copied from another run is stale."""
+    binding = _get(preflight, "plan", "dict", report, "preflight")
+    if binding is None:
+        return
+    bound = _get(binding, "digest", "str", report, "preflight.plan")
+    if bound is not None and not SHA256_RE.match(bound):
+        report.add("SCHEMA", "preflight.plan.digest must be 64 hex characters")
+        bound = None
+    bound_base = _get(binding, "base", "commit", report, "preflight.plan")
+    if bound is not None and digest is not None and bound.lower() != digest:
+        report.add("PREFLIGHT_STALE", f"preflight was made for plan revision {bound[:12]}..., not the checked "
+                   f"plan {digest[:12]}...; prove the changed needs again and bind a new record")
+    if bound_base is not None and base is not None and not _same_commit(bound_base, base):
+        report.add("PREFLIGHT_STALE", f"preflight was made for base {bound_base}, not the plan base {base}")
+
+
 def check_preflight(preflight: Any, plan: Any, profile: Any, root: str | Path | None = None) -> dict[str, Any]:
     """Decide whether a checked plan can run unattended for its whole window.
 
@@ -1268,12 +1405,15 @@ def check_preflight(preflight: Any, plan: Any, profile: Any, root: str | Path | 
     parsed_plan = _parse_plan(plan, view, report)
     _rule_secrets(preflight, "preflight", report, None)
     _rule_secrets(plan, "plan", report, None)
-    facts: dict[str, Any] = {"queued": [], "human_steps": [], "head_checked": False}
+    facts: dict[str, Any] = {"queued": [], "human_steps": [], "plan_digest": plan_digest(plan),
+                             "head_checked": False}
     if not isinstance(preflight, dict):
         report.add("SCHEMA", "preflight must be a JSON object")
         return _result(report, facts)
     _check_schema(preflight, PREFLIGHT_SCHEMA, report, "preflight")
     base = parsed_plan["base_commit"]
+    _rule_binding(preflight, base, facts["plan_digest"], report)
+    _rule_needs_declared(parsed_plan["packages"], report)
     evidence = _parse_evidence(_get(preflight, "evidence", "list", report, "preflight", default=[]),
                                report, "preflight", None)
     end, escalation = _rule_window(preflight, report)
@@ -1287,8 +1427,11 @@ def check_preflight(preflight: Any, plan: Any, profile: Any, root: str | Path | 
     if not access:
         report.add("PREREQUISITE_UNPROVEN", "preflight.access proves no access; a run reads a repository at least")
     accounts = _rule_prerequisites("accounts", entries("accounts", False), evidence, base, end, report)
-    _rule_prerequisites("environment", entries("environment", True), evidence, base, end, report)
+    environment = _rule_prerequisites("environment", entries("environment", True), evidence, base, end, report)
+    fixtures = _rule_prerequisites("fixtures", entries("fixtures", False), evidence, base, end, report)
     _rule_prerequisites("bounds.escalation", escalation, evidence, base, end, report)
+    _rule_coverage(parsed_plan, view, {"access": access, "accounts": accounts, "environment": environment,
+                                       "fixtures": fixtures}, report)
     _rule_accounts(accounts, parsed_plan, report)
     _rule_baseline(view, evidence, base, report)
     facts["human_steps"] = _rule_human_steps(preflight, report)
@@ -1736,11 +1879,13 @@ def _stale(cited: list[str], evidence: dict[str, dict[str, Any]], head: str | No
             and not _same_commit(evidence[eid]["commit"], head)]
 
 
-def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = None) -> dict[str, Any]:
+def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = None,
+               preflight: Any = None) -> dict[str, Any]:
     """Decide whether the integrated head may go to a human-approved pull request.
 
     With `root`, the repository there must be at the ledger's head and hold no
-    uncommitted change outside the profile's state directory.
+    uncommitted change outside the profile's state directory. An unattended
+    plan needs `preflight`, its record, still passing against this plan.
     """
     report = Report("gate")
     view = _profile_view(profile, report)
@@ -1750,6 +1895,18 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
     _rule_secrets(plan, "plan", report, None)
     # A gate never passes on a plan the plan check would refuse.
     _plan_rules(parsed_plan, view, report)
+    # Nor on unattended work whose preflight is missing, failed, or stale.
+    preflight_verdict = None
+    if preflight is not None:
+        nested = check_preflight(preflight, plan, profile)
+        preflight_verdict = nested["verdict"]
+        if preflight_verdict != "PASS":
+            found = ", ".join(sorted({error["code"] for error in nested["errors"]}))
+            report.add("PREFLIGHT_REQUIRED", f"the preflight record does not pass against this plan: "
+                       f"{preflight_verdict} ({found}); the run's work counts only after a passing preflight")
+    elif parsed_plan["execution"]["unattended"]:
+        report.add("PREFLIGHT_REQUIRED", "the plan is unattended (execution.unattended) and the gate was given "
+                   "no preflight record; pass it with --preflight")
     packages = parsed_plan["packages"]
     evidence = led["evidence"]
     head = led["head_commit"]
@@ -1935,6 +2092,7 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
         "open": open_items,
         "minor": minor,
         "coverage": f"{len(verified)}/{len(plan_criteria)}",
+        "preflight": preflight_verdict,
         "head_checked": head_checked,
     })
 
@@ -1958,6 +2116,8 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     gate = commands.add_parser("gate", help="check the ledger before the merge boundary")
     gate.add_argument("ledger", type=Path, help="alchemy-ledger/1 JSON file")
     gate.add_argument("--root", type=Path, help="repository whose HEAD and work tree must match the ledger")
+    gate.add_argument("--preflight", type=Path,
+                      help="alchemy-preflight/1 record; required when the plan is unattended")
     for sub, needs_plan in ((plan, False), (preflight, True), (handoff, True), (gate, True)):
         if needs_plan:
             sub.add_argument("--plan", type=Path, required=True, help="alchemy-plan/1 JSON file")
@@ -1984,7 +2144,8 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "handoff":
             result = check_handoff(_read_json(args.handoff), _read_json(args.plan), profile, root)
         else:
-            result = check_gate(_read_json(args.ledger), _read_json(args.plan), profile, root)
+            preflight = _read_json(args.preflight) if args.preflight is not None else None
+            result = check_gate(_read_json(args.ledger), _read_json(args.plan), profile, root, preflight)
     except InputError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

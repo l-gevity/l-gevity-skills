@@ -129,10 +129,12 @@ the runtime transcript).
    unreviewed high-risk writes, recursive delegation, a cap above the profile,
    protected paths without human approval, and any merge policy other than
    human approval. It prints waves and the derived mode. For a run that
-   proceeds unattended, also run `check_orchestration.py preflight
-   <preflight.json> --plan <plan.json>` per
-   [references/autonomy-preflight.md](references/autonomy-preflight.md); the
-   first wave starts only on `PASS`.
+   proceeds unattended, set `execution.unattended`, give every package its
+   `needs`, and run `check_orchestration.py preflight <preflight.json> --plan
+   <plan.json>` per
+   [references/autonomy-preflight.md](references/autonomy-preflight.md): it
+   fails a need no entry covers and a record bound to another plan revision.
+   The first wave starts only on `PASS`; an amended plan needs a new one.
 4. **Approve when consequential.** Ask the human before executing a plan that
    crosses a subsystem boundary, writes a protected path, or exceeds the
    profile's agent budget. Show packages, owners, and write sets.
@@ -165,7 +167,8 @@ the runtime transcript).
    most `max_rework_cycles` per package; then escalate with both positions.
 10. **Gate.** Record criteria, evidence, findings, and disputes in the ledger;
     run `check_orchestration.py gate <ledger.json> --plan <plan.json>
-    --profile alchemy-workspace.json --root .`, which also confirms the
+    --profile alchemy-workspace.json --root .`, plus `--preflight
+    <preflight.json>` for an unattended plan, which also confirms the
     ledger's head is the repository's committed, clean head. Only `PASS`
     continues.
 11. **Report and stop at the merge boundary.** Prepare the pull request with

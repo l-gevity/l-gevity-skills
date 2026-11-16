@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #121: an account covers a package's account need only when it names that package",
+  "description": "U2 covers N-CLERK-B but is assigned to P1, so P2, which declares the need, has no account of its own.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "PREREQUISITE_UNCOVERED"
+    ]
+  }
+}

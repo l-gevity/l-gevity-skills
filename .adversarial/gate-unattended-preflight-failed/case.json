@@ -1,0 +1,17 @@
+{
+  "criterion": "multi-agent-governance #135: an unattended run whose preflight fails fails the gate",
+  "description": "The same ledger, with the preflight whose environment was emptied.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "profile": "profile.json",
+    "preflight": "preflight.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "PREFLIGHT_REQUIRED"
+    ]
+  }
+}

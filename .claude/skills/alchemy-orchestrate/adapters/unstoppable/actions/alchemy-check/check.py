@@ -27,7 +27,7 @@ from typing import Any
 SKILL = "alchemy-orchestrate"
 SKILL_ROOTS = (".agents/skills", ".claude/skills")
 PROFILE_NAME = "alchemy-workspace.json"
-MODES = ("plan", "handoff", "gate")
+MODES = ("plan", "preflight", "handoff", "gate")
 PASSING = ("PASS", "ACCEPT")
 # Verdict precedence from references/contracts.md: ESCALATE over REJECT/FAIL
 # over STALE over RETRY over a pass.
@@ -262,7 +262,11 @@ def summarize(mode: str, report: dict[str, Any]) -> str:
     if mode == "plan":
         waves = " | ".join(",".join(wave) for wave in report.get("waves") or [])
         text = (f"Plan: {verdict}; derived mode {report.get('derived_mode')}; recommendation "
-                f"{report.get('recommendation')}; waves {waves or 'none'}; errors {codes(report)}")
+                f"{report.get('recommendation')}; unattended {str(report.get('unattended') is True).lower()}; "
+                f"waves {waves or 'none'}; errors {codes(report)}")
+    elif mode == "preflight":
+        text = (f"Preflight: {verdict}; plan digest {report.get('plan_digest')}; queued "
+                f"{listing(report.get('queued'))}; errors {codes(report)}")
     elif mode == "gate":
         text = (f"Gate: {verdict}; Verified: {listing(report.get('verified'))}; "
                 f"Unverified: {listing(report.get('unverified'))}; Open: {listing(report.get('open'))}; "
@@ -286,10 +290,19 @@ def check(mode: str, root: Path, checker: Path, profile: Path | None, plan_file:
     if not raw_record:
         raise InputError(f"{mode} mode needs the record input")
     record = resolve(raw_record, root)
+    if mode == "preflight":
+        # Probes ran at the plan base, so the repository must still be there and clean.
+        if not record.is_file():
+            raise InputError(f"preflight record not found: {record}")
+        return run_checker(checker, ["preflight", str(record), "--plan", plan_file, *common, "--root", str(root)])
     if mode == "gate":
         if not record.is_file():
             raise InputError(f"ledger not found: {record}")
-        return run_checker(checker, ["gate", str(record), "--plan", plan_file, *common])
+        # A missing record is passed over here; the checker then refuses an
+        # unattended plan (PREFLIGHT_REQUIRED), and an attended one needs none.
+        preflight = resolve(option("preflight"), root) if option("preflight") else None
+        extra = ["--preflight", str(preflight)] if preflight is not None and preflight.is_file() else []
+        return run_checker(checker, ["gate", str(record), "--plan", plan_file, *common, *extra])
     extra = ["--plan", plan_file, *common]
     if flag("digests", "true"):
         workspace = resolve(option("root"), root) if option("root") else root
@@ -343,6 +356,11 @@ def main() -> int:
         report_file = out / f"alchemy-{mode}-report-{uuid.uuid4().hex[:8]}.json"
         write_json(report_file, report)
         print(json.dumps(report, indent=2, ensure_ascii=False))
+        if mode == "plan":
+            # The pipeline runs the preflight only for an unattended plan, and
+            # the preflight record binds to this digest.
+            outputs["unattended"] = "true" if report.get("unattended") is True else "false"
+            outputs["plan_digest"] = str(report.get("plan_digest") or "")
         emit({"verdict": report["verdict"], "summary": summarize(mode, report),
               "report_file": str(report_file), **outputs})
     except InputError as exc:

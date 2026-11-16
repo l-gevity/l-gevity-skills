@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #120: a preflight fails when a fixture need a package declares has no entry",
+  "description": "The passing record with fixtures emptied: P1 declares N-ORDERS-SEED.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "PREREQUISITE_UNCOVERED"
+    ]
+  }
+}

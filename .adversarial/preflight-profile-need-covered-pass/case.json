@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #123: a need the project profile declares passes once an entry of its kind covers it with a probe",
+  "description": "The profile lists N-ARTIFACTS, and A3 covers it with probe E9 passed at the plan base.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}
