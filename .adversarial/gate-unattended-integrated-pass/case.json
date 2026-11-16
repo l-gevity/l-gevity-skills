@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #172: a preflight bound before the first wave still passes at the gate after waves were integrated",
+  "description": "The passing gate case, with an integrated wave head in base.integrated as the pipeline's gate steps add it; the plan revision excludes base.integrated.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "profile": "profile.json",
+    "preflight": "preflight.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

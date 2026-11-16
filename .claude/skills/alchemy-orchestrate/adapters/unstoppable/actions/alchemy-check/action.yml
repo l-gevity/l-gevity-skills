@@ -93,6 +93,13 @@ inputs:
     description: plan mode, a commit the plan's base.commit must equal.
     required: false
     default: ''
+  expect_unattended:
+    description: >-
+      plan mode, "true" or "false", the value the plan's execution.unattended
+      must have: the run mode the human chose at plan approval. A mismatch
+      fails the step like unreadable input. Empty checks nothing.
+    required: false
+    default: ''
   enforce:
     description: >-
       "true" fails the step on any verdict other than PASS or ACCEPT; "false"

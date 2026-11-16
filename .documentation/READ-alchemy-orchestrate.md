@@ -59,7 +59,9 @@ An escalation goes to a channel nobody receives. Or an agent reaches a
 question only the product owner can answer and waits until morning.
 
 So a run meant to proceed unattended passes a *preflight* before the first
-agent starts. The plan is marked unattended, and each package states what it
+agent starts. In the workflow, the human who approves the plan also says
+whether anyone will watch; no answer counts as nobody. The plan is marked
+unattended to match, and each package states what it
 needs: the systems it reaches, the accounts it acts as, the tools it runs,
 and the data it reads. The lead runs a small probe for each of those needs,
 plus a deliberate test escalation. Each probe's result is recorded against
@@ -81,7 +83,9 @@ Questions are answered up front, or given a reversible default the human
 confirms at the end. Human steps happen before the window or wait until the
 merge. The final gate checks the preflight again, so work from an unattended
 run without a current, passing preflight never reaches a pull request. When
-the plan changes, only the probes for what changed run again.
+the plan changes, a new preflight is needed, and every new need must be
+claimed in it. The checker cannot tell whether a probe was actually run
+again, so a reviewer confirms that each changed need was proved anew.
 
 ## Hand-offs are claims, not facts
 
@@ -136,4 +140,4 @@ the first missed and cost twice as much, use one.
 [SKILL.md](../.claude/skills/alchemy-orchestrate/SKILL.md) and its references;
 the routing it builds on is explained in [the alchemy primer](READ-alchemy.md).*
 
-<!-- skill-revision: 726cce8ebcb5 -->
+<!-- skill-revision: f8a76ee8b73a -->

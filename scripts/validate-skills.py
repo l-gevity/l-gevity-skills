@@ -2964,6 +2964,16 @@ def mutation_test() -> int:
 
     cases.append((Case("docs: README skill count left stale", [readme], ("the library has",)), overstate_skill_count))
 
+    def understate_case_count(path=readme):
+        text, crlf = read_raw(path)
+        stated = CHECK_COUNT_RE.search(text)
+        if not stated:
+            raise RuntimeError("no stated adversarial case count found in README.md")
+        write_raw(path, text[:stated.start(2)] + str(int(stated.group(2)) - 1) + text[stated.end(2):], crlf)
+
+    cases.append((Case("docs: README adversarial case count left stale", [readme], ("adversarial cases, but",)),
+                  understate_case_count))
+
     def misstate_install_tree(path=readme):
         text, crlf = read_raw(path)
         row = "| `.agents/skills/` | `AGENTS.md` |"
@@ -3250,9 +3260,26 @@ def mutation_test() -> int:
     actions = both("alchemy-orchestrate/adapters/unstoppable/actions/alchemy-check/check.py")
     for label, files, old, new, expected in (
         ("pipeline executes an unattended plan without a preflight PASS", pipelines,
-         " && (needs.plan_check.outputs.unattended != 'true' || (needs.preflight_check.result == 'success' "
-         "&& needs.preflight_check.outputs.verdict == 'PASS'))", "",
+         "(needs.preflight_check.result == 'success' && needs.preflight_check.outputs.verdict == 'PASS')",
+         "needs.preflight_check.result != 'failure'",
          "must run an unattended plan only on a preflight PASS"),
+        ("pipeline skips the preflight on the plan's word alone", pipelines,
+         "(needs.approve_plan.outputs.decision == 'continue-attended' && needs.plan_check.outputs.unattended != 'true')",
+         "needs.plan_check.outputs.unattended != 'true'",
+         "skip the preflight only when the human chose to attend"),
+        ("plan approval offers no attended or unattended choice", pipelines,
+         '"options":["continue-attended","continue-unattended","stop"]', '"options":["continue","stop"]',
+         "approve_plan must ask the human to choose"),
+        ("the preflight job runs only when the plan opts in", pipelines,
+         "(needs.approve_plan.outputs.decision != 'continue-attended' || needs.plan_check.outputs.unattended == 'true')",
+         "needs.plan_check.outputs.unattended == 'true'",
+         "preflight must run unless the human chose to attend"),
+        ("the preflight job probes a plan that is not unattended", pipelines,
+         "            expect_unattended: 'true'\n", "",
+         "preflight must first check that the plan says it is unattended"),
+        ("the check action ignores expect_unattended", actions,
+         "if stated != switch:", "if False:",
+         "must refuse a plan whose execution.unattended is not expect_unattended"),
         ("a pipeline gate check is not given the preflight record", pipelines,
          "            preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json\n", "",
          "without the run's preflight record"),
@@ -3594,6 +3621,25 @@ def validate_overview_skill_count() -> None:
                     f"{doc.relative_to(ROOT)} states '{stated.group(0)}' "
                     f"but the library has {count} skills"
                 )
+
+
+CHECK_COUNT_RE = re.compile(r"All (\d+) check codes have\s+coverage among (\d+) \[adversarial cases\]")
+
+
+def validate_readme_check_counts() -> None:
+    """The check-code and adversarial-case counts README.md states match the
+    checker's CODES and the .adversarial tree; both drift with every package."""
+    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    stated = CHECK_COUNT_RE.search(text)
+    if not stated:
+        fail("README.md must state 'All <n> check codes have coverage among <m> [adversarial cases]'")
+    checker = (CLAUDE_SKILLS / "alchemy-orchestrate" / "scripts" / "check_orchestration.py").read_text(encoding="utf-8")
+    block = re.search(r"(?ms)^CODES = \{\n(.*?)^\}", checker)
+    codes = len(re.findall(r'(?m)^\s+"[A-Z_]+": ', block.group(1))) if block else 0
+    cases = len([path for path in (ROOT / ".adversarial").iterdir() if (path / "case.json").is_file()])
+    if (int(stated.group(1)), int(stated.group(2))) != (codes, cases):
+        fail(f"README.md states {stated.group(1)} check codes and {stated.group(2)} adversarial cases, "
+             f"but the checker has {codes} codes and the tree {cases} cases")
 
 
 def validate_readme_install_table() -> None:
@@ -4474,11 +4520,31 @@ def validate_unattended_adapter() -> None:
     needs = re.search(r"(?ms)^      needs:\n((?:        - .*\n)+)", execute)
     if not needs or f"- {check}\n" not in needs.group(1):
         fail(f"{label} execute must need the preflight check job {check}")
-    required = (f"needs.plan_check.outputs.unattended != 'true' || (needs.{check}.result == 'success' "
-                f"&& needs.{check}.outputs.verdict == 'PASS')")
+    required = f"|| (needs.{check}.result == 'success' && needs.{check}.outputs.verdict == 'PASS'))"
     if not condition or required not in condition.group(1):
         fail(f"{label} execute must run an unattended plan only on a preflight PASS: its if: needs "
              f"({required})")
+    # The human, not the plan's author, decides that a run is watched (ORCH-1a, F1):
+    # only that choice, on a plan that is not unattended, skips the preflight.
+    attended = ("((needs.approve_plan.outputs.decision == 'continue-attended' "
+                "&& needs.plan_check.outputs.unattended != 'true') ||")
+    if attended not in condition.group(1):
+        fail(f"{label} execute may skip the preflight only when the human chose to attend: its if: needs "
+             f"({attended})")
+    if '"options":["continue-attended","continue-unattended","stop"]' not in jobs.get("approve_plan", ""):
+        fail(f"{label} approve_plan must ask the human to choose continue-attended, continue-unattended, or stop")
+    preflight = jobs.get("preflight", "")
+    runs = "(needs.approve_plan.outputs.decision != 'continue-attended' || needs.plan_check.outputs.unattended == 'true')"
+    if runs not in preflight:
+        fail(f"{label} preflight must run unless the human chose to attend a plan that is not unattended: "
+             f"its if: needs {runs}")
+    steps = re.split(r"(?m)^        - id: ", preflight)[1:]
+    if not steps or not (re.search(r"(?m)^\s+mode: plan\s*$", steps[0])
+                         and re.search(r"(?m)^\s+expect_unattended: 'true'\s*$", steps[0])):
+        fail(f"{label} preflight must first check that the plan says it is unattended (alchemy-check plan "
+             "mode with expect_unattended 'true') before anything is probed")
+    if not re.search(r"if stated != switch:\n\s+raise InputError", action.read_text(encoding="utf-8")):
+        fail(f"{action.relative_to(ROOT)} must refuse a plan whose execution.unattended is not expect_unattended")
     for name, block in jobs.items():
         for step in re.split(r"(?m)^        - id: ", block)[1:]:
             if re.search(r"(?m)^\s+mode: gate\s*$", step) and not re.search(
@@ -4701,6 +4767,7 @@ def main() -> int:
     validate_asset_references()
     validate_readme_index()
     validate_overview_skill_count()
+    validate_readme_check_counts()
     validate_readme_install_table()
     validate_test_strategy_contract()
     validate_requirements_grounding_contract()

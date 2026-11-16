@@ -3,8 +3,8 @@
 # deterministic checks, and stops at human checkpoints. It never merges.
 pipeline:
   name: 'ALCHEMY Multi-Agent'
-  version: '3.2'
-  description: 'Route with alchemy, plan and check, prove the prerequisites of an unattended run, execute with native sub-agents after approval, review across two providers, gate, correct within the profile's rework bound with a review and a gate after every pass, and open a pull request only after a second approval. Never merges.'
+  version: '3.3'
+  description: 'Route with alchemy, plan and check, prove the prerequisites of an unattended run, execute with native sub-agents after approval, review across two providers, gate, correct within the profile''s rework bound with a review and a gate after every pass, and open a pull request only after a second approval. Never merges.'
   scope: [directory, worktree]
   on:
     dispatch:
@@ -173,7 +173,7 @@ pipeline:
 
               1. Route. Read `<skills>/alchemy/SKILL.md` and apply it to the objective exactly as an explicit `alchemy` invocation (`/alchemy` or `$alchemy`) would, reading the references and sibling skills it routes to. Record the dispatch, route, companions, and execution decision.
               2. Plan. Read `<skills>/alchemy-orchestrate/SKILL.md`, its `references/contracts.md` and `references/governance.md`, and the profile `alchemy-workspace.json` at the root (defaults in `<skills>/alchemy-orchestrate/assets/alchemy-workspace.json`). Write one alchemy-plan/1 record by section 4 steps 1 and 2. Its base commit is ${{ needs.start.outputs.head_commit }}.
-              3. The plan must fit this pipeline: the next job runs the plan check and stops on any verdict but PASS; a human approves the plan before execution; writing packages run as `alchemy-implementer` sub-agents in isolated worktrees and read-only packages as `alchemy-analyst` sub-agents, each owned by a distinct label such as `agent-a`; packages you hold are owned by `lead`; after integration two reviewers on different providers review the integrated diff independently and their findings enter the ledger, in addition to the plan's own `verify` packages; merge_policy is `human-approval`. Set `execution.unattended` to true only when the objective says the run proceeds while nobody watches between this plan's approval and the pull request approval; then every package states its `needs` per `references/autonomy-preflight.md`, and execution starts only after a preflight bound to this plan passes.
+              3. The plan must fit this pipeline: the next job runs the plan check and stops on any verdict but PASS; a human approves the plan before execution; writing packages run as `alchemy-implementer` sub-agents in isolated worktrees and read-only packages as `alchemy-analyst` sub-agents, each owned by a distinct label such as `agent-a`; packages you hold are owned by `lead`; after integration two reviewers on different providers review the integrated diff independently and their findings enter the ledger, in addition to the plan's own `verify` packages; merge_policy is `human-approval`. The human chooses at plan approval whether to watch the run until the pull request approval; a run left unattended on a plan that is not stops before execution. Set `execution.unattended` to true only when the objective says the run proceeds while nobody watches between this plan's approval and the pull request approval; then every package states its `needs` per `references/autonomy-preflight.md`, and execution starts only after a preflight bound to this plan passes.
               4. If section 4 step 1 stops, or the route does not proceed, return an empty `plan` and say why in `report`.
 
               You cannot edit files in this step. Return `plan` as the complete plan JSON text and `report` as the alchemy decision trail and the execution block of alchemy-orchestrate section 2.
@@ -212,18 +212,31 @@ pipeline:
           uses: builtin/request-input
           with:
             title: Execute this ALCHEMY plan?
-            message: '${{ needs.plan_check.outputs.summary }}. Plan: ${{ needs.plan_check.outputs.plan_file }}. Check report: ${{ needs.plan_check.outputs.report_file }}. Continue launches the planned sub-agents in this worktree; an unattended plan first proves its prerequisites and executes only on a passing preflight. Stop ends the run.'
-            fields: '[{"key":"decision","label":"Decision","type":"choice","options":["continue","stop"],"required":true}]'
+            message: '${{ needs.plan_check.outputs.summary }}. Plan: ${{ needs.plan_check.outputs.plan_file }}. Check report: ${{ needs.plan_check.outputs.report_file }}. Both continue choices launch the planned sub-agents in this worktree. continue-attended: you watch the run until the pull request approval. continue-unattended: nobody watches, so the plan must set execution.unattended, and execution starts only on a passing preflight. A plan that sets execution.unattended needs a passing preflight under either choice. Stop ends the run.'
+            fields: '[{"key":"decision","label":"Decision","type":"choice","options":["continue-attended","continue-unattended","stop"],"required":true}]'
 
-    # An unattended run proves every prerequisite its packages declare before the
-    # first wave; execute runs it only on a preflight PASS. An attended run skips both.
+    # Whether the run proceeds unattended is the human's choice at approve_plan; any
+    # answer but continue-attended or stop counts as unattended, and so does a plan
+    # that sets execution.unattended. An unattended run proves every prerequisite its
+    # packages declare before the first wave, and execute runs it only on a preflight
+    # PASS. A run the human attends, on a plan that is not unattended, skips both.
     preflight:
       name: Prove Unattended Prerequisites
       needs:
+        - plan
         - plan_check
         - approve_plan
-      if: needs.approve_plan.result == 'success' && needs.approve_plan.outputs.decision == 'continue' && needs.plan_check.outputs.unattended == 'true'
+      if: needs.approve_plan.result == 'success' && needs.approve_plan.outputs.decision != 'stop' && (needs.approve_plan.outputs.decision != 'continue-attended' || needs.plan_check.outputs.unattended == 'true')
       steps:
+        # A plan that does not say it is unattended declares no needs to prove: this
+        # step fails, nothing is probed, and execute does not run.
+        - id: expect
+          uses: project/alchemy-check
+          with:
+            mode: plan
+            plan: ${{ needs.plan.outputs.response_file }}
+            plan_field: plan
+            expect_unattended: 'true'
         - id: preflight
           uses: builtin/agent-prompt
           with:
@@ -264,7 +277,7 @@ pipeline:
         - plan_check
         - approve_plan
         - preflight_check
-      if: needs.approve_plan.result == 'success' && needs.approve_plan.outputs.decision == 'continue' && (needs.plan_check.outputs.unattended != 'true' || (needs.preflight_check.result == 'success' && needs.preflight_check.outputs.verdict == 'PASS'))
+      if: needs.approve_plan.result == 'success' && needs.approve_plan.outputs.decision != 'stop' && ((needs.approve_plan.outputs.decision == 'continue-attended' && needs.plan_check.outputs.unattended != 'true') || (needs.preflight_check.result == 'success' && needs.preflight_check.outputs.verdict == 'PASS'))
       outputs:
         status: ${{ parseJson(steps.execute.outputs.json_response).status }}
         head_commit: ${{ parseJson(steps.execute.outputs.json_response).head_commit }}
@@ -507,7 +520,7 @@ pipeline:
             run_plan: ${{ needs.plan_check.outputs.run_dir }}/plan.json
             record: ${{ needs.plan_check.outputs.run_dir }}/handoffs
             digests: 'false'
-            integrated: '${{ needs.execute.outputs.integrated_heads }},${{ join(parseJson(steps.correct.outputs.json_response).integrated_heads, ',') }}'
+            integrated: "${{ needs.execute.outputs.integrated_heads }},${{ join(parseJson(steps.correct.outputs.json_response).integrated_heads, ',') }}"
         - id: snapshot
           uses: project/alchemy-snapshot
           with:

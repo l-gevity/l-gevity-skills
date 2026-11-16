@@ -269,11 +269,14 @@ Objective
     kind. *Check:* `NEEDS_UNDECLARED`, `PREREQUISITE_UNCOVERED`; *judgment*
     for a need nobody declared.
 45. A preflight MUST be bound to the plan revision and base it was made for.
-    An amended plan or a moved base makes it stale until the changed needs
-    are proved again, and the gate of an unattended plan fails without a
-    current, passing preflight. A workflow adapter runs the preflight before
-    the first wave and executes only on `PASS`. *Check:* `PREFLIGHT_STALE`,
-    `PREFLIGHT_REQUIRED`; the validator's adapter check for the workflow.
+    An amended plan or a moved base makes it stale until a record bound to
+    the new revision claims every need, and the gate of an unattended plan
+    fails without a current, passing preflight. A workflow adapter records
+    the human's choice to attend at plan approval, treats any other answer
+    as unattended, runs the preflight before the first wave, and executes an
+    unattended run only on `PASS`. *Check:* `PREFLIGHT_STALE`,
+    `PREFLIGHT_REQUIRED`; the validator's adapter check for the workflow;
+    *judgment* for whether a changed need was proved again.
 
 ## 13. Runtime Conformance
 

@@ -13,7 +13,8 @@ across more than one wave. Such a plan sets `execution.unattended: true`, and
 its gate passes only with a preflight record that still passes against it
 (`PREFLIGHT_REQUIRED`), so work done without one never reaches the merge
 boundary. A run the human attends end to end may skip it and says so under
-What I did not check.
+What I did not check. Who decides that a run is attended is set where
+`execution.unattended` is defined ([contracts.md](contracts.md), Plan).
 
 **Preflight reads evidence; it never runs a probe.** The lead executes each
 probe at the plan's base, records command, exit code, and commit, and the
@@ -79,6 +80,11 @@ Judgment the checker cannot make, reviewed by the lead and reported:
   run on, and read that its needs do not name. The checker counts coverage
   against the declared needs, so a need nobody declared is a gap it cannot
   see (section 2).
+- **Every changed need was proved again.** The checker holds a record to the
+  plan revision and to one claiming entry per need, not to a new probe: an
+  entry that names a need an amendment added in `covers`, citing a probe run
+  before it, passes. For each need an amendment added or changed, confirm
+  that its entry cites a probe run after the amendment that exercises it.
 - **Probes probe the right thing.** A repository read does not prove a deploy
   permission, and a sign-in does not prove a role.
 - **Outcomes are distinguishable.** A check reports "could not evaluate"
@@ -149,15 +155,16 @@ writes a new record bound to the new revision:
   the base moved: a later iteration starts from a new base, so every probe
   and the baseline run there.
 - **Carry over**, on the same base, every other entry with its evidence
-  unchanged: its probe still ran at the base the plan names. A small
-  amendment re-runs only the probes of what it changed, and a relevant one
-  cannot be skipped, because the new need stays uncovered until an entry
-  claims it.
+  unchanged: its probe still ran at the base the plan names, so a small
+  amendment re-runs only the probes of what it changed.
 - **Re-check the window.** A changed window re-tests every expiry against it.
 
-A plan amendment record that names the revision it supersedes can attach to
-the digest; until one exists, the digest of the plan as it stands is the
-binding.
+The checker enforces the binding and a claim for each need: the new need
+stays uncovered until an entry claims it. It cannot tell a probe run again
+from one carried over, since both ran at the same base, so whether each
+changed need was proved again is the reviewer's question (section 1).
+Amendments are part of the revision the digest covers ([contracts.md](contracts.md),
+Amendments).
 
 ## 4. Record — `alchemy-preflight/1`
 
@@ -205,6 +212,16 @@ Kept with the plan under `state_dir`. Excerpt:
 | `covers` | On an access, account, environment, or fixture entry: the IDs of the needs it proves; an ID that no package and no profile need declares is `SCHEMA` |
 | `human_steps[].when` | `before`, `end`, or `during`; `during` fails |
 | `evidence[]` | As in the hand-off: `id`, `command`, `exit_code`, `commit`, optional `expect_exit`. A probe counts only when it passed at the plan base |
+
+A record or plan written before `plan`, `needs`, and `covers` existed fails
+after the upgrade:
+
+| Fails with | Because | Add |
+|:--|:--|:--|
+| `SCHEMA` (`preflight.plan is required`) | The record names no plan revision | `plan`: the `plan_digest` the plan check prints, and the plan's base |
+| `NEEDS_UNDECLARED` | A package has no `needs`, or a `command` criterion and no `environment` need; the plan check raises it only for an unattended plan | `needs` on every package, with an `environment` need for the tools its commands call |
+| `PREREQUISITE_UNCOVERED` | No entry claims a declared need | `covers` on each entry, and `fixtures[]` for fixture needs |
+| `PREFLIGHT_REQUIRED` (gate) | An unattended plan reaches the gate without a passing record | `execution.unattended: true` on a plan meant to run unwatched, and `--preflight <preflight.json>` on its gate |
 
 `check_orchestration.py preflight <preflight.json> --plan <plan.json>
 --profile alchemy-workspace.json --root .` returns `PASS`, `FAIL`, `STALE`,

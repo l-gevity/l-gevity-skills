@@ -272,7 +272,7 @@ ownership, and verification. Capabilities include architecture, engineering,
 verification, optimization, security, and scientific validation.
 
 `check_orchestration.py` enforces deterministic rules. All 67 check codes have
-coverage among 171 [adversarial cases](./.adversarial/).
+coverage among 173 [adversarial cases](./.adversarial/).
 
 | Check | Rejects |
 |:--|:--|
@@ -425,9 +425,19 @@ sibling for you to merge.
 | `execution.max_rework_cycles` | `2` | correction rounds per origin chain before escalation; only a human-authorized `execution.rework_extension` in the approved plan raises it for a run |
 | `repository.protected_paths` | `[]` | writes need human approval |
 | `repository.verification` | `[]` | commands the integrated result must pass |
+| `preflight.needs` | `[]` | prerequisites every unattended run of the project has; each preflight must cover them |
 
 Commit the workspace profile and rendered agent files so developers and
-runtimes share the configuration.
+runtimes share the configuration. A plan sets its own keys
+(`execution.unattended`, package `needs`, `execution.rework_extension`,
+`amendments`); [contracts.md](./.agents/skills/alchemy-orchestrate/references/contracts.md)
+defines them.
+
+**Unattended runs.** At the Unstoppable plan approval, `continue-attended` means you watch until the
+pull request approval; `continue-unattended` stops the run unless the plan sets `execution.unattended`.
+An unattended plan gives every package its `needs`; the lead proves each in `preflight.json`, the first
+wave starts only when `check_orchestration.py preflight` returns `PASS`, and the gate takes
+`--preflight <preflight.json>`. See [autonomy-preflight.md](./.agents/skills/alchemy-orchestrate/references/autonomy-preflight.md).
 
 <details>
 <summary><strong>Inspect and recheck a run</strong></summary>
@@ -468,7 +478,7 @@ stream or saved sessions, not from the agent's summary.
 |:--|:--|:--|:--|
 | Claude Code | Native: the lead's Agent tool with `alchemy-implementer` (own git worktree) and `alchemy-analyst` (read-only) | A trivial `/alchemy` task stayed single-agent with no launch. Complex `/alchemy` objectives chose multi-agent unprompted and launched real agents. Two implementers ran in parallel in separate worktrees, the verifier started only after both finished, its two major findings were corrected in two bounded rework cycles, and the gate passed. Delegated agents loaded their own ALCHEMY skills. An injected agent crash was retried once. Independent reviewers drove corrections, and the gate held at `FAIL` for a decision only the human can make. | Cost and time of the completed parallel rerun, whose runner process died; its outcome is reconstructed from the run's own artifacts. |
 | Codex | Native: `spawn_agent` / `wait_agent`, with the custom agents in `.codex/agents/` | `codex exec` lists and spawns `alchemy-analyst`, which answers in the hand-off format. A `$alchemy` audit chose multi-agent unprompted. A depth-1 reviewer sub-agent, recovered from Codex's saved sessions, loaded its skills, found a money defect by executing a reproduction, and was re-run after the lead's correction. | Parallel implementers, and an injected failure. The reviewer ran as Codex's default agent type, not as `alchemy-analyst`. |
-| Unstoppable | Preconfigured workflow: the `alchemy-multi-agent` pipeline (plan, plan check, human approval, preflight for an unattended plan, native sub-agents, cross-provider review, gate, human approval, pull request). In a chat, the Claude Code or Codex mechanism above. | The pipeline validates and runs from the CLI. In four runs, planning produced multi-wave plans that passed the plan check, the human checkpoint paused each run, and execution launched sub-agents into isolated worktrees. When execution could not finish, the lead escalated rather than claiming success: once for a repository defect, and twice when its turn ended with agents still running ([record](./.pilot/results/unstoppable-pipeline-runs.json)). | A complete pass through review, gate, and pull request. The run with foreground waves was stopped before execution finished. The preflight jobs have not run in the runtime. |
+| Unstoppable | Preconfigured workflow: the `alchemy-multi-agent` pipeline (plan, plan check, human approval with an attended or unattended choice, preflight for an unattended run, native sub-agents, cross-provider review, gate, human approval, pull request). In a chat, the Claude Code or Codex mechanism above. | The pipeline validates and runs from the CLI. In four runs, planning produced multi-wave plans that passed the plan check, the human checkpoint paused each run, and execution launched sub-agents into isolated worktrees. When execution could not finish, the lead escalated rather than claiming success: once for a repository defect, and twice when its turn ended with agents still running ([record](./.pilot/results/unstoppable-pipeline-runs.json)). | A complete pass through review, gate, and pull request. The run with foreground waves was stopped before execution finished. The preflight jobs have not run in the runtime. |
 | Other agents (Gemini CLI, Grok CLI) | None shipped | — | Fallback: single-agent, with the limitation reported |
 
 The adapter details, every mechanism, and every limitation are in the

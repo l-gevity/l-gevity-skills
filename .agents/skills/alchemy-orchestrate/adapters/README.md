@@ -80,7 +80,7 @@ and the plan check fails a multi-agent plan under `off` with `MODE_MISMATCH`.
 | `.claude/settings.json` | Depth 1, the concurrency cap, `worktree.baseRef: head`, and the ask, deny, and allow rules |
 | `.codex/agents/alchemy-analyst.toml`, `alchemy-implementer.toml` | The same two envelopes as Codex custom agents |
 | `.codex/config.toml` | The concurrency cap, plus `[features] multi_agent = false` under `off` |
-| `.unstoppable-code/actions/alchemy-check/` | Runs `check_orchestration.py` from the skills tree in `plan`, `preflight`, `handoff` (one file or a directory), or `gate` mode. Keeps the JSON report and outputs `verdict`, `summary`, and `report_file`. Fails unless the verdict is PASS or ACCEPT; `enforce: 'false'` only reports. It can extract the plan from a structured-output file (`plan_field`). `integrated` adds wave heads to the checked copy's `base.integrated`. `digests: 'false'` checks hand-offs structurally, without `--root`. In plan mode it can also require the plan's base (`expect_base`) and publish the plan to `<state_dir>/<run id>/plan.json` (`publish`), and it outputs `unattended` and the `plan_digest` a preflight record binds to. Preflight mode checks the record with `--root` at the repository root, so the repository must still be at the plan base. In gate mode, `preflight` names the preflight record, passed when the file exists; a gate on an unattended plan without a passing one fails. Commit prefixes match only when both sides have at least 7 hex characters. |
+| `.unstoppable-code/actions/alchemy-check/` | Runs `check_orchestration.py` from the skills tree in `plan`, `preflight`, `handoff` (one file or a directory), or `gate` mode. Keeps the JSON report and outputs `verdict`, `summary`, and `report_file`. Fails unless the verdict is PASS or ACCEPT; `enforce: 'false'` only reports. It can extract the plan from a structured-output file (`plan_field`). `integrated` adds wave heads to the checked copy's `base.integrated`. `digests: 'false'` checks hand-offs structurally, without `--root`. In plan mode it can also require the plan's base (`expect_base`) and its `execution.unattended` (`expect_unattended`), and publish the plan to `<state_dir>/<run id>/plan.json` (`publish`), and it outputs `unattended` and the `plan_digest` a preflight record binds to. Preflight mode checks the record with `--root` at the repository root, so the repository must still be at the plan base. In gate mode, `preflight` names the preflight record, passed when the file exists; a gate on an unattended plan without a passing one fails. Commit prefixes match only when both sides have at least 7 hex characters. |
 | `.unstoppable-code/actions/alchemy-snapshot/` | Outputs the head commit. Given a base, it writes the diff from that base to the working tree for reviewers that cannot run git. `require_clean` fails on uncommitted changes. |
 | `.unstoppable-code/pipelines/alchemy-multi-agent.yaml` | The preconfigured workflow below |
 | `.unstoppable-code/review-tracks/alchemy-independent-review.md` | Cross-provider review track for the bundled multi-provider review pipeline |
@@ -95,14 +95,21 @@ Dispatch it with an `objective`. The `lead`, `reviewer_claude`, and
    `alchemy-plan/1` record as structured output.
 3. `plan_check` extracts and checks the plan, requires its base to be the
    recorded head, and publishes it to the run directory.
-4. `approve_plan` asks the human: continue or stop.
-5. When the plan sets `execution.unattended`, `preflight` has the lead run a
+4. `approve_plan` asks the human: `continue-attended` (the human watches
+   until the pull request approval), `continue-unattended`, or `stop`. The
+   human decides; any answer but `continue-attended` or `stop` counts as
+   unattended.
+5. When the human did not choose `continue-attended`, or the plan sets
+   `execution.unattended`, the run is unattended. `preflight` first checks
+   the plan with `expect_unattended: 'true'`: a plan that does not set
+   `execution.unattended` declares no needs to prove, so the step fails,
+   nothing is probed, and the run ends there. Otherwise the lead runs a
    probe for every need the packages and the profile declare, at the base,
-   and write `preflight.json` to the run directory, bound to the plan digest.
+   and writes `preflight.json` to the run directory, bound to the plan digest.
    `preflight_check` checks it and fails on any verdict but `PASS`. An
-   attended plan skips both jobs.
-6. `execute` runs only when the plan is attended or the preflight verdict is
-   `PASS`. It has the lead run the packages through native sub-agents. It saves
+   attended run on a plan that is not unattended skips both jobs.
+6. `execute` runs only when the human chose `continue-attended` on a plan
+   that is not unattended, or the preflight verdict is `PASS`. It has the lead run the packages through native sub-agents. It saves
    each hand-off to `handoffs/<package>.json` and checks it on receipt, digests
    included. It integrates and commits the accepted packages, records each
    wave's head in the run plan's `base.integrated`, and returns those heads as

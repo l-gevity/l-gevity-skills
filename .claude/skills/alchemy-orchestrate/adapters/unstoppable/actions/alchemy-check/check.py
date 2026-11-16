@@ -236,6 +236,18 @@ def prepare_plan(mode: str, root: Path, skill: Path, profile: Path | None, out: 
     if expected and not same_commit(base_commit, expected):
         raise InputError(f"plan base.commit {base_commit or '(none)'} is not {expected}, "
                          "the commit this run started from")
+    # The human decides at plan approval whether the run is watched; a plan that
+    # disagrees declares no needs for the preflight to prove, so the run stops.
+    switch = option("expect_unattended").lower()
+    if switch:
+        if switch not in ("true", "false"):
+            raise InputError(f"input expect_unattended must be true or false, not {switch!r}")
+        execution = data.get("execution") if isinstance(data.get("execution"), dict) else {}
+        stated = "true" if execution.get("unattended") is True else "false"
+        if stated != switch:
+            raise InputError(f"plan execution.unattended is {stated}, but this run proceeds "
+                             f"{'unattended' if switch == 'true' else 'attended'}; re-plan with the "
+                             "switch the human chose and the needs it requires")
 
     outputs = {"base_commit": base_commit, "run_dir": ""}
     plan_file = source

@@ -1,0 +1,59 @@
+{
+  "schema": "alchemy-ledger/1",
+  "head_commit": "c47e9aa",
+  "rework_cycles": {},
+  "evidence": [
+    {
+      "id": "E1",
+      "command": "npm test -- orders",
+      "exit_code": 0,
+      "commit": "c47e9aa",
+      "produced_by": "agent-c"
+    },
+    {
+      "id": "E2",
+      "command": "npm test -- shipments",
+      "exit_code": 0,
+      "commit": "c47e9aa",
+      "produced_by": "agent-c"
+    },
+    {
+      "id": "E3",
+      "command": "npm test",
+      "exit_code": 0,
+      "commit": "c47e9aa",
+      "produced_by": "agent-c"
+    }
+  ],
+  "criteria": [
+    {
+      "id": "REQ-12-AC1",
+      "package": "P1",
+      "status": "verified",
+      "evidence": [
+        "E1"
+      ],
+      "verified_by": "agent-c"
+    },
+    {
+      "id": "REQ-13-AC1",
+      "package": "P2",
+      "status": "verified",
+      "evidence": [
+        "E2"
+      ],
+      "verified_by": "agent-c"
+    },
+    {
+      "id": "P3-AC1",
+      "package": "P3",
+      "status": "verified",
+      "evidence": [
+        "E3"
+      ],
+      "verified_by": "lead"
+    }
+  ],
+  "findings": [],
+  "disputes": []
+}
