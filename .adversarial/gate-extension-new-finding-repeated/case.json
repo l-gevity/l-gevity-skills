@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #205: under new-finding, a cycle beyond the default bound corrects a new finding",
+  "description": "Same as gate-extension-authorized-pass, with only the new-finding condition, but cycle 3 cites F1, the finding of the first review.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "a144618074e077c2b4d783e79d84b9165e7f316d14f404d00899dfa7ef403a13"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "REWORK_LIMIT"
+    ]
+  }
+}

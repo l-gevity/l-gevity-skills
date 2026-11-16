@@ -1,0 +1,22 @@
+{
+  "criterion": "multi-agent-governance #181: a third fix of one chain's files charged to another origin counts against that chain",
+  "description": "P1 took two rework cycles (A1, A2); the third fix of src/orders/ is amendment A3, which names P2 as its origin.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "REWORK_LIMIT"
+    ],
+    "facts": {
+      "rework.cycles": {
+        "P1": 3,
+        "P2": 1
+      }
+    }
+  }
+}

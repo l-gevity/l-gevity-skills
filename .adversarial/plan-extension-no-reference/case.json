@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #198: an extension's authorization names where the human gave it",
+  "description": "Same as plan-extension-authorized-pass, but the extension names no reference.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AUTHORIZATION_UNPROVEN"
+    ]
+  }
+}

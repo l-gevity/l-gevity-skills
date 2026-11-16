@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #192: an amendment starts from the plan base or an integrated head",
+  "description": "Same as plan-amendment-rework-pass, but A1 starts from commit abcdef1, which the run never held.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AMENDMENT_INVALID"
+    ]
+  }
+}

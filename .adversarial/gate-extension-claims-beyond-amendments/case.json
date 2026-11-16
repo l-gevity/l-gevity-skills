@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #210: a cycle beyond the default bound exists only as an amendment that meets the conditions",
+  "description": "The extension raises the ceiling to 3; the ledger claims 3 cycles of P1, but the plan holds only 2 amendments, so the third cycle cannot be checked against the conditions.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "f4adeac9e2dfa291bc730bd4e269f89f3de3cb09d8f3d19fef261cb2587be524"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "REWORK_LIMIT"
+    ]
+  }
+}

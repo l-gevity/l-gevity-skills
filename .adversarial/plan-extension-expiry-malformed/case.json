@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #200: an authorization's expiry is an instant a check can compare",
+  "description": "Same as plan-extension-authorized-pass, but the extension expires at 'end of sprint', which is no ISO 8601 instant.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AUTHORIZATION_UNPROVEN"
+    ]
+  }
+}

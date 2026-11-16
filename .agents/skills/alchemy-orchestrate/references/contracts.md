@@ -100,7 +100,15 @@ an amendment before anybody edits, and every rule that holds for a package
 holds for the package it adds, whoever owns it, the lead included. The
 approved revision is the plan without `amendments`; the plan check prints its
 digest as `approved_digest`, and `--approved <digest>` on the plan and gate
-checks refuses a plan whose approved part changed since (`AMENDMENT_INVALID`).
+checks refuses a plan that holds no such revision (`AMENDMENT_INVALID`). A plan
+with amendments, and at the gate one with an extension or a ledger recording
+rework (`rework_cycles`, `after`, `introduced_by`, `reopened_after`), fails
+without it: those rules mean nothing unanchored. When the human approves an
+amended revision, `--approved` names that revision's digest, and the
+amendments it holds count as approved. `--revision <digest>`, a `plan_digest`
+an earlier check of the run printed, refuses a plan that no longer holds that
+revision: amendments are only appended, so deleting one cannot reset a count.
+The workflow adapter feeds both from step outputs the lead does not write.
 
 ```json
 {"id": "A1", "origin": "P1", "supersedes": "<digest of the revision before it>", "base": "c47e9aa",
@@ -110,12 +118,12 @@ checks refuses a plan whose approved part changed since (`AMENDMENT_INVALID`).
 
 | Field | Rule |
 |:--|:--|
-| `origin` | The package the work originates from: an approved package or one an earlier amendment added. A rename is an amendment whose package has a new ID. The rework budget is counted along the chain of origins (`REWORK_LIMIT`). |
+| `origin` | The package the work originates from: an approved package or one an earlier amendment added. A rename is an amendment whose package has a new ID. The rework budget is counted along the chain of origins (`REWORK_LIMIT`); an amendment whose writes overlap the approved write set of another chain counts against that chain too. |
 | `supersedes` | `revision_digest` of the plan with the amendments before this one; the first names `approved_digest`. |
 | `base` | The plan base or an integrated head the rework starts from. |
 | `reviewer` | Required on an `implement` (rework) or `decide` (replanning) amendment; never the package owner (`SELF_REVIEW`). Under independent review or high risk it owns a `verify` package of the plan. It verifies the package's criteria at the gate. |
-| `findings` | Ledger finding IDs the cycle corrects; a cycle beyond `max_rework_cycles` needs them to meet the extension's conditions. |
-| `package` | A full package record. It depends on its `origin`. Inside the approved envelope it writes only paths an approved `implement` package writes, asks for no permission the first package of its origin chain lacks, and keeps that package's risk or raises it; anything else is `AMENDMENT_BROADENS`, and a protected write is `PROTECTED_PATH`, unless `approval` holds a valid authorization. |
+| `findings` | Ledger finding IDs the cycle corrects; a cycle beyond `max_rework_cycles` needs them to meet the extension's conditions. Each amendment is one cycle, so a correction pass adds one amendment per origin chain, listing every finding it answers, never one per finding. |
+| `package` | A full package record. It depends on its `origin`. Inside the approved envelope it writes only paths an approved `implement` package writes, asks for no permission the first package of its origin chain lacks, and keeps that package's risk or raises it; anything else is `AMENDMENT_BROADENS`, and a protected write is `PROTECTED_PATH`, unless `approval` holds a valid authorization and the revision `--approved` names holds the amendment. An amendment after that revision cannot broaden, whatever its `approval` says: the run stops, and the human approves a revision that holds it. |
 | `approval` | An authorization: `{"by": "human", "ref", "source": "answer", "expires"}`. `ref` names where the human said so (an approval step, an issue or review comment); `source` is `answer`, never a timeout or a default; `expires`, when present, is still ahead. Otherwise `AUTHORIZATION_UNPROVEN`. The checker cannot open `ref`: the gate lists each one under `authorizations` for the human to read. |
 
 An amendment is inside the plan revision: `plan_digest` covers it, so a
@@ -205,11 +213,12 @@ Kept by the lead from hand-offs, independent verification, and integration.
 | `criteria[].status` | `verified` (evidence IDs that passed at `head_commit`), `failed`, `unverified`, or `deferred` with `deferred_by: human`. Every plan criterion appears once. |
 | `criteria[]` | `verified_by` is required when verified; `reason` when deferred. Only plan criteria, under their own package. When independent review is on or the package's risk is `high`, an `implement` criterion's `verified_by` is the owner of a `verify` package that reviews it. A verified `command` criterion cites evidence whose `command` is the plan's, whitespace-normalized, or that of an `equivalent: {"command", "accepted_by": "human"}` the human accepted in its place. |
 | `evidence[]` | `id`, `command`, `exit_code`, `commit`; optional `produced_by`, `expect_exit` as in the hand-off, and `criterion`, the only criterion the item may verify. Items with the same normalized command, commit, and exit code are the same evidence, whatever their IDs. Profile verification commands pass only on exit 0. |
-| `findings[]` | Optional convergence links, recorded by the reviewer who raises the finding: `after`, the amendment whose review raised it (absent: the review of the planned work); `related_to`, earlier finding IDs in the same component or of the same class; `introduced_by`, the amendment whose fix caused it; `reopened_after`, the amendments after which it was reopened. Each named amendment and finding exists. The gate evaluates them as governance section 2 states (`NOT_CONVERGING`). |
+| `findings[]` | Optional convergence links, recorded by the reviewer who raises the finding: `after`, the amendment whose review raised it (absent: the review of the planned work); `related_to`, earlier finding IDs in the same component or of the same class; `introduced_by`, the amendment whose fix caused it; `reopened_after`, the amendments after which it was reopened. Each named amendment and finding exists, and `package` names a plan package. Once the plan has amendments, every blocking or major finding names its `package`, and one with `related_to` or `introduced_by` names `after` (`SCHEMA` otherwise). The gate evaluates them as governance section 2 states (`NOT_CONVERGING`). |
+| `--review` | The last reviewer's own output, a file the reviewing step wrote. Each of its blocking or major findings appears in the ledger under its ID, at no lower severity, for the same package, with every `related_to` link, `introduced_by` when it is a `regression`, and `reopened_after` on the finding it `reopens` (`SILENT_SKIP` otherwise). The gate checks that the ledger keeps what the reviewer recorded; whether a finding is related, a regression, or reopened is the reviewer's judgment, which no check confirms. Without `--review` the gate reads the ledger alone. |
 | `findings[].severity` | `blocking`, `major`, or `minor`. Blocking and major must end `resolved` with `resolution.evidence`, `rejected` with `resolution.evidence` showing the finding is wrong — sharing no evidence, by ID or identity, with the raiser's own `evidence` — or `accepted-risk` with `accepted_by: human`. |
 | `disputes[].resolution.basis` | `evidence` with evidence IDs, only when exactly one position's evidence all exists and exited 0; when both positions or neither have it, the human decides. Or `human` with `decided_by: human`. Majority, seniority, model, and confidence are not a basis. |
 | `rework_cycles` | A claim of correction rounds per package, summed along each origin chain. The gate counts the chain's rework amendments and takes the larger number, so neither a rename nor a new rework package starts at zero; above the bound it escalates. A ledger without amendments works as before. |
-| `changed_files` | Optional: the paths of the integrated diff from the plan base. With `--root` the gate reads them from git instead. Each lies in an `implement` package's write set, amendments included, or under `state_dir` (`UNOWNED_WRITE`). |
+| `changed_files` | Optional: the paths of the integrated diff from the plan base. With `--root` the gate reads them from git instead, without rename detection, so a moved file counts at its source and its destination. Each lies in an `implement` package's write set, amendments included, or under `state_dir` (`UNOWNED_WRITE`). |
 
 ## Preflight — `alchemy-preflight/1`
 
@@ -270,7 +279,7 @@ bound reached must stop rework rather than restart it.
 | `DELEGATION` | plan, gate | FAIL | A package may delegate, or the profile allows depth above 1 |
 | `CAP_EXCEEDED` | plan, gate | FAIL | Declared parallelism or distinct owners exceed the profile |
 | `PERMISSION_EXCEEDS` | plan, gate | FAIL | A package asks for `push`, `pull_request`, `merge`, `deploy`, an unknown permission, or one its envelope does not grant |
-| `PROTECTED_PATH` | plan, gate | FAIL | A package writes a protected path, or a path under one, without `approved_by: human`, or an amendment does without a valid `approval` |
+| `PROTECTED_PATH` | plan, gate | FAIL | A package writes a protected path, or a path under one, without `approved_by: human`, or an amendment does without a valid `approval` in a revision `--approved` names |
 | `MERGE_POLICY` | plan, gate | FAIL | `merge_policy` is not `human-approval` |
 | `MODE_MISMATCH` | plan, gate | FAIL | `single-agent` with more than one agent (package owners plus the integration owner), `multi-agent` with one, or any multi-agent plan while the profile sets `execution.multi_agent` to `off` |
 | `REQUIREMENT_CONFLICT` | plan, gate | ESCALATE | A recorded requirement conflict has no resolution, or a `human` basis the human did not decide |
@@ -289,7 +298,7 @@ bound reached must stop rework rather than restart it.
 | `STALE_CONTEXT` | handoff | STALE | A `relied_on` digest no longer matches the workspace |
 | `AGENT_FAILED` | handoff | RETRY | `FAILED` within the retry budget |
 | `RETRY_EXHAUSTED` | handoff | ESCALATE | `FAILED` with the retry budget spent |
-| `SILENT_SKIP` | gate | FAIL | A plan criterion is missing from the ledger |
+| `SILENT_SKIP` | gate | FAIL | A plan criterion is missing from the ledger, or the ledger drops or weakens a blocking or major finding or a convergence link the reviewer's own output (`--review`) records |
 | `CRITERION_FAILED` | gate | FAIL | A criterion is `failed` |
 | `UNVERIFIED` | gate | FAIL | A criterion is `unverified`, or deferred by anyone but the human |
 | `UNSUPPORTED_VERDICT` | gate | FAIL | `verified` without evidence that exists, passed (exit 0 for a `command` criterion), runs the criterion's assigned or human-accepted check, and is not recorded for another criterion |
@@ -315,8 +324,8 @@ bound reached must stop rework rather than restart it.
 | `NEEDS_UNDECLARED` | plan, preflight, gate | FAIL | In an unattended plan, a package has no `needs`, or has a `command` criterion and no `environment` need |
 | `PREREQUISITE_UNCOVERED` | preflight | FAIL | A need a package or the profile declares is covered by no preflight entry of its kind, or an account need only by accounts that do not name the package |
 | `PREFLIGHT_STALE` | preflight | STALE | The record's `plan.digest` or `plan.base` is not the checked plan's: the plan changed, or the base moved, after the preflight |
-| `AMENDMENT_INVALID` | plan, gate | FAIL | An amendment names an origin that does not exist before it, a superseded revision other than the one before it, a base the run does not hold, or no reviewer; its package does not depend on its origin; it patches work the convergence rule stopped; or, with `--approved`, the plan's approved part is not that revision |
-| `AMENDMENT_BROADENS` | plan, gate | FAIL | An amendment writes outside the approved plan's write sets, asks for a permission its origin lacks, or lowers its origin's risk, without a valid `approval` |
+| `AMENDMENT_INVALID` | plan, gate | FAIL | An amendment names an origin that does not exist before it, a superseded revision other than the one before it, a base the run does not hold, or no reviewer; its package does not depend on its origin; it patches work the convergence rule stopped; with `--approved`, the plan holds no such revision; without it, the plan carries amendments, or at the gate an extension or recorded rework; or, with `--revision`, the plan no longer holds that revision |
+| `AMENDMENT_BROADENS` | plan, gate | FAIL | An amendment writes outside the approved plan's write sets, asks for a permission its origin lacks, or lowers its origin's risk, without a valid `approval` in a revision `--approved` names |
 | `AUTHORIZATION_UNPROVEN` | plan, gate | FAIL | An extension or amendment approval is not granted by the human, names no reference, names a source other than the human's answer (a timeout, a default), or expired; an extension no approved revision anchors; or, with `--root`, a `max_rework_cycles` above the one committed at the plan base |
 | `UNOWNED_WRITE` | gate | FAIL | A path of the integrated diff lies in no `implement` package's write set, amendments included, and not under `state_dir` |
 | `NOT_CONVERGING` | gate | ESCALATE | The convergence rule of governance section 2 fired for an origin chain; the report lists the `stopped` packages and those that `may_continue` |

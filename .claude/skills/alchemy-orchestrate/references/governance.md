@@ -12,7 +12,7 @@ a rule with no check is marked as judgment and is reviewed in the report.
 | Worth (M) and gate verdicts (A–Y) | the package holding that capability | any agent, with evidence | the lead, on the owning skill's criteria and the evidence cited |
 | Interface contract | the `decide` package that produces it | any consumer | the lead; dependents start only after acceptance (`CONTRACT_ORDER`) |
 | Implementation inside a write set | the package owner | any verifier | the gate, on passing evidence at the integrated head |
-| Rework, a lead correction, replanning | the lead, as a plan amendment before anybody edits | the amendment's reviewer | the plan check, inside the approved envelope (`AMENDMENT_INVALID`, `AMENDMENT_BROADENS`); outside it, the human (`approval`) |
+| Rework, a lead correction, replanning | the lead, as a plan amendment before anybody edits | the amendment's reviewer | the plan check, inside the approved envelope (`AMENDMENT_INVALID`, `AMENDMENT_BROADENS`); outside it, the human, by approving a revision that holds it |
 | More rework cycles than `max_rework_cycles` | the lead, in the plan before the run | — | the human only, as `execution.rework_extension` (`AUTHORIZATION_UNPROVEN`) |
 | Finding validity | the verifier | the package owner, with evidence | the gate: `resolved` or `rejected` need passing evidence (`UNSUPPORTED_RESOLUTION`) |
 | Accepted risk, deferred criterion | any agent | — | the human only (`RISK_NOT_ACCEPTED_BY_HUMAN`, `UNVERIFIED`) |
@@ -32,10 +32,19 @@ said so (`ref`: an approval step, an issue or review comment), the source
 cannot be widened from inside the run: an extension sits in the approved
 revision, which the gate holds to `--approved`, and with `--root` the gate
 takes `max_rework_cycles` as committed at the plan base, so a profile raised
-during the run is a violation, not a raised bound. What no script can
+during the run is a violation, not a raised bound. An `approval` the lead
+writes into an amendment after the approved revision is the lead's text, not
+the human's answer, so it grants nothing: when a correction truly needs more
+scope, the run stops and asks, and the human approves a revision that holds
+the amendment, whose digest the next check takes as `--approved`. Run the
+plan check as `check_orchestration.py plan <plan> --approved <approved_digest>`
+and the gate as `check_orchestration.py gate <ledger> --plan <plan> --approved
+<approved_digest> --revision <last plan_digest>`; without `--approved` a plan
+with amendments, an extension, or recorded rework fails. What no script can
 establish is that `ref` says what the record claims: the gate lists every
-authorization it relied on under `authorizations`, and the human reading the
-gate opens each one.
+authorization it relied on under `authorizations`, the workflow adapter prints
+them with the extension's ceiling, conditions, and reference in the summary
+the human approves, and the human opens each one.
 
 ## 2. Disagreement
 
@@ -58,7 +67,12 @@ gate opens each one.
 Rework is bounded: at most `max_rework_cycles` correction rounds per origin
 chain, counted from its rework amendments and never below the ledger's
 `rework_cycles` claims summed along it, so a renamed or new rework package
-does not start at zero (`REWORK_LIMIT`); and one re-entry per dispute
+does not start at zero (`REWORK_LIMIT`). An amendment counts against every
+chain whose approved writes its writes overlap, so a fix of one chain's files
+charged to another origin still counts, and amendments are only appended
+(`--revision`). One correction pass is one cycle per origin chain: it adds
+one amendment per chain that lists every finding it answers, never one per
+finding. And one re-entry per dispute
 (judgment: the ledger records it, no check counts it). Reaching a bound
 escalates with both positions and the evidence; it never restarts the loop.
 
@@ -89,8 +103,11 @@ records it, never the package owner; the reviewer question for every rework
 review is "does this finding touch a file, contract, or class an earlier
 finding named?", and a yes is a link. The script cannot see a link nobody
 recorded, nor tell a wrong `no` from a right one: an independent verifier
-re-reads the findings against the diff, and a lead that removes a link is
-editing a record the reviewer owns.
+re-reads the findings against the diff. What the script does check: every
+blocking or major finding names its package once the plan has amendments, a
+linked one names `after`, and with `--review` the ledger keeps every serious
+finding and link of the reviewer's own output, so a lead that removes a link
+fails the gate (`SILENT_SKIP`) instead of editing a record the reviewer owns.
 
 ## 3. Shared State
 

@@ -1,0 +1,17 @@
+{
+  "criterion": "multi-agent-governance #188: a blocking finding of the reviewer's own output cannot be left out of the ledger",
+  "description": "Same as gate-review-recorded-pass, but the reviewer also raised blocking F4, which the ledger does not record.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "review": "review.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "SILENT_SKIP"
+    ]
+  }
+}

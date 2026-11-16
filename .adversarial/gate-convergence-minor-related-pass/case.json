@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #211: a minor finding related to an earlier one does not stop the patching",
+  "description": "Same as gate-convergence-related-major, but F3 is minor.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

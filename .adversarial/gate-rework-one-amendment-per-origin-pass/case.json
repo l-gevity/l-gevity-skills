@@ -1,0 +1,20 @@
+{
+  "criterion": "multi-agent-governance #189: one correction pass is one cycle per origin, however many findings it answers",
+  "description": "The review of P1 raised blocking F1 and major F4; one pass adds one amendment A1 that answers both. One cycle is counted, and one pass of the bound of 2 is left.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": [],
+    "facts": {
+      "rework.cycles": {
+        "P1": 1
+      },
+      "rework.passes_left": 1
+    }
+  }
+}

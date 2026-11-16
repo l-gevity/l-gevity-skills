@@ -66,8 +66,23 @@ inputs:
     description: >-
       plan and gate modes, the approved revision's digest (the plan check's
       plan_digest before any amendment), passed as --approved: an amended plan
-      whose approved part changed fails, and an extension of the rework bound
-      counts only when this anchors it.
+      whose approved part changed fails, a plan with amendments fails without
+      it, an amendment after it cannot broaden scope, and an extension of the
+      rework bound counts only when this anchors it.
+    required: false
+    default: ''
+  revision:
+    description: >-
+      plan and gate modes, a plan_digest an earlier check of this run output,
+      passed as --revision: the plan must still hold that revision, so an
+      amendment is never changed or removed. Empty checks nothing.
+    required: false
+    default: ''
+  review:
+    description: >-
+      gate mode, the last reviewer's own structured output (its findings),
+      passed as --review: the gate fails (SILENT_SKIP) when the ledger drops
+      or weakens a blocking or major finding or a convergence link it records.
     required: false
     default: ''
   repository:
@@ -110,7 +125,11 @@ outputs:
   verdict:
     description: PASS, ACCEPT, FAIL, REJECT, STALE, RETRY, or ESCALATE.
   summary:
-    description: One-line summary of the report; in gate mode, the gate block of alchemy-orchestrate section 6.
+    description: >-
+      One-line summary of the report; in gate mode, the gate block of
+      alchemy-orchestrate section 6. In plan and gate modes it lists every
+      authorization the check honoured and the plan's rework extension with
+      its ceiling, conditions, and reference.
   report_file:
     description: The JSON report, kept under the step output directory.
   plan_file:
@@ -120,7 +139,10 @@ outputs:
   unattended:
     description: plan mode, "true" when the plan sets execution.unattended, otherwise "false".
   plan_digest:
-    description: plan mode, the plan revision digest a preflight record binds to in its plan.digest.
+    description: >-
+      plan and gate modes, the digest of the plan revision checked, amendments
+      included: a preflight record binds to it, and a later check takes it as
+      revision.
   approved_digest:
     description: plan mode, the digest of the plan without its amendments, the approved revision.
   correction_passes:

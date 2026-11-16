@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #208: under same-check-green alone, a cycle whose failing check passes at head passes",
+  "description": "Cycle 3 cites F3, whose rounding check failed on b21d0c4 and passes at head c47e9aa.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "a530bae478f1a6c3340730a2930f6bcd6b462703ef8630ea15f246da3a75b099"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

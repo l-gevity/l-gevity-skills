@@ -571,6 +571,8 @@ def _empty_plan() -> dict[str, Any]:
         "amendments": [],
         "revisions": [],
         "extension": None,
+        # Amendments the human approved: those before the revision --approved names.
+        "anchor": None,
     }
 
 
@@ -1197,13 +1199,20 @@ def _rule_amendments(parsed: dict[str, Any], writes: dict[str, list[str]], reach
         if not (broadening or protected):
             continue
         approval = amendment["approval"]
-        if approval is None:
+        # An approval typed into an amendment after the approved revision is the
+        # lead's text, not the human's answer: only a revision the human approved
+        # (the one --approved names) can hold a broadening.
+        covered = parsed["anchor"] is not None and amendment["index"] < parsed["anchor"]
+        if approval is None or not covered:
+            need = ("needs a recorded human approval" if approval is None else
+                    "comes after the approved revision, so its approval grants nothing; stop, and have the human "
+                    "approve a revision that holds it, then check against that revision with --approved")
             if broadening:
                 report.add("AMENDMENT_BROADENS", f"{label} ({aid}) {'; and '.join(broadening)}; scope beyond "
-                           "the authorized envelope needs a recorded human approval", aid)
+                           f"the authorized envelope {need}", aid)
             if protected:
-                report.add("PROTECTED_PATH", f"{label} ({aid}) writes protected {', '.join(protected)}; an "
-                           "amendment needs a recorded human approval, approved_by alone does not grant it", aid)
+                report.add("PROTECTED_PATH", f"{label} ({aid}) writes protected {', '.join(protected)}; the "
+                           f"amendment {need}; approved_by alone does not grant it", aid)
             continue
         problem = _authorization_problem(approval)
         if problem:
@@ -1396,40 +1405,80 @@ def _plan_rules(parsed: dict[str, Any], view: dict[str, Any], report: Report) ->
             "authorizations": authorizations}
 
 
-def _rule_approved(plan: Any, approved: str | None, report: Report) -> None:
-    """AMENDMENT_INVALID when the plan without its amendments is not the
-    revision the human approved: the approved part changes only by a new
-    approval, never by an edit during the run."""
+def _set_anchor(parsed: dict[str, Any], approved: str | None) -> None:
+    """The number of amendments the approved revision holds, when the plan
+    holds the revision --approved names: 0 for the plan the human approved
+    before execution, more when the human approved an amended revision."""
+    wanted = approved.strip().lower() if isinstance(approved, str) else None
+    parsed["anchor"] = parsed["revisions"].index(wanted) if wanted in parsed["revisions"] else None
+
+
+def _rule_approved(plan: Any, parsed: dict[str, Any], approved: str | None, report: Report,
+                   revision: str | None = None, led: dict[str, Any] | None = None) -> None:
+    """AMENDMENT_INVALID when the plan holds no revision the human approved:
+    its approved part changes only by a new approval, never by an edit during
+    the run. Without --approved, a plan with amendments, and at the gate also
+    one with a rework extension or a ledger recording rework, fails: those
+    rules mean nothing unanchored. With --revision, a revision an earlier check
+    of the run accepted, the plan must still hold it: amendments are only
+    appended, so deleting one cannot reset a count."""
     if approved is None:
-        return
-    actual = revision_digest(plan, 0)
-    if actual is None or actual != approved.strip().lower():
-        report.add("AMENDMENT_INVALID", f"the plan without its amendments is revision "
-                   f"{(actual or 'none')[:12]}..., not the approved revision {approved.strip()[:12]}...; "
-                   "change the approved part only through a new approval")
+        carried = ["amendments"] if parsed["amendments"] else []
+        if led is not None:
+            if parsed["extension"] is not None:
+                carried.append("a rework extension")
+            if led["rework_cycles"] or any(finding["after"] or finding["introduced_by"] or finding["reopened_after"]
+                                           for finding in led["findings"]):
+                carried.append("recorded rework")
+        if carried:
+            report.add("AMENDMENT_INVALID", f"the plan carries {' and '.join(carried)} but no approved revision "
+                       "anchors it; pass --approved with the approved_digest the plan check printed for the "
+                       "revision the human approved")
+    else:
+        wanted = approved.strip().lower()
+        actual = wanted if parsed["anchor"] is not None else revision_digest(plan, 0)
+        if actual is None or actual != approved.strip().lower():
+            report.add("AMENDMENT_INVALID", f"the plan without its amendments is revision "
+                       f"{(actual or 'none')[:12]}..., and no revision of it is the approved revision "
+                       f"{approved.strip()[:12]}...; change the approved part only through a new approval")
+    if revision is not None and revision.strip().lower() not in parsed["revisions"]:
+        report.add("AMENDMENT_INVALID", f"the plan no longer holds revision {revision.strip()[:12]}..., which an "
+                   "earlier check of this run accepted; amendments are only appended, never changed or removed")
+
+
+def _extension_fact(parsed: dict[str, Any]) -> dict[str, Any] | None:
+    """The rework extension as the human must see it before approving."""
+    extension = parsed["extension"]
+    if extension is None:
+        return None
+    auth = extension["authorization"] or {}
+    return {"ceiling": extension["ceiling"], "conditions": sorted(extension["conditions"]), "ref": auth.get("ref")}
 
 
 def check_plan(plan: Any, profile: Any, root: str | Path | None = None,
-               approved: str | None = None) -> dict[str, Any]:
+               approved: str | None = None, revision: str | None = None) -> dict[str, Any]:
     """Decide whether a plan may run; report waves and the derived execution mode.
 
     With `root`, the repository there must be at the plan's base or an
     integrated head and hold no uncommitted change outside the state
     directory, so no agent starts from, or reports, changes the run did not make.
-    With `approved`, the plan without its amendments must be that revision.
+    With `approved`, the plan must hold that revision; a plan with amendments
+    needs it. With `revision`, the plan must still hold that earlier revision.
     """
     report = Report("plan")
     view = _profile_view(profile, report)
     parsed = _parse_plan(plan, view, report)
+    _set_anchor(parsed, approved)
     _rule_secrets(plan, "plan", report, None)
     shape = _plan_rules(parsed, view, report)
-    _rule_approved(plan, approved, report)
+    _rule_approved(plan, parsed, approved, report, revision)
     facts = _plan_facts(parsed, shape["graph"], shape["owners"], view)
     facts["unattended"] = parsed["execution"]["unattended"]
     facts["plan_digest"] = plan_digest(plan)
     facts["approved_digest"] = revision_digest(plan, 0)
     facts["amendments"] = [amendment["id"] for amendment in parsed["amendments"]]
     facts["authorizations"] = shape["authorizations"]
+    facts["extension"] = _extension_fact(parsed)
     facts["head_checked"] = False
     if root is not None:
         heads = [parsed["base_commit"], *parsed["integrated"]] if parsed["base_commit"] else []
@@ -2193,11 +2242,23 @@ def _root_of(packages: dict[str, Any], pid: Any) -> str | None:
 
 
 def _rule_finding_links(led: dict[str, Any], parsed_plan: dict[str, Any], report: Report) -> None:
-    """SCHEMA for a convergence link to an amendment or finding that does not exist."""
+    """SCHEMA for a convergence link to an amendment or finding that does not
+    exist, a finding naming no plan package, and a finding the convergence rule
+    cannot place: once the plan has amendments, a blocking or major finding
+    names its package, and a finding related to an earlier one or introduced by
+    a fix names the amendment whose review raised it (`after`)."""
     known = {amendment["id"] for amendment in parsed_plan["amendments"]}
     ids = {finding["id"] for finding in led["findings"]}
     for finding in led["findings"]:
         fid = finding["id"]
+        if finding["package"] is not None and finding["package"] not in parsed_plan["packages"]:
+            report.add("SCHEMA", f"finding {fid} names package {finding['package']}, which is no plan package", fid)
+        elif finding["package"] is None and known and finding["severity"] in SERIOUS:
+            report.add("SCHEMA", f"{finding['severity']} finding {fid} names no package; once the plan has "
+                       "amendments, the convergence rule needs it", fid)
+        if finding["after"] is None and (finding["related_to"] or finding["introduced_by"]):
+            report.add("SCHEMA", f"finding {fid} is related to an earlier finding or introduced by a fix but names "
+                       "no amendment whose review raised it (after)", fid)
         for key in ("after", "introduced_by"):
             if finding[key] is not None and finding[key] not in known:
                 report.add("SCHEMA", f"finding {fid} {key} {finding[key]}, which is no plan amendment", fid)
@@ -2299,10 +2360,12 @@ def _profile_bound_at_base(root: Path, base: str | None) -> tuple[int | None, st
 
 
 def _changed_paths(root: Path, base: str | None, head: str | None) -> tuple[list[str] | None, str | None]:
-    """Paths the integrated diff from the plan base to the head touches, from git."""
+    """Paths the integrated diff from the plan base to the head touches, from git.
+    Without rename detection, so a moved file lists its source as well as its
+    destination: moving an unowned file into an owned directory changes both."""
     if base is None or head is None:
         return None, "the plan base or the ledger head is unknown"
-    out, error = _git(root, "diff", "--name-only", "-z", base, head)
+    out, error = _git(root, "diff", "--name-only", "--no-renames", "-z", base, head)
     if error:
         return None, error
     return [path for path in out.split("\0") if path], None
@@ -2337,11 +2400,14 @@ def _extension_condition_gaps(amendment: dict[str, Any], previous: str | None, c
 
 
 def _rule_rework(parsed_plan: dict[str, Any], led: dict[str, Any], view: dict[str, Any], report: Report,
-                 root: str | Path | None, approved: str | None) -> dict[str, Any]:
+                 root: str | Path | None, approved: str | None,
+                 writes: dict[str, list[str]] | None = None) -> dict[str, Any]:
     """REWORK_LIMIT when an origin chain took more correction cycles than its
     bound. Cycles are the chain's implement amendments, never fewer than the
     ledger's rework_cycles claims summed along the chain, so neither a rename
-    nor a new rework package starts at zero. The bound is the profile's as
+    nor a new rework package starts at zero. An amendment also counts against
+    every other chain whose approved write set its writes overlap, so a fix of
+    one chain's files cannot be charged to another origin. The bound is the profile's as
     committed at the plan base (with root); an extension raises it only when
     its authorization is valid and the approved revision that holds it is
     anchored by `approved`, and each cycle beyond the profile's bound meets
@@ -2356,11 +2422,17 @@ def _rule_rework(parsed_plan: dict[str, Any], led: dict[str, Any], view: dict[st
             report.add("AUTHORIZATION_UNPROVEN", f"max_rework_cycles is {limit}, but the profile committed at the "
                        f"plan base says {at_base}; a bound raised during the run authorizes nothing", None)
             limit = at_base
+    writes = writes or {}
+    roots = [pid for pid in sorted(parsed_plan["approved"]) if packages[pid]["kind"] == "implement"]
     chains: dict[str, list[dict[str, Any]]] = {}
     for amendment in parsed_plan["amendments"]:
         pkg = packages.get(amendment["package"]) if amendment["package"] else None
         if pkg is not None and pkg["kind"] == "implement":
-            chains.setdefault(_root_of(packages, pkg["id"]), []).append(amendment)
+            own = _root_of(packages, pkg["id"])
+            touched = {root for root in roots if any(_overlaps(mine, theirs) for mine in writes.get(pkg["id"], [])
+                                                      for theirs in writes.get(root, []))}
+            for chain_root in sorted({own} | touched):
+                chains.setdefault(chain_root, []).append(amendment)
     counts: dict[str, int] = {}
     for key, cycles in led["rework_cycles"].items():
         chain_root = _root_of(packages, key) or key
@@ -2405,27 +2477,73 @@ def _rule_rework(parsed_plan: dict[str, Any], led: dict[str, Any], view: dict[st
 
 
 def _approved_matches(parsed_plan: dict[str, Any], approved: str) -> bool:
-    return bool(parsed_plan["revisions"]) and parsed_plan["revisions"][0] == approved.strip().lower()
+    """The plan holds the approved revision; every revision holds the extension of revision 0."""
+    return approved.strip().lower() in parsed_plan["revisions"]
+
+
+def _rule_review_record(led: dict[str, Any], review: Any, report: Report) -> None:
+    """SILENT_SKIP when the ledger drops or weakens what the reviewer's own
+    output records: a blocking or major finding missing by ID, a lower
+    severity, another package, a related_to link left out, a regression
+    without introduced_by, or a reopened finding without reopened_after. The
+    reviewer's output is a file the reviewing step wrote, not the lead."""
+    if not isinstance(review, dict) or not isinstance(review.get("findings"), list):
+        report.add("SCHEMA", "the review record must be an object with a findings list")
+        return
+    ledger = {finding["id"]: finding for finding in led["findings"]}
+    order = ["minor", "major", "blocking"]
+    for index, item in enumerate(review["findings"]):
+        if not isinstance(item, dict) or not isinstance(item.get("id"), str):
+            report.add("SCHEMA", f"review.findings[{index}] needs an id")
+            continue
+        fid, severity = item["id"], item.get("severity")
+        if severity not in SERIOUS:
+            continue
+        mine = ledger.get(fid)
+        gaps = []
+        if mine is None:
+            gaps.append("is missing from the ledger")
+        else:
+            if mine["severity"] not in order or order.index(mine["severity"]) < order.index(severity):
+                gaps.append(f"is recorded as {mine['severity']}, not {severity}")
+            if isinstance(item.get("package"), str) and mine["package"] != item["package"]:
+                gaps.append(f"is recorded for {mine['package']}, not {item['package']}")
+            dropped = sorted(set(item.get("related_to") or []) - set(mine["related_to"]))
+            if dropped:
+                gaps.append(f"lost its related_to {', '.join(dropped)}")
+            if item.get("regression") is True and not mine["introduced_by"]:
+                gaps.append("is a regression without introduced_by")
+            reopened = ledger.get(item.get("reopens")) if isinstance(item.get("reopens"), str) else None
+            if isinstance(item.get("reopens"), str) and (reopened is None or not reopened["reopened_after"]):
+                gaps.append(f"reopens {item['reopens']}, which records no reopened_after")
+        if gaps:
+            report.add("SILENT_SKIP", f"reviewer finding {fid} ({severity}) {'; and '.join(gaps)}", fid)
 
 
 def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = None,
-               preflight: Any = None, approved: str | None = None) -> dict[str, Any]:
+               preflight: Any = None, approved: str | None = None, revision: str | None = None,
+               review: Any = None) -> dict[str, Any]:
     """Decide whether the integrated head may go to a human-approved pull request.
 
     With `root`, the repository there must be at the ledger's head and hold no
     uncommitted change outside the profile's state directory. An unattended
     plan needs `preflight`, its record, still passing against this plan.
+    `approved` and `revision` are the plan check's; `review` is the last
+    reviewer's own output, which the ledger must not under-report.
     """
     report = Report("gate")
     view = _profile_view(profile, report)
     parsed_plan = _parse_plan(plan, view, report)
+    _set_anchor(parsed_plan, approved)
     led = _parse_ledger(ledger, report)
     _rule_secrets(ledger, "ledger", report, None)
     _rule_secrets(plan, "plan", report, None)
     # A gate never passes on a plan the plan check would refuse.
     shape = _plan_rules(parsed_plan, view, report)
-    _rule_approved(plan, approved, report)
+    _rule_approved(plan, parsed_plan, approved, report, revision, led)
     _rule_finding_links(led, parsed_plan, report)
+    if review is not None:
+        _rule_review_record(led, review, report)
     # Nor on unattended work whose preflight is missing, failed, or stale.
     preflight_verdict = None
     if preflight is not None:
@@ -2596,7 +2714,7 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
                 report.add("VOTE_NOT_EVIDENCE", f"dispute {did} claims basis human but was decided by "
                            f"{dispute['decided_by'] or 'nobody named'}", did)
 
-    rework = _rule_rework(parsed_plan, led, view, report, root, approved)
+    rework = _rule_rework(parsed_plan, led, view, report, root, approved, shape["writes"])
 
     # Non-convergence stops the affected work; work that does not depend on it may continue.
     fired = _convergence(parsed_plan, led)
@@ -2664,6 +2782,8 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
         "ownership_checked": ownership or False,
         # Authorizations the checker cannot open: the human reads each reference.
         "authorizations": shape["authorizations"] + rework.pop("authorizations"),
+        "extension": _extension_fact(parsed_plan),
+        "plan_digest": plan_digest(plan),
     })
 
 
@@ -2688,9 +2808,13 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     gate.add_argument("--root", type=Path, help="repository whose HEAD and work tree must match the ledger")
     gate.add_argument("--preflight", type=Path,
                       help="alchemy-preflight/1 record; required when the plan is unattended")
+    gate.add_argument("--review", type=Path,
+                      help="the last reviewer's own findings output; the ledger must not under-report it")
     for sub in (plan, gate):
-        sub.add_argument("--approved", help="plan_digest of the revision the human approved; the plan "
-                         "without its amendments must be it, and it anchors a rework extension")
+        sub.add_argument("--approved", help="plan_digest of the revision the human approved; the plan must "
+                         "hold it, a plan with amendments needs it, and it anchors a rework extension")
+        sub.add_argument("--revision", help="plan_digest an earlier check of this run printed; the plan must "
+                         "still hold that revision")
     for sub, needs_plan in ((plan, False), (preflight, True), (handoff, True), (gate, True)):
         if needs_plan:
             sub.add_argument("--plan", type=Path, required=True, help="alchemy-plan/1 JSON file")
@@ -2711,15 +2835,16 @@ def main(argv: list[str] | None = None) -> int:
         if root is not None and not root.is_dir():
             raise InputError(f"{root}: --root is not a directory")
         if args.command == "plan":
-            result = check_plan(_read_json(args.plan), profile, root, args.approved)
+            result = check_plan(_read_json(args.plan), profile, root, args.approved, args.revision)
         elif args.command == "preflight":
             result = check_preflight(_read_json(args.preflight), _read_json(args.plan), profile, root)
         elif args.command == "handoff":
             result = check_handoff(_read_json(args.handoff), _read_json(args.plan), profile, root)
         else:
             preflight = _read_json(args.preflight) if args.preflight is not None else None
+            review = _read_json(args.review) if args.review is not None else None
             result = check_gate(_read_json(args.ledger), _read_json(args.plan), profile, root, preflight,
-                                args.approved)
+                                args.approved, args.revision, review)
     except InputError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

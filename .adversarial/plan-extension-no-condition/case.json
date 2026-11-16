@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #204: an extension names a condition each extra cycle must meet",
+  "description": "Same as plan-extension-authorized-pass, but the extension names no condition.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "SCHEMA"
+    ]
+  }
+}

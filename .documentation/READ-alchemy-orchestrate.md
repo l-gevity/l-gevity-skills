@@ -116,6 +116,9 @@ high-impact, or it is still open after one exchange, a human decides. Rework
 rounds are bounded, so a disagreement cannot loop forever; reaching the bound
 stops the run and asks. Each correction is added to the plan before anyone
 edits, with an owner and a reviewer, so a renamed task cannot reset its count.
+One round of corrections counts once per piece of work, however many problems
+it fixes. A correction that needs more scope than the approved plan stops the
+run until the human approves a new version of the plan.
 Only a human answer raises the bound; a question left unanswered raises
 nothing. When the same part keeps producing serious problems, patching stops
 and the design is planned again.
@@ -140,4 +143,4 @@ the first missed and cost twice as much, use one.
 [SKILL.md](../.claude/skills/alchemy-orchestrate/SKILL.md) and its references;
 the routing it builds on is explained in [the alchemy primer](READ-alchemy.md).*
 
-<!-- skill-revision: f8a76ee8b73a -->
+<!-- skill-revision: a9f14e6998c0 -->

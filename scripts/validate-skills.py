@@ -684,6 +684,12 @@ REFERENCE_REQUIRED_TERMS = {
             "`PREREQUISITE_UNCOVERED` until an entry of a record bound to the new revision claims it",
             "neither a rename nor a new rework package starts at zero",
             "Each cycle beyond the profile's bound then meets every listed condition",
+            "An amendment after that revision cannot broaden, whatever its `approval` says",
+            "amendments are only appended, so deleting one cannot reset a count",
+            "counts against that chain too",
+            "never one per finding",
+            "whether a finding is related, a regression, or reopened is the reviewer's judgment, which no check confirms",
+            "without rename detection, so a moved file counts at its source and its destination",
         ),
         "references/autonomy-preflight.md": (
             "# Autonomy Preflight — Preparing a Run That Proceeds Unattended",
@@ -712,6 +718,9 @@ REFERENCE_REQUIRED_TERMS = {
             "The script cannot see a link nobody recorded",
             "A rework amendment for stopped work is `AMENDMENT_INVALID` until the replanning amendment exists",
             "the write set names the files, never one taken from a test error",
+            "is the lead's text, not the human's answer, so it grants nothing",
+            "without `--approved` a plan with amendments, an extension, or recorded rework fails",
+            "One correction pass is one cycle per origin chain",
         ),
     },
     "structural-simplification": {
@@ -3316,6 +3325,31 @@ def mutation_test() -> int:
         ("the check action drops correction_passes", actions,
          'outputs["correction_passes"] = ', 'outputs["passes"] = ',
          "must output correction_passes"),
+        ("the re-gate forgets the revision its pass accepted", pipelines,
+         "            revision: ${{ steps.amend_check.outputs.plan_digest }}\n", "",
+         "regate must take revision"),
+        ("the re-gate trusts the ledger over the reviewer", pipelines,
+         "            review: ${{ steps.review.outputs.json_response_file }}\n", "",
+         "regate must take review"),
+        ("the pull request gate forgets the last accepted revision", pipelines,
+         "            revision: ${{ needs.correction.outputs.revision }}\n", "",
+         "must gate against the revision the last correction pass accepted"),
+        ("one amendment per finding", pipelines,
+         "append one amendment per origin chain", "append one amendment per finding",
+         "one amendment per origin chain"),
+        ("the check action drops the revision input", actions,
+         '["--revision", option("revision")]', '[]', "pass the revision input"),
+        ("the gate summary hides the authorizations", actions,
+         "Authorizations: {granted(report)}; ", "", "honoured authorizations in the gate summary"),
+        ("the plan summary hides the extension", actions,
+         "authorizations {granted(report)}; ", "", "honoured authorizations in the plan summary"),
+        # The two quoting defects of e6516a2, each restored on its own.
+        ("an apostrophe inside a single-quoted pipeline scalar", pipelines,
+         "the profile''s rework bound", "the profile's rework bound", "closes before"),
+        ("a single-quoted argument inside a single-quoted expression", pipelines,
+         'integrated: "${{ needs.execute.outputs.integrated_heads }},${{ join(parseJson(steps.correct.outputs.json_response).integrated_heads, \',\') }}"',
+         "integrated: '${{ needs.execute.outputs.integrated_heads }},${{ join(parseJson(steps.correct.outputs.json_response).integrated_heads, ',') }}'",
+         "closes before"),
     ):
         def break_adapter(files=files, old=old, new=new, label=label):
             for path in files:
@@ -4365,17 +4399,34 @@ def run_adversarial_case(checker, directory: Path) -> tuple[dict, dict]:
     profile = checker.load_profile(str(profile_path) if profile_path else None)
     plan = load("plan")
     root = str(directory / args["root"]) if "root" in args else None
-    # The approved plan revision is a digest, not a file.
-    approved = args.get("approved")
-    if command == "plan":
-        report = checker.check_plan(plan, profile, root, approved)
-    elif command == "preflight":
-        report = checker.check_preflight(load("preflight"), plan, profile, root)
-    elif command == "handoff":
-        report = checker.check_handoff(load("handoff"), plan, profile, root)
-    else:
-        report = checker.check_gate(load("ledger"), plan, profile, root, load("preflight"), approved)
+    # The approved plan revision, and a revision an earlier check accepted, are digests, not files.
+    approved, revision = args.get("approved"), args.get("revision")
+    try:
+        if command == "plan":
+            report = checker.check_plan(plan, profile, root, approved, revision)
+        elif command == "preflight":
+            report = checker.check_preflight(load("preflight"), plan, profile, root)
+        elif command == "handoff":
+            report = checker.check_handoff(load("handoff"), plan, profile, root)
+        else:
+            report = checker.check_gate(load("ledger"), plan, profile, root, load("preflight"), approved,
+                                        revision, load("review"))
+    except Exception as error:  # a crash is a failed case, named so the rule it guards is found
+        fail(f"{label} crashed the checker: {type(error).__name__}: {error} ({case['criterion']})")
     return case, report
+
+
+def adversarial_fact_gaps(case: dict, report: dict) -> list[str]:
+    """expect.facts maps a report key, dotted for nesting, to its expected value,
+    for rules whose effect is a fact rather than a code (stopped work, counts)."""
+    gaps = []
+    for key, expected in (case["expect"].get("facts") or {}).items():
+        value = report
+        for part in key.split("."):
+            value = value.get(part) if isinstance(value, dict) else None
+        if value != expected:
+            gaps.append(f"{key} is {value!r}, not {expected!r}")
+    return gaps
 
 
 def validate_adversarial_cases() -> None:
@@ -4393,6 +4444,9 @@ def validate_adversarial_cases() -> None:
                 f".adversarial/{directory.name} expected {case['expect']['verdict']} {expected}, "
                 f"got {report.get('verdict')} {codes} ({case['criterion']})"
             )
+        gaps = adversarial_fact_gaps(case, report)
+        if gaps:
+            fail(f".adversarial/{directory.name}: {'; '.join(gaps)} ({case['criterion']})")
         exercised.update(codes)
     unexercised = sorted(set(checker.CODES) - exercised)
     if unexercised:
@@ -4406,11 +4460,14 @@ def validate_adversarial_cases() -> None:
             fail(f"check code {code} is not documented in alchemy-orchestrate/references/contracts.md")
 
 
-def gate_repository_report(checker, scratch: Path, unowned: bool, raised: bool, cycles: int) -> dict:
+def gate_repository_report(checker, scratch: Path, unowned: bool, raised: bool, cycles: int,
+                           renamed: bool = False) -> dict:
     """Gate report for gate-full-pass replayed in a real repository: the plan
     base commits the profile with a bound of 3; the head commits P1's file,
     optionally a file no package owns, and optionally the bound raised to 6.
-    The ledger claims `cycles` rework cycles for P1."""
+    With `renamed`, the base also holds src/billing/invoice.js, which no
+    package owns, and the head moves it into P1's src/orders/. The ledger
+    claims `cycles` rework cycles for P1; the gate is anchored at the plan."""
     repo = scratch / "repo"
     repo.mkdir()
 
@@ -4424,11 +4481,16 @@ def gate_repository_report(checker, scratch: Path, unowned: bool, raised: bool, 
     git("init", "-q")
     profile = {"schema": "alchemy-workspace/1", "execution": {"max_rework_cycles": 3}}
     (repo / "alchemy-workspace.json").write_text(json.dumps(profile), encoding="utf-8")
+    if renamed:
+        (repo / "src" / "billing").mkdir(parents=True)
+        (repo / "src" / "billing" / "invoice.js").write_text("// billing, owned by no package\n", encoding="utf-8")
     git("add", "-A")
     git("commit", "-q", "-m", "base")
     base = git("rev-parse", "HEAD")
     (repo / "src" / "orders").mkdir(parents=True)
     (repo / "src" / "orders" / "validate.js").write_text("// P1\n", encoding="utf-8")
+    if renamed:
+        git("mv", "src/billing/invoice.js", "src/orders/invoice.js")
     if unowned:
         (repo / "src" / "billing").mkdir(parents=True)
         (repo / "src" / "billing" / "invoice.js").write_text("// edited during integration\n", encoding="utf-8")
@@ -4447,16 +4509,19 @@ def gate_repository_report(checker, scratch: Path, unowned: bool, raised: bool, 
     for item in ledger["evidence"]:
         item["commit"] = head if item["commit"] == "c47e9aa" else base
     current = checker.load_profile(str(repo / "alchemy-workspace.json"))
-    return checker.check_gate(ledger, plan, current, str(repo))
+    return checker.check_gate(ledger, plan, current, str(repo), None, checker.revision_digest(plan, 0))
 
 
-# (unowned write, bound raised during the run, claimed cycles) -> verdict, codes
+# (unowned write, bound raised during the run, claimed cycles, unowned file moved
+# into an owned directory) -> verdict, codes
 GATE_REPOSITORY_CASES = {
-    (False, False, 3): ("PASS", []),
-    (True, False, 3): ("FAIL", ["UNOWNED_WRITE"]),
-    (False, False, 4): ("ESCALATE", ["REWORK_LIMIT"]),
+    (False, False, 3, False): ("PASS", []),
+    (True, False, 3, False): ("FAIL", ["UNOWNED_WRITE"]),
+    (False, False, 4, False): ("ESCALATE", ["REWORK_LIMIT"]),
     # The profile edit is also a write no package owns.
-    (False, True, 4): ("ESCALATE", ["AUTHORIZATION_UNPROVEN", "REWORK_LIMIT", "UNOWNED_WRITE"]),
+    (False, True, 4, False): ("ESCALATE", ["AUTHORIZATION_UNPROVEN", "REWORK_LIMIT", "UNOWNED_WRITE"]),
+    # Rename detection would list only the owned destination.
+    (False, False, 3, True): ("FAIL", ["UNOWNED_WRITE"]),
 }
 
 
@@ -4468,15 +4533,16 @@ def validate_gate_repository_rules() -> None:
     applies (AUTHORIZATION_UNPROVEN). Each defect is replayed alone, next to
     the same repository without it."""
     checker = orchestration_checker()
-    for (unowned, raised, cycles), (verdict, codes) in GATE_REPOSITORY_CASES.items():
+    for (unowned, raised, cycles, renamed), (verdict, codes) in GATE_REPOSITORY_CASES.items():
         scratch = Path(tempfile.mkdtemp(prefix="l-gevity-gate-repo-"))
         try:
-            report = gate_repository_report(checker, scratch, unowned, raised, cycles)
+            report = gate_repository_report(checker, scratch, unowned, raised, cycles, renamed)
         finally:
             shutil.rmtree(scratch, ignore_errors=True)
         got = sorted({error["code"] for error in report["errors"]})
         if report["verdict"] != verdict or got != codes:
-            fail(f"gate repository rules (unowned write {unowned}, bound raised {raised}, {cycles} cycles) "
+            fail(f"gate repository rules (unowned write {unowned}, bound raised {raised}, {cycles} cycles, "
+                 f"unowned file moved into an owned directory {renamed}) "
                  f"expected {verdict} {codes}, got {report['verdict']} {got}")
 
 
@@ -4607,6 +4673,86 @@ def validate_correction_loop() -> None:
                     "approved: ${{ needs.plan_check.outputs.plan_digest }}" in step
                     and re.search(r"(?m)^\s+repository: 'true'\s*$", step) and re.search(r"(?m)^\s+run_plan: ", step)):
                 fail(f"{label} job {name} runs a gate check without the approved digest, the run plan, and the repository")
+    # Amendments are only appended (F4): the re-gate holds the revision this pass's
+    # amend_check accepted, and every later gate the last pass's; the re-gate also
+    # compares the ledger with the reviewer's own output (F7).
+    for line in ("revision: ${{ steps.amend_check.outputs.plan_digest }}",
+                 "review: ${{ steps.review.outputs.json_response_file }}"):
+        if line not in steps["regate"]:
+            fail(f"{label} correction's regate must take {line}")
+    if "revision: ${{ steps.amend_check.outputs.plan_digest }}" not in block.split("    steps:", 1)[0]:
+        fail(f"{label} correction must output the revision its amend_check accepted")
+    for name in ("escalate", "approve_pr"):
+        gates = [step for step in re.split(r"(?m)^        - id: ", jobs.get(name, ""))[1:]
+                 if re.search(r"(?m)^\s+mode: gate\s*$", step)]
+        if not gates or any("revision: ${{ needs.correction.outputs.revision }}" not in step for step in gates):
+            fail(f"{label} {name} must gate against the revision the last correction pass accepted")
+    # One correction pass is one cycle per origin chain (F11).
+    if "append one amendment per origin chain" not in steps["amend"]:
+        fail(f"{label} correction's amend must append one amendment per origin chain, never one per finding")
+    source = action.read_text(encoding="utf-8")
+    for needed, why in (('["--revision", option("revision")]', "pass the revision input as --revision"),
+                        ('extra += ["--review", str(review)]', "pass the review input as --review"),
+                        ("authorizations {granted(report)}", "list honoured authorizations in the plan summary"),
+                        ("Authorizations: {granted(report)}", "list honoured authorizations in the gate summary")):
+        if needed not in source:
+            fail(f"{action.relative_to(ROOT)} must {why}")
+    for path in sorted((UNSTOPPABLE / "pipelines").glob("*.yaml")):
+        for problem in yaml_single_quote_problems(path.read_text(encoding="utf-8")):
+            fail(f"{path.relative_to(ROOT)}:{problem}")
+
+
+BLOCK_SCALAR_RE = re.compile(r"^\s*(?:-\s+)?[\w.-]+:\s*[|>][+-]?\s*(?:#.*)?$")
+QUOTED_VALUE_RE = re.compile(r"^\s*(?:-\s+|[\w.-]+:\s+|-\s+[\w.-]+:\s+)'")
+
+
+def yaml_single_quote_problems(text: str) -> list[str]:
+    """Single-quoted YAML scalars that end early, found without a YAML parser
+    (the validator is standard-library only). Inside a single-quoted scalar a
+    quote is written twice; a lone one closes it, and anything after the close
+    but a comment is a parse error. That catches an apostrophe in prose and a
+    single-quoted argument inside a single-quoted expression. Block scalar
+    bodies are skipped; a scalar may continue over lines."""
+    problems = []
+    lines = text.splitlines()
+    block = None
+    number = 0
+    while number < len(lines):
+        line = lines[number]
+        number += 1
+        stripped = line.lstrip(" ")
+        indent = len(line) - len(stripped)
+        if block is not None:
+            if not stripped or indent > block:
+                continue
+            block = None
+        if not stripped or stripped.startswith("#"):
+            continue
+        if BLOCK_SCALAR_RE.match(line):
+            block = indent
+            continue
+        match = QUOTED_VALUE_RE.match(line)
+        if not match:
+            continue
+        start, rest, position = number, line[match.end():], 0
+        while True:
+            quote = rest.find("'", position)
+            if quote < 0:
+                if number >= len(lines):
+                    problems.append(f"{start}: a single-quoted scalar never closes")
+                    break
+                rest += " " + lines[number].strip()
+                number += 1
+                continue
+            if rest[quote + 1:quote + 2] == "'":
+                position = quote + 2
+                continue
+            tail = rest[quote + 1:].strip()
+            if tail and not tail.startswith("#"):
+                problems.append(f"{start}: a single-quoted scalar closes before {tail[:40]!r}; write a quote "
+                                "inside it twice, or use double quotes")
+            break
+    return problems
 
 
 SKILL_CONTRACT_CAPABILITIES = (

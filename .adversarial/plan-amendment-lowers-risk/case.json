@@ -3,7 +3,8 @@
   "description": "P1 is medium risk; its rework P1-R1 is graded low without a recorded approval.",
   "command": "plan",
   "args": {
-    "plan": "plan.json"
+    "plan": "plan.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
   },
   "expect": {
     "verdict": "FAIL",

@@ -164,15 +164,15 @@ the runtime transcript).
    diff, and the tests, and re-run checks. A hand-off summary is a claim to
    test, never evidence.
 9. **Correct, bounded.** Before anybody edits, add a plan amendment (yours
-   too) and re-run the plan check.
-   At most `max_rework_cycles` per origin chain; then escalate with both
-   positions. Never raise a bound yourself: an unanswered question is no
+   too) and re-run the plan check with `--approved`.
+   At most `max_rework_cycles` per origin chain; then escalate. Never raise a
+   bound yourself: an unanswered question is no
    answer. On `NOT_CONVERGING`, stop patching that work and propose a
    replanning package; independent work continues.
 10. **Gate.** Record criteria, evidence, findings, and disputes in the ledger;
     run `check_orchestration.py gate <ledger.json> --plan <plan.json>
-    --profile alchemy-workspace.json --root .`, plus `--preflight
-    <preflight.json>` for an unattended plan, which also confirms the
+    --approved <digest> --profile alchemy-workspace.json --root .`, plus `--preflight
+    <preflight.json>` for an unattended plan, which confirms the
     ledger's head is the repository's committed, clean head. Only `PASS`
     continues.
 11. **Report and stop at the merge boundary.** Prepare the pull request with

@@ -6,7 +6,8 @@
     "plan": "plan.json",
     "ledger": "ledger.json",
     "profile": "profile.json",
-    "preflight": "preflight.json"
+    "preflight": "preflight.json",
+    "approved": "b185fcb91d2900de429e9b4699f6401494f87af69b133d0c265dd3c113f96795"
   },
   "expect": {
     "verdict": "PASS",

@@ -4,7 +4,8 @@
   "command": "plan",
   "args": {
     "plan": "plan.json",
-    "profile": "profile.json"
+    "profile": "profile.json",
+    "approved": "7915ec7e12fdb4a85a22c19bdc97d689223c92f0bd2a50c157dcecf221893a4e"
   },
   "expect": {
     "verdict": "FAIL",

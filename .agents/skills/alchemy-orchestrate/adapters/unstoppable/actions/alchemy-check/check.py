@@ -299,20 +299,37 @@ def listing(values: Any) -> str:
     return ", ".join(items) or "None"
 
 
+def granted(report: dict[str, Any]) -> str:
+    """Every authorization the check honoured and the rework extension the plan
+    carries, with its ceiling, conditions, and reference: what a human approves
+    at plan or pull request approval must be on the screen, not only in the report."""
+    parts = []
+    for item in report.get("authorizations") or []:
+        if isinstance(item, dict):
+            subject = item.get("amendment") or item.get("extension") or "?"
+            parts.append(f"{subject} grants {', '.join(item.get('grants') or []) or 'nothing named'} (ref {item.get('ref')})")
+    extension = report.get("extension")
+    if isinstance(extension, dict):
+        parts.append(f"rework extension: ceiling {extension.get('ceiling')}, conditions "
+                     f"{', '.join(extension.get('conditions') or []) or 'none'} (ref {extension.get('ref')})")
+    return "; ".join(parts) or "none"
+
+
 def summarize(mode: str, report: dict[str, Any]) -> str:
     verdict = report["verdict"]
     if mode == "plan":
         waves = " | ".join(",".join(wave) for wave in report.get("waves") or [])
         text = (f"Plan: {verdict}; derived mode {report.get('derived_mode')}; recommendation "
                 f"{report.get('recommendation')}; unattended {str(report.get('unattended') is True).lower()}; "
-                f"waves {waves or 'none'}; errors {codes(report)}")
+                f"waves {waves or 'none'}; authorizations {granted(report)}; errors {codes(report)}")
     elif mode == "preflight":
         text = (f"Preflight: {verdict}; plan digest {report.get('plan_digest')}; queued "
                 f"{listing(report.get('queued'))}; errors {codes(report)}")
     elif mode == "gate":
         text = (f"Gate: {verdict}; Verified: {listing(report.get('verified'))}; "
                 f"Unverified: {listing(report.get('unverified'))}; Open: {listing(report.get('open'))}; "
-                f"Coverage: {report.get('coverage')}; Errors: {codes(report)}; Merge: human approval required")
+                f"Coverage: {report.get('coverage')}; Authorizations: {granted(report)}; Errors: {codes(report)}; "
+                "Merge: human approval required")
     elif "records" in report:
         parts = [f"{r['report'].get('package') or Path(r['file']).name}:{r['report']['verdict']}"
                  for r in report["records"]]
@@ -328,6 +345,8 @@ def check(mode: str, root: Path, checker: Path, profile: Path | None, plan_file:
     common = ["--profile", str(profile)] if profile is not None else []
     # The approved revision's digest anchors the approved part of an amended plan.
     approved = ["--approved", option("approved")] if option("approved") else []
+    # A revision an earlier check of the run accepted: amendments are only appended.
+    approved += ["--revision", option("revision")] if option("revision") else []
     if mode == "plan":
         return run_checker(checker, ["plan", plan_file, *common, *approved])
     raw_record = option("record")
@@ -350,6 +369,12 @@ def check(mode: str, root: Path, checker: Path, profile: Path | None, plan_file:
         # bound from git, not from the ledger or a profile edited during the run.
         if flag("repository", "false"):
             extra += ["--root", str(root)]
+        # The reviewer's own output, written by the review step, not the lead.
+        if option("review"):
+            review = resolve(option("review"), root)
+            if not review.is_file():
+                raise InputError(f"review output not found: {review}")
+            extra += ["--review", str(review)]
         return run_checker(checker, ["gate", str(record), "--plan", plan_file, *common, *extra, *approved])
     extra = ["--plan", plan_file, *common]
     if flag("digests", "true"):
@@ -415,6 +440,7 @@ def main() -> int:
             rework = report.get("rework") if isinstance(report.get("rework"), dict) else {}
             left = rework.get("passes_left")
             outputs["correction_passes"] = str(left if isinstance(left, int) and left >= 0 else 0)
+            outputs["plan_digest"] = str(report.get("plan_digest") or "")
         emit({"verdict": report["verdict"], "summary": summarize(mode, report),
               "report_file": str(report_file), **outputs})
     except InputError as exc:

@@ -161,7 +161,8 @@ Objective
     `UNREVIEWED_CHANGE`; *judgment* for review depth.
 21. Rework MUST be bounded by `max_rework_cycles` per origin chain, counted
     from the plan's rework amendments, so a renamed or new rework package does
-    not start at zero; reaching the bound MUST escalate rather than restart the
+    not start at zero, and a fix of one chain's files counts against that chain
+    whatever origin it names; reaching the bound MUST escalate rather than restart the
     loop. *Check:* `REWORK_LIMIT` (an `ESCALATE` verdict outranks `FAIL`).
 
 ## 7. Shared State and Provenance
@@ -302,7 +303,9 @@ their verified status are in the
     anybody edits: origin package, superseded revision, base, a reviewer who is
     not the owner, and a package record every package rule applies to. The
     amendment MUST stay inside the approved plan's write sets, permissions, and
-    risk, and off protected paths, unless the human approved it. A write no
+    risk, and off protected paths, unless the human approved a revision that
+    holds it; an approval written into the amendment during the run grants
+    nothing. A write no
     package owns MUST fail the gate. *Check:* `AMENDMENT_INVALID`,
     `AMENDMENT_BROADENS`, `PROTECTED_PATH`, `SELF_REVIEW`, `UNOWNED_WRITE`.
 47. More cycles than `max_rework_cycles` MUST come from an extension the
@@ -315,11 +318,12 @@ their verified status are in the
     to a serious finding of an earlier review round, or a second fix that
     broke something, stops that work. The next step is a replanning
     amendment; work that does not depend on it MAY continue. *Check:*
-    `NOT_CONVERGING`, `AMENDMENT_INVALID`; *judgment* for relatedness, which
-    the reviewer records.
+    `NOT_CONVERGING`, `AMENDMENT_INVALID`, and `SILENT_SKIP` when the ledger
+    drops a link the reviewer's own output records; *judgment* for
+    relatedness, which the reviewer records.
 49. A workflow adapter MUST run at most as many correction passes as the
-    checked rework bound still allows, each amending the plan and checking
-    the amendment before any edit, then reviewing independently and gating;
+    checked rework bound still allows, each adding one amendment per origin
+    chain and checking it before any edit, then reviewing independently and gating;
     only a gate `FAIL` with passes left starts another. *Check:* the
     validator's correction-loop check for the workflow.
 

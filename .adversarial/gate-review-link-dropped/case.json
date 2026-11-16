@@ -1,0 +1,17 @@
+{
+  "criterion": "multi-agent-governance #186: the ledger keeps every convergence link the reviewer recorded",
+  "description": "The reviewer's own output records major F3 as related to F1; the lead's ledger records F3 without the link, so the convergence rule would not fire.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "review": "review.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "SILENT_SKIP"
+    ]
+  }
+}

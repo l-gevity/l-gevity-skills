@@ -113,7 +113,8 @@ pipeline:
       `related_to` to the earlier ledger findings it touches the same file, contract,
       component, or class as; set `regression` true when this pass's fix caused it; and
       set `reopens` to the earlier finding it shows is back. Record a link whenever
-      the answer is yes; the gate stops patching on it, and you, not the lead, own it.
+      the answer is yes; the gate stops patching on it, and you, not the lead, own it. Give each
+      finding an ID no ledger finding has.
     CORRECT_SCHEMA: >-
       {"type":"object","additionalProperties":false,"properties":{
       "status":{"type":"string","enum":["CORRECTED","BLOCKED"]},
@@ -212,7 +213,7 @@ pipeline:
           uses: builtin/request-input
           with:
             title: Execute this ALCHEMY plan?
-            message: '${{ needs.plan_check.outputs.summary }}. Plan: ${{ needs.plan_check.outputs.plan_file }}. Check report: ${{ needs.plan_check.outputs.report_file }}. Both continue choices launch the planned sub-agents in this worktree. continue-attended: you watch the run until the pull request approval. continue-unattended: nobody watches, so the plan must set execution.unattended, and execution starts only on a passing preflight. A plan that sets execution.unattended needs a passing preflight under either choice. Stop ends the run.'
+            message: '${{ needs.plan_check.outputs.summary }}. Plan: ${{ needs.plan_check.outputs.plan_file }}. Check report: ${{ needs.plan_check.outputs.report_file }}. The summary lists the rework extension and every authorization; approving the plan approves them. Both continue choices launch the planned sub-agents in this worktree. continue-attended: you watch the run until the pull request approval. continue-unattended: nobody watches, so the plan must set execution.unattended, and execution starts only on a passing preflight. A plan that sets execution.unattended needs a passing preflight under either choice. Stop ends the run.'
             fields: '[{"key":"decision","label":"Decision","type":"choice","options":["continue-attended","continue-unattended","stop"],"required":true}]'
 
     # Whether the run proceeds unattended is the human's choice at approve_plan; any
@@ -445,6 +446,7 @@ pipeline:
         summary: ${{ steps.regate.outputs.summary }}
         report_file: ${{ steps.regate.outputs.report_file }}
         correction_passes: ${{ steps.regate.outputs.correction_passes }}
+        revision: ${{ steps.amend_check.outputs.plan_digest }}
         restart_requested: ${{ steps.loop.outputs.restart_requested }}
       steps:
         - id: amend
@@ -461,7 +463,7 @@ pipeline:
               - Run directory: ${{ needs.plan_check.outputs.run_dir }}; ledger `ledger.json`, hand-offs in `handoffs/`
               - First gate: ${{ needs.gate.outputs.summary }} (report ${{ needs.gate.outputs.report_file }}). In a later pass, first run the `gate` command on `ledger.json` against `plan.json` with `--approved` set to the approved digest; its verdict and codes replace the first gate's.
 
-              Read `<skills>/alchemy-orchestrate/SKILL.md` section 4 step 9, `references/contracts.md` (Amendments) and `references/governance.md` sections 1, 2, and 4. Before anybody edits, append one amendment per correction to `amendments` in `<run directory>/plan.json`, the only other edit that file allows: for each open blocking or major finding and each failed or unverified criterion, the package it originates from, the revision it supersedes (the `plan_digest` the plan check prints for the plan before it), its base, the findings it corrects, a reviewer who is not its owner, and a package record whose write set names the files it will change, never one taken from a test error. A correction you make yourself is an amendment you own. Stay inside the approved writes, permissions, and risk; anything else needs the human, so return BLOCKED. When the gate reported NOT_CONVERGING, add only a replanning `decide` amendment for the stopped work. Never raise `max_rework_cycles` or edit the profile; a question nobody answered is no answer. For an unattended plan, also write a new `preflight.json` bound to the amended revision per `references/autonomy-preflight.md`. Change no code in this step. ${{ env.CHECK_NOTE }} Run the `plan` command on the amended plan with `--approved` set to the approved digest.
+              Read `<skills>/alchemy-orchestrate/SKILL.md` section 4 step 9, `references/contracts.md` (Amendments) and `references/governance.md` sections 1, 2, and 4. Before anybody edits, append one amendment per origin chain to `amendments` in `<run directory>/plan.json`, the only other edit that file allows: one for each origin chain with an open blocking or major finding or a failed or unverified criterion, never one per finding, because each amendment is one rework cycle of its chain. Each names the package it originates from, every finding it answers in `findings`, the revision it supersedes (the `plan_digest` the plan check prints for the plan before it), its base, the findings it corrects, a reviewer who is not its owner, and a package record whose write set names the files it will change, never one taken from a test error. A correction you make yourself is an amendment you own. Stay inside the approved writes, permissions, and risk; anything else needs a revision the human approves, so return BLOCKED: an approval written into an amendment now grants nothing. When the gate reported NOT_CONVERGING, add only a replanning `decide` amendment for the stopped work. Never raise `max_rework_cycles` or edit the profile; a question nobody answered is no answer. For an unattended plan, also write a new `preflight.json` bound to the amended revision per `references/autonomy-preflight.md`. Change no code in this step. ${{ env.CHECK_NOTE }} Run the `plan` command on the amended plan with `--approved` set to the approved digest.
 
               Return status AMENDED when every routed item has an amendment and the plan check passes, otherwise BLOCKED; and a report.
         - id: require_amended
@@ -556,7 +558,7 @@ pipeline:
               - Run directory: ${{ needs.plan_check.outputs.run_dir }}; ledger `ledger.json`, hand-offs in `handoffs/`
               - Re-review findings from `reviewer_codex`: ${{ steps.review.outputs.json_response_file }}
 
-              Update the existing ledger for the new head; keep its `rework_cycles`, which the gate cross-checks against the amendments. A finding the pass addressed is resolved only with evidence that exited 0 at the new head. Record each new finding with `after` set to this pass's amendment of its package, and copy the reviewer's convergence links exactly: `related_to`, `introduced_by` for a regression, and the amendment added to `reopened_after` of a finding it reopens. Never drop or weaken a link the reviewer recorded. ${{ env.LEDGER_RULES }} ${{ env.CHECK_NOTE }} Do not change code in this step.
+              Update the existing ledger for the new head; keep its `rework_cycles`, which the gate cross-checks against the amendments. A finding the pass addressed is resolved only with evidence that exited 0 at the new head. Record each new finding under the reviewer's own ID, severity, and package, with `after` set to this pass's amendment of its package, and copy the reviewer's convergence links exactly: `related_to`, `introduced_by` for a regression, and the amendment added to `reopened_after` of a finding it reopens. Never drop or weaken a link the reviewer recorded. ${{ env.LEDGER_RULES }} ${{ env.CHECK_NOTE }} Do not change code in this step.
 
               Return head_commit, the gate verdict, and a report.
         - id: regate
@@ -567,6 +569,8 @@ pipeline:
             plan_field: plan
             run_plan: ${{ needs.plan_check.outputs.run_dir }}/plan.json
             approved: ${{ needs.plan_check.outputs.plan_digest }}
+            revision: ${{ steps.amend_check.outputs.plan_digest }}
+            review: ${{ steps.review.outputs.json_response_file }}
             repository: 'true'
             record: ${{ needs.plan_check.outputs.run_dir }}/ledger.json
             preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json
@@ -618,6 +622,7 @@ pipeline:
             plan_field: plan
             run_plan: ${{ needs.plan_check.outputs.run_dir }}/plan.json
             approved: ${{ needs.plan_check.outputs.plan_digest }}
+            revision: ${{ needs.correction.outputs.revision }}
             repository: 'true'
             record: ${{ needs.plan_check.outputs.run_dir }}/ledger.json
             preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json
@@ -644,6 +649,7 @@ pipeline:
             plan_field: plan
             run_plan: ${{ needs.plan_check.outputs.run_dir }}/plan.json
             approved: ${{ needs.plan_check.outputs.plan_digest }}
+            revision: ${{ needs.correction.outputs.revision }}
             repository: 'true'
             record: ${{ needs.plan_check.outputs.run_dir }}/ledger.json
             preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json
@@ -652,7 +658,7 @@ pipeline:
           uses: builtin/request-input
           with:
             title: Open a pull request for this ALCHEMY run?
-            message: '${{ steps.final_gate.outputs.summary }}. Gate report: ${{ steps.final_gate.outputs.report_file }}. Ledger: ${{ needs.plan_check.outputs.run_dir }}/ledger.json. open-pr pushes this branch and opens a pull request; nothing is merged.'
+            message: '${{ steps.final_gate.outputs.summary }}. Gate report: ${{ steps.final_gate.outputs.report_file }}. Ledger: ${{ needs.plan_check.outputs.run_dir }}/ledger.json. The summary lists every authorization the gate honoured and the rework extension; open each reference before you approve. open-pr pushes this branch and opens a pull request; nothing is merged.'
             fields: '[{"key":"decision","label":"Decision","type":"choice","options":["open-pr","stop"],"required":true}]'
 
     create_pr:

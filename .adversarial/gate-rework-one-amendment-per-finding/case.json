@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #190: each amendment is a cycle, so one amendment per finding spends the bound in one pass",
+  "description": "Same findings as gate-rework-one-amendment-per-origin-pass, but the first pass adds one amendment per finding (A1, A2); the second pass A3 is the third cycle.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "REWORK_LIMIT"
+    ]
+  }
+}

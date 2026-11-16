@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #195: a rework amendment is reviewed by its named reviewer even without independent review",
+  "description": "Independent review is off and P1-R1 is medium risk; its criterion is verified by agent-b, who neither owns a verify package nor is A1's reviewer.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "4e7784df72b3c46db1d0c9549b95443144f1944614d4842fd0486f7c4c85cc59"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "REVIEW_NOT_INDEPENDENT"
+    ]
+  }
+}
