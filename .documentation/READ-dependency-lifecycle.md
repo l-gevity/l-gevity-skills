@@ -141,4 +141,4 @@ full operational reference — ownership tiers, the five triggers, reachability
 grading, the response ladder, and the bump classification — lives in
 [SKILL.md](../.claude/skills/dependency-lifecycle/SKILL.md).*
 
-<!-- skill-revision: f411539d3e13 -->
+<!-- skill-revision: 7a393bfc4a99 -->

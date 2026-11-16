@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #206: under new-finding alone, a cycle that corrects a new finding passes",
+  "description": "Same as gate-extension-new-finding-repeated, but cycle 3 cites F3, new in the review after A2.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "a144618074e077c2b4d783e79d84b9165e7f316d14f404d00899dfa7ef403a13"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

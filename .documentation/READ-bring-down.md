@@ -175,4 +175,4 @@ maintained, reusable capability. The full operational reference for this
 concept — the complete scale, outsourcing triggers, and survey protocols —
 lives in [SKILL.md](../.claude/skills/bring-down/SKILL.md).*
 
-<!-- skill-revision: b78756e4857e -->
+<!-- skill-revision: 468c9e5403d9 -->

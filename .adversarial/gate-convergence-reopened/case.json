@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #164: a blocking finding two fixes failed to fix stops the patching",
+  "description": "Blocking F1 was reopened after fix A1 and again after fix A2.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "NOT_CONVERGING"
+    ]
+  }
+}

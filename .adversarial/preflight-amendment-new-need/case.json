@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #171: a need an amendment adds stays uncovered until an entry claims it",
+  "description": "Same as preflight-amendment-rebound-pass, but A1 adds a fixture need no preflight entry covers.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "PREREQUISITE_UNCOVERED"
+    ]
+  }
+}

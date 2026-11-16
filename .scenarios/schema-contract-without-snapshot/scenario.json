@@ -1,0 +1,44 @@
+{
+  "request": "Run evolutionary-database-design on this: review the last step of removing the column `customers.fax_number` from our PostgreSQL database before it ships. The `accounts` service owns the `customers` table and is its only writer; it stopped writing the column five releases ago. The readers in 13 months of query logs were the `accounts` service and a quarterly marketing export that lives in another repository. Both have stopped: the query logs for the last 90 days, which include one full run of the quarterly export, show zero statements that reference `fax_number` from any role or job, and the export's owner has confirmed in writing that the field is gone from it. Deploys are rolling: the old and the new release of a service run side by side for about ten minutes, the rollback target is the previous release, and neither release reads or writes the column. Nothing outside our servers reads it: no browser bundle, mobile app, or SDK, and the public API never exposed it. The table holds 4 million rows, and about 300,000 of them hold a fax number. The retention owner has confirmed in writing that the seven-year retention rule does not cover fax numbers. The runbook for the step reads: ship one release that contains only the migration that drops `fax_number`. It takes no snapshot or backup of the column first and names no backup to restore from; the team decided that neither is needed, because the migration has a down step that re-adds the column, and the runbook lists that down step as the production rollback. Give the decision for this step as the runbook stands, not for a corrected runbook.",
+  "skills": ["evolutionary-database-design"],
+  "expect": [
+    {
+      "id": "applies-data-shape-guidance",
+      "criterion": "evolutionary-database-design #1: a change to a stored shape loads the transition method",
+      "check": "guidance_includes",
+      "skills": ["evolutionary-database-design"]
+    },
+    {
+      "id": "classifies-column-drop",
+      "criterion": "evolutionary-database-design #10: dropping a stored element is classed as destructive",
+      "check": "field_in",
+      "field": "Change class",
+      "values": ["destructive", "Destructive"]
+    },
+    {
+      "id": "contract-without-snapshot-is-breaking",
+      "criterion": "evolutionary-database-design #11: a contract step with no snapshot, whose only recovery is a down-migration, is BREAKING",
+      "check": "field_in",
+      "field": "Decision",
+      "values": ["BREAKING"]
+    },
+    {
+      "id": "contract-step-is-irreversible",
+      "criterion": "evolutionary-database-design #12: the contract step is reported as an irreversible data migration",
+      "check": "field_in",
+      "field": "Reversibility input",
+      "values": ["irreversible", "Irreversible"]
+    },
+    {
+      "id": "hands-snapshot-gate-to-cicd",
+      "criterion": "evolutionary-database-design #13: the snapshot requirement and the rollback artifact go to the CI/CD skill",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Handoffs:\\**(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*ci[/-]cd"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}

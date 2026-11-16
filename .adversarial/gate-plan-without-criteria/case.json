@@ -4,7 +4,8 @@
   "command": "gate",
   "args": {
     "plan": "plan.json",
-    "ledger": "ledger.json"
+    "ledger": "ledger.json",
+    "approved": "e46ecb830e7fe3e77b09909e51f175561a22d45c5d6eef4900fcf13c398c135b"
   },
   "expect": {
     "verdict": "FAIL",

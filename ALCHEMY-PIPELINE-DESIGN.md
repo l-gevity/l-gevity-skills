@@ -403,9 +403,11 @@ The dispatch preflight adds no subsystem and no mandatory gate depth: `SKIP`
 returns before sibling loading, while `DIRECT` and `ADAPTIVE` replace ad hoc
 route inference with one explicit classification. The router is split the same
 way: its `SKILL.md` holds only dispatch, aliases, gate prerequisites,
-companions, and the output contract, and the qualification route, hand-offs,
-handshakes, checklist, and retrospective order load from
-`references/adaptive-route.md` only for `ADAPTIVE`, `FULL`, and `audit`.
+companions, the execution default, and the output contract, and the
+qualification route, hand-offs, handshakes, two-pass companion order,
+execution selection, retrospective order, and the decision-trail format load
+from `references/adaptive-route.md` for `ADAPTIVE`, `FULL`, and `audit`, and
+for any other run only when it must emit that trail.
 
 ## Acceptance Criteria
 
@@ -422,7 +424,8 @@ following:
 - Return `DIRECT` for one clear gate question, `ADAPTIVE` for structural work,
   and `FULL` only for explicit full-traversal language.
 - Read the adaptive route before selecting stages for `ADAPTIVE`, `FULL`, and
-  `audit`, and never for `SKIP` or `DIRECT`.
+  `audit`; a `SKIP` or `DIRECT` run reads it only when it must emit the
+  decision trail, and then for that format alone.
 - Load each stage only when the route reaches it, and end a candidate's route
   at its first blocking decision.
 - Route an already-grounded request directly to M.

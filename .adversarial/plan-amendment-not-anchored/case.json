@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #177: a plan with amendments is checked against the revision the human approved",
+  "description": "Same as plan-amendment-rework-pass, but the check is not given the approved revision.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AMENDMENT_INVALID"
+    ]
+  }
+}

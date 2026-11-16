@@ -1,0 +1,21 @@
+{
+  "schema": "alchemy-ledger/1",
+  "head_commit": "9b2f7d4",
+  "rework_cycles": {"P1": 1},
+  "evidence": [
+    {"id": "E1", "command": "npm test", "exit_code": 0, "commit": "9b2f7d4", "produced_by": "agent-c"},
+    {"id": "E2", "command": "node scripts/compare-totals.js", "exit_code": 1, "commit": "5e0a113", "produced_by": "agent-c", "summary": "orders of exactly 100.00 lost their 5% discount"},
+    {"id": "E3", "command": "node scripts/compare-totals.js", "exit_code": 1, "commit": "9b2f7d4", "produced_by": "agent-c", "summary": "orders with a zero-quantity line get the discount on the full list price"}
+  ],
+  "criteria": [
+    {"id": "REQ-12-AC1", "package": "P1", "status": "verified", "evidence": ["E1"], "verified_by": "agent-c"},
+    {"id": "P2-AC1", "package": "P2", "status": "unverified", "evidence": ["E3"]}
+  ],
+  "findings": [
+    {"id": "F1", "package": "P1", "severity": "major", "status": "resolved", "raised_by": "agent-c", "evidence": ["E2"],
+     "summary": "discountFor compares with > instead of >= at the tier boundary", "resolution": {"evidence": ["E1"]}},
+    {"id": "F2", "package": "P1", "severity": "major", "status": "open", "raised_by": "agent-c", "evidence": ["E3"],
+     "summary": "discountFor counts zero-quantity lines toward the tier; a second edge case in the same function, found by the review of the correction for F1"}
+  ],
+  "disputes": []
+}

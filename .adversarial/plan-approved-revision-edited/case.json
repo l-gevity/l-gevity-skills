@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #149: the approved part of a plan changes only by a new approval",
+  "description": "The lead widened P1's write set in place after the human approved the plan revision passed as approved.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AMENDMENT_INVALID"
+    ]
+  }
+}

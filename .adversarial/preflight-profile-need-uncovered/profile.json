@@ -1,0 +1,19 @@
+{
+  "repository": {
+    "verification": [
+      {
+        "id": "V1",
+        "command": "npm test"
+      }
+    ]
+  },
+  "preflight": {
+    "needs": [
+      {
+        "id": "N-ARTIFACTS",
+        "kind": "access",
+        "what": "the artifact registry the build publishes to"
+      }
+    ]
+  }
+}

@@ -1,11 +1,11 @@
 name: ALCHEMY Check
 description: >-
-  Run alchemy-orchestrate check_orchestration.py on a plan, hand-off, or gate
-  ledger, keep its JSON report, and fail the step unless the verdict is PASS or
-  ACCEPT.
+  Run alchemy-orchestrate check_orchestration.py on a plan, preflight record,
+  hand-off, or gate ledger, keep its JSON report, and fail the step unless the
+  verdict is PASS or ACCEPT.
 inputs:
   mode:
-    description: plan, handoff, or gate.
+    description: plan, preflight, handoff, or gate.
     required: true
   plan:
     description: >-
@@ -15,8 +15,10 @@ inputs:
     required: true
   record:
     description: >-
-      handoff mode, an alchemy-handoff/1 file or a directory whose *.json files
-      are each checked; gate mode, the alchemy-ledger/1 file. Ignored in plan mode.
+      preflight mode, the alchemy-preflight/1 file, checked with the repository
+      root as --root, so the repository must still be at the plan base; handoff
+      mode, an alchemy-handoff/1 file or a directory whose *.json files are each
+      checked; gate mode, the alchemy-ledger/1 file. Ignored in plan mode.
     required: false
     default: ''
   profile:
@@ -45,6 +47,52 @@ inputs:
       hand-off based on one of them is not stale. The input file is not changed.
     required: false
     default: ''
+  preflight:
+    description: >-
+      gate mode, the alchemy-preflight/1 file, passed as --preflight when it
+      exists. A gate on a plan with execution.unattended true fails
+      (PREFLIGHT_REQUIRED) when the file is missing or no longer passes against
+      the plan; an attended plan needs none.
+    required: false
+    default: ''
+  run_plan:
+    description: >-
+      The run directory's plan.json. Its amendments and base.integrated are
+      added to the checked copy of the plan; nothing else in it is read, so the
+      approved part always comes from the plan input. Empty adds nothing.
+    required: false
+    default: ''
+  approved:
+    description: >-
+      plan and gate modes, the approved revision's digest (the plan check's
+      plan_digest before any amendment), passed as --approved: an amended plan
+      whose approved part changed fails, a plan with amendments fails without
+      it, an amendment after it cannot broaden scope, and an extension of the
+      rework bound counts only when this anchors it.
+    required: false
+    default: ''
+  revision:
+    description: >-
+      plan and gate modes, a plan_digest an earlier check of this run output,
+      passed as --revision: the plan must still hold that revision, so an
+      amendment is never changed or removed. Empty checks nothing.
+    required: false
+    default: ''
+  review:
+    description: >-
+      gate mode, the last reviewer's own structured output (its findings),
+      passed as --review: the gate fails (SILENT_SKIP) when the ledger drops
+      or weakens a blocking or major finding or a convergence link it records.
+    required: false
+    default: ''
+  repository:
+    description: >-
+      gate mode, "true" passes the repository root as --root: the repository
+      must be at the ledger head and clean outside the state directory, the
+      integrated diff comes from git, and the rework bound is the one committed
+      at the plan base.
+    required: false
+    default: 'false'
   plan_field:
     description: The field of the plan input that holds the plan; empty when the input is the plan.
     required: false
@@ -60,6 +108,13 @@ inputs:
     description: plan mode, a commit the plan's base.commit must equal.
     required: false
     default: ''
+  expect_unattended:
+    description: >-
+      plan mode, "true" or "false", the value the plan's execution.unattended
+      must have: the run mode the human chose at plan approval. A mismatch
+      fails the step like unreadable input. Empty checks nothing.
+    required: false
+    default: ''
   enforce:
     description: >-
       "true" fails the step on any verdict other than PASS or ACCEPT; "false"
@@ -70,13 +125,31 @@ outputs:
   verdict:
     description: PASS, ACCEPT, FAIL, REJECT, STALE, RETRY, or ESCALATE.
   summary:
-    description: One-line summary of the report; in gate mode, the gate block of alchemy-orchestrate section 6.
+    description: >-
+      One-line summary of the report; in gate mode, the gate block of
+      alchemy-orchestrate section 6. In plan and gate modes it lists every
+      authorization the check honoured and the plan's rework extension with
+      its ceiling, conditions, and reference.
   report_file:
     description: The JSON report, kept under the step output directory.
   plan_file:
     description: The plan that was checked; in plan mode with publish, the published copy.
   base_commit:
     description: plan mode, the plan's base.commit.
+  unattended:
+    description: plan mode, "true" when the plan sets execution.unattended, otherwise "false".
+  plan_digest:
+    description: >-
+      plan and gate modes, the digest of the plan revision checked, amendments
+      included: a preflight record binds to it, and a later check takes it as
+      revision.
+  approved_digest:
+    description: plan mode, the digest of the plan without its amendments, the approved revision.
+  correction_passes:
+    description: >-
+      gate mode, the correction passes the rework bound still allows: the bound
+      (the profile's, or an authorized extension's ceiling) minus the most
+      cycles any origin chain has taken; 0 when none is left.
   run_dir:
     description: plan mode with publish, the run directory holding plan.json.
 runs:

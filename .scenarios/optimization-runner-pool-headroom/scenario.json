@@ -1,0 +1,56 @@
+{
+  "request": "Run system-optimization on this proposal: finance wants to cut our shared CI runner pool from 10 runners to 8, because the pool averages 78 percent utilization, 'so a fifth of it sits idle'. Measured over the last 30 days: a job runs 12 minutes on average; a job waits 9 minutes in the queue on average, and 31 minutes between 14:00 and 17:00, when most merges land; the number of jobs per day is steady, and nothing else about the workload is changing. Should we cut the pool? Answer that on a line of the form `Cut the pool: yes` or `Cut the pool: no`. Finance has a fallback if the cut is refused: keep the 10 runners but split them into a 3-runner fast lane for small repositories and a 7-runner general pool, with a routing table that assigns each repository to a lane. Nobody has measured what the split would do to queue time. Does the fallback pass this skill's litmus test for an optimization? Answer that on a line of the form `Litmus test: pass`, `Litmus test: fail`, or `Litmus test: not defined` if the skill states no such test.",
+  "skills": ["system-optimization"],
+  "expect": [
+    {
+      "id": "applies-optimization-guidance",
+      "criterion": "system-optimization #1: a proposal to change a shared delivery resource loads the optimization method",
+      "check": "guidance_includes",
+      "skills": ["system-optimization"]
+    },
+    {
+      "id": "does-not-adopt-utilization-cut",
+      "criterion": "system-optimization #2: a cut that drives a shared resource past sustainable utilization is not adopted",
+      "check": "field_in",
+      "field": "Decision",
+      "values": ["Reject", "Defer"]
+    },
+    {
+      "id": "flow-signal-cites-measurement",
+      "criterion": "system-optimization #3: the flow signal cites a measured quantity when measurements are supplied",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Flow signal:(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*\\d"
+    },
+    {
+      "id": "names-the-constraint",
+      "criterion": "system-optimization #4: with queue measurements supplied, the record names the runner pool at peak as the constraint",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Constraint:\\**[ \\t]*(?!not measured)[^\\n]*(runner|pool|capacity|14:00|peak|afternoon)"
+    },
+    {
+      "id": "states-residual-risk",
+      "criterion": "system-optimization #5: the record states the risk left after the decision",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Residual risk:\\**[ \\t]*(?!(none|n/a|nil|not applicable)\\b)\\S"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    },
+    {
+      "id": "refuses-the-cut",
+      "criterion": "system-optimization #6: the answer to cutting a pool that queues at peak is no",
+      "check": "field_in",
+      "field": "Cut the pool",
+      "values": ["no", "No", "NO"]
+    },
+    {
+      "id": "fallback-fails-litmus-test",
+      "criterion": "system-optimization #7: the skill states a litmus test, and a change that adds complexity without a measured gain fails it",
+      "check": "field_in",
+      "field": "Litmus test",
+      "values": ["fail", "Fail", "FAIL", "fails", "Fails"]
+    }
+  ]
+}

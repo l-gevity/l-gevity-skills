@@ -129,10 +129,12 @@ the runtime transcript).
    unreviewed high-risk writes, recursive delegation, a cap above the profile,
    protected paths without human approval, and any merge policy other than
    human approval. It prints waves and the derived mode. For a run that
-   proceeds unattended, also run `check_orchestration.py preflight
-   <preflight.json> --plan <plan.json>` per
-   [references/autonomy-preflight.md](references/autonomy-preflight.md); the
-   first wave starts only on `PASS`.
+   proceeds unattended, set `execution.unattended`, give every package its
+   `needs`, and run `check_orchestration.py preflight <preflight.json> --plan
+   <plan.json>` per
+   [references/autonomy-preflight.md](references/autonomy-preflight.md): it
+   fails a need no entry covers and a record bound to another plan revision.
+   The first wave starts only on `PASS`; an amended plan needs a new one.
 4. **Approve when consequential.** Ask the human before executing a plan that
    crosses a subsystem boundary, writes a protected path, or exceeds the
    profile's agent budget. Show packages, owners, and write sets.
@@ -161,11 +163,16 @@ the runtime transcript).
 8. **Verify independently.** Verifiers read the requirements, the integrated
    diff, and the tests, and re-run checks. A hand-off summary is a claim to
    test, never evidence.
-9. **Correct, bounded.** Route each blocking finding to the package owner. At
-   most `max_rework_cycles` per package; then escalate with both positions.
+9. **Correct, bounded.** Before anybody edits, add a plan amendment (yours
+   too) and re-run the plan check with `--approved`.
+   At most `max_rework_cycles` per origin chain; then escalate. Never raise a
+   bound yourself: an unanswered question is no
+   answer. On `NOT_CONVERGING`, stop patching that work and propose a
+   replanning package; independent work continues.
 10. **Gate.** Record criteria, evidence, findings, and disputes in the ledger;
     run `check_orchestration.py gate <ledger.json> --plan <plan.json>
-    --profile alchemy-workspace.json --root .`, which also confirms the
+    --approved <digest> --profile alchemy-workspace.json --root .`, plus `--preflight
+    <preflight.json>` for an unattended plan, which confirms the
     ledger's head is the repository's committed, clean head. Only `PASS`
     continues.
 11. **Report and stop at the merge boundary.** Prepare the pull request with
@@ -217,7 +224,7 @@ and limitations. It links decisions and evidence; it does not restate them.
 ## 7. Discipline
 
 - Never report a gate, hand-off, or plan verdict whose check did not run; say
-  `Not run` and why.
+  `Not run` and why on its line, whatever reading predicts.
 - Never weaken a check, an acceptance criterion, or a test to reach `PASS`.
 - A bound reached is a result to report, not a reason to retry silently.
 - When the same orchestration failure recurs, route it to

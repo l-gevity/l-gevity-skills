@@ -1,0 +1,13 @@
+{
+  "criterion": "multi-agent-governance #143: a broadening the human approved, with a reference, passes",
+  "description": "Same as plan-amendment-broadens-permissions, with an approval by the human that names where it was given.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json",
+    "approved": "b9b03d21e5127613f62f3fbd3baefb3402e2bfe375fe81b0d9e8cd2f07e6dcee"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

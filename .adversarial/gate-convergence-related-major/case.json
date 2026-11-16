@@ -1,0 +1,26 @@
+{
+  "criterion": "multi-agent-governance #161: a second related major finding in a later round stops the patching",
+  "description": "The review of P1 raised blocking F1; after the fix A1 the next review raised major F3 in the same component, related to F1. P2 does not depend on P1. The stopped work includes P3, which depends on P1; P2 may continue.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "NOT_CONVERGING"
+    ],
+    "facts": {
+      "stopped": [
+        "P1",
+        "P1-R1",
+        "P3"
+      ],
+      "may_continue": [
+        "P2"
+      ]
+    }
+  }
+}

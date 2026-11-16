@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #178: a gate on recorded rework is checked against the revision the human approved",
+  "description": "Same as gate-full-pass, whose ledger records one rework cycle of P1, but the gate is not given the approved revision.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AMENDMENT_INVALID"
+    ]
+  }
+}

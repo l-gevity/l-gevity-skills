@@ -1,0 +1,20 @@
+{
+  "criterion": "multi-agent-governance #182: a fix of another origin's own files counts only against that origin",
+  "description": "Same as gate-rework-charged-to-other-origin, but A3 writes src/shipments/, P2's own files.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": [],
+    "facts": {
+      "rework.cycles": {
+        "P1": 2,
+        "P2": 1
+      }
+    }
+  }
+}

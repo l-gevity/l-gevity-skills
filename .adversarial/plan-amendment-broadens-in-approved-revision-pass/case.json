@@ -1,0 +1,13 @@
+{
+  "criterion": "multi-agent-governance #175: a broadening the human approved as part of an amended revision passes",
+  "description": "Same as plan-amendment-broadens-mid-run, but the human approved the revision that holds A1, and the check is anchored there.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json",
+    "approved": "0a14451374f3785ab050273eb4741451623a4963ac89b16e08206bba7c1e78e7"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

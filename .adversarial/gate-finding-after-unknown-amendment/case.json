@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #212: a convergence link names an amendment of the plan",
+  "description": "Same as gate-convergence-ordinary-pass's F3, but F3 was raised after A9, which the plan does not hold.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "SCHEMA"
+    ]
+  }
+}

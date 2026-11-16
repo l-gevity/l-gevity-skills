@@ -1,0 +1,17 @@
+{
+  "criterion": "multi-agent-governance #193: under independent review, an amendment's reviewer owns a verify package of the plan",
+  "description": "Independent review is on; A1 names agent-z, a label no package of the plan holds, as reviewer, and agent-z verifies P1-R1-AC1.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "REVIEW_NOT_INDEPENDENT",
+      "UNREVIEWED_CHANGE"
+    ]
+  }
+}

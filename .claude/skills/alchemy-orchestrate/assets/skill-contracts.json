@@ -79,24 +79,11 @@
     },
     "architecture-as-code": {
       "capability": "architecture", "stage": "E",
-      "inputs": ["final L acceptance", "passing readiness in a full pass"], "outputs": ["architecture config rules"],
+      "inputs": ["final L acceptance", "passing readiness in a full pass"], "outputs": ["architecture config rules", "rule files and assembler changes"],
       "parallel": "none", "writes": "rule-files", "exclusive": ["the assembled architecture configuration"],
       "verify": "The project's architecture lint runs on the integrated head and fails on a deliberate violation",
-      "completion": ["Add config", "Update config"], "failure": ["Reject rule", "Defer", "Blocked"]
-    },
-    "architecture-as-code-javascript": {
-      "capability": "engineering", "stage": "E",
-      "inputs": ["architecture-as-code decision"], "outputs": ["rule files and assembler changes"],
-      "parallel": "none", "writes": "rule-files", "exclusive": ["the assembled architecture configuration"],
-      "verify": "The assembled lint config runs clean on the integrated head",
-      "completion": ["Update assembler"], "failure": ["Blocked"]
-    },
-    "architecture-as-code-python": {
-      "capability": "engineering", "stage": "E",
-      "inputs": ["architecture-as-code decision"], "outputs": ["rule files and assembler changes"],
-      "parallel": "none", "writes": "rule-files", "exclusive": ["the assembled architecture configuration"],
-      "verify": "The assembled import contracts run clean on the integrated head",
-      "completion": ["Update assembler"], "failure": ["Blocked"]
+      "completion": ["Add config", "Update config", "Add eslint.architecture.mjs", "Update ESLint config", "Add architecture.toml", "Update import-linter config", "Update assembler"],
+      "failure": ["Reject rule", "Defer", "Blocked"]
     },
     "defect-shift-left": {
       "capability": "verification", "stage": "H",

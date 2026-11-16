@@ -1,0 +1,62 @@
+{
+  "scenario": "grounding-outcome-hypothesis",
+  "revision": "15af3acecd10",
+  "recorded_with": "claude-code 2.1.321, model claude-opus-5-5",
+  "skills_available": [
+    "alchemy",
+    "alchemy-orchestrate",
+    "architecture-as-code",
+    "architecture-guidelines",
+    "batch",
+    "bring-down",
+    "ci-cd-reliability-architecture",
+    "claude-api",
+    "code-review",
+    "continuous-improvement",
+    "dataviz",
+    "debug",
+    "deep-research",
+    "defect-shift-left",
+    "dependency-lifecycle",
+    "design",
+    "design-sync",
+    "doctor",
+    "evolutionary-database-design",
+    "fewer-permission-prompts",
+    "functionality-complexity-tradeoff",
+    "gate-lifecycle",
+    "implementation-readiness",
+    "infrastructure-fit",
+    "loop",
+    "morphogenetic-architecture",
+    "observability-design",
+    "plugin-authoring",
+    "push-out",
+    "requirements-grounding",
+    "requirements-topology",
+    "requirements-traceability",
+    "run",
+    "run-skill-generator",
+    "schedule",
+    "simplify",
+    "structural-simplification",
+    "system-optimization",
+    "test-strategy",
+    "update-config",
+    "verify",
+    "workflow-authoring",
+    "zero-copy-requirements"
+  ],
+  "skills_invoked": [
+    "requirements-grounding"
+  ],
+  "files_read": [
+    ".claude/skills/requirements-grounding/references/outcome-hypothesis.md",
+    ".claude/skills/requirements-grounding/references/quality-model.md"
+  ],
+  "paths_searched": [
+    "."
+  ],
+  "turns": 6,
+  "output": "**What I found**\nThe problem holds up. Product has confirmed it, there are about 120 tickets a month behind it, and you've stated both the done state and what's out of scope. One required capability comes out of it: an account owner can get any invoice issued to their account without contacting support. It is not yet ready for dependency modeling, for two reasons. First, two meanings still need product to confirm them, so the record calls this PROVISIONAL. Second, even after they're confirmed, the next stage is the worth check (M), not dependency modeling. The work is justified by a ticket-reduction expectation that has no target, and nobody knows what share of the 120 tickets this path would actually replace.\n\n**Why it matters**\nYour scope limit caps the expected benefit. Any of those tickets that come from someone other than the account owner, such as a bookkeeper or a second user, or that ask for a corrected invoice or a credit note, will keep arriving after this ships. If nothing is measured, the head of support's justification can't be shown true or false after release, and M has nothing to compare against.\n\n**Do this first**\n1. Have the support lead tag one month of \"copy of past invoice\" tickets (about 120) by who asked (account owner or someone else) and what they wanted (an unchanged copy, a corrected invoice, or a credit note). That gives the share a self-serve path could replace. Ask the head of support to set a target against it.\n2. Get product to confirm Q1 and Q2 below.\n3. Then run `functionality-complexity-tradeoff` (M). Dependency modeling is probably unnecessary afterwards: three candidates with one obvious relationship can go straight to `implementation-readiness`.\n\n**What I did not check**\n- How the support lead counted 120 a month (by hand or by tag). Close it by asking for the query or method.\n- Whether existing requirements or code cover invoice access. No project artifacts are in this directory, only the skill library.\n- Any accessibility or retention obligations that apply to your product. Close them with the policy owner.\n\n---\n\n```text\nSubject:        past-invoice self-service (invoicing product)\nMode:           conversational\nDecision:       PROVISIONAL\nProblem:        An account owner (actor) who needs a past invoice for bookkeeping (situation)\n                must be able to obtain it (outcome) but currently cannot without contacting\n                support (obstacle). Confirmed by product.\nBasis profile:  evidenced (problem, ~120 tickets/mo × 3 mo); interpreted (copy fidelity,\n                owner-only restriction); hypothesized (ticket reduction)\nConfidence:     medium\nBlocking gaps:  Q1 copy fidelity; Q2 actor definition (one or several account owners per account)\nOutcome hypotheses: invoice-ticket-deflection — unmeasured; baseline partial, threshold unknown\nSupersedes:     none\nNext action:    confirm Q1–Q2 → classify ticket sample → functionality-complexity-tradeoff (M)\nVerification:   user-stated sources only; no ticket data, product record, or code inspected\nRevisit when:   product answers Q1–Q2, or the ticket classification is complete\n```\n\n**Requirement candidates**\n\n```text\nRequirement: past-invoice-retrieval\nActor: account owner\nMust be able to: obtain any invoice issued to their account without contacting support\nSo that: they can complete bookkeeping\nComplete when:\n- every invoice issued to the account, from the oldest onward, can be obtained by the owner\n- obtaining one requires no support contact or staff action\n- an owner with no invoices sees that no invoices exist, not an error\nBasis: evidenced\nSource or evidence: product confirmation; support lead count ~120/mo over 3 months\nPriority: must\nValidation decision: accept\nConfidence: high\n```\n\n```text\nRequirement: invoice-copy-fidelity\nActor: account owner\nMust be able to: obtain an invoice exactly as it was issued\nSo that: the copy is valid for bookkeeping\nComplete when:\n- an obtained copy matches the issued invoice in every field, even after account details\n  (e.g. address) have changed since issue\nBasis: interpreted (\"copy\" + \"changing what an invoice contains\" is out of scope)\nSource or evidence: user scope statement\nPriority: must\nValidation decision: test (Q1)\nConfidence: medium\n```\n\n```text\nRequirement: invoice-owner-only-access\nActor: account owner\nMust be able to: rely on no one else obtaining their account's invoices through this path\nComplete when:\n- a person who is not the account's owner cannot obtain its invoices through this path\n- an owner cannot obtain invoices of another account\nBasis: interpreted (not-problem excludes others; invoices are financial records)\nSource or evidence: user scope statement\nPriority: must\nValidation decision: test (Q2)\nConfidence: medium\n```\n\n**Outcome hypothesis**\n\n```text\nOutcome hypothesis: invoice-ticket-deflection\nApplies to requirements: past-invoice-retrieval\nActor or cohort: account owners who currently file copy-of-invoice tickets\nIf: owners can obtain past invoices themselves\nThen: copy-of-invoice tickets fall\nBecause: the ticket exists only because self-service is impossible\nPrimary measure: copy-of-invoice tickets per month, down\nBaseline: ~120/mo (support lead, 3 months, method unknown); replaceable share unknown\nDecision threshold: unknown — head of support to set after ticket classification\nEvaluation window: unknown — set with threshold\nGuardrails: unknown — candidate: related tickets (login, \"can't find invoice\") must not rise\nEvidence plan: classify one month of tickets by requester and request type; tag tickets\n               consistently before release so the after-measure matches the baseline\nHypothesis confidence: low\nEvidence state: unmeasured\nEvidence reference: none\nOwner: head of support\nRevisit when: classification complete; then after representative use post-release\n```\n\n**Quality coverage**\n- Functional suitability: covered by `past-invoice-retrieval`, `invoice-copy-fidelity`.\n- Security (confidentiality, integrity): covered by `invoice-owner-only-access` and `invoice-copy-fidelity`. Both are interpreted, so this stays a risk finding until Q1 and Q2 are answered.\n- Compatibility: open. Product owns the question of which format is acceptable for bookkeeping. I have not set a target.\n- Interaction capability (inclusivity): open. The policy owner needs to say whether an accessibility obligation applies.\n- Reliability, performance efficiency: open, low risk, owned by product. No volume or availability expectation has been stated.\n- Maintainability, flexibility, safety: not applicable. Nothing in the sources implies an obligation.\n\n**Confirmation queue (product)**\n- Q1: Must the copy reproduce the invoice exactly as issued, or is a copy regenerated from current data acceptable?\n- Q2: Does each account have exactly one account owner? If it can have several, every owner is the actor.\n\n**Topology handoff note:** Wait until M returns BUILD. The only relationship is that `invoice-owner-only-access` and `invoice-copy-fidelity` constrain `past-invoice-retrieval`, which probably doesn't justify a dependency graph."
+}

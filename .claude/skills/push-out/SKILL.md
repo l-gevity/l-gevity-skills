@@ -129,7 +129,8 @@ When the move concerns deployment safety, apply `ci-cd-reliability-architecture`
 When the move concerns check placement, apply `defect-shift-left`. When the
 move concerns duplicated custom implementation, apply `bring-down`. When the
 question is which artifact owns the fact rather than whether prose duplicates
-an executable source, apply `zero-copy-requirements`.
+an executable source, apply `zero-copy-requirements`. When a recurring finding
+should become a skill, check, or template, apply `continuous-improvement`.
 
 ---
 
@@ -171,14 +172,3 @@ Priorities:
 Gaps:
 <Missing evidence, unknown ownership, absent metrics, excluded work, or risks>
 ```
-
----
-
-## 7. See Also
-
-- **`defect-shift-left`** - move defect detection earlier.
-- **`bring-down`** - move bespoke code down into reusable capability.
-- **`system-optimization`** - bottleneck and waste analysis before improvement.
-- **`ci-cd-reliability-architecture`** - pipeline safety and deployment reliability patterns.
-- **`zero-copy-requirements`** - which artifact owns a fact, before pruning the duplicate.
-- **`continuous-improvement`** - promotion of recurring findings into skills, checks, or templates.

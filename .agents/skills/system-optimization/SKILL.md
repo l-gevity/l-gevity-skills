@@ -53,9 +53,16 @@ work to undo later.
    anything proven load-bearing; keep only deletions backed by evidence.
 3. **Simplify what remains.** Only optimize subsystems that survived deletion.
 4. **Speed it up.** Parallelize, cache, batch — but only after simplification,
-   and only within the limits parallelism actually returns (§7).
+   and only within the limits parallelism actually returns. Run independent
+   tests, builds, and linting concurrently only when artifacts, caches, rate
+   limits, and shared environments are isolated; keep dependent or
+   resource-contentious stages sequential. Speedup is capped by the serial
+   fraction (Amdahl); past a point, coordination and contention cost make more
+   parallelism *slower* (Universal Scalability Law). Measure before widening a
+   fan-out.
 5. **Automate last.** Automating an unnecessary or unsimplified process locks in
-   the waste.
+   the waste. Automate a recurring manual task only once it is necessary,
+   stable, and cheaper to automate than to perform by hand.
 
 ## 1. Scan Layers
 
@@ -67,14 +74,19 @@ work to undo later.
 | **Public Surface**         | One route per view of the same aggregate, same data at multiple addresses, rights/roles vocabulary larger than the behavior it guards, one-user wrappers around an existing primitive |
 | **Testing Strategy**       | Coverage gaps, flaky tests, defects caught late                     |
 | **Tooling & Dependencies** | Unused packages, outdated tooling, manual steps                     |
-| **Documentation**          | Stale docs, missing ADRs, over-documentation                        |
+| **Documentation**          | Stale docs, separate decision documents, over-documentation         |
 | **Observability**          | Missing metrics, silent failures, unclear alerts                    |
+
+A layer's own rules stay with the skill that owns them, and this skill measures
+their flow: pipeline gates `ci-cd-reliability-architecture`, check placement
+`defect-shift-left`, test design `test-strategy`, where a document's facts
+belong `zero-copy-requirements`, and where recurring operational work lives
+`push-out`.
 
 ## 2. Waste Scan (Lean — Muda / Mura / Muri)
 
-Lean names three families of waste. **Muda** is non-value-adding work; the
-TIMWOODS table below enumerates its eight forms. But Muda is usually
-*manufactured* by two deeper causes — attack these at the source first:
+**Muda**, non-value-adding work (TIMWOODS, below), is usually *manufactured*
+by two deeper causes — attack these at the source first:
 
 | Cause                     | Meaning                                | In Software                                                          | Red Flag                                       |
 | ------------------------- | -------------------------------------- | ------------------------------------------------------------------- | ---------------------------------------------- |
@@ -113,13 +125,9 @@ policy costs nothing but agreement.
 
 ## 4. Flow Economics (Queueing)
 
-Queues, not busy resources, set delivery time. Three laws make flow measurable
-and turn "improve flow" into concrete moves.
-
 - **Little's Law** — for any stable queue, `cycle time = WIP / throughput`. To
   ship faster *without* adding capacity, cut work-in-progress: halving in-flight
-  work halves average cycle time at the same throughput. This is why WIP limits
-  beat exhortations to "go faster."
+  work halves average cycle time at the same throughput.
 - **Utilization curve (Kingman)** — queue time rises non-linearly with
   utilization ρ, roughly `wait ∝ ρ / (1 − ρ)`; past ~80% it explodes:
 
@@ -127,12 +135,10 @@ and turn "improve flow" into concrete moves.
   | --------------- | --- | --- | --- | ---- |
   | wait ≈ (× service time) | 1× | 4× | 9× | 19× |
 
-  A resource pinned at 95% is not "efficient" — it is a delay generator (this is
-  Muri, §2). Size shared resources (CI runners, reviewers, on-call) for
-  headroom, not full utilization.
-- **Batch size** — a batch is the set of increments moved together; large
-  batches inflate cycle time, delay feedback, and raise risk per release.
-  Halving batch size roughly halves queue time and localizes failure. Small
+  Size shared resources (CI runners, reviewers, on-call) for headroom, not
+  full utilization.
+- **Batch size** — halving the set of increments moved together roughly
+  halves queue time and localizes failure. Small
   PRs, trunk-based flow, and incremental deploys are batch-size controls, not
   stylistic preferences.
 
@@ -145,13 +151,15 @@ and turn "improve flow" into concrete moves.
 
 ## 5. Measure the System
 
-You cannot optimize what you cannot measure, and you cannot measure an
-improvement you cannot separate from noise. "Go and see" the real signal — logs,
-queues, traces, timings — rather than optimizing from assumption.
+"Go and see" the real signal — logs, queues, traces, timings — rather than
+optimizing from assumption.
 
 ### Delivery & flow metrics
 
-Track a small, stable set; a regression in any of them is a bug (§7).
+Track a small, stable set; a regression in any of them is a bug. For a
+pipeline the set includes build duration, failure rate, flakiness, and the
+compute and storage it consumes against its spending limit, alerting before the
+limit stops delivery.
 
 | Metric                            | Question it answers                          | Source     |
 | --------------------------------- | -------------------------------------------- | ---------- |
@@ -166,13 +174,11 @@ Track a small, stable set; a regression in any of them is a bug (§7).
 each step into work time vs wait time, and the wait total is your inventory. Low
 flow efficiency means the fix is *removing queues*, not speeding up steps.
 
-**Error budget (spend or stabilize)** turns the reliability metrics into a
-decision rule that resolves the tension between Directives 3 and 7. Set an
-explicit failure tolerance (an availability or change-fail-rate target); the gap
+**Error budget (spend or stabilize)** settles speed against stability
+(Directives 3 and 7). Set an explicit failure tolerance (an availability or change-fail-rate target); the gap
 between target and actual is the budget. While budget remains, *spend* it — ship
 faster, take risk, raise deploy frequency (Directive 7). Once it is exhausted,
-freeze feature risk and stabilize until it recovers (Directive 3). This makes the
-speed-vs-reliability trade-off explicit rather than political. The pipeline gates
+freeze feature risk and stabilize until it recovers (Directive 3). The pipeline gates
 that measure and enforce these signals live in `ci-cd-reliability-architecture`;
 the budget-spend policy is an optimization decision and lives here.
 
@@ -185,14 +191,11 @@ Before reacting to any metric move, classify the variation:
 | **Common** | Inherent run-to-run noise within stable bounds | Do **not** tamper; change the system, not the instance   |
 | **Special**| An assignable, out-of-bounds event             | Investigate the specific cause; remove or contain it     |
 
-Reacting to common-cause noise as if it were signal (tampering / over-adjustment)
-*adds* variance — the classic Deming funnel error. Establish a baseline band
-first; treat only out-of-band moves as regressions. This is what "stabilize
-before optimizing" (Core Directive 3) demands operationally, and it is why flaky
-tests are measurement-blockers, not nuisances.
+Establish a baseline band first; treat only out-of-band moves as regressions.
+Flaky tests are measurement-blockers, not nuisances.
 
 Run structured improvement as **DMAIC** — Define, Measure, Analyze, Improve,
-Control — the Six Sigma loop that complements Kaizen/PDCA (§11): PDCA drives many
+Control — the Six Sigma loop that complements Kaizen/PDCA (§7): PDCA drives many
 small reversible bets; DMAIC governs a defect or variance that needs a
 controlled, evidence-gated fix locked in by a Control step so it cannot regress.
 
@@ -222,64 +225,7 @@ For identifying constraints, waste, and root causes in operational analysis:
   with a newly established standard. Temporary migration overlap needs an
   owner, scope, and removal condition.
 
-## 7. CI/CD
-
-- **Bottleneck first (ToC)**: Optimize the measured constraint before adjacent
-  stages.
-- **Parallelize safely**: Independent tests, builds, and linting can run
-  concurrently when artifacts, caches, rate limits, and shared environments are
-  isolated. Keep dependent or resource-contentious stages sequential. Speedup is
-  capped by the serial fraction (Amdahl); past a point, coordination and
-  contention cost make more parallelism *slower* (Universal Scalability Law).
-  Measure before widening a fan-out.
-- **Idempotent environments**: Deployment state must be reproducible from source
-  control.
-- **Shift-left gates**: Linting and unit tests run before integration tests.
-- **Measure**: Track build duration, failure rate, flakiness, and the compute
-  and storage the pipeline consumes against its spending limit, alerting before
-  the limit stops delivery. Regressions are bugs.
-- **Zero-downtime secret rotation**: Always create the new credential first,
-  apply it to all environments, then delete the old one. Never delete before
-  applying — the gap causes downtime and broken deployments.
-
-## 8. Developer Workflow
-
-- **Small PRs**: Faster merge, smaller blast radius, better review quality.
-  Large PRs are inventory and oversized batches (§4).
-- **Short feedback loops**: Fast local test results reduce context-switching
-  cost.
-- **Limit work-in-progress**: Cap in-flight work per person and per stage; a
-  lower WIP ceiling shortens cycle time more reliably than working faster (§4).
-- **Eliminate toil**: Recurring manual tasks should be removed, simplified, or
-  automated only after the task is necessary, stable, and cheaper to automate
-  than to perform manually. For where the work should ultimately live, see
-  `push-out`.
-- **One-piece flow**: Work moves design → build → review → deploy without
-  sitting idle.
-
-## 9. Testing
-
-- **Detection distance**: Bugs caught closest to their source are usually
-  cheapest. Use the earliest check that can actually detect the defect; some
-  boundary and workflow failures require integration or e2e tests.
-- **Flakiness is a defect**: A flaky test erodes trust and masks real failures;
-  it is also a measurement-blocker (§5).
-- **Confidence over coverage**: Optimize for critical-path confidence, not line
-  percentages.
-- **Shift-left security**: Static analysis, dependency audits, and secret
-  scanning run in CI.
-
-## 10. Documentation
-
-- **Executable specs over text**: Tests and self-documenting code are living
-  documentation.
-- **JBGE**: Minimal, concise, audience-specific. Documents with no owner,
-  current reader, legal/compliance need, or incident value should be archived or
-  deleted after confirming they are not load-bearing.
-- **ADRs**: Document _why_, not _what_. Prevents future rework from revisiting
-  settled decisions.
-
-## 11. Continuous Improvement (Kaizen / PDCA)
+## 7. Continuous Improvement (Kaizen / PDCA)
 
 - Every optimization is a hypothesis — validate before declaring permanent.
 - A PDCA turn, like a DMAIC cycle (§5), is an iteration: its Check or Control
@@ -297,7 +243,7 @@ For identifying constraints, waste, and root causes in operational analysis:
 > `structural-simplification` without measurably improving flow, reliability,
 > cost, or another complexity axis, it is not an optimization.
 
-## 12. Output Contract
+## 8. Output Contract
 
 When applying this skill, emit a coder-facing optimization decision record:
 
@@ -311,10 +257,3 @@ Next action:    <one concrete edit, experiment, measurement, or owner question>
 Verification:   <before/after metric, command, CI run, or Not run + reason>
 Residual risk:  <risk left for judgment, rollout, or future measurement>
 ```
-
-## 13. See also
-
-- **`structural-simplification`** — per-axis complexity comparison used for Kaizen Δ scoring.
-- **`defect-shift-left`** — placement of each error detection at the earliest possible stage (operationalizes "Build Quality In").
-- **`ci-cd-reliability-architecture`** — pipeline-reliability prerequisites that stabilize a process before optimization; owns the delivery gates this skill only measures.
-- **`push-out`** — where recurring operational work should live once flow is stable.

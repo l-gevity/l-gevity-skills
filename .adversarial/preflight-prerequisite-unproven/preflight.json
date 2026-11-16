@@ -1,5 +1,9 @@
 {
   "schema": "alchemy-preflight/1",
+  "plan": {
+    "digest": "b185fcb91d2900de429e9b4699f6401494f87af69b133d0c265dd3c113f96795",
+    "base": "3f9c2e1"
+  },
   "window": {
     "start": "2026-11-13T18:00:00Z",
     "end": "2026-11-14T08:00:00Z"
@@ -61,6 +65,9 @@
       "interactive": false,
       "evidence": [
         "E1"
+      ],
+      "covers": [
+        "N-REPO"
       ]
     },
     {
@@ -71,6 +78,9 @@
       "interactive": false,
       "evidence": [
         "E2"
+      ],
+      "covers": [
+        "N-CLOUD"
       ]
     }
   ],
@@ -86,6 +96,9 @@
       "expires": "never",
       "evidence": [
         "E3"
+      ],
+      "covers": [
+        "N-CLERK-A"
       ]
     },
     {
@@ -99,6 +112,9 @@
       "expires": "never",
       "evidence": [
         "E4"
+      ],
+      "covers": [
+        "N-CLERK-B"
       ]
     },
     {
@@ -115,6 +131,9 @@
       "expires": "never",
       "evidence": [
         "E4"
+      ],
+      "covers": [
+        "N-AUDITOR"
       ]
     }
   ],
@@ -124,6 +143,21 @@
       "what": "one-command build with cached dependencies",
       "evidence": [
         "E5"
+      ],
+      "covers": [
+        "N-BUILD"
+      ]
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "F1",
+      "what": "orders seed data loads and resets",
+      "covers": [
+        "N-ORDERS-SEED"
+      ],
+      "evidence": [
+        "E8"
       ]
     }
   ],
@@ -177,6 +211,12 @@
     {
       "id": "E7",
       "command": "npm run probe:escalate -- --expect-delivery 60s",
+      "exit_code": 0,
+      "commit": "3f9c2e1"
+    },
+    {
+      "id": "E8",
+      "command": "npm run seed -- --check orders",
       "exit_code": 0,
       "commit": "3f9c2e1"
     }

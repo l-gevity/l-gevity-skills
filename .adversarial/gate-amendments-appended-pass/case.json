@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #180: a plan that appended amendments to a revision an earlier check accepted passes",
+  "description": "The revision with A1 was accepted by an earlier check; the plan now holds A1 and A2, within the bound of 2.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6",
+    "revision": "a915816a9f9e49cdf1dbfe35e79290065006a270dd21487d9266e657f0abfb97"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

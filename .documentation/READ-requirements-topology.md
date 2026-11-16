@@ -166,8 +166,9 @@ sprint to it, rather than a lesson the sprint teaches you.
 they enter the graph, and
 [implementation readiness](READ-implementation-readiness.md) consumes the
 graph to decide what is actually buildable. The full operational reference
-— record and edge schemas, graph checks, repository gates, and output
-modes — lives in
-[SKILL.md](../.claude/skills/requirements-topology/SKILL.md).*
+— record and edge schemas, graph checks, and output modes — lives in
+[SKILL.md](../.claude/skills/requirements-topology/SKILL.md); repository
+gates live in
+[repository-operationalization.md](../.claude/skills/requirements-topology/references/repository-operationalization.md).*
 
-<!-- skill-revision: 746388bc25bc -->
+<!-- skill-revision: ab5f49caea45 -->

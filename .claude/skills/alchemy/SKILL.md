@@ -16,11 +16,9 @@ description: >-
 
 # Alchemy
 
-Command entrypoint for the adaptive A.L.C.H.E.M.Y. gate system. Requirements
-qualification spans the Minimum gate without adding letters to the acronym.
-Keep the default response terse: resume from the latest trustworthy decision,
-route to the smallest useful stage set, state the verdict, and name the next
-action.
+Command entrypoint for the adaptive A.L.C.H.E.M.Y. gate system. Keep the
+default response terse: resume from the latest trustworthy decision, route to
+the smallest useful stage set, state the verdict, and name the next action.
 
 ## 1. Command Grammar
 
@@ -39,13 +37,13 @@ empty command with no active subject returns only this table.
 | Alias | Route |
 |:--|:--|
 | none | Run the dispatch preflight; infer Design, Refactor, or Audit mode |
-| `audit` | Start at the read-only `C₀` structural baseline; recover requirements only when intent is missing, stale, contradictory, or disputed |
-| `full`, `all`, `walk the gates`, `complete alchemy` | `FULL`: traverse every justified stage; record why any conditional stage is skipped |
+| `audit` | Start at the read-only `C₀` structural baseline |
+| `full`, `all`, `walk the gates`, `complete alchemy` | `FULL`: every justified stage, each skip recorded |
 | `M`, `minimum`, `necessity`, `worth` | `functionality-complexity-tradeoff` — worth it? |
 | `A`, `architecture`, `first-principles` | `architecture-guidelines` — sound design? |
 | `L`, `locality`, `placement` | `morphogenetic-architecture` — where does it belong? |
 | `C`, `complexity`, `simplify` | `structural-simplification` — simpler? |
-| `E`, `enforcement`, `architecture-as-code` | `architecture-as-code`, plus `-javascript` or `-python` only when rule files are written or changed — rules as code? |
+| `E`, `enforcement`, `architecture-as-code` | `architecture-as-code`, plus its stack reference only when rule files are written or changed — rules as code? |
 | `H`, `hermetic`, `shift-left` | `defect-shift-left`, plus `ci-cd-reliability-architecture` for pipeline reliability — catch earlier? |
 | `Y`, `yield`, `optimize` | `system-optimization` — optimize flow? |
 | `left` | `defect-shift-left` — detect defects earlier |
@@ -66,37 +64,34 @@ bespoke implementation, but do not run them unless the user asks.
 Classify before reading any sibling skill body. Make dispatch the first
 observable checkpoint: decide from the request, already-loaded context, skill
 metadata, and the latest trustworthy decision artifacts; do not scan the
-repository or open sibling bodies merely to choose a dispatch. After emitting
-the dispatch, inspect only the artifacts and skills the route selects.
+repository merely to choose a dispatch. After emitting the dispatch, inspect
+only the artifacts and skills the route selects.
 
 | Dispatch | Select when | Core route |
 |:--|:--|:--|
 | `SKIP` | Local behavior stays inside one governed boundary and asks no Alchemy question: copy/CSS, trivial rename, contract-preserving dependency bump, isolated in-boundary fix | None: load no gate skill; continue with matching companions and normal verification |
 | `DIRECT` | An alias, or one unambiguous gate question: worth, dead code, speculative abstraction, or "should this exist?" is M; a defect found late, check placement, or CI detection timing is H or `left` | Only that gate or triad skill |
 | `ADAPTIVE` | Structure, responsibility, data flow, abstraction, multiple requirements, or boundaries may change | The smallest justified set: a structural refactor inside one boundary is M, C, plus A when responsibility or public contract changes and H when verification placement changes; a new subsystem/service/library, cross-boundary dependency, increment cut through every layer (vertical slice), consolidation, or an aspect added or changed across several subsystems (auth, audit, logging, retry, i18n) is qualification as needed, M, A, L, C, E, H; an existing-code over-engineering audit is Audit mode from `C₀` |
-| `FULL` | The user explicitly says `full`, `all`, `walk the gates`, or `complete alchemy` | Every justified stage, every skip recorded |
+| `FULL` | The user explicitly says `full`, `all`, `walk the gates`, or `complete alchemy` | Every justified stage, with the reason for each conditional stage skipped |
 
-Do not run every gate by default: only explicit full language selects `FULL`,
+Natural language stays adaptive: only explicit full language selects `FULL`,
 and Alchemy `FULL` is a traversal dispatch, not a gate's analysis mode. Do not
 convert uncertainty into `FULL`; select the smallest plausible route, state
 the uncertain signal, and stop at the first missing prerequisite.
 
 Gate and triad aliases are authoritative: use only that core gate or triad
 move, even when the subject mentions subsystem boundaries, and expand the core
-route only for explicit `full`, `all`, `audit`, `walk the gates`, or `complete
-alchemy`. Focused aliases never silently run requirements qualification. If a
-focused gate lacks a prerequisite, report the missing decision artifact and
-stop at that gate unless the user asked for a broader pass. The prerequisites:
+route only for `audit` or explicit full-traversal language. Focused aliases
+never silently run requirements qualification. If a focused gate lacks a
+prerequisite, report the missing decision artifact and stop at that gate
+unless the user asked for a broader pass. The prerequisites:
 
 - Gate E remains blocked until Gate 3 records final acceptance; a `MOVE`,
   `SPLIT`, `MERGE`, or `INTRODUCE-BOUNDARY` first runs the bounded
   `L candidate → C measurement → L acceptance` handshake, re-entering L once.
-- Gate E also waits for a passing readiness decision in a full pass.
 - Gate Y runs in iteration 2, the iteration after the increment ships, from its
   stable, measured baseline, unless the request is explicitly about an
   existing bottleneck.
-
-`ADAPTIVE`, `FULL`, and `audit` read the route in §2 before selecting stages.
 
 ### Companion Skill Routing
 
@@ -104,8 +99,7 @@ Alchemy owns the core qualification and gate route, not every task domain.
 From skill metadata and project instructions, select any non-Alchemy skill
 whose trigger independently matches the subject, and read only the selected
 companion bodies. A project profile may require companions for its domain,
-stack, UX, security, accessibility, API, release, or evidence rules; never
-hard-code project-specific companion names into this generic skill.
+stack, UX, security, accessibility, API, release, or evidence rules.
 
 - When the subject decides where a fact, decision, or document belongs — a
   proposed document, a decision record, an architecture note, a status page, or
@@ -129,38 +123,26 @@ hard-code project-specific companion names into this generic skill.
 - `SKIP` skips only the Alchemy core; it never suppresses a matching companion.
   `DIRECT` keeps the core route focused while allowing independently triggered
   companions.
-- Report companions explicitly. Use `None` when no companion trigger matches.
+- Report companions explicitly. Use `None` when no companion trigger matches,
+  and name no companion whose trigger is unmet or unknown; write a selected
+  companion whose `SKILL.md` was not read in this task as
+  `<skill> — Not run (<reason>)`.
 
 ### Execution Strategy
 
 Execution is a second decision after dispatch, never a fifth dispatch: it
 decides whether one agent or several carry out the selected route, and the
 user never names agents. `SKIP` and `DIRECT` run `single-agent` and never load
-orchestration. `ADAPTIVE`, `FULL`, and `audit` select `multi-agent` only when
-the work changes or audits code and at least two parts are independent —
-different subsystems, disjoint files, no ordering between them — or a
-high-risk change (security, public contract, persisted shape) needs a
-reviewer that did not write it. Count every agent: one writer and one
-independent reviewer is `multi-agent`. The number of gates or skills on the
-route is never a reason. Stay `single-agent` and say why when neither
-holds, when the project's `alchemy-workspace.json` sets
-`execution.multi_agent` to `off`, or when the runtime cannot launch agents.
-On `multi-agent`, load `alchemy-orchestrate` before the first stage that
-changes or audits code; it plans, launches, verifies, and gates the agents.
+orchestration. `ADAPTIVE`, `FULL`, and `audit` stay `single-agent` unless the
+route in §2 selects `multi-agent`, which loads `alchemy-orchestrate`.
 
 ### Change Primitives
 
-Every stage describes change with four primitives: a **Subsystem** is where
-change lands, an **Aspect** is which dimension is touched, an **Increment** is
-what changes, and an **Iteration** admits, realizes, and measures one
-increment. Each sibling names its own term as a specialization of exactly one
-and never redefines them;
+Every stage describes change with four primitives: **Subsystem**, **Aspect**,
+**Increment**, and **Iteration**. Each sibling term specializes exactly one
+and never redefines it;
 [references/change-primitives.md](references/change-primitives.md) defines
-them and maps each sibling term. Decomposition and aspect extraction are
-different cuts: decomposition splits one subsystem into several; extraction
-pulls one aspect out of several subsystems into one mechanism. A design that
-models an aspect as a subsystem, or copies its mechanism per subsystem, has
-confused the two.
+them and maps each sibling term.
 
 ---
 
@@ -177,9 +159,10 @@ Requirements Grounding, when evidence or meaning is absent or stale
 Qualification stages are conditional and never become acronym letters. Before
 selecting stages for `ADAPTIVE`, `FULL`, or `audit`, read
 [references/adaptive-route.md](references/adaptive-route.md): routing rules,
-decision hand-offs, the gate table, the Gate 3–4 handshake, the two-pass
-companion order, core directives, the pre-flight checklist, and the
-retrospective order. `SKIP` and `DIRECT` never need it.
+hand-offs, the gates and their handshake, the two-pass companion order,
+execution selection, and the decision-trail format. The default `SKIP` and
+`DIRECT` never need it; a run that must emit the decision trail of §3 opens it
+for that format alone.
 
 Read [references/failure-modes.md](references/failure-modes.md) when a run's
 result looks wrong, an audit shows a symptom, or a trail has an unexplained
@@ -206,27 +189,12 @@ load a core sibling merely to justify the skip.
 
 Multi-stage runs, non-trivial design/refactor passes, audits, and explicit
 requests for detail emit one combined decision trail in execution order,
-including every stage used and every conditional stage skipped:
+including every stage used and every conditional stage skipped, then the scope
+block; the route in §2 gives both formats.
 
-| Stage | Skill | Decision | Evidence / hand-off | Files/checks | Next action or skip rationale |
-| ----- | ----- | -------- | ------------------- | ------------ | ----------------------------- |
-
-Then state:
-
-```
-Scope:          <subsystem / service / refactor / PR>
-Mode:           Design | Refactor | Audit
-Dispatch:       SKIP | DIRECT | ADAPTIVE | FULL
-Companions:     <None | task-matched skills>
-Execution:      single-agent | multi-agent
-Blocking stage: <first non-passing qualification decision or gate, or None>
-Decision:       Proceed | Redesign | Drop | Defer
-Verification:   <commands, lint rules, tests, or Not run + reason>
-```
-
-Lead any run that reaches a verdict with the four report blocks the root
-instruction file defines, What I found, Why it matters, Do this first, and
-What I did not check, then emit the records unchanged: the trail and scope
+Lead every run except `SKIP` that reaches a verdict with the four report blocks
+the root instruction file defines, What I found, Why it matters, Do this first,
+and What I did not check, then emit the records unchanged: the trail and scope
 block, then each stage that ran in execution order, with the decision record
 its skill's output contract defines. The trail summarizes stages; it never
 replaces a stage's record. When implementing changes, add the normal coding
@@ -234,19 +202,10 @@ summary after the verdict.
 
 ## 4. Discipline
 
-- **Skipped stages require a one-line rationale.** A skip without one is a
-  defect and an over-engineering risk for the next audit.
-- **Natural language stays adaptive.** "Do some alchemy" never means `FULL`
-  without explicit full-traversal language.
-- **Load each stage when the route reaches it.** Read a stage's or companion
-  pass's `SKILL.md` only once every stage before it has passed, never ahead.
-  A blocking decision in the route's hand-off table ends the route for that
-  candidate: the stages after it stay unloaded and appear in the trail as
-  `Not run` with that decision as the reason. Only candidates with a passing
-  decision continue.
 - **Claim only what ran.** `Core route` and the trail name a stage's decision
   only when its `SKILL.md` was read in this task; a selected stage that did not
-  run appears in the trail as `Not run` with the reason.
+  run, or one resumed from an earlier record, appears in the trail as `Not run`
+  with the reason.
 - **When a gate is consistently skipped across tasks**, that's a signal for
-  `continuous-improvement` to update THIS skill — not paper over with
-  case-by-case reminders.
+  `continuous-improvement` to update THIS skill, not for case-by-case
+  reminders.

@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #197: only the human authorizes an extension",
+  "description": "Same as plan-extension-authorized-pass, but the extension is granted by the lead.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AUTHORIZATION_UNPROVEN"
+    ]
+  }
+}

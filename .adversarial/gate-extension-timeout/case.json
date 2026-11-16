@@ -1,0 +1,17 @@
+{
+  "criterion": "multi-agent-governance #159: a timed-out question is not an authorization",
+  "description": "Same as gate-extension-authorized-pass, but the extension's source is a question that timed out after an hour.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "d4d69550c4055083c9024b52c33668e359f69cd28eee582f1bb3a558579c4399"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "AUTHORIZATION_UNPROVEN",
+      "REWORK_LIMIT"
+    ]
+  }
+}

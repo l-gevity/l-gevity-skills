@@ -1,0 +1,17 @@
+{
+  "criterion": "multi-agent-governance #130: a plan that gained a need after its preflight is stale and the new need is unproved",
+  "description": "P2 now reads recorded carrier responses; the record is the one made before the amendment.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "PREFLIGHT_STALE",
+      "PREREQUISITE_UNCOVERED"
+    ]
+  }
+}

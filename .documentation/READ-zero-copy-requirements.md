@@ -197,4 +197,4 @@ evidence once a location exists. The full operational reference — the authorit
 table, the issue scope, the generated-report rules, the three exceptions, and the
 litmus test — lives in [SKILL.md](../.claude/skills/zero-copy-requirements/SKILL.md).*
 
-<!-- skill-revision: 48e053c72a2a -->
+<!-- skill-revision: bd0a889723a3 -->

@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #174: an approval recorded in an amendment after the approved revision does not widen scope",
+  "description": "The lead's correction P1-L1 writes src/billing/, outside every approved write set, and carries a well-formed approval (by human, a reference, source answer); the check is anchored at the plan the human approved, which does not hold A1.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AMENDMENT_BROADENS"
+    ]
+  }
+}

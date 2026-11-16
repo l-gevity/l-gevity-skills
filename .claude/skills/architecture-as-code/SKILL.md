@@ -1,15 +1,18 @@
 ---
 name: architecture-as-code
 description: >-
-    Stack-agnostic pattern for declaring and enforcing subsystem boundaries via
-    per-subsystem architecture configs merged into import-graph linter rules.
-    TRIGGER when designing/auditing dependency-rule enforcement, deciding what a
-    per-subsystem file should say, placing a rule, debugging a forbidden edge, or
-    extending the assembler. Consume explicit `Enforcement` handoffs from
-    `architecture-guidelines` or `morphogenetic-architecture` by turning
+    Stack-agnostic pattern for declaring/enforcing subsystem boundaries via
+    per-subsystem architecture configs merged into import-graph linter rules;
+    JavaScript/TypeScript (`eslint.architecture.mjs`, ESLint flat-config) and
+    Python (`architecture.toml`, `lint-imports`, Grimp) implementations.
+    TRIGGER when designing/auditing dependency-rule enforcement, deciding what
+    a per-subsystem file should say, placing a rule, debugging a forbidden
+    edge, an `eslint-plugin-boundaries` rule, or an `import-linter` contract,
+    implementing/extending the pattern in a JS/TS or Python repo, or
+    extending/adapting the assembler. Consume explicit `Enforcement` handoffs
+    from `architecture-guidelines` or `morphogenetic-architecture`, turning
     enforceable dependency constraints into architecture config rules. SKIP
-    routine edits inside a governed subsystem. For stack implementations see
-    `architecture-as-code-javascript` or `architecture-as-code-python`.
+    routine edits inside a governed subsystem.
 ---
 
 # Architecture-as-Code (Pattern)
@@ -222,28 +225,13 @@ code that never gets the gate.
 
 | Anti-pattern                                  | Fix                                                        |
 | --------------------------------------------- | ---------------------------------------------------------- |
-| A subsystem's own file names another subsystem.     | Move higher, or rewrite with `<own-prefix>-*` + `*`.       |
 | Hardcoded list of "all other subsystems".        | Use `'*'` + `except` / `except_to`.                        |
 | Renaming a subsystem without updating consumers. | Use prefix wildcards (`<prefix>-*`) so renames stay local. |
-| Subsystem has rules but no catch-all bucket.     | Add the whole-subsystem entry as the last `subsystems` row.   |
-| A file carries both `subsystems` and `components`. | Keep one key; the assembler rejects both — two lists for one registry is the same-scope duplication that hides drift. |
 | Dynamic / unresolved imports evade rules.     | Make imports static and resolvable, or document the loophole and ban the dynamic style where possible. |
-| Rule block scoped to a subset of the linted source set. | Apply the rule to every linted source file; the registry cannot fire on a file the rule never sees. |
-| A `**` catch-all at repository root in ancestor/folder matching mode. | It captures files at the shallowest segment and overrides specific subsystems regardless of order. Declare the root's files with file-mode entries instead. |
-| Relying on dependency rules to catch an undeclared directory. | Use the file-existence rule; a file with no imports has no edge to judge. |
 | Assembler maps a subset of the schema's subsystem fields. | Forward every field, `mode` included — a dropped field silently deletes that part of the schema. |
 
 Before merge:
 
-- [ ] No other-subsystem name appears in any subsystem's own architecture file.
-- [ ] `subsystems` ordered narrowest-first; constrained subsystems end with a
-      catch-all.
-- [ ] New architecture files use `subsystems`; the `components` alias appears
-      only in files not yet migrated, and never beside `subsystems`.
-- [ ] The emitted rule block's file scope equals the linted source set.
-- [ ] Every file at repository root belongs to a declared subsystem.
-- [ ] The assembler forwards every field the subsystem schema defines, `mode`
-      included.
 - [ ] Every name in `forbidden` resolves to a registered subsystem, and every
       subsystem pattern matches at least one file.
 - [ ] Lint violation count matches baseline (or new violations reflect
@@ -253,15 +241,15 @@ Before merge:
 
 > [!IMPORTANT] **A passing lint is not evidence of coverage.** The violation
 > count does not move when a directory the linter cannot see is added — it
-> stays at zero because the question was never asked. The scope, root-file, and
-> assembler-field checks above all fail this way, so verify them against the
+> stays at zero because the question was never asked. The rule-scope, root-file,
+> and assembler-field rules above all fail this way, so verify them against the
 > generated config and a positive signal: count the files the emitted rule
 > classifies and compare that with the file count of the linted source set.
 > Reading the lint result proves nothing about either gate.
 
-> [!NOTE] The "no other-subsystem name" check is mechanical — a small AST/TOML
+> [!NOTE] The §4 "no other-subsystem name" rule is mechanical — a small AST/TOML
 > walk over each architecture file could enforce it as a meta-lint. Until
-> then, the manual checklist is the gate.
+> then, a manual review is the gate.
 
 ---
 
@@ -283,23 +271,22 @@ Next action:    <specific edit, rule, test, or owner question>
 
 ## 9. Implementations
 
-This skill defines the pattern. Concrete implementations live in
-sibling skills:
+Each stack's implementation is a reference. Read it when implementing or
+extending the pattern in that stack, debugging its linter's rule or contract,
+or adapting its assembler.
 
-| Stack      | Config file               | Lint tool                              | Skill |
-| ---------- | ------------------------- | -------------------------------------- | ----- |
-| JavaScript | `eslint.architecture.mjs` | ESLint + `eslint-plugin-boundaries`    | `architecture-as-code-javascript` |
-| Python     | `architecture.toml`       | `import-linter` (over Grimp)           | `architecture-as-code-python`     |
+- **JS/TS** (`eslint.architecture.mjs`, `eslint-plugin-boundaries`):
+  [references/javascript.md](references/javascript.md) for file format,
+  recipes (SDK confinement, dynamic imports, test-only code, root files), and
+  gotchas;
+  [references/javascript-assembler.md](references/javascript-assembler.md)
+  before creating or changing `eslint.config.js` or the emitted block's
+  `files`, severity, or `ignores`.
+- **Python** (`architecture.toml`, `import-linter` over Grimp):
+  [references/python.md](references/python.md) for file format,
+  `independence`/`layers` contracts, the assembler script, and gotchas.
 
 Adapting to a new stack: pick an import-graph linter that supports forbidden
 edges between named subsystem sets, then write a small assembler that emits its
 native config. Everything in §§ 1–6 transfers; only step 4 of §5 (emit) and
 step 5 (invoke) are stack-specific.
-
-## 10. See also
-
-- **`architecture-guidelines`** — first-principles rules this pattern enforces.
-- **`morphogenetic-architecture`** — the placement, locality,
-  interface-direction, and static-topology rationale this enforces.
-- **`defect-shift-left`** — §6.2 (ADR → executable architectural rule) names this pattern.
-- **`gate-lifecycle`** — keeps a rule proven and its effective scope measured after it lands.

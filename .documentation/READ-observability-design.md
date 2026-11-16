@@ -143,4 +143,4 @@ reference — the three duties, signal-type selection, the alert admission test,
 and the prune rule — lives in
 [SKILL.md](../.claude/skills/observability-design/SKILL.md).*
 
-<!-- skill-revision: d7f6b426b84e -->
+<!-- skill-revision: 5b4d49c026b5 -->

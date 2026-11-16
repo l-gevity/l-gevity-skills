@@ -30,7 +30,7 @@
       "id": "hands-placement-to-shift-left",
       "criterion": "persona-evaluation #5: a deterministic finding becomes a test whose placement is handed to defect-shift-left",
       "check": "text_matches",
-      "pattern": "(?m)^[ \\t>*_-]*Handoffs\\**:\\**(?:[^\\n]*\\n[ \\t]{2,})*[^\\n]*defect-shift-left"
+      "pattern": "(?m)^[ \\t>*_-]*Handoffs\\**:\\**(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*defect-shift-left"
     },
     {
       "id": "judgment-finding-goes-to-owner",

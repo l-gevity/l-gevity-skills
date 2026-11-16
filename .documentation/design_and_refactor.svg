@@ -64,7 +64,7 @@
 <rect x="40" y="412" width="28" height="28" rx="6" fill="#CECBF6"/>
 <text x="54" y="426" font-size="13" font-weight="500" fill="#3C3489" text-anchor="middle" dominant-baseline="central">5</text>
 <text x="80" y="420" font-size="13" font-weight="500" fill="#2C2C2A" dominant-baseline="central">Architecture as code</text>
-<text x="340" y="420" font-size="12" fill="#888780" dominant-baseline="central">architecture-as-code-js</text>
+<text x="340" y="420" font-size="12" fill="#888780" dominant-baseline="central">architecture-as-code</text>
 <text x="530" y="420" font-size="12" fill="#5F5E5A" dominant-baseline="central">eslint rules</text>
 <line x1="40" y1="448" x2="640" y2="448" stroke="#F1EFE8" stroke-width="0.5"/>
 

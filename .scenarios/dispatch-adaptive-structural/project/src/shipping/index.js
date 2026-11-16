@@ -1,6 +1,6 @@
-import { load } from "../orders/repository.js";
+import { getOrder } from "../orders/index.js";
 
 export function labelFor(orderId) {
-  const order = load(orderId);
-  return { orderId, address: order.customer.address, weight: order.lines.length };
+  const order = getOrder(orderId);
+  return { orderId, address: order.customer.address, lineCount: order.lines.length };
 }

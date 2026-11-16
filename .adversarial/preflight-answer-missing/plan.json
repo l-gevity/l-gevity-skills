@@ -18,7 +18,8 @@
     "max_parallel_agents": 2,
     "integration_owner": "lead",
     "independent_review": true,
-    "merge_policy": "human-approval"
+    "merge_policy": "human-approval",
+    "unattended": true
   },
   "packages": [
     {
@@ -59,6 +60,38 @@
         "read",
         "edit",
         "test"
+      ],
+      "needs": [
+        {
+          "id": "N-REPO",
+          "kind": "access",
+          "what": "source repository and CI"
+        },
+        {
+          "id": "N-CLOUD",
+          "kind": "access",
+          "what": "test cloud subscription"
+        },
+        {
+          "id": "N-CLERK-A",
+          "kind": "account",
+          "what": "an order clerk of its own"
+        },
+        {
+          "id": "N-AUDITOR",
+          "kind": "account",
+          "what": "a read-only auditor"
+        },
+        {
+          "id": "N-BUILD",
+          "kind": "environment",
+          "what": "one-command build and the test runner"
+        },
+        {
+          "id": "N-ORDERS-SEED",
+          "kind": "fixture",
+          "what": "orders seed data that loads and resets"
+        }
       ]
     },
     {
@@ -97,6 +130,33 @@
         "read",
         "edit",
         "test"
+      ],
+      "needs": [
+        {
+          "id": "N-REPO",
+          "kind": "access",
+          "what": "source repository and CI"
+        },
+        {
+          "id": "N-CLOUD",
+          "kind": "access",
+          "what": "test cloud subscription"
+        },
+        {
+          "id": "N-CLERK-B",
+          "kind": "account",
+          "what": "an order clerk of its own"
+        },
+        {
+          "id": "N-AUDITOR",
+          "kind": "account",
+          "what": "a read-only auditor"
+        },
+        {
+          "id": "N-BUILD",
+          "kind": "environment",
+          "what": "one-command build and the test runner"
+        }
       ]
     },
     {
@@ -139,6 +199,18 @@
       "reviews": [
         "P1",
         "P2"
+      ],
+      "needs": [
+        {
+          "id": "N-REPO",
+          "kind": "access",
+          "what": "source repository and CI"
+        },
+        {
+          "id": "N-AUDITOR",
+          "kind": "account",
+          "what": "a read-only auditor"
+        }
       ]
     }
   ]

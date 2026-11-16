@@ -197,10 +197,11 @@ provider, compute model, and region against the requirements when they are
 chosen, and again whenever the requirements move.
 [gate-lifecycle](READ-gate-lifecycle.md) keeps the checks themselves honest once
 they exist: proven able to fail, measured for what they actually reach, and
-changed only by a named decision. The full operational reference — command grammar, dispatch rules, and the
-decision-trail format — lives in
-[SKILL.md](../.claude/skills/alchemy/SKILL.md); the qualification route and
-gate handshakes it loads for structural work live in
+changed only by a named decision. The full operational reference — command grammar, dispatch rules,
+companion triggers, and the output contract — lives in
+[SKILL.md](../.claude/skills/alchemy/SKILL.md); the qualification route, gate
+handshakes, two-pass companion order, agent selection, and decision-trail
+format it loads for structural work live in
 [adaptive-route.md](../.claude/skills/alchemy/references/adaptive-route.md).*
 
-<!-- skill-revision: fe143dfcd80b -->
+<!-- skill-revision: f425c60ee1ea -->

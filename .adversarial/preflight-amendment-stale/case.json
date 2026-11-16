@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #169: an amendment changes the plan revision, so the preflight made before it is stale",
+  "description": "The plan of preflight-unattended-pass gained rework amendment A1 after its preflight was recorded; the record's accounts already name P1-R1, so only the binding is wrong.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "STALE",
+    "codes": [
+      "PREFLIGHT_STALE"
+    ]
+  }
+}

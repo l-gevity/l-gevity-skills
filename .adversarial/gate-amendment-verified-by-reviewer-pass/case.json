@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #196: a rework amendment verified by its named reviewer passes",
+  "description": "Same as gate-amendment-verified-by-bystander, but agent-c, A1's reviewer, verifies P1-R1-AC1.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "4e7784df72b3c46db1d0c9549b95443144f1944614d4842fd0486f7c4c85cc59"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

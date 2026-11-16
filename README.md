@@ -271,15 +271,15 @@ maps skills to capabilities, inputs, outputs, parallelism, exclusive file
 ownership, and verification. Capabilities include architecture, engineering,
 verification, optimization, security, and scientific validation.
 
-`check_orchestration.py` enforces deterministic rules. All 58 check codes have
-coverage among 116 [adversarial cases](./.adversarial/).
+`check_orchestration.py` enforces deterministic rules. All 67 check codes have
+coverage among 223 [adversarial cases](./.adversarial/).
 
 | Check | Rejects |
 |:--|:--|
-| `plan` | write overlap between concurrent packages, a consumer that does not wait for its contract, cycles, self-review, unreviewed high-risk changes, nested delegation, caps above the profile, merge or deploy permissions, protected paths without approval, auto-merge |
-| `preflight` | an unattended run that would stop for a person: work not ready, a decision only the human can make, access or test accounts without a passing probe, a sign-in prompt, a credential that expires inside the window, one test account shared by concurrent packages, a red baseline, no stop rule or untested escalation channel, a human step mid-run |
+| `plan` | write overlap between concurrent packages, a consumer that does not wait for its contract, cycles, self-review, unreviewed high-risk changes, nested delegation, caps above the profile, merge or deploy permissions, protected paths without approval, auto-merge, a rework amendment without an owner, base, or independent reviewer, one that broadens the approved writes, permissions, or risk after the revision the human approved, whatever approval it carries, an amended plan checked without that revision, an extension of the rework bound without the human's answer |
+| `preflight` | an unattended run that would stop for a person: a package that states no needs, a need no entry covers, a record made for another plan revision or base, work not ready, a decision only the human can make, access or test accounts without a passing probe, a sign-in prompt, a credential that expires inside the window, one test account shared by concurrent packages, a red baseline, no stop rule or untested escalation channel, a human step mid-run |
 | `handoff` | a summary that contradicts its own evidence or the workspace digests, changes outside the write set, stale base or context, credentials, embedded instructions such as "skip the review", a failed agent beyond its retry budget |
-| `gate` | silently skipped criteria, verdicts without passing evidence on the final commit, self-verification, open blocking findings, risk accepted by an agent, disputes settled by vote, rework beyond its bound |
+| `gate` | an unattended plan without a current, passing preflight, silently skipped criteria, verdicts without passing evidence on the final commit, self-verification, open blocking findings, risk accepted by an agent, disputes settled by vote, rework beyond its bound counted along renames, rework packages, and the files each fix touches, amendments removed after a check accepted them, a bound raised during the run, a write no package owns, a moved file included, patching that does not converge, a convergence link the ledger drops from the reviewer's own output |
 
 Adapters depend on the method; the method names no runtime. The validator
 rejects vendor names in methodology files. See the
@@ -291,7 +291,7 @@ for runtime mechanisms.
 
 ## The skill library
 
-The library contains 26 composable skills. Each has an operational `SKILL.md`
+The library contains 24 composable skills. Each has an operational `SKILL.md`
 and a standalone primer explaining its engineering concepts. This catalog
 links to the Claude skills tree; Codex uses the matching `.agents/skills/` tree.
 
@@ -306,9 +306,7 @@ links to the Claude skills tree; Codex uses the matching `.agents/skills/` tree.
 | [`architecture-guidelines`](./.claude/skills/architecture-guidelines/SKILL.md) | Design minimal, modular subsystems and services. | [Read](./.documentation/READ-architecture-guidelines.md) |
 | [`morphogenetic-architecture`](./.claude/skills/morphogenetic-architecture/SKILL.md) | Place responsibilities and evaluate boundary changes. | [Read](./.documentation/READ-morphogenetic-architecture.md) |
 | [`structural-simplification`](./.claude/skills/structural-simplification/SKILL.md) | Measure whether a restructuring simplifies the system. | [Read](./.documentation/READ-structural-simplification.md) |
-| [`architecture-as-code`](./.claude/skills/architecture-as-code/SKILL.md) | Encode and enforce dependency boundaries. | [Read](./.documentation/READ-architecture-as-code.md) |
-| [`architecture-as-code-javascript`](./.claude/skills/architecture-as-code-javascript/SKILL.md) | Enforce boundaries in JavaScript and TypeScript. | [Read](./.documentation/READ-architecture-as-code-javascript.md) |
-| [`architecture-as-code-python`](./.claude/skills/architecture-as-code-python/SKILL.md) | Enforce boundaries in Python. | [Read](./.documentation/READ-architecture-as-code-python.md) |
+| [`architecture-as-code`](./.claude/skills/architecture-as-code/SKILL.md) | Encode and enforce dependency boundaries, with JavaScript/TypeScript and Python implementations. | [Read](./.documentation/READ-architecture-as-code.md) |
 | [`evolutionary-database-design`](./.claude/skills/evolutionary-database-design/SKILL.md) | Evolve schemas, events, APIs, and files across rollout and rollback. | [Read](./.documentation/READ-evolutionary-database-design.md) |
 | [`test-strategy`](./.claude/skills/test-strategy/SKILL.md) | Choose verification evidence from requirements and risk. | [Read](./.documentation/READ-test-strategy.md) |
 | [`defect-shift-left`](./.claude/skills/defect-shift-left/SKILL.md) | Detect defects at the earliest capable stage. | [Read](./.documentation/READ-defect-shift-left.md) |
@@ -424,12 +422,22 @@ sibling for you to merge.
 |:--|:--|:--|
 | `execution.multi_agent` | `auto` | `off` keeps every run single-agent |
 | `execution.max_parallel_agents` | `3` | concurrent agents, lead excluded |
-| `execution.max_rework_cycles` | `2` | correction rounds before escalation |
+| `execution.max_rework_cycles` | `2` | correction rounds per origin chain before escalation; only a human-authorized `execution.rework_extension` in the approved plan raises it for a run |
 | `repository.protected_paths` | `[]` | writes need human approval |
 | `repository.verification` | `[]` | commands the integrated result must pass |
+| `preflight.needs` | `[]` | prerequisites every unattended run of the project has; each preflight must cover them |
 
 Commit the workspace profile and rendered agent files so developers and
-runtimes share the configuration.
+runtimes share the configuration. A plan sets its own keys
+(`execution.unattended`, package `needs`, `execution.rework_extension`,
+`amendments`); [contracts.md](./.agents/skills/alchemy-orchestrate/references/contracts.md)
+defines them.
+
+**Unattended runs.** At the Unstoppable plan approval, `continue-attended` means you watch until the
+pull request approval; `continue-unattended` stops the run unless the plan sets `execution.unattended`.
+An unattended plan gives every package its `needs`; the lead proves each in `preflight.json`, the first
+wave starts only when `check_orchestration.py preflight` returns `PASS`, and the gate takes
+`--preflight <preflight.json>`. See [autonomy-preflight.md](./.agents/skills/alchemy-orchestrate/references/autonomy-preflight.md).
 
 <details>
 <summary><strong>Inspect and recheck a run</strong></summary>
@@ -441,10 +449,16 @@ evidence, findings, disputes). Re-check any of them yourself:
 ```sh
 C=.agents/skills/alchemy-orchestrate/scripts/check_orchestration.py
 R=.alchemy/runs/<id>
-python $C plan    $R/plan.json                          --profile alchemy-workspace.json
+D=<approved_digest>  # printed by the plan check for the plan the human approved
+python $C plan    $R/plan.json                          --profile alchemy-workspace.json --approved $D
 python $C handoff $R/handoffs/P1.json --plan $R/plan.json --profile alchemy-workspace.json --root .
-python $C gate    $R/ledger.json      --plan $R/plan.json --profile alchemy-workspace.json --root .
+python $C gate    $R/ledger.json      --plan $R/plan.json --profile alchemy-workspace.json --root . --approved $D
 ```
+
+Without `--approved`, a plan with amendments, and a gate whose plan carries an
+extension or whose ledger records rework, fail `AMENDMENT_INVALID`; a setup
+that passed before rework was anchored adds it, as the
+[upgrade table](./.agents/skills/alchemy-orchestrate/references/contracts.md#ledger--alchemy-ledger1) states.
 
 Your runtime's transcript shows which agents were spawned and which skills
 each loaded.
@@ -470,7 +484,7 @@ stream or saved sessions, not from the agent's summary.
 |:--|:--|:--|:--|
 | Claude Code | Native: the lead's Agent tool with `alchemy-implementer` (own git worktree) and `alchemy-analyst` (read-only) | A trivial `/alchemy` task stayed single-agent with no launch. Complex `/alchemy` objectives chose multi-agent unprompted and launched real agents. Two implementers ran in parallel in separate worktrees, the verifier started only after both finished, its two major findings were corrected in two bounded rework cycles, and the gate passed. Delegated agents loaded their own ALCHEMY skills. An injected agent crash was retried once. Independent reviewers drove corrections, and the gate held at `FAIL` for a decision only the human can make. | Cost and time of the completed parallel rerun, whose runner process died; its outcome is reconstructed from the run's own artifacts. |
 | Codex | Native: `spawn_agent` / `wait_agent`, with the custom agents in `.codex/agents/` | `codex exec` lists and spawns `alchemy-analyst`, which answers in the hand-off format. A `$alchemy` audit chose multi-agent unprompted. A depth-1 reviewer sub-agent, recovered from Codex's saved sessions, loaded its skills, found a money defect by executing a reproduction, and was re-run after the lead's correction. | Parallel implementers, and an injected failure. The reviewer ran as Codex's default agent type, not as `alchemy-analyst`. |
-| Unstoppable | Preconfigured workflow: the `alchemy-multi-agent` pipeline (plan, plan check, human approval, native sub-agents, cross-provider review, gate, human approval, pull request). In a chat, the Claude Code or Codex mechanism above. | The pipeline validates and runs from the CLI. In four runs, planning produced multi-wave plans that passed the plan check, the human checkpoint paused each run, and execution launched sub-agents into isolated worktrees. When execution could not finish, the lead escalated rather than claiming success: once for a repository defect, and twice when its turn ended with agents still running ([record](./.pilot/results/unstoppable-pipeline-runs.json)). | A complete pass through review, gate, and pull request. The run with foreground waves was stopped before execution finished. |
+| Unstoppable | Preconfigured workflow: the `alchemy-multi-agent` pipeline (plan, plan check, human approval with an attended or unattended choice, preflight for an unattended run, native sub-agents, cross-provider review, gate, human approval, pull request). In a chat, the Claude Code or Codex mechanism above. | The pipeline validates and runs from the CLI. In four runs, planning produced multi-wave plans that passed the plan check, the human checkpoint paused each run, and execution launched sub-agents into isolated worktrees. When execution could not finish, the lead escalated rather than claiming success: once for a repository defect, and twice when its turn ended with agents still running ([record](./.pilot/results/unstoppable-pipeline-runs.json)). | A complete pass through review, gate, and pull request. The run with foreground waves was stopped before execution finished. The preflight jobs have not run in the runtime. |
 | Other agents (Gemini CLI, Grok CLI) | None shipped | — | Fallback: single-agent, with the limitation reported |
 
 The adapter details, every mechanism, and every limitation are in the

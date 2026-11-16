@@ -259,11 +259,3 @@ Enforcement:    <none | add architecture rule: constraint | update architecture 
 Next action:    <edit, delete, extract, add test, add lint rule, or ask user>
 Verification:   <command / review check / Not run + reason>
 ```
-
-## See also
-
-- **`functionality-complexity-tradeoff`** — necessity gate and worth ledger applied to individual decisions.
-- **`structural-simplification`** — per-axis complexity comparison (`D, K, P, n`).
-- **`morphogenetic-architecture`** — declared placement, observed coupling fields, and topology evolution.
-- **`architecture-as-code`** — consumes explicit `Enforcement` handoffs and turns enforceable dependency constraints into lint rules.
-- **`evolutionary-database-design`** — staged, compatible change to a payload or stored shape shared across an integration edge.

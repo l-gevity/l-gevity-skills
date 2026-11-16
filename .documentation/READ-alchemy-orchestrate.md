@@ -59,12 +59,20 @@ An escalation goes to a channel nobody receives. Or an agent reaches a
 question only the product owner can answer and waits until morning.
 
 So a run meant to proceed unattended passes a *preflight* before the first
-agent starts. The lead runs a small probe for everything the run depends on:
-the repository, the pipeline, each test account, the build, and a deliberate
-test escalation. Each probe's result is recorded against the starting commit.
+agent starts. In the workflow, the human who approves the plan also says
+whether anyone will watch; no answer counts as nobody. The plan is marked
+unattended to match, and each package states what it
+needs: the systems it reaches, the accounts it acts as, the tools it runs,
+and the data it reads. The lead runs a small probe for each of those needs,
+plus a deliberate test escalation. Each probe's result is recorded against
+the starting commit, and the record names the exact plan it was made for.
 The checker then refuses the run if:
 
+- a package states no needs, or runs tests without naming the tools they
+  need;
+- a stated need has no probe at all;
 - any of those probes is missing or failed;
+- the plan changed after the preflight was made;
 - a credential expires before the window ends;
 - a step needs someone at a sign-in prompt;
 - two agents that may run at the same time share a mutable test account;
@@ -73,7 +81,11 @@ The checker then refuses the run if:
 
 Questions are answered up front, or given a reversible default the human
 confirms at the end. Human steps happen before the window or wait until the
-merge.
+merge. The final gate checks the preflight again, so work from an unattended
+run without a current, passing preflight never reaches a pull request. When
+the plan changes, a new preflight is needed, and every new need must be
+claimed in it. The checker cannot tell whether a probe was actually run
+again, so a reviewer confirms that each changed need was proved anew.
 
 ## Hand-offs are claims, not facts
 
@@ -102,7 +114,14 @@ re-run on the merged result. If one side has passing evidence and the other
 has none, that side wins. If both have evidence, neither has, the decision is
 high-impact, or it is still open after one exchange, a human decides. Rework
 rounds are bounded, so a disagreement cannot loop forever; reaching the bound
-stops the run and asks.
+stops the run and asks. Each correction is added to the plan before anyone
+edits, with an owner and a reviewer, so a renamed task cannot reset its count.
+One round of corrections counts once per piece of work, however many problems
+it fixes. A correction that needs more scope than the approved plan stops the
+run until the human approves a new version of the plan.
+Only a human answer raises the bound; a question left unanswered raises
+nothing. When the same part keeps producing serious problems, patching stops
+and the design is planned again.
 
 ## A gate before the pull request
 
@@ -124,4 +143,4 @@ the first missed and cost twice as much, use one.
 [SKILL.md](../.claude/skills/alchemy-orchestrate/SKILL.md) and its references;
 the routing it builds on is explained in [the alchemy primer](READ-alchemy.md).*
 
-<!-- skill-revision: a7473dadc3a9 -->
+<!-- skill-revision: 5b6ab48d7f91 -->

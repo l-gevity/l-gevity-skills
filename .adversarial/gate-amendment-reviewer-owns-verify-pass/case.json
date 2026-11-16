@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #194: an amendment reviewed by the owner of a verify package passes",
+  "description": "Same as gate-amendment-reviewer-owns-nothing, but A1 names agent-c, the owner of P3, who verifies P1-R1-AC1.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

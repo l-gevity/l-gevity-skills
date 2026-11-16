@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #173: a record whose binding names another base is stale even when its digest matches",
+  "description": "The passing record with plan.base set to another commit and the digest unchanged; its nearest passing neighbour is preflight-unattended-pass.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "STALE",
+    "codes": [
+      "PREFLIGHT_STALE"
+    ]
+  }
+}

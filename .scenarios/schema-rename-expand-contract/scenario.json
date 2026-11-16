@@ -1,0 +1,71 @@
+{
+  "request": "Run evolutionary-database-design on this: design the transition for renaming the column `customers.surname` to `customers.family_name` in our PostgreSQL database. The target shape, the owning service, and the deployment topology are accepted and will not change. The `accounts` service owns the table and is its only writer. The readers, taken from 13 months of query logs, are the `accounts` service, the `billing` service through a read-only role, and a nightly finance export job that lives in another repository. Deploys are rolling: the old and the new release of a service run side by side for about ten minutes, and the rollback target is the previous release. Nothing outside our servers reads this column: no browser bundle, mobile app, or SDK, and the public API keeps its `surname` field. The table holds 4 million rows and takes about 50 writes per second at peak. Customer records fall under a seven-year retention rule and are in the nightly backup. The team has two questions: can the old column be dropped on a fixed date, 1 December, and can the migration's down step serve as the production rollback? Answer each question on its own line, in exactly this form: `Dated drop: yes` or `Dated drop: no`, and `Down step as rollback: yes` or `Down step as rollback: no`.",
+  "skills": ["evolutionary-database-design"],
+  "expect": [
+    {
+      "id": "applies-data-shape-guidance",
+      "criterion": "evolutionary-database-design #1: a change to a stored shape loads the transition method",
+      "check": "guidance_includes",
+      "skills": ["evolutionary-database-design"]
+    },
+    {
+      "id": "classifies-rename",
+      "criterion": "evolutionary-database-design #2: a column rename is classed as rename or move",
+      "check": "field_in",
+      "field": "Change class",
+      "values": ["rename", "Rename"]
+    },
+    {
+      "id": "selects-combined-pass",
+      "criterion": "evolutionary-database-design #3: an accepted target shape, owner, and topology take one combined pass",
+      "check": "field_in",
+      "field": "Design pass",
+      "values": ["Combined"]
+    },
+    {
+      "id": "requires-full-compatibility",
+      "criterion": "evolutionary-database-design #4: a rollout that overlaps its rollback needs full compatibility",
+      "check": "field_in",
+      "field": "Compatibility mode",
+      "values": ["full", "Full", "full-transitive", "Full-transitive"]
+    },
+    {
+      "id": "stages-the-transition",
+      "criterion": "evolutionary-database-design #5: a rename with known readers and writers is staged, not shipped in one step",
+      "check": "field_in",
+      "field": "Decision",
+      "values": ["STAGED"]
+    },
+    {
+      "id": "contract-trigger-is-evidence",
+      "criterion": "evolutionary-database-design #6: the contract trigger of a staged transition names the evidence that permits the contract step",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Contract trigger:\\**(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*(\\blogs?\\b|quer|metric|referenc|\\bread(?!y|i(?:ness|ly))|access|confirm|evidence|\\bzero\\b)"
+    },
+    {
+      "id": "hands-checks-to-owners",
+      "criterion": "evolutionary-database-design #7: compatibility checks go to test-strategy, their placement to defect-shift-left, and deploy order to the CI/CD skill",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Handoffs:(?=(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*test-strategy)(?=(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*shift-left)(?=(?:[^\\n]*\\n[ \\t]{2,}(?![ \\t]))*[^\\n]*ci[/-]cd)"
+    },
+    {
+      "id": "refuses-dated-drop",
+      "criterion": "evolutionary-database-design #8: the contract step is not scheduled by date",
+      "check": "field_in",
+      "field": "Dated drop",
+      "values": ["no", "No", "NO"]
+    },
+    {
+      "id": "refuses-down-step-rollback",
+      "criterion": "evolutionary-database-design #9: a down-migration is not the production rollback path",
+      "check": "field_in",
+      "field": "Down step as rollback",
+      "values": ["no", "No", "NO"]
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}

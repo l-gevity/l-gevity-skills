@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #202: an extension's ceiling exceeds the profile's bound",
+  "description": "Same as plan-extension-authorized-pass, but the extension has ceiling 2, the profile's bound.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "SCHEMA"
+    ]
+  }
+}

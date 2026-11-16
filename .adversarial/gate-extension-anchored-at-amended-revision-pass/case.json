@@ -1,0 +1,20 @@
+{
+  "criterion": "multi-agent-governance #222: a rework extension anchored at an amended revision the human approved still counts",
+  "description": "Same as gate-extension-new-finding-pass, but --approved names revision 1, the plan with A1, which the human approved during the run.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "97a97726b1d68c579d81c4ea74072333f137af73b36abb03a7ef59443764ba57"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": [],
+    "facts": {
+      "extension.ceiling": 3,
+      "extension.conditions": [
+        "new-finding"
+      ]
+    }
+  }
+}

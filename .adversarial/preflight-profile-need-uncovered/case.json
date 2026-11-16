@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #122: a need the project profile declares for every unattended run must be covered",
+  "description": "The profile lists N-ARTIFACTS; the passing record proves no artifact registry access.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "PREREQUISITE_UNCOVERED"
+    ]
+  }
+}

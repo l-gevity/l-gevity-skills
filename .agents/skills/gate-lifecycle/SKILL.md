@@ -42,20 +42,17 @@ Alchemy's lettered gates.
 
 `gate-lifecycle` is a task-matched Alchemy companion, not a qualification stage,
 gate, or acronym letter. It runs in a single pass when a §2 trigger fires: after
-H places a check, beside CI/CD's gate behavior, or later on its own. It decides
-*whether a gate still does what it claims*, not where it runs, how it blocks, or
-what oracle it asserts.
+H places a check, beside CI/CD's gate behavior, or later on its own.
 
-- `defect-shift-left` owns the stage. A check its §6.4 made blocking comes here
-  for `PROVE`; its "remove as theatre" branch takes its criterion from §6.
-  `RESTORE` never changes stage.
-- `ci-cd-reliability-architecture` owns blocking and the Gate Evidence Contract.
-  Its `Policy: baseline` is a debt list under §5; its `Result: not-applicable` is
-  a `TRIAL` or `RETIRE` with this skill's guard. Whether a trial gate warns or
+- A check `defect-shift-left` §6.4 made blocking comes here for `PROVE`; its
+  "remove as theatre" branch takes its criterion from §6. `RESTORE` never
+  changes stage.
+- `ci-cd-reliability-architecture` owns the Gate Evidence Contract. Its
+  `Policy: baseline` is a debt list under §5; its `Result: not-applicable` is a
+  `TRIAL` or `RETIRE` with this skill's guard. Whether a trial gate warns or
   blocks nothing stays there.
-- `test-strategy` owns the oracle and per-test quarantine, whose fields a `TRIAL`
-  reuses. The aggregator enforcing that oracle needs a negative control here.
-- `architecture-as-code`, its stack skills, and `continuous-improvement` own a
+- `test-strategy` owns per-test quarantine, whose fields a `TRIAL` reuses.
+- `architecture-as-code`, its stack references, and `continuous-improvement` own a
   new rule; this skill takes over when §2 fires.
 - `functionality-complexity-tradeoff` owns whether an obligation stands: `RETIRE`
   cites its verdict rather than reaching one.
@@ -175,9 +172,3 @@ Verification: <command, red run, or Not run + reason>
 
 In a sweep, emit one table row per gate with these fields, then the `UNPROVEN`
 count.
-
-## 8. See Also
-
-- **`defect-shift-left`** - the stage a check belongs at.
-- **`ci-cd-reliability-architecture`** - how a gate blocks and what it records.
-- **`architecture-as-code`** - rule recipes and the file-scope audit.

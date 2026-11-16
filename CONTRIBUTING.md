@@ -77,12 +77,22 @@ to judge the reasoning. Before a release, re-record the scenarios for must
 requirements by name, even when their transcripts are current.
 
 A `route_loaded` expectation fails when a run names a gate in `Core route`, or
-a companion in `Companions`, whose `SKILL.md` it never read: a decision
-attributed to a skill that did not load is a claim, not a result. A
+a companion in `Companions`, that it did not load, unless a line that names
+the skill also says not run, not triggered, not selected, deferred, skipped,
+or blocked. A stage that `Core route` itself marks with one of those words is
+not named. It also fails when a row of the decision trail, the table whose
+header has `Skill` and `Decision` columns, gives a decision to a skill the run
+did not load, even when another line says the skill was not run. A row is a
+note, not a decision, when its `Decision` cell is empty or opens with one of
+those words other than blocked. A run loads a skill by invoking it or by
+reading its `SKILL.md`: a decision attributed to a skill that did not load is
+a claim, not a result. A
 `reads_include` or `reads_exclude` expectation names files a run must or must
 not read, in the library or in the scenario's `project/`: the route a
 structural run needs, the changed file a reviewer inspects, or the cost a skip
-must not pay. Name the gate or skill in the request, as in `Run alchemy L on
+must not pay. A search of an excluded path, or of a path beneath one, fails
+`reads_exclude` as a read does; a broader search above it does not. Name the
+gate or skill in the request, as in `Run alchemy L on
 this: …`: a natural request can be answered without loading any skill, and
 that run tests nothing the skill says.
 `SCENARIO_UNCOVERED` in the validator lists the skills no scenario names yet;
@@ -118,9 +128,12 @@ it only shrinks, and a new skill ships with a scenario.
       validator's pin-coverage check fails on a skill or reference without one,
       because a rule nobody pins can be reworded without failing the build.
 - [ ] `CLAUDE.md` and every `SKILL.md` stay within `SIZE_BUDGET_WORDS`, and the
-      skill descriptions together within `DESCRIPTION_BUDGET_CHARS`. The budget
+      skill descriptions together within `DESCRIPTION_BUDGET_CHARS`. The
+      `SKILL.md` files together stay within `LIBRARY_BUDGET_WORDS`, and the
+      number of skills within `LIBRARY_BUDGET_SKILLS`. Each budget
       is a ratchet: a trim lowers the entry in the same change, and a growth
-      raises it only with the rationale in the commit message. A section an
+      raises it only with the rationale in the commit message. A new skill
+      funds its words with a cut. A section an
       agent needs only on some paths moves to `references/*.md`, which carries
       no budget.
 - [ ] Every scenario whose request, named skills, or `CLAUDE.md` changed is

@@ -1,0 +1,8 @@
+{
+  "name": "shop-api",
+  "version": "1.4.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

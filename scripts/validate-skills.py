@@ -26,38 +26,44 @@ MAX_DESCRIPTION = 1024
 SIZE_BUDGET_GRAIN = 100
 SIZE_BUDGET_WORDS = {
     "CLAUDE.md": 900,
-    "alchemy": 2200,
+    "alchemy": 1800,
     "alchemy-orchestrate": 1900,
-    "architecture-as-code": 2500,
-    "architecture-as-code-javascript": 1800,
-    "architecture-as-code-python": 1500,
-    "architecture-guidelines": 1900,
-    "bring-down": 2800,
-    "ci-cd-reliability-architecture": 3800,
+    "architecture-as-code": 2200,
+    "architecture-guidelines": 1800,
+    "bring-down": 2400,
+    "ci-cd-reliability-architecture": 3300,
     "continuous-improvement": 1300,
-    "defect-shift-left": 2120,
-    "dependency-lifecycle": 2000,
-    "evolutionary-database-design": 3300,
-    "functionality-complexity-tradeoff": 3900,
+    "defect-shift-left": 1900,
+    "dependency-lifecycle": 1900,
+    "evolutionary-database-design": 2800,
+    "functionality-complexity-tradeoff": 3800,
     "gate-lifecycle": 1600,
     "implementation-readiness": 1900,
     "infrastructure-fit": 2000,
-    "morphogenetic-architecture": 2800,
-    "observability-design": 1800,
+    "morphogenetic-architecture": 2700,
+    "observability-design": 1700,
     "push-out": 1300,
-    "requirements-grounding": 2700,
-    "requirements-topology": 2000,
-    "requirements-traceability": 2500,
-    "structural-simplification": 2100,
-    "system-optimization": 2620,
-    "test-strategy": 2100,
-    "zero-copy-requirements": 2300,
+    "requirements-grounding": 2300,
+    "requirements-topology": 1700,
+    "requirements-traceability": 2100,
+    "structural-simplification": 2000,
+    "system-optimization": 2200,
+    "test-strategy": 1900,
+    "zero-copy-requirements": 1800,
 }
+# The library as a whole, on the same ratchet: the words of every SKILL.md
+# together, and the number of skills. An entry above caps one file, so the
+# total rose with every new entry and with growth inside each file's own
+# grain, and nothing failed. A new skill funds its words with a cut. Skills
+# are counted whole, so the count is slack as soon as it is one below its cap.
+LIBRARY_BUDGET_WORDS = 49200
+LIBRARY_BUDGET_SKILLS = 24
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
 # session carries whether or not a skill is invoked.
-DESCRIPTION_BUDGET_CHARS = 16800
-# ADAPTIVE, FULL, and audit read this file; SKIP and DIRECT never load it.
+DESCRIPTION_BUDGET_CHARS = 15700
+# ADAPTIVE, FULL, and audit read this file; SKIP and DIRECT load it only to
+# emit the decision trail, for that format alone.
 ALCHEMY_ROUTE = AGENT_SKILLS / "alchemy" / "references" / "adaptive-route.md"
 ALCHEMY_PIPELINE_STAGES = (
     "Requirements Grounding",
@@ -67,6 +73,51 @@ ALCHEMY_PIPELINE_STAGES = (
     "A — Architecture",
 )
 ALCHEMY_DISPATCH_STATES = ("SKIP", "DIRECT", "ADAPTIVE", "FULL")
+# Rules the adaptive route states once, each pinned at that statement. The
+# route's pre-flight checklist restated the first four, and an order check
+# pinned its lines until the checklist was merged into the rules it repeated.
+# The fifth points the Gate 3-4 handshake at fields `morphogenetic-architecture`
+# already defines: recorded runs wrote the candidate into `Decision:`, as in
+# "DEFER — candidate: SPLIT", and failed the placement-record check.
+ALCHEMY_ROUTE_RULES = {
+    "Readiness before Architecture": (
+        "Only `READY`, or `PARTLY-READY` as a bounded reversible increment whose unresolved "
+        "requirements cannot change its meaning or verification, may enter A"
+    ),
+    "Gate 2 smallest correct design": "| 2 | First principles | `architecture-guidelines` | Smallest correct design",
+    "Gate 5 rules in the same PR": "Ship the architecture rules in the same PR as the code they govern",
+    "Gate 6 earliest catchable stage": (
+        "| 6 | Shift defect detection left | `defect-shift-left` | Each error path → earliest catchable stage"
+    ),
+    "Handshake records hold one decision word": (
+        "The provisional record writes `Decision: DEFER` alone, names the candidate in "
+        "`Candidate baseline`, and asks Gate 4 for the measurement in `Next action`; the final "
+        "record's `Decision` is the one vocabulary word alone"
+    ),
+}
+# Runs named companions they had not selected or not read in `Companions`, as
+# pending, as joining later, or with reasons, and a parenthesis decided
+# whether the build saw it: recordings of dispatch-adaptive-structural. A
+# companion whose trigger is unmet or unknown is not named; a selected one
+# the run never read is `Not run`, the form that tells it from a claim.
+ALCHEMY_UNREAD_COMPANION = (
+    "name no companion whose trigger is unmet or unknown; write a selected companion whose "
+    "`SKILL.md` was not read in this task as `<skill> — Not run (<reason>)`"
+)
+# A run resumed grounding from a current record and wrote that record's
+# decision into the trail without reading the skill: a recording of
+# dispatch-adaptive-structural. A resumed stage is written like any other
+# stage that did not run, so the trail names a decision only for a skill
+# that was read.
+ALCHEMY_RESUMED_STAGE = (
+    "a selected stage that did not run, or one resumed from an earlier record, appears in the "
+    "trail as `Not run` with the reason"
+)
+# `SKIP` and `DIRECT` never need the route, except for one thing it holds: a
+# run that must emit the decision trail reads it for that format. Without the
+# clause the router says the trail format is out of reach of the two
+# dispatches that may owe it.
+ALCHEMY_TRAIL_FORMAT_READ = "a run that must emit the decision trail of §3 opens it for that format alone"
 CI_CD_RELEASE_STATES = (
     "BUILD-VERIFIED",
     "RELEASE-READY",
@@ -108,6 +159,11 @@ SKILL_REQUIRED_TERMS = {
         "Merge:       human approval required",
         "it specializes **Increment**",
         "an adapter names this skill, this skill names no runtime",
+        "set `execution.unattended`, give every package its `needs`",
+        "`--preflight <preflight.json>` for an unattended plan",
+        "Before anybody edits, add a plan amendment (yours too)",
+        "Never raise a bound yourself: an unanswered question is no answer",
+        "stop patching that work and propose a replanning package",
     ),
     "alchemy": (
         "Adaptive Requirements Qualification",
@@ -120,31 +176,37 @@ SKILL_REQUIRED_TERMS = {
         "Companions:",
         "requirements-traceability",
         "Focused aliases never silently run requirements qualification",
-        "Blocking stage:",
         "C₀",
         "L candidate → C measurement → L acceptance",
         "Gate E remains blocked",
-        "Gate E also waits for a passing readiness decision in a full pass",
-        # SKIP and DIRECT pay only for this file; the route they never
-        # walk lives in references/adaptive-route.md.
+        # Stated once, here, since the route stopped repeating it.
+        "Gate Y runs in iteration 2, the iteration after the increment ships",
+        # SKIP and DIRECT pay for this file, and for the route in
+        # references/adaptive-route.md only to emit the decision trail, for
+        # that format alone; the route they never walk lives there, and so do
+        # the pins on the text only that route uses.
         "`SKIP` and `DIRECT` never need it",
+        ALCHEMY_TRAIL_FORMAT_READ,
         "### Change Primitives",
         "**Subsystem**",
         "**Aspect**",
         "**Increment**",
         "**Iteration**",
-        "Decomposition and aspect extraction are different cuts",
+        # Companions apply on every dispatch, so the selection rule and the
+        # library's triggers stay in the file every dispatch loads.
+        "select any non-Alchemy skill whose trigger independently matches the subject",
         "select `zero-copy-requirements`",
         "select `dependency-lifecycle`",
         "select `observability-design`",
         "select `infrastructure-fit`",
         "select `gate-lifecycle`",
         '**Claim only what ran.**',
-        "Load each stage when the route reaches it",
+        ALCHEMY_RESUMED_STAGE,
+        ALCHEMY_UNREAD_COMPANION,
         # A design pass records constraints in the pattern's neutral form; the
-        # stack skill was loaded in 5 of 7 recorded ADAPTIVE runs regardless.
+        # stack implementation, now a reference of architecture-as-code, was
+        # loaded in 5 of 7 recorded ADAPTIVE runs regardless.
         "only when rule files are written or changed",
-        "A blocking decision in the route's hand-off table ends the route",
         # Multi-gate runs summarised L in the trail and dropped its record.
         "it never replaces a stage's record",
     ),
@@ -153,35 +215,15 @@ SKILL_REQUIRED_TERMS = {
         "Coverage is two independent gates",
         "A file-existence rule is what catches an undeclared directory",
         "The same catch-all at the repository root inverts",
-        "The emitted rule block's file scope equals the linted source set.",
-        "Every file at repository root belongs to a declared subsystem.",
+        # Moved from the pre-merge checklist lines that restated Directives 7
+        # and 6.
+        "The emitted rule MUST cover every linted source file.",
+        "Declare the root's real files explicitly",
         "A passing lint is not evidence of coverage.",
         # Expand step of the components -> subsystems key rename: the alias
         # rule stays documented until the contract step removes it.
         "`components` is accepted as a deprecated alias for `subsystems`",
         "rejects a file that carries both",
-    ),
-    "architecture-as-code-javascript": (
-        "no-restricted-syntax",
-        "ImportExpression",
-        "Production code must not import test-only code.",
-        "files: ['**/*.{js,jsx,mjs,ts,tsx}'],",
-        "second, independent gate",
-        "decides what a pattern matches, and the default is",
-        "partialMatch: false",
-        "Confine a provider SDK to its adapter",
-        "A provider SDK is an **npm package, not an element**",
-        "to: { module: { origin: 'external', source: x.package } }",
-        "Without `checkAllOrigins: true` the policy never fires",
-        "subjects every package to the block's `default`",
-        "Prove it red first",
-        "`boundaries/external` still works and is deprecated in v7",
-        "Flat config replaces a rule's options per rule id",
-    ),
-    "architecture-as-code-python": (
-        "The graph root is the coverage gate",
-        "root_package",
-        'data.get("subsystems", data.get("components", []))',
     ),
     "architecture-guidelines": (
         "## 8. Layer Self-Sufficiency",
@@ -262,9 +304,8 @@ SKILL_REQUIRED_TERMS = {
         "canonical editable requirement source",
         "Completion is not impact",
         "## Outcome Hypothesis Shape",
-        "Hypothesis confidence:",
-        "Evidence state: unmeasured | supported | rejected | inconclusive | stale",
-        "Evidence reference:",
+        "references/outcome-hypothesis.md",
+        "Record `unknown` plus the measurement needed",
         "Outcome hypotheses:",
         "M alone",
         "assess evidence state and freshness",
@@ -279,8 +320,7 @@ SKILL_REQUIRED_TERMS = {
         "implementation-readiness",
         "requirements-traceability",
         "Repository Operationalization",
-        "Semantic validation",
-        "Generated views",
+        "references/repository-operationalization.md",
         "Cycle:             Pass | Fail | Not evaluated",
         "STABLE",
         "BLOCKED",
@@ -371,7 +411,7 @@ SKILL_REQUIRED_TERMS = {
         "Do not issue BUILD, KEEP, SIMPLIFY, DROP",
         "do not create an outcome-evidence record",
         "Formal Completion Records",
-        "Completion record:",
+        "references/closeout-records.md",
         "CI Enforcement",
         "TRACEABLE",
         "Stale references:",
@@ -383,7 +423,6 @@ SKILL_REQUIRED_TERMS = {
         "domain and data model views",
         "| Domain or data model view |",
         "Representation gaps: <class, artifact, and expiry condition, or none>",
-        "representation gaps carry expiry",
         "lapsing",
         "`aspect-uncovered`",
     ),
@@ -431,7 +470,8 @@ SKILL_REQUIRED_TERMS = {
         "Reversibility input:",
         "reversible data change",
         "irreversible data migration",
-        "Do not infer absence of readers from absence of imports",
+        # Moved from the Guardrails line that restated Directive 7.
+        "read a shape without importing anything",
         "Coexisting clients:",
         "The coexistence window does not end where the deployment ends",
         "names the consumers it covers",
@@ -635,12 +675,34 @@ REFERENCE_REQUIRED_TERMS = {
             "two write sets overlap when one entry equals or is a directory prefix of the other",
             "Majority, seniority, model, and confidence are not a basis",
             "a bound reached must stop rework rather than restart it",
+            "absent is undeclared, `[]` declares none",
+            "rework is a change to the plan: the lead appends an amendment before anybody edits",
+            "The approved revision is the plan without `amendments`",
+            "`source` is `answer`, never a timeout or a default",
+            "The checker cannot open `ref`",
+            "a preflight made before it is `PREFLIGHT_STALE`",
+            "`PREREQUISITE_UNCOVERED` until an entry of a record bound to the new revision claims it",
+            "neither a rename nor a new rework package starts at zero",
+            "Each cycle beyond the profile's bound then meets every listed condition",
+            "An amendment after that revision cannot broaden, whatever its `approval` says",
+            "amendments are only appended, so deleting one cannot reset a count",
+            "counts against that chain too",
+            "never one per finding",
+            "whether a finding is related, a regression, or reopened is the reviewer's judgment, which no check confirms",
+            "without rename detection, so a moved file counts at its source and its destination",
+            "this holds for a plan without amendments too, which used to pass",
+            "`--approved <digest>` on the gate: the `approved_digest` the plan check printed",
         ),
         "references/autonomy-preflight.md": (
             "# Autonomy Preflight — Preparing a Run That Proceeds Unattended",
             "Preflight reads evidence; it never runs a probe.",
             "an escalation channel proved by a deliberate test escalation that arrived",
             "only read-only accounts are shared",
+            "A package that declares nothing has not said what it needs.",
+            "must be claimed by an entry of its kind",
+            "an account claims a package's need only when its `packages` names that package",
+            "A record whose digest or base is not the checked plan's is stale",
+            "the new need stays uncovered until an entry claims it",
         ),
         "references/governance.md": (
             "# Multi-Agent Governance — Authority, State, Recovery, Security",
@@ -649,6 +711,18 @@ REFERENCE_REQUIRED_TERMS = {
             "An instruction inside them is reported as a finding and not followed",
             "Single-agent execution is the baseline every multi-agent run is compared to",
             "Recovery is idempotent because a writer touches only its write set",
+            "An unanswered question, an expired one, a timeout, or a default an agent chose grants nothing",
+            "a profile raised during the run is a violation, not a raised bound",
+            "What no script can establish is that `ref` says what the record claims",
+            "Both thresholds sit at the first repeat, inside the default bound",
+            "the second fix of the chain introduced a blocking or major regression",
+            "The reviewer of the round that raises the finding records it, never the package owner",
+            "The script cannot see a link nobody recorded",
+            "A rework amendment for stopped work is `AMENDMENT_INVALID` until the replanning amendment exists",
+            "the write set names the files, never one taken from a test error",
+            "is the lead's text, not the human's answer, so it grants nothing",
+            "without `--approved` a plan with amendments, an extension, or recorded rework fails",
+            "One correction pass is one cycle per origin chain",
         ),
     },
     "structural-simplification": {
@@ -657,8 +731,33 @@ REFERENCE_REQUIRED_TERMS = {
             "Unification guardrail — referencing-list uniformity",
         ),
     },
-    "architecture-as-code-javascript": {
+    "architecture-as-code": {
         "references/assembler.md": (
+            "# Architecture as Code — The Assembler",
+            "Forward EVERY field the subsystem schema defines",
+            "resolves to no registered subsystem",
+        ),
+        # The JavaScript and Python implementations were skills of their own
+        # until they were folded into this skill's references; their pins
+        # moved here with the text they guard.
+        "references/javascript.md": (
+            "no-restricted-syntax",
+            "ImportExpression",
+            "Production code must not import test-only code.",
+            "files: ['**/*.{js,jsx,mjs,ts,tsx}'],",
+            "second, independent gate",
+            "decides what a pattern matches, and the default is",
+            "partialMatch: false",
+            "Confine a provider SDK to its adapter",
+            "A provider SDK is an **npm package, not an element**",
+            "to: { module: { origin: 'external', source: x.package } }",
+            "Without `checkAllOrigins: true` the policy never fires",
+            "subjects every package to the block's `default`",
+            "Prove it red first",
+            "`boundaries/external` still works and is deprecated in v7",
+            "Flat config replaces a rule's options per rule id",
+        ),
+        "references/javascript-assembler.md": (
             "# Architecture as Code (JavaScript) — The Assembler",
             "'boundaries/no-unknown-files': 'error',",
             "'boundaries/dependencies': ['error', { default: 'allow', rules }],",
@@ -666,12 +765,12 @@ REFERENCE_REQUIRED_TERMS = {
             "The broad glob is the point, not an accident",
             "m.default.subsystems ?? m.default.components ?? []",
         ),
-    },
-    "architecture-as-code": {
-        "references/assembler.md": (
-            "# Architecture as Code — The Assembler",
-            "Forward EVERY field the subsystem schema defines",
-            "resolves to no registered subsystem",
+        "references/python.md": (
+            "The graph root is the coverage gate",
+            "root_package",
+            'data.get("subsystems", data.get("components", []))',
+            # The alias rule is in the pattern's section 1; no directive states it.
+            "(pattern §1): warn on it, reject a file that carries both",
         ),
     },
     "zero-copy-requirements": {
@@ -711,8 +810,20 @@ REFERENCE_REQUIRED_TERMS = {
             "NOT-GROUNDED",
             "NOT-READY",
             "`PROVISIONAL` passes with its confirmation",
-            "load each one only when the route reaches",
             "A deferral without them never reopens",
+            # Moved from SKILL.md with their text: only ADAPTIVE, FULL, and
+            # audit runs use these rules. The stage-loading rule was stated
+            # in both files; its two pins follow the one statement kept.
+            "Load each stage when the route reaches it",
+            "A blocking decision in the route's hand-off table ends the route",
+            "Gate E also waits for a passing readiness decision in a full pass",
+            "Decomposition and aspect extraction are different cuts",
+            "Blocking stage:",
+            # The stack-reference rule holds on the route as well as the alias.
+            "only when rule files are written or changed",
+            # Each pin follows the one statement of its rule;
+            # ALCHEMY_ROUTE_RULES names them for the mutation test.
+            *ALCHEMY_ROUTE_RULES.values(),
         ),
     },
     "morphogenetic-architecture": {
@@ -817,7 +928,37 @@ REFERENCE_REQUIRED_TERMS = {
             "a stale release is a standing exception",
         ),
     },
+    "requirements-topology": {
+        # The repository section loads when requirements live in a
+        # repository; its pins moved here with it.
+        "references/repository-operationalization.md": (
+            "# Requirements Topology — Repository Operationalization",
+            "Semantic validation",
+            "Generated views",
+            "generation, generated-drift checking, and traceability",
+        ),
+    },
+    "requirements-traceability": {
+        # The completion record and the trace note load when a closeout
+        # writes them; their pins moved here with the two blocks.
+        "references/closeout-records.md": (
+            "# Requirements Traceability — Closeout Records",
+            "Completion record:",
+            "Completion boundary: <acceptance | release | production | other>",
+            "representation gaps carry expiry",
+        ),
+    },
     "requirements-grounding": {
+        # The record shape loads when a run writes a hypothesis; its field
+        # pins moved here with it. The rule against an invented baseline or
+        # target stays in SKILL.md.
+        "references/outcome-hypothesis.md": (
+            "# Requirements Grounding — Outcome Hypothesis",
+            "Hypothesis confidence:",
+            "Evidence state: unmeasured | supported | rejected | inconclusive | stale",
+            "Evidence reference:",
+            "Decision threshold: <target or minimum meaningful change>",
+        ),
         "references/recovery-mode.md": (
             "# Requirements Grounding — Recovery Mode",
             "Evidence strength is contextual, not a universal ranking",
@@ -842,6 +983,43 @@ REFERENCE_REQUIRED_TERMS = {
         ),
     },
 }
+# Triggers a description must keep. A skill folded into another leaves its
+# triggers in the surviving description, the only text a session reads before
+# it loads a skill. The description ratchet rewards trimming them, and no pin
+# on the body can report the loss.
+DESCRIPTION_REQUIRED_TERMS = {
+    "architecture-as-code": (
+        "an `eslint-plugin-boundaries` rule",
+        "an `import-linter` contract",
+        "in a JS/TS or Python repo",
+        "adapting the assembler",
+        # The config file a stack request names is a trigger too.
+        "`eslint.architecture.mjs`",
+        "`architecture.toml`",
+        # The stack keywords the two folded skills carried.
+        "ESLint flat-config",
+        "`lint-imports`",
+        "Grimp",
+    ),
+}
+# Skills whose references return decision records of their own: here, the two
+# stack implementations that were skills until they were folded into this
+# one. Each file named here keeps an output marker, and one row of the
+# composition map lists what all of them return: every decision on each
+# file's Decision line is in the row, and every row decision is on a line.
+# That alone lets one file stand in for another, since a decision SKILL.md
+# drops stays true of the row while a reference still returns it. So each
+# file is named with the decisions it must keep on its own line, which is
+# every decision it returns: for a reference, the two its own row required
+# and the two of its stack. With only the shared two listed, a stack decision
+# moved to the other reference's line was still on a line and in the row.
+OUTPUT_CONTRACT_FILES = {
+    "architecture-as-code": {
+        "SKILL.md": ("Add config", "Update config", "Reject rule", "Defer", "Blocked"),
+        "references/javascript.md": ("Add eslint.architecture.mjs", "Update ESLint config", "Update assembler", "Blocked"),
+        "references/python.md": ("Add architecture.toml", "Update import-linter config", "Update assembler", "Blocked"),
+    },
+}
 CONTRIBUTION_REQUIRED_TERMS = (
     "canonical source for generic skill method",
     "Consumer-to-library promotion loop",
@@ -849,10 +1027,16 @@ CONTRIBUTION_REQUIRED_TERMS = (
     "project overlay",
     "SIZE_BUDGET_WORDS",
     "--record-scenario",
+    # The library caps and the rule a contributor meets them with.
+    "LIBRARY_BUDGET_WORDS",
+    "LIBRARY_BUDGET_SKILLS",
+    "A new skill funds its words with a cut",
+    # What route_loaded does with a trail row: no other line rescues it.
+    "gives a decision to a skill the run did not load, even when another line says the skill was not run",
 )
 PUBLIC_DOC_FORBIDDEN = {
-    # The router and root file are stack-neutral; each stack skill names its
-    # own enforcement file (architecture-as-code maps them).
+    # The router and root file are stack-neutral; each stack reference of
+    # architecture-as-code names its own enforcement file.
     "stack-specific router text": {
         "files": (
             ROOT / "CLAUDE.md",
@@ -993,10 +1177,20 @@ def validate_skill(path: Path) -> None:
             f"{path.relative_to(ROOT)} description too long "
             f"({len(description)} > {MAX_DESCRIPTION})"
         )
+    for term in DESCRIPTION_REQUIRED_TERMS.get(name, ()):
+        if not contains(description, term):
+            fail(f"{skill_file.relative_to(ROOT)} description missing trigger '{term}'")
     if not re.search(r"^#\s+\S", text, re.M):
         fail(f"{skill_file.relative_to(ROOT)} missing top-level heading")
     if not any(contains(text, marker) for marker in OUTPUT_MARKERS):
         fail(f"{skill_file.relative_to(ROOT)} missing coder-facing output marker")
+    for relative in OUTPUT_CONTRACT_FILES.get(name, {}):
+        reference = path / relative
+        if not reference.is_file():
+            fail(f"{path.relative_to(ROOT)}/{relative} is required")
+        reference_text = reference.read_text(encoding="utf-8")
+        if not any(contains(reference_text, marker) for marker in OUTPUT_MARKERS):
+            fail(f"{reference.relative_to(ROOT)} missing coder-facing output marker")
     for term in SKILL_REQUIRED_TERMS.get(name, ()):
         if not contains(text, term):
             fail(f"{skill_file.relative_to(ROOT)} missing required term '{term}'")
@@ -1075,11 +1269,11 @@ def word_count(path: Path) -> int:
     return len(path.read_text(encoding="utf-8").split())
 
 
-def check_budget(label: str, key: str, actual: int, budget: int, unit: str) -> None:
+def check_budget(label: str, key: str, actual: int, budget: int, unit: str, grain: int = SIZE_BUDGET_GRAIN) -> None:
     if actual > budget:
         fail(f"{label} is {actual} {unit}, over its size budget of {budget}")
-    if budget - actual >= SIZE_BUDGET_GRAIN:
-        floor = -(-actual // SIZE_BUDGET_GRAIN) * SIZE_BUDGET_GRAIN
+    if budget - actual >= grain:
+        floor = -(-actual // grain) * grain
         fail(
             f"{label} is {actual} {unit} but its size budget is {budget}, "
             f"which is slack; lower {key} to {floor} in the same change"
@@ -1091,7 +1285,8 @@ def validate_size_budget() -> None:
     and no link check, so the only thing that can report it is a ceiling.
     Mirrors are proven identical before this runs, so one tree is measured.
     A skill without an entry is unbudgeted, which the per-file check can
-    never report, so coverage fails first."""
+    never report, so coverage fails first. The library caps come after the
+    per-file checks, so a file over its own entry is reported as that file."""
     check_budget(
         "CLAUDE.md",
         'SIZE_BUDGET_WORDS["CLAUDE.md"]',
@@ -1114,6 +1309,14 @@ def validate_size_budget() -> None:
     stale = sorted(set(SIZE_BUDGET_WORDS) - {"CLAUDE.md"} - {path.name for path in skills})
     if stale:
         fail(f"SIZE_BUDGET_WORDS budgets skills that do not exist: {', '.join(stale)}")
+    check_budget(
+        "the skill library",
+        "LIBRARY_BUDGET_WORDS",
+        sum(word_count(path / "SKILL.md") for path in skills),
+        LIBRARY_BUDGET_WORDS,
+        "words",
+    )
+    check_budget("the skill library", "LIBRARY_BUDGET_SKILLS", len(skills), LIBRARY_BUDGET_SKILLS, "skills", grain=1)
     descriptions = sum(
         len(parse_frontmatter(path / "SKILL.md").get("description", "")) for path in skills
     )
@@ -1148,6 +1351,10 @@ def validate_retired_skill_references() -> None:
         "implementation slice",
         "admitted slice",
         "migration unit",
+        # Folded into architecture-as-code/references: neither name is a
+        # skill any more, so a mention sends an agent to load nothing.
+        "architecture-as-code-javascript",
+        "architecture-as-code-python",
     )
     paths = [
         ROOT / "README.md",
@@ -1170,7 +1377,12 @@ def validate_retired_skill_references() -> None:
 
 
 # Fenced report block inside a sample section, tolerant of CRLF checkouts.
-REPORT_BLOCK_RE = re.compile(r"```(?:text)?\s*\r?\n(.*?)```", re.S)
+# Fences pair as in scripts/check_topology_report.py: a line of three
+# backticks with any info string opens a block, and the next line of three
+# bare backticks closes it. When only a bare or `text` fence opened one, the
+# closing line of a fence with another info string was read as an opening
+# line, and the text under it as the sample's block.
+REPORT_BLOCK_RE = re.compile(r"^[ \t]*```[^`\r\n]*\r?\n(.*?)^[ \t]*```[ \t]*\r?$", re.S | re.M)
 
 
 def markdown_section(path: Path, heading: str) -> str:
@@ -1665,10 +1877,16 @@ SCENARIO_CHECKS = {
     "guidance_within": {"skills": list},
     "guidance_excludes": {"skills": list},
     "blocks_in_order": {},
+    # A SKIP answers with the compact output alone: recordings of the two
+    # SKIP scenarios carried the four report blocks on some runs and not on
+    # others.
+    "blocks_absent": {},
     "text_matches": {"pattern": str},
     "route_loaded": {},
     # A reference loads on demand, so whether a run read it is part of the
     # behavior: the route an ADAPTIVE run needs, or the cost a SKIP must not pay.
+    # A SKIP pays that cost by searching inside the file as well as by reading
+    # it, so reads_exclude counts both.
     "reads_include": {"paths": list},
     "reads_exclude": {"paths": list},
     # Every placement record (a fenced block with `Analysis mode:`) passes
@@ -1690,23 +1908,135 @@ ROUTE_SKILLS = {
 # Skills no scenario names yet. The list may only shrink: a skill leaves it
 # when a scenario covers it, and a new skill needs a scenario to ship.
 SCENARIO_UNCOVERED = (
-    "architecture-as-code-javascript",
-    "architecture-as-code-python",
     "architecture-guidelines",
-    "bring-down",
-    "continuous-improvement",
     "dependency-lifecycle",
-    "evolutionary-database-design",
     "implementation-readiness",
     "observability-design",
     "push-out",
-    "requirements-grounding",
-    "requirements-topology",
-    "requirements-traceability",
     "structural-simplification",
-    "system-optimization",
 )
 SCENARIO_CRITERION_RE = re.compile(r"^[a-z][a-z0-9-]* #\d+: \S")
+# A wrapped field value read as `(?:[^\n]*\n[ \t]{2,})*` lets the spaces that
+# open a continuation line go to the indent or to the text after it, so a
+# failing match tries every split on every line: a recording of
+# schema-rename-expand-contract kept the validator busy past five minutes.
+# Inside a repeated group, an indent run (`[ \t]`, `[\t ]`, `\s`, or a space,
+# repeated, optionally followed by `\S?`) is that shape when the text matcher
+# after it can take the characters it takes: `[^\n]*` in the same group, or
+# what the group opens with on its next turn. `[ \t]{2,}(?![ \t])` takes the
+# whole indent. The same run outside a repeated group splits once and is sound.
+UNGUARDED_CONTINUATION_RE = re.compile(
+    r"(?P<indent>\[ \\t\]|\[\\t \]|\\s| )(?:\{\d+,\d*\}|[+*])(?:\\S[?*])?(?P<next>\)|\[\^\\n\][*+])"
+)
+PATTERN_QUANTIFIER_RE = re.compile(r"(?:[?*+]|\{\d*(?:,\d*)?\})[?+]?")
+PATTERN_REPEAT_RE = re.compile(r"[*+]|\{\d+,")
+PATTERN_GROUP_PREFIX_RE = re.compile(r"\?(?:[:>]|P<\w+>)")
+PATTERN_ZERO_WIDTH = ("^", "$", "\\b", "\\B", "\\A", "\\Z")
+
+
+def pattern_groups(pattern: str) -> dict[int, int]:
+    """Each group of a regular expression: opening index mapped to closing
+    index. Escapes and character classes are skipped."""
+    pairs: dict[int, int] = {}
+    opened: list[int] = []
+    index = 0
+    while index < len(pattern):
+        char = pattern[index]
+        if char == "\\":
+            index += 2
+            continue
+        if char == "[":
+            index = pattern_class_end(pattern, index)
+            continue
+        if char == "(":
+            opened.append(index)
+        elif char == ")" and opened:
+            pairs[opened.pop()] = index
+        index += 1
+    return pairs
+
+
+def pattern_class_end(pattern: str, index: int) -> int:
+    """Index after the character class that opens at index; a `]` right
+    after `[` or `[^` is a member of the class."""
+    index += 2 if pattern.startswith("[^", index) else 1
+    if pattern.startswith("]", index):
+        index += 1
+    while index < len(pattern) and pattern[index] != "]":
+        index += 2 if pattern[index] == "\\" else 1
+    return index + 1
+
+
+def first_characters(pattern: str, start: int, stop: int, chars: str, pairs: dict[int, int]) -> tuple[set[str], bool]:
+    """Which of chars the expression pattern[start:stop] can open with, and
+    whether it can match nothing. Lookarounds and anchors take no character;
+    an atom the reader cannot judge is taken to open with any of chars."""
+    found: set[str] = set()
+    can_be_empty = False
+    branch_empty, branch_done = True, False
+    index = start
+    while index <= stop:
+        if index == stop or pattern[index] == "|":
+            can_be_empty |= branch_empty and not branch_done
+            branch_empty, branch_done = True, False
+            index += 1
+            continue
+        char = pattern[index]
+        if char == "\\":
+            end = index + 2
+        elif char == "[":
+            end = pattern_class_end(pattern, index)
+        elif char == "(" and index in pairs:
+            end = pairs[index] + 1
+        else:
+            end = index + 1
+        quantifier = PATTERN_QUANTIFIER_RE.match(pattern, end)
+        after = quantifier.end() if quantifier else end
+        atom = pattern[index:end]
+        if branch_done or atom in PATTERN_ZERO_WIDTH or pattern.startswith(("(?=", "(?!", "(?<=", "(?<!"), index):
+            index = after
+            continue
+        if char == "(":
+            prefix = PATTERN_GROUP_PREFIX_RE.match(pattern, index + 1)
+            if pattern.startswith("(?", index) and not prefix:
+                index = after  # inline flags or a back-reference by name
+                continue
+            inner, inner_empty = first_characters(pattern, prefix.end() if prefix else index + 1, end - 1, chars, pairs)
+        else:
+            try:
+                inner, inner_empty = {c for c in chars if re.fullmatch(atom, c)}, False
+            except re.error:
+                inner, inner_empty = set(chars), False
+        found |= inner
+        optional = quantifier is not None and re.match(r"[?*]|\{0?,|\{0\}", quantifier.group(0)) is not None
+        if not (inner_empty or optional):
+            branch_empty, branch_done = False, True
+        index = after
+    return found, can_be_empty
+
+
+def unguarded_continuation(pattern: str) -> bool:
+    """True when an indent run inside a repeated group can share characters
+    with the text matcher after it, with no guard between them."""
+    pairs = pattern_groups(pattern)
+    closing = {close: open_ for open_, close in pairs.items()}
+    repeated = [(open_, close) for open_, close in pairs.items() if PATTERN_REPEAT_RE.match(pattern, close + 1)]
+    for match in UNGUARDED_CONTINUATION_RE.finditer(pattern):
+        taken = "".join(char for char in " \t\n" if re.fullmatch(match.group("indent"), char))
+        if match.group("next") == ")":
+            close = match.start("next")
+            open_ = closing.get(close)
+            if open_ is None or (open_, close) not in repeated:
+                continue
+            prefix = PATTERN_GROUP_PREFIX_RE.match(pattern, open_ + 1)
+            shared, _ = first_characters(pattern, prefix.end() if prefix else open_ + 1, close, taken, pairs)
+            if shared:
+                return True
+        elif any(open_ < match.start() < close for open_, close in repeated):
+            return True
+    return False
+
+
 SCENARIO_TRANSCRIPT_KEYS = {
     "scenario": str,
     "revision": str,
@@ -1794,6 +2124,12 @@ def load_scenario(directory: Path) -> tuple[dict, dict | None]:
                 re.compile(expectation["pattern"])
             except re.error as error:
                 fail(f"{label} expectation '{ident}' pattern does not compile: {error}")
+            if unguarded_continuation(expectation["pattern"]):
+                fail(
+                    f"{label} expectation '{ident}' pattern lets indentation and text share "
+                    "characters on a continuation line; guard the indent, as in "
+                    "\\n[ \\t]{2,}(?![ \\t])"
+                )
         ids.append(ident)
     if len(ids) != len(set(ids)):
         fail(f"{label} repeats an expectation id")
@@ -1879,10 +2215,43 @@ def logical_lines(output: str) -> list[str]:
     return lines
 
 
+TRAIL_NOTE_RE = re.compile(r"^\W*(?:not run|not triggered|not selected|deferred|skipped)\b", re.I)
+
+
+def scenario_trail_decisions(output: str) -> set[str]:
+    """Skills a decision-trail row gives a decision: the trail is the table
+    whose header has `Skill` and `Decision` columns. A multi-stage answer has
+    no `Core route` line, so its trail is where it claims a stage ran. A row
+    is a note when its Decision cell is empty or opens with a not-run word.
+    `BLOCKED` is a decision some gates return, so it does not open a note."""
+    named: set[str] = set()
+    columns = None
+    for line in output.splitlines():
+        row = line.strip(" \t>")
+        if not row.startswith("|"):
+            columns = None
+            continue
+        cells = [cell.strip() for cell in re.split(r"(?<!\\)\|", row.strip("|"))]
+        heads = [cell.strip("*_` ").lower() for cell in cells]
+        if "skill" in heads and "decision" in heads:
+            columns = heads.index("skill"), heads.index("decision")
+        elif columns and max(columns) < len(cells):
+            decision = cells[columns[1]]
+            if re.search(r"\w", decision) and not TRAIL_NOTE_RE.search(decision):
+                for token in re.findall(r"[a-z][a-z0-9-]+", cells[columns[0]]):
+                    if (CLAUDE_SKILLS / token / "SKILL.md").is_file():
+                        named.add(token)
+    return named
+
+
 def scenario_route_loaded(transcript: dict) -> bool:
     """Every routed skill was loaded, or the output reports it as not run on a
-    line that names it: a decision attributed to an unloaded skill fails."""
+    line that names it: a decision attributed to an unloaded skill fails. A
+    trail row that gives a skill a decision is a claim no other line takes
+    back, so that skill must be loaded."""
     output, loaded = transcript["output"], scenario_loaded(transcript)
+    if scenario_trail_decisions(output) - loaded:
+        return False
     lines = logical_lines(output)
     return all(
         any(skill in line and NOT_RUN_RE.search(line) for line in lines)
@@ -1931,12 +2300,22 @@ def scenario_passes(expectation: dict, transcript: dict) -> bool:
         return not seen & named
     if check.startswith("reads_"):
         read, named = set(transcript["files_read"]), set(expectation["paths"])
-        return named <= read if check == "reads_include" else not read & named
-    if check == "blocks_in_order":
+        if check == "reads_include":
+            return named <= read
+        # A search takes text in as a read does, so a searched path that is an
+        # excluded path, or lies beneath one, fails too. Paths compare by
+        # component, as in scenario_guidance: a broader search above an
+        # excluded path is not counted.
+        searched = [str(path).split("/") for path in transcript["paths_searched"]]
+        excluded = [str(path).split("/") for path in named]
+        return not read & named and not any(parts[: len(path)] == path for parts in searched for path in excluded)
+    if check in ("blocks_in_order", "blocks_absent"):
         positions = []
         for block in REPORT_BLOCKS:
             match = re.search(rf"^[ \t>#*_-]*{re.escape(block)}\b", output, re.M)
             positions.append(match.start() if match else -1)
+        if check == "blocks_absent":
+            return all(position == -1 for position in positions)
         return -1 not in positions and positions == sorted(positions)
     return re.search(expectation["pattern"], output, re.I) is not None
 
@@ -2234,17 +2613,25 @@ def mutation_test() -> int:
 
     cases.append((Case("package: __pycache__ exclusion removed", [package], ("__pycache__",)), drop_cache_exclusion))
 
-    legality = [copy / tree / "skills" / "morphogenetic-architecture" / "references" / "position-legality.md" for tree in (".agents", ".claude")]
-    moved_term = REFERENCE_REQUIRED_TERMS["morphogenetic-architecture"]["references/position-legality.md"][0]
+    # The two stack references of architecture-as-code were skills until they
+    # were folded into it; each keeps the removal case its first pin had as a
+    # skill, which the automatic cases above no longer generate.
+    for skill_name, reference_name in (
+        ("morphogenetic-architecture", "position-legality.md"),
+        ("architecture-as-code", "javascript.md"),
+        ("architecture-as-code", "python.md"),
+    ):
+        moved = [copy / tree / "skills" / skill_name / "references" / reference_name for tree in (".agents", ".claude")]
+        moved_term = REFERENCE_REQUIRED_TERMS[skill_name][f"references/{reference_name}"][0]
 
-    def remove_reference_term(files=legality, pattern=phrase_pattern(moved_term)):
-        for path in files:
-            text, crlf = read_raw(path)
-            if not pattern.search(text):
-                raise RuntimeError(f"reference term not found in {path.name}")
-            write_raw(path, pattern.sub("", text), crlf)
+        def remove_reference_term(files=moved, pattern=phrase_pattern(moved_term)):
+            for path in files:
+                text, crlf = read_raw(path)
+                if not pattern.search(text):
+                    raise RuntimeError(f"reference term not found in {path.name}")
+                write_raw(path, pattern.sub("", text), crlf)
 
-    cases.append((Case("reference: pinned phrase removed from position-legality.md", legality, ("position-legality.md",)), remove_reference_term))
+        cases.append((Case(f"reference: pinned phrase removed from {reference_name}", moved, (f"{reference_name} missing required term",)), remove_reference_term))
 
     pruner = [copy / tree / "skills" / "functionality-complexity-tradeoff" / "SKILL.md" for tree in (".agents", ".claude")]
 
@@ -2267,6 +2654,40 @@ def mutation_test() -> int:
             write_raw(path, text + "\nA cross-cutting concern belongs to one layer.\n", crlf)
 
     cases.append((Case("vocabulary: retired term reintroduced", retired, ("retired term",)), reintroduce_retired_term))
+
+    # A folded skill's name is retired with it. The reference that replaced
+    # the skill carries no size budget, so the mention is the only defect.
+    folded = [copy / tree / "skills" / "architecture-as-code" / "references" / "python.md" for tree in (".agents", ".claude")]
+
+    def name_folded_skill(files=folded):
+        for path in files:
+            text, crlf = read_raw(path)
+            write_raw(path, text + "\nSee `architecture-as-code-python` for the assembler.\n", crlf)
+
+    cases.append((Case("vocabulary: folded skill named as if it still existed", folded, ("retired term 'architecture-as-code-python'",)), name_folded_skill))
+
+    # The fold moved the stack triggers into the surviving description; a
+    # trim that drops one stops the stack request from matching the skill.
+    # Only the frontmatter is trimmed, so the body keeps every pinned phrase.
+    pattern_skill = [copy / tree / "skills" / "architecture-as-code" / "SKILL.md" for tree in (".agents", ".claude")]
+    for trigger in (
+        DESCRIPTION_REQUIRED_TERMS["architecture-as-code"][1],
+        "`eslint.architecture.mjs`",
+        "`architecture.toml`",
+        "ESLint flat-config",
+        "`lint-imports`",
+        "Grimp",
+    ):
+
+        def trim_stack_trigger(files=pattern_skill, pattern=phrase_pattern(trigger)):
+            for path in files:
+                text, crlf = read_raw(path)
+                end = text.index("\n---", 3)
+                if not pattern.search(text[:end]):
+                    raise RuntimeError(f"stack trigger not found in the description of {path}")
+                write_raw(path, pattern.sub("", text[:end]) + text[end:], crlf)
+
+        cases.append((Case(f"description: stack trigger {trigger} trimmed", pattern_skill, (f"description missing trigger '{trigger}'",)), trim_stack_trigger))
 
     # An appended pin is proven only by the case that removes it: the automatic
     # cases above remove each skill's first pin, never a later one.
@@ -2312,9 +2733,9 @@ def mutation_test() -> int:
     # The expand step of the components -> subsystems key rename must keep the
     # alias readable until the contract step; dropping the JS fallback is the
     # premature contract this case guards against.
-    js_skill = [copy / tree / "skills" / "architecture-as-code-javascript" / "references" / "assembler.md" for tree in (".agents", ".claude")]
+    js_assembler = [copy / tree / "skills" / "architecture-as-code" / "references" / "javascript-assembler.md" for tree in (".agents", ".claude")]
 
-    def drop_alias_fallback(files=js_skill):
+    def drop_alias_fallback(files=js_assembler):
         for path in files:
             text, crlf = read_raw(path)
             needle = "m.default.subsystems ?? m.default.components ?? []"
@@ -2322,7 +2743,31 @@ def mutation_test() -> int:
                 raise RuntimeError(f"alias fallback not found in {path}")
             write_raw(path, text.replace(needle, "m.default.subsystems ?? []"), crlf)
 
-    cases.append((Case("schema: components alias dropped before the contract step", js_skill, ("assembler.md",)), drop_alias_fallback))
+    cases.append((Case("schema: components alias dropped before the contract step", js_assembler, ("javascript-assembler.md missing required term",)), drop_alias_fallback))
+
+    # The Python assembler once pointed at "pattern Directive 1" for the alias
+    # rule, which no directive states; the case puts that pointer back. The
+    # expected text is the pin without its section sign: the validator's
+    # output reaches this process through a pipe, whose encoding may differ.
+    py_reference = [copy / tree / "skills" / "architecture-as-code" / "references" / "python.md" for tree in (".agents", ".claude")]
+
+    def restore_directive_pointer(files=py_reference):
+        for path in files:
+            text, crlf = read_raw(path)
+            if "(pattern §1)" not in text:
+                raise RuntimeError(f"alias pointer not found in {path}")
+            write_raw(path, text.replace("(pattern §1)", "(pattern Directive 1)"), crlf)
+
+    cases.append(
+        (
+            Case(
+                "reference: alias rule pointed at a directive again in python.md",
+                py_reference,
+                ("1): warn on it, reject a file that carries both'",),
+            ),
+            restore_directive_pointer,
+        )
+    )
 
     # The size ratchet has four failure paths, and each is proven on its own:
     # a file grows past its entry, a skill has no entry, an entry sits a grain
@@ -2339,12 +2784,20 @@ def mutation_test() -> int:
 
     cases.append((Case("size: skill grown past its budget", grown, ("over its size budget",)), grow_skill))
 
+    # The three cases read the entry from the copy they mutate, so they hold
+    # whatever value the ratchet has given push-out.
+    budget_entry = re.compile(r'(?m)^    "push-out": (\d+),\n')
+
+    def budget_line(text: str) -> "re.Match[str]":
+        match = budget_entry.search(text)
+        if not match:
+            raise RuntimeError("push-out size budget not found in the validator copy")
+        return match
+
     def unbudget_skill(files=validator_copy):
         for path in files:
             text, crlf = read_raw(path)
-            needle = '    "push-out": 1300,\n'
-            if needle not in text:
-                raise RuntimeError("push-out size budget not found in the validator copy")
+            needle = budget_line(text).group(0)
             write_raw(path, text.replace(needle, "", 1), crlf)
 
     cases.append((Case("size: skill left without a budget", validator_copy, ("no size budget",)), unbudget_skill))
@@ -2352,22 +2805,111 @@ def mutation_test() -> int:
     def slacken_budget(files=validator_copy):
         for path in files:
             text, crlf = read_raw(path)
-            needle = '    "push-out": 1300,\n'
-            if needle not in text:
-                raise RuntimeError("push-out size budget not found in the validator copy")
-            write_raw(path, text.replace(needle, '    "push-out": 1500,\n', 1), crlf)
+            match = budget_line(text)
+            slack = f'    "push-out": {int(match.group(1)) + 2 * SIZE_BUDGET_GRAIN},\n'
+            write_raw(path, text.replace(match.group(0), slack, 1), crlf)
 
     cases.append((Case("size: budget left slack after a trim", validator_copy, ("which is slack",)), slacken_budget))
 
     def budget_ghost_skill(files=validator_copy):
         for path in files:
             text, crlf = read_raw(path)
-            needle = '    "push-out": 1300,\n'
-            if needle not in text:
-                raise RuntimeError("push-out size budget not found in the validator copy")
+            needle = budget_line(text).group(0)
             write_raw(path, text.replace(needle, needle + '    "retired-skill": 1300,\n', 1), crlf)
 
     cases.append((Case("size: budget kept for a skill that no longer exists", validator_copy, ("do not exist",)), budget_ghost_skill))
+
+    # The library caps have four failure paths of their own. The word cap is
+    # the only check that can report growth spread over files that each stay
+    # within their own entry, so that is how it is broken: filler goes to
+    # each skill up to its own budget, in both trees, until the total is one
+    # word over the cap.
+    library = [copy / tree / "skills" / path.name / "SKILL.md" for path in skill_dirs(AGENT_SKILLS) for tree in (".agents", ".claude")]
+
+    def grow_library(files=library):
+        needed = LIBRARY_BUDGET_WORDS + 1 - sum(word_count(path) for path in files[::2])
+        for agents, claude in zip(files[::2], files[1::2]):
+            room = min(needed, SIZE_BUDGET_WORDS[agents.parent.name] - word_count(agents))
+            if room <= 0:
+                continue
+            for path in (agents, claude):
+                text, crlf = read_raw(path)
+                write_raw(path, text + "\n" + " ".join(["filler"] * room) + "\n", crlf)
+            needed -= room
+        if needed > 0:
+            raise RuntimeError("the per-file budgets leave no room to pass the library word cap")
+
+    cases.append(
+        (
+            Case(
+                "size: library grown past its word cap, each skill within its own budget",
+                library,
+                (f"the skill library is {LIBRARY_BUDGET_WORDS + 1} words, over its size budget of {LIBRARY_BUDGET_WORDS}",),
+            ),
+            grow_library,
+        )
+    )
+
+    # The other three paths are a cap that no longer fits the tree, so the
+    # cap moves in the validator copy: the word cap left two grains above the
+    # total, and the skill cap one below and one above the count. A skill
+    # added to the copy would fail pin coverage before any budget is read.
+    def move_library_cap(name: str, step: int):
+        def move(files=validator_copy):
+            for path in files:
+                text, crlf = read_raw(path)
+                mutated, count = re.subn(rf"(?m)^{name} = (\d+)$", lambda m: f"{name} = {int(m.group(1)) + step}", text)
+                if count != 1:
+                    raise RuntimeError(f"{name} not found in the validator copy")
+                write_raw(path, mutated, crlf)
+
+        return move
+
+    skill_count = len(skill_dirs(AGENT_SKILLS))
+    for label, name, step, expected in (
+        ("size: library word cap left slack", "LIBRARY_BUDGET_WORDS", 2 * SIZE_BUDGET_GRAIN, "which is slack; lower LIBRARY_BUDGET_WORDS to"),
+        ("size: one skill more than the library skill cap", "LIBRARY_BUDGET_SKILLS", -1, f"the skill library is {skill_count} skills, over its size budget of {skill_count - 1}"),
+        ("size: library skill cap left slack", "LIBRARY_BUDGET_SKILLS", 1, f"which is slack; lower LIBRARY_BUDGET_SKILLS to {skill_count}"),
+    ):
+        cases.append((Case(label, validator_copy, (expected,)), move_library_cap(name, step)))
+
+    # The contribution guide states both caps and the rule that goes with
+    # them. Each statement is pinned and removed in turn; the three are
+    # spelled out here, so a pin dropped from the validator's list fails its
+    # case.
+    guide = copy / "CONTRIBUTING.md"
+    for term in ("LIBRARY_BUDGET_WORDS", "LIBRARY_BUDGET_SKILLS", "A new skill funds its words with a cut"):
+
+        def drop_cap_statement(path=guide, pattern=phrase_pattern(term), term=term):
+            text, crlf = read_raw(path)
+            if not pattern.search(text):
+                raise RuntimeError(f"{term!r} not found in CONTRIBUTING.md")
+            write_raw(path, pattern.sub("", text), crlf)
+
+        cases.append((Case(f"contributing: {term!r} no longer stated", [guide], (f"CONTRIBUTING.md missing promotion term '{term}'",)), drop_cap_statement))
+
+    # The guide once said a trail row fails when "no other line takes that
+    # back", which reads as a way to rescue the row; route_loaded has none.
+    # The case puts that wording back. The pin is spelled out here, so it
+    # fails when the pin is dropped from the validator's list.
+    trail_row = "gives a decision to a skill the run did not load, even when another line says the skill was not run"
+
+    def restore_rescue_clause(path=guide, pattern=phrase_pattern("even when another line says the skill was not run")):
+        text, crlf = read_raw(path)
+        if not pattern.search(text):
+            raise RuntimeError("the trail-row clause was not found in CONTRIBUTING.md")
+        write_raw(path, pattern.sub("and no other line takes that back", text), crlf)
+
+    cases.append(
+        (
+            Case(
+                "contributing: trail row said to pass when another line takes it back",
+                [guide],
+                (f"CONTRIBUTING.md missing promotion term '{trail_row}'",),
+            ),
+            restore_rescue_clause,
+        )
+    )
 
     # The router and root file stay stack-neutral.
     router_files = [copy / tree / "skills" / "alchemy" / "SKILL.md" for tree in (".agents", ".claude")]
@@ -2433,6 +2975,16 @@ def mutation_test() -> int:
 
     cases.append((Case("docs: README skill count left stale", [readme], ("the library has",)), overstate_skill_count))
 
+    def understate_case_count(path=readme):
+        text, crlf = read_raw(path)
+        stated = CHECK_COUNT_RE.search(text)
+        if not stated:
+            raise RuntimeError("no stated adversarial case count found in README.md")
+        write_raw(path, text[:stated.start(2)] + str(int(stated.group(2)) - 1) + text[stated.end(2):], crlf)
+
+    cases.append((Case("docs: README adversarial case count left stale", [readme], ("adversarial cases, but",)),
+                  understate_case_count))
+
     def misstate_install_tree(path=readme):
         text, crlf = read_raw(path)
         row = "| `.agents/skills/` | `AGENTS.md` |"
@@ -2441,6 +2993,36 @@ def mutation_test() -> int:
         write_raw(path, text.replace(row, "| `.claude/skills/` | `AGENTS.md` |", 1), crlf)
 
     cases.append((Case("docs: README install table names the wrong tree", [readme], ("no row for codex",)), misstate_install_tree))
+
+    # A sample's record is the first fenced block of its section. Here the
+    # section's first block is a `js` fence and the record sits under it,
+    # outside any fence, so the record the check reads has no fields. Read
+    # from the closing line of the `js` fence instead, the record passed. The
+    # trailing empty block keeps the fences of the later samples paired.
+    samples_doc = copy / ".documentation" / "sample-reports-verification.md"
+    sample_heading = "## (a) Prospective complexity report"
+
+    def unfence_sample_record(path=samples_doc, heading=sample_heading):
+        text, crlf = read_raw(path)
+        fence = "\n```\n"
+        opening = text.index(fence, text.index(heading)) + 1
+        closing = text.index(fence, opening) + 1
+        write_raw(
+            path,
+            text[:opening] + "```js\nconst x = 1;\n```\n" + text[opening + 4 : closing] + "```\n```\n" + text[closing + 4 :],
+            crlf,
+        )
+
+    cases.append(
+        (
+            Case(
+                "samples: record left outside its fence, under a tagged block",
+                [samples_doc],
+                (f"sample-reports-verification.md section '{sample_heading}' missing report field",),
+            ),
+            unfence_sample_record,
+        )
+    )
 
     # Orchestration: each check is proven on its own. Every mutation edits
     # both skill trees so the mirror check passes, and each check runs before
@@ -2467,6 +3049,104 @@ def mutation_test() -> int:
 
     cases.append((Case("orchestration: a skill left out of the composition map", contracts_map, ("no entry for skill push-out",)), drop_skill_contract))
 
+    def invent_decision(files=contracts_map):
+        for path in files:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["skills"]["architecture-as-code"]["completion"].append("Rewrite assembler")
+            write_raw(path, json.dumps(data, indent=2) + "\n", False)
+
+    cases.append((Case("orchestration: the map lists a decision the skill never returns", contracts_map, ("decision 'Rewrite assembler' does not appear",)), invent_decision))
+
+    # The two stack references of architecture-as-code return decision records
+    # of their own. As skills, each was held to an output marker; folded, each
+    # is held to it again.
+    for reference_name in ("javascript.md", "python.md"):
+        stack_reference = both(f"architecture-as-code/references/{reference_name}")
+
+        def drop_output_contract(files=stack_reference):
+            for path in files:
+                text, crlf = read_raw(path)
+                new = re.sub(r"(?ms)^## 4\. Output Contract\n.*?(?=^## 5\. )", "", text)
+                if new == text:
+                    raise RuntimeError(f"no Output Contract section in {path}")
+                write_raw(path, new, crlf)
+
+        cases.append((Case(f"contract: Output Contract section deleted from {reference_name}", stack_reference, (f"{reference_name} missing coder-facing output marker",)), drop_output_contract))
+
+    # One map row holds what SKILL.md and both stack references return, so a
+    # decision one file stops returning can stay true of the row through
+    # another: `Blocked` dropped from SKILL.md, which both references still
+    # return, is the case the fold first let through. Each file is therefore
+    # held to its own Decision line, and each way of breaking that is proven
+    # per file and per decision: the line goes, a decision on it is renamed,
+    # or a decision the file must keep is dropped. The decisions are spelled
+    # out here, so an entry removed from the validator's list fails its case.
+    def edit_decision_line(files, edit):
+        for path in files:
+            text, crlf = read_raw(path)
+            line = re.search(r"(?m)^(Decision:[ \t]+)(.+)\n", text)
+            if line is None:
+                raise RuntimeError(f"no Decision line in {path}")
+            values = edit([value.strip() for value in line.group(2).split("|")])
+            new = line.group(1) + " | ".join(values) + "\n" if values else ""
+            write_raw(path, text[: line.start()] + new + text[line.end() :], crlf)
+
+    for relative, kept in (
+        ("SKILL.md", ("Add config", "Update config", "Reject rule", "Defer", "Blocked")),
+        ("references/javascript.md", ("Add eslint.architecture.mjs", "Update ESLint config", "Update assembler", "Blocked")),
+        ("references/python.md", ("Add architecture.toml", "Update import-linter config", "Update assembler", "Blocked")),
+    ):
+        contract_file = both(f"architecture-as-code/{relative}")
+
+        def drop_decision_line(files=contract_file):
+            edit_decision_line(files, lambda values: [])
+
+        cases.append((Case(f"contract: Decision line deleted from {relative}", contract_file, (f"architecture-as-code/{relative} has no Decision line",)), drop_decision_line))
+
+        def rename_decision(files=contract_file, old=kept[0]):
+            def rename(values):
+                if old not in values:
+                    raise RuntimeError(f"no {old} decision on the Decision line")
+                return ["Renamed decision" if value == old else value for value in values]
+
+            edit_decision_line(files, rename)
+
+        cases.append((Case(f"contract: decision renamed in {relative}", contract_file, (f"architecture-as-code/{relative} returns 'Renamed decision'",)), rename_decision))
+
+        for decision in kept:
+
+            def drop_decision(files=contract_file, decision=decision):
+                def drop(values):
+                    if decision not in values:
+                        raise RuntimeError(f"no {decision} decision on the Decision line")
+                    return [value for value in values if value != decision]
+
+                edit_decision_line(files, drop)
+
+            cases.append((Case(f"contract: {decision} dropped from {relative}", contract_file, (f"architecture-as-code/{relative} no longer returns '{decision}'",)), drop_decision))
+
+    # A stack decision moved to the other reference's line is still on a
+    # Decision line and still in the row, so the only check that can report it
+    # is the list of the reference it left.
+    for decision, home, other in (
+        ("Add eslint.architecture.mjs", "references/javascript.md", "references/python.md"),
+        ("Update ESLint config", "references/javascript.md", "references/python.md"),
+        ("Add architecture.toml", "references/python.md", "references/javascript.md"),
+        ("Update import-linter config", "references/python.md", "references/javascript.md"),
+    ):
+        left, joined = both(f"architecture-as-code/{home}"), both(f"architecture-as-code/{other}")
+
+        def move_decision(left=left, joined=joined, decision=decision):
+            def drop(values):
+                if decision not in values:
+                    raise RuntimeError(f"no {decision} decision on the Decision line")
+                return [value for value in values if value != decision]
+
+            edit_decision_line(left, drop)
+            edit_decision_line(joined, lambda values: values + [decision])
+
+        cases.append((Case(f"contract: {decision} moved from {home} to {other}", left + joined, (f"architecture-as-code/{home} no longer returns '{decision}'",)), move_decision))
+
     router_skill = both("alchemy/SKILL.md")
 
     def hide_execution(files=router_skill):
@@ -2478,6 +3158,91 @@ def mutation_test() -> int:
             write_raw(path, new, crlf)
 
     cases.append((Case("orchestration: router stops reporting Execution", router_skill, ("must report Execution",)), hide_execution))
+
+    def unmark_unread_companion(files=router_skill, pattern=phrase_pattern("as `<skill> — Not run (<reason>)`")):
+        for path in files:
+            text, crlf = read_raw(path)
+            if not pattern.search(text):
+                raise RuntimeError(f"unread-companion form not found in {path}")
+            write_raw(path, pattern.sub("as pending", text), crlf)
+
+    cases.append((Case("companions: router stops marking an unread companion Not run", router_skill, (f"missing required term '{ALCHEMY_UNREAD_COMPANION}'",)), unmark_unread_companion))
+
+    def claim_resumed_stage(files=router_skill, pattern=phrase_pattern(", or one resumed from an earlier record,")):
+        for path in files:
+            text, crlf = read_raw(path)
+            if not pattern.search(text):
+                raise RuntimeError(f"resumed-stage clause not found in {path}")
+            write_raw(path, pattern.sub("", text), crlf)
+
+    cases.append((Case("claims: router stops marking a resumed stage Not run", router_skill, (f"missing required term '{ALCHEMY_RESUMED_STAGE}'",)), claim_resumed_stage))
+
+    def drop_trail_format_read(files=router_skill, pattern=phrase_pattern(f"; {ALCHEMY_TRAIL_FORMAT_READ}")):
+        for path in files:
+            text, crlf = read_raw(path)
+            if not pattern.search(text):
+                raise RuntimeError(f"trail-format clause not found in {path}")
+            write_raw(path, pattern.sub("", text), crlf)
+
+    cases.append((Case("route: SKIP and DIRECT lose the trail-format read", router_skill, (f"missing required term '{ALCHEMY_TRAIL_FORMAT_READ}'",)), drop_trail_format_read))
+
+    # The selection rule and the companion pass order live in the route, and
+    # so do the checks on them.
+    route_skill = both("alchemy/references/adaptive-route.md")
+
+    def drop_execution_setting(files=route_skill):
+        for path in files:
+            text, crlf = read_raw(path)
+            needle = "`execution.multi_agent`"
+            if needle not in text:
+                raise RuntimeError(f"execution setting not found in {path}")
+            write_raw(path, text.replace(needle, "its execution setting", 1), crlf)
+
+    cases.append((Case("orchestration: route stops naming the multi-agent setting", route_skill, ("Execution missing '`execution.multi_agent`'",)), drop_execution_setting))
+
+    # The block is the route's one statement of pass order, so each pair of
+    # lines whose order the prose used to repeat is swapped in turn.
+    for label, companion, early, late in (
+        ("the two Test Strategy passes", "Test Strategy", "Test Strategy — Obligation", "Test Strategy — Portfolio"),
+        (
+            "the two Evolutionary Database Design passes",
+            "Evolutionary Database Design",
+            "Evolutionary Database Design — Compatibility",
+            "Evolutionary Database Design — Transition",
+        ),
+        (
+            "the Transition and Portfolio passes",
+            "Evolutionary Database Design",
+            "Evolutionary Database Design — Transition",
+            "Test Strategy — Portfolio",
+        ),
+    ):
+        def swap_passes(files=route_skill, early=f"→ {early} pass\n", late=f"→ {late} pass\n"):
+            for path in files:
+                text, crlf = read_raw(path)
+                if early not in text or late not in text:
+                    raise RuntimeError(f"companion pass lines not found in {path}")
+                write_raw(path, text.replace(early, "\0", 1).replace(late, early, 1).replace("\0", late, 1), crlf)
+
+        cases.append((Case(f"companions: route swaps {label}", route_skill, (f"must preserve the {companion}",)), swap_passes))
+
+    # Rewording any of the rules the route states once must fail on the pin
+    # at that statement, not on a later check.
+    for rule, (old, new) in {
+        "Readiness before Architecture": ("bounded reversible increment", "bounded increment"),
+        "Gate 2 smallest correct design": ("Smallest correct design", "A correct design"),
+        "Gate 5 rules in the same PR": ("in the same PR as the code they govern", "soon after the code they govern"),
+        "Gate 6 earliest catchable stage": ("earliest catchable stage", "a catchable stage"),
+        "Handshake records hold one decision word": ("`Decision: DEFER` alone", "`Decision: DEFER` with its candidate"),
+    }.items():
+        def reword_rule(files=route_skill, pattern=phrase_pattern(old), new=new, rule=rule):
+            for path in files:
+                text, crlf = read_raw(path)
+                if not pattern.search(text):
+                    raise RuntimeError(f"{rule}: statement not found in {path}")
+                write_raw(path, pattern.sub(new, text), crlf)
+
+        cases.append((Case(f"route: {rule} reworded", route_skill, (f"missing required term '{ALCHEMY_ROUTE_RULES[rule]}'",)), reword_rule))
 
     case_dirs = sorted(path for path in (copy / ".adversarial").iterdir() if path.is_dir()) if (copy / ".adversarial").is_dir() else []
     if case_dirs:
@@ -2500,6 +3265,107 @@ def mutation_test() -> int:
             write_raw(path, text.replace("CODES = {", 'CODES = {"MUTATION_UNTESTED": "FAIL", ', 1), crlf)
 
     cases.append((Case("orchestration: a check code no adversarial case exercises", checkers, ("MUTATION_UNTESTED",)), declare_untested_code))
+
+    # The workflow adapter's preflight wiring, each link broken on its own.
+    pipelines = both("alchemy-orchestrate/adapters/unstoppable/pipelines/alchemy-multi-agent.yaml")
+    actions = both("alchemy-orchestrate/adapters/unstoppable/actions/alchemy-check/check.py")
+    for label, files, old, new, expected in (
+        ("pipeline executes an unattended plan without a preflight PASS", pipelines,
+         "(needs.preflight_check.result == 'success' && needs.preflight_check.outputs.verdict == 'PASS')",
+         "needs.preflight_check.result != 'failure'",
+         "must run an unattended plan only on a preflight PASS"),
+        ("pipeline skips the preflight on the plan's word alone", pipelines,
+         "(needs.approve_plan.outputs.decision == 'continue-attended' && needs.plan_check.outputs.unattended != 'true')",
+         "needs.plan_check.outputs.unattended != 'true'",
+         "skip the preflight only when the human chose to attend"),
+        ("plan approval offers no attended or unattended choice", pipelines,
+         '"options":["continue-attended","continue-unattended","stop"]', '"options":["continue","stop"]',
+         "approve_plan must ask the human to choose"),
+        ("the preflight job runs only when the plan opts in", pipelines,
+         "(needs.approve_plan.outputs.decision != 'continue-attended' || needs.plan_check.outputs.unattended == 'true')",
+         "needs.plan_check.outputs.unattended == 'true'",
+         "preflight must run unless the human chose to attend"),
+        ("the preflight job probes a plan that is not unattended", pipelines,
+         "            expect_unattended: 'true'\n", "",
+         "preflight must first check that the plan says it is unattended"),
+        ("the check action ignores expect_unattended", actions,
+         "if stated != switch:", "if False:",
+         "must refuse a plan whose execution.unattended is not expect_unattended"),
+        ("a pipeline gate check is not given the preflight record", pipelines,
+         "            preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json\n", "",
+         "without the run's preflight record"),
+        ("the check action drops preflight mode", actions,
+         'MODES = ("plan", "preflight", "handoff", "gate")', 'MODES = ("plan", "handoff", "gate")',
+         "MODES must include preflight"),
+        # The correction loop's bound and order, each link broken on its own.
+        ("the correction loop ignores the gate's bound", pipelines,
+         "      max_iterations: '${{ needs.gate.outputs.correction_passes }}'", "      max_iterations: 5",
+         "loop at most the gate's correction_passes times"),
+        ("the correction loop restarts whatever the gate says", pipelines,
+         "const again = verdict === 'FAIL' && Number.isInteger(passes) && passes > 0;", "const again = true;",
+         "restart only when its own gate says FAIL"),
+        ("the correction loop starts with no passes left", pipelines,
+         " && needs.gate.outputs.correction_passes != '0'\n      max_iterations", "\n      max_iterations",
+         "only on a gate FAIL with passes left"),
+        ("the amendment check only reports", pipelines,
+         "            approved: ${{ needs.plan_check.outputs.plan_digest }}\n        - id: correct\n",
+         "            approved: ${{ needs.plan_check.outputs.plan_digest }}\n            enforce: 'false'\n        - id: correct\n",
+         "amend_check must enforce the plan check"),
+        ("the correction pass edits before its amendment is checked", pipelines,
+         "        - id: amend_check\n", "        - id: amend_note\n",
+         "must run amend, amend_check, correct"),
+        ("the correction review may write", pipelines,
+         "            model: reviewer_codex\n            thinking_effort: high\n            permission_preset: read_only",
+         "            model: reviewer_codex\n            thinking_effort: high\n            permission_preset: dangerous_all",
+         "review must stay read-only"),
+        ("the gate job drops its correction passes", pipelines,
+         "        correction_passes: ${{ steps.check.outputs.correction_passes }}\n", "",
+         "gate must output the check's correction_passes"),
+        ("a gate check reads the bound from the working profile", pipelines,
+         "            repository: 'true'\n", "",
+         "without the approved digest, the run plan, and the repository"),
+        ("the check action drops correction_passes", actions,
+         'outputs["correction_passes"] = ', 'outputs["passes"] = ',
+         "must output correction_passes"),
+        ("the re-gate forgets the revision its pass accepted", pipelines,
+         "            revision: ${{ steps.amend_check.outputs.plan_digest }}\n", "",
+         "regate must take revision"),
+        ("the re-gate trusts the ledger over the reviewer", pipelines,
+         "            review: ${{ steps.review.outputs.json_response_file }}\n", "",
+         "regate must take review"),
+        ("the pull request gate forgets the last accepted revision", pipelines,
+         "            revision: ${{ needs.correction.outputs.revision }}\n", "",
+         "must gate against the revision the last correction pass accepted"),
+        ("one amendment per finding", pipelines,
+         "append one amendment per origin chain", "append one amendment per finding",
+         "one amendment per origin chain"),
+        ("the check action drops the revision input", actions,
+         '["--revision", option("revision")]', '[]', "pass the revision input"),
+        ("the gate summary hides the authorizations", actions,
+         "Authorizations: {granted(report)}; ", "", "honoured authorizations in the gate summary"),
+        ("the plan summary hides the extension", actions,
+         "authorizations {granted(report)}; ", "", "honoured authorizations in the plan summary"),
+        ("the summaries drop the rework extension", actions,
+         '    extension = report.get("extension")\n    if isinstance(extension, dict):',
+         '    extension = None\n    if isinstance(extension, dict):', "summary omits"),
+        ("the summaries drop the honoured authorizations", actions,
+         'for item in report.get("authorizations") or []:', "for item in []:", "summary omits"),
+        # The two quoting defects of e6516a2, each restored on its own.
+        ("an apostrophe inside a single-quoted pipeline scalar", pipelines,
+         "the profile''s rework bound", "the profile's rework bound", "closes before"),
+        ("a single-quoted argument inside a single-quoted expression", pipelines,
+         'integrated: "${{ needs.execute.outputs.integrated_heads }},${{ join(parseJson(steps.correct.outputs.json_response).integrated_heads, \',\') }}"',
+         "integrated: '${{ needs.execute.outputs.integrated_heads }},${{ join(parseJson(steps.correct.outputs.json_response).integrated_heads, ',') }}'",
+         "closes before"),
+    ):
+        def break_adapter(files=files, old=old, new=new, label=label):
+            for path in files:
+                text, crlf = read_raw(path)
+                if old not in text:
+                    raise RuntimeError(f"{label}: text not found in {path}")
+                write_raw(path, text.replace(old, new, 1), crlf)
+
+        cases.append((Case(f"adapter: {label}", files, (expected,)), break_adapter))
 
     # A scenario transcript fails four ways, each proven on its own. The last
     # two take their subject from the recorded outcomes, so they hold whichever
@@ -2547,6 +3413,173 @@ def mutation_test() -> int:
 
         cases.append((Case("scenario: known failure that passes again", specs, ("now passes",)), list_passing_as_known))
 
+        # A SKIP answers with the compact output alone, so a report block in
+        # its transcript must fail the expectation that says so.
+        skip_record = [scenario_root / "dispatch-routine-skip" / "transcript.json"]
+
+        def add_report_block(files=skip_record):
+            record = json.loads(files[0].read_text(encoding="utf-8"))
+            record["output"] += f"\n\n**{REPORT_BLOCKS[0]}:** mutation\n"
+            write_raw(files[0], json.dumps(record, indent=2) + "\n", False)
+
+        cases.append((Case("scenario: SKIP answer carries a report block", skip_record, ("expectation 'carries-no-report-block' not met",)), add_report_block))
+
+        # A run that searched inside a file it must not read took the file's
+        # text in without a read, so the search must fail the expectation
+        # that excludes the file. The path is taken from the expectation, and
+        # the file sits in a skill the run may consult, so no other
+        # expectation of the scenario can report the search.
+        searched_record = [scenario_root / "dispatch-missing-prerequisite" / name for name in ("scenario.json", "transcript.json")]
+
+        def search_excluded_path(files=searched_record, ident="reads-no-stack-reference"):
+            spec = json.loads(files[0].read_text(encoding="utf-8"))
+            excluded = [e["paths"][0] for e in spec["expect"] if e["id"] == ident and e["check"] == "reads_exclude"]
+            if not excluded:
+                raise RuntimeError(f"no reads_exclude expectation '{ident}' in {files[0]}")
+            record = json.loads(files[1].read_text(encoding="utf-8"))
+            if excluded[0] in record["files_read"] + record["paths_searched"]:
+                raise RuntimeError(f"{excluded[0]} is already read or searched in {files[1]}")
+            record["paths_searched"].append(excluded[0])
+            write_raw(files[1], json.dumps(record, indent=2) + "\n", False)
+
+        cases.append(
+            (
+                Case(
+                    "scenario: run searched inside a file it must not read",
+                    searched_record,
+                    (".scenarios/dispatch-missing-prerequisite expectation 'reads-no-stack-reference' not met",),
+                ),
+                search_excluded_path,
+            )
+        )
+
+        # A searched path that lies beneath an excluded path fails too, and
+        # the case above cannot show it: its path equals the excluded one, so
+        # it is caught just as well when paths are compared for equality.
+        # An expectation can name only a file (load_scenario), so this case
+        # searches a path that continues the excluded file's own path.
+        def search_beneath_excluded_path(files=searched_record, ident="reads-no-stack-reference"):
+            spec = json.loads(files[0].read_text(encoding="utf-8"))
+            excluded = [e["paths"][0] for e in spec["expect"] if e["id"] == ident and e["check"] == "reads_exclude"]
+            if not excluded:
+                raise RuntimeError(f"no reads_exclude expectation '{ident}' in {files[0]}")
+            record = json.loads(files[1].read_text(encoding="utf-8"))
+            if any(str(path).startswith(excluded[0]) for path in record["files_read"] + record["paths_searched"]):
+                raise RuntimeError(f"{excluded[0]} is already read or searched in {files[1]}")
+            record["paths_searched"].append(excluded[0] + "/beneath")
+            write_raw(files[1], json.dumps(record, indent=2) + "\n", False)
+
+        cases.append(
+            (
+                Case(
+                    "scenario: run searched beneath a path it must not read",
+                    searched_record,
+                    (".scenarios/dispatch-missing-prerequisite expectation 'reads-no-stack-reference' not met",),
+                ),
+                search_beneath_excluded_path,
+            )
+        )
+
+        # A trail row that gives a stage a decision claims the stage ran, so a
+        # row for a skill the run never read must fail. The row's last cell
+        # carries a not-run word on purpose: only the Decision cell makes a
+        # row a note.
+        trail_record = [scenario_root / "dispatch-adaptive-structural" / "transcript.json"]
+
+        def add_unloaded_stage(files=trail_record, skill="system-optimization"):
+            record = json.loads(files[0].read_text(encoding="utf-8"))
+            if skill in scenario_loaded(record):
+                raise RuntimeError(f"{skill} is loaded in {files[0]}")
+            record["output"] += (
+                "\n\n| Stage | Skill | Decision | Next action or skip rationale |\n|---|---|---|---|\n"
+                f"| Y | {skill} | Proceed | Deferred work is listed |\n"
+            )
+            write_raw(files[0], json.dumps(record, indent=2) + "\n", False)
+
+        cases.append(
+            (
+                Case(
+                    "scenario: trail gives a decision to a skill never read",
+                    trail_record,
+                    (".scenarios/dispatch-adaptive-structural expectation 'claims-only-loaded-stages' not met",),
+                ),
+                add_unloaded_stage,
+            )
+        )
+
+        unguarded = [scenario_root / "cicd-retention-by-reader" / "scenario.json"]
+
+        def unguard_continuation(files=unguarded):
+            text, crlf = read_raw(files[0])
+            guarded = "{2,}(?![ \\\\t]))*"
+            if guarded not in text:
+                raise RuntimeError(f"no guarded continuation group in {files[0]}")
+            write_raw(files[0], text.replace(guarded, "{2,})*"), crlf)
+
+        cases.append(
+            (
+                Case(
+                    "scenario: pattern reads a wrapped value with an unguarded indent",
+                    unguarded,
+                    (".scenarios/cicd-retention-by-reader expectation 'records-retention-reader' pattern lets indentation and text share",),
+                ),
+                unguard_continuation,
+            )
+        )
+
+        # Each indent form is its own alternative of the check, so each gets
+        # its own case: undoing one alternative fails only that case. The last
+        # case keeps the guard off a run that meets `[^\n]*` inside the
+        # repeated group, the path that reads the group's span.
+        for form, written in (
+            ("\\s{2,}", "\\\\s{2,})*"),
+            (" {2,}", " {2,})*"),
+            ("[\\t ]{2,}", "[\\\\t ]{2,})*"),
+            ("[ \\t]{2,}\\S?", "[ \\\\t]{2,}\\\\S?)*"),
+            ("[ \\t]{2,}[^\\n]* in a repeated group", "[ \\\\t]{2,}[^\\\\n]*)*"),
+        ):
+
+            def unguard_variant(files=unguarded, written=written):
+                text, crlf = read_raw(files[0])
+                guarded = "[ \\\\t]{2,}(?![ \\\\t]))*"
+                if guarded not in text:
+                    raise RuntimeError(f"no guarded continuation group in {files[0]}")
+                write_raw(files[0], text.replace(guarded, written), crlf)
+
+            cases.append(
+                (
+                    Case(
+                        f"scenario: pattern reads a wrapped value with an unguarded {form}",
+                        unguarded,
+                        (".scenarios/cicd-retention-by-reader expectation 'records-retention-reader' pattern lets indentation and text share",),
+                    ),
+                    unguard_variant,
+                )
+            )
+
+    # A mutation that adds or removes words also moves a size count, and the
+    # size checks run before most others: without this, a case would be judged
+    # on whether a count sat near its budget, not on the check it targets. So
+    # every case outside "size:" re-budgets the copy to the mutated tree, as a
+    # change that moved those words would; the size cases keep the real budgets.
+    validator_text = validator.read_bytes()
+
+    def rebudget() -> None:
+        text, crlf = read_raw(validator)
+        skills = skill_dirs(copy / ".agents" / "skills")
+        actual = {"CLAUDE.md": word_count(copy / "CLAUDE.md")}
+        actual.update({path.name: word_count(path / "SKILL.md") for path in skills})
+        caps = {"LIBRARY_BUDGET_WORDS": sum(actual[path.name] for path in skills)}
+        try:
+            caps["DESCRIPTION_BUDGET_CHARS"] = sum(len(parse_frontmatter(path / "SKILL.md").get("description", "")) for path in skills)
+        except ValueError:
+            pass  # frontmatter broken: validate_root fails before any budget is read
+        for key, value in actual.items():
+            text = re.sub(rf'(?m)^    "{re.escape(key)}": \d+,$', f'    "{key}": {value},', text)
+        for key, value in caps.items():
+            text = re.sub(rf"(?m)^{key} = \d+$", f"{key} = {value}", text)
+        write_raw(validator, text, crlf)
+
     try:
         code, output = run()
         if code != 0:
@@ -2555,10 +3588,13 @@ def mutation_test() -> int:
         failures = []
         for case, mutate in cases:
             mutate()
+            if not case.label.startswith("size:"):
+                rebudget()
             try:
                 code, output = run()
             finally:
                 case.restore()
+                validator.write_bytes(validator_text)
             first = output.splitlines()[0] if output else ""
             if code == 0:
                 failures.append(f"{case.label}: validator still passed")
@@ -2628,6 +3664,25 @@ def validate_overview_skill_count() -> None:
                 )
 
 
+CHECK_COUNT_RE = re.compile(r"All (\d+) check codes have\s+coverage among (\d+) \[adversarial cases\]")
+
+
+def validate_readme_check_counts() -> None:
+    """The check-code and adversarial-case counts README.md states match the
+    checker's CODES and the .adversarial tree; both drift with every package."""
+    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    stated = CHECK_COUNT_RE.search(text)
+    if not stated:
+        fail("README.md must state 'All <n> check codes have coverage among <m> [adversarial cases]'")
+    checker = (CLAUDE_SKILLS / "alchemy-orchestrate" / "scripts" / "check_orchestration.py").read_text(encoding="utf-8")
+    block = re.search(r"(?ms)^CODES = \{\n(.*?)^\}", checker)
+    codes = len(re.findall(r'(?m)^\s+"[A-Z_]+": ', block.group(1))) if block else 0
+    cases = len([path for path in (ROOT / ".adversarial").iterdir() if (path / "case.json").is_file()])
+    if (int(stated.group(1)), int(stated.group(2))) != (codes, cases):
+        fail(f"README.md states {stated.group(1)} check codes and {stated.group(2)} adversarial cases, "
+             f"but the checker has {codes} codes and the tree {cases} cases")
+
+
 def validate_readme_install_table() -> None:
     """Each installer profile must appear as one README row pairing its skills
     tree with its instruction file. README.md once said every installer used
@@ -2642,6 +3697,39 @@ def validate_readme_install_table() -> None:
         row = f"| `{primary}/` | `{memfile}` |"
         if not contains(block, row):
             fail(f"README.md Installation details has no row for {agent}: '{row}'")
+
+
+def validate_alchemy_companion_order() -> None:
+    """One block in the route orders both two-pass companions around A/L/C/E,
+    and it is the route's only statement of that order. The pre-flight
+    checklist and the prose around the block used to restate it; the order
+    checks and the contract terms that pinned those restatements follow the
+    block."""
+    route = ALCHEMY_ROUTE.relative_to(ROOT).as_posix()
+    block = re.search(r"```text\n(Implementation Readiness\n.*?)```", ALCHEMY_ROUTE.read_text(encoding="utf-8"), re.S)
+    if not block:
+        fail(f"{route} missing the two-pass companion order block")
+    orders = {
+        "Test Strategy Readiness → Obligation → A/L/C/E → Portfolio → H": (
+            "Implementation Readiness",
+            "Test Strategy — Obligation pass",
+            "A → L/C → E",
+            "Test Strategy — Portfolio pass",
+            "\n→ H",
+        ),
+        "Evolutionary Database Design Compatibility → A/L/C/E → Transition → Test Strategy Portfolio → H": (
+            "Test Strategy — Obligation pass",
+            "Evolutionary Database Design — Compatibility pass",
+            "A → L/C → E",
+            "Evolutionary Database Design — Transition pass",
+            "Test Strategy — Portfolio pass",
+            "\n→ H",
+        ),
+    }
+    for label, terms in orders.items():
+        positions = [block.group(1).find(term) for term in terms]
+        if any(position < 0 for position in positions) or positions != sorted(positions):
+            fail(f"{route} must preserve the {label} order")
 
 
 def validate_test_strategy_contract() -> None:
@@ -2660,11 +3748,14 @@ def validate_test_strategy_contract() -> None:
             "`test-strategy`",
             "two-pass companions",
         ),
+        # The order block is the route's one statement of pass order, and
+        # validate_alchemy_companion_order holds it; the terms here hold the
+        # pass and what the block cannot say.
         ALCHEMY_ROUTE: (
             "`test-strategy`",
             "two-pass task-matched companion",
-            "Obligation pass before A",
-            "Portfolio pass after final A/L/C/E and before H",
+            "Test Strategy — Obligation pass",
+            "The Portfolio pass consumes final accepted architecture and enforcement",
             "earliest capable stage",
             "executed-evidence state",
         ),
@@ -2690,22 +3781,6 @@ def validate_test_strategy_contract() -> None:
         fail(
             ".agents/skills/test-strategy/SKILL.md uses ambiguous 'trigger' "
             "for a test stimulus"
-        )
-
-    alchemy_text = ALCHEMY_ROUTE.read_text(encoding="utf-8")
-    ordered_terms = (
-        "Readiness — READY or bounded reversible PARTLY-READY before Architecture",
-        "Test strategy — Obligation pass before A",
-        "Gate 2 — Smallest correct design",
-        "Gate 5 — architecture rules in the SAME PR as the code",
-        "Test strategy — Portfolio pass after final A/L/C/E and before H",
-        "Gate 6 — Every error path mapped to earliest catchable stage",
-    )
-    positions = [alchemy_text.find(term) for term in ordered_terms]
-    if any(position < 0 for position in positions) or positions != sorted(positions):
-        fail(
-            f"{ALCHEMY_ROUTE.relative_to(ROOT).as_posix()} must preserve the Test Strategy "
-            "Obligation → A/L/C/E → Portfolio → H checklist order"
         )
 
 
@@ -2753,8 +3828,8 @@ def validate_evolutionary_database_design_contract() -> None:
             "two-pass task-matched companion",
             "Compatibility pass",
             "Transition pass",
-            "grades reversibility from before A",
-            "before the Test Strategy Portfolio pass and H",
+            "supplies the data facts Gate 3 grades reversibility from",
+            "The Transition pass consumes final accepted architecture",
             "Expand and contract never ship in one deployable",
         ),
         ROOT / "ALCHEMY-PIPELINE-DESIGN.md": (
@@ -2785,24 +3860,6 @@ def validate_evolutionary_database_design_contract() -> None:
                 f"{grading.relative_to(ROOT).as_posix()} no longer "
                 f"grades from '{term}', which evolutionary-database-design emits"
             )
-
-    alchemy_text = ALCHEMY_ROUTE.read_text(encoding="utf-8")
-    ordered_terms = (
-        "Test strategy — Obligation pass before A",
-        "Data shape — Compatibility pass before A",
-        "Gate 2 — Smallest correct design",
-        "Gate 5 — architecture rules in the SAME PR as the code",
-        "Data shape — Transition pass after final A/L/C/E",
-        "Test strategy — Portfolio pass after final A/L/C/E and before H",
-        "Gate 6 — Every error path mapped to earliest catchable stage",
-    )
-    positions = [alchemy_text.find(term) for term in ordered_terms]
-    if any(position < 0 for position in positions) or positions != sorted(positions):
-        fail(
-            f"{ALCHEMY_ROUTE.relative_to(ROOT).as_posix()} must preserve the Evolutionary "
-            "Database Design Compatibility -> A/L/C/E -> Transition -> Test "
-            "Strategy Portfolio -> H checklist order"
-        )
 
 
 def validate_outcome_hypothesis_contract() -> None:
@@ -3349,15 +4406,34 @@ def run_adversarial_case(checker, directory: Path) -> tuple[dict, dict]:
     profile = checker.load_profile(str(profile_path) if profile_path else None)
     plan = load("plan")
     root = str(directory / args["root"]) if "root" in args else None
-    if command == "plan":
-        report = checker.check_plan(plan, profile, root)
-    elif command == "preflight":
-        report = checker.check_preflight(load("preflight"), plan, profile, root)
-    elif command == "handoff":
-        report = checker.check_handoff(load("handoff"), plan, profile, root)
-    else:
-        report = checker.check_gate(load("ledger"), plan, profile, root)
+    # The approved plan revision, and a revision an earlier check accepted, are digests, not files.
+    approved, revision = args.get("approved"), args.get("revision")
+    try:
+        if command == "plan":
+            report = checker.check_plan(plan, profile, root, approved, revision)
+        elif command == "preflight":
+            report = checker.check_preflight(load("preflight"), plan, profile, root)
+        elif command == "handoff":
+            report = checker.check_handoff(load("handoff"), plan, profile, root)
+        else:
+            report = checker.check_gate(load("ledger"), plan, profile, root, load("preflight"), approved,
+                                        revision, load("review"))
+    except Exception as error:  # a crash is a failed case, named so the rule it guards is found
+        fail(f"{label} crashed the checker: {type(error).__name__}: {error} ({case['criterion']})")
     return case, report
+
+
+def adversarial_fact_gaps(case: dict, report: dict) -> list[str]:
+    """expect.facts maps a report key, dotted for nesting, to its expected value,
+    for rules whose effect is a fact rather than a code (stopped work, counts)."""
+    gaps = []
+    for key, expected in (case["expect"].get("facts") or {}).items():
+        value = report
+        for part in key.split("."):
+            value = value.get(part) if isinstance(value, dict) else None
+        if value != expected:
+            gaps.append(f"{key} is {value!r}, not {expected!r}")
+    return gaps
 
 
 def validate_adversarial_cases() -> None:
@@ -3375,6 +4451,9 @@ def validate_adversarial_cases() -> None:
                 f".adversarial/{directory.name} expected {case['expect']['verdict']} {expected}, "
                 f"got {report.get('verdict')} {codes} ({case['criterion']})"
             )
+        gaps = adversarial_fact_gaps(case, report)
+        if gaps:
+            fail(f".adversarial/{directory.name}: {'; '.join(gaps)} ({case['criterion']})")
         exercised.update(codes)
     unexercised = sorted(set(checker.CODES) - exercised)
     if unexercised:
@@ -3388,6 +4467,323 @@ def validate_adversarial_cases() -> None:
             fail(f"check code {code} is not documented in alchemy-orchestrate/references/contracts.md")
 
 
+def gate_repository_report(checker, scratch: Path, unowned: bool, raised: bool, cycles: int,
+                           renamed: bool = False) -> dict:
+    """Gate report for gate-full-pass replayed in a real repository: the plan
+    base commits the profile with a bound of 3; the head commits P1's file,
+    optionally a file no package owns, and optionally the bound raised to 6.
+    With `renamed`, the base also holds src/billing/invoice.js, which no
+    package owns, and the head moves it into P1's src/orders/. The ledger
+    claims `cycles` rework cycles for P1; the gate is anchored at the plan."""
+    repo = scratch / "repo"
+    repo.mkdir()
+
+    def git(*args: str) -> str:
+        result = subprocess.run(["git", "-c", "user.name=validator", "-c", "user.email=validator@example.invalid",
+                                 "-c", "commit.gpgsign=false", *args], cwd=repo, capture_output=True, text=True)
+        if result.returncode != 0:
+            fail(f"gate repository fixture: git {args[0]} failed: {result.stderr.strip()}")
+        return result.stdout.strip()
+
+    git("init", "-q")
+    profile = {"schema": "alchemy-workspace/1", "execution": {"max_rework_cycles": 3}}
+    (repo / "alchemy-workspace.json").write_text(json.dumps(profile), encoding="utf-8")
+    if renamed:
+        (repo / "src" / "billing").mkdir(parents=True)
+        (repo / "src" / "billing" / "invoice.js").write_text("// billing, owned by no package\n", encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-q", "-m", "base")
+    base = git("rev-parse", "HEAD")
+    (repo / "src" / "orders").mkdir(parents=True)
+    (repo / "src" / "orders" / "validate.js").write_text("// P1\n", encoding="utf-8")
+    if renamed:
+        git("mv", "src/billing/invoice.js", "src/orders/invoice.js")
+    if unowned:
+        (repo / "src" / "billing").mkdir(parents=True)
+        (repo / "src" / "billing" / "invoice.js").write_text("// edited during integration\n", encoding="utf-8")
+    if raised:
+        profile["execution"]["max_rework_cycles"] = 6
+        (repo / "alchemy-workspace.json").write_text(json.dumps(profile), encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-q", "-m", "head")
+    head = git("rev-parse", "HEAD")
+    source = ADVERSARIAL / "gate-full-pass"
+    plan = json.loads((source / "plan.json").read_text(encoding="utf-8"))
+    ledger = json.loads((source / "ledger.json").read_text(encoding="utf-8"))
+    plan["base"]["commit"] = base
+    ledger["head_commit"] = head
+    ledger["rework_cycles"] = {"P1": cycles}
+    for item in ledger["evidence"]:
+        item["commit"] = head if item["commit"] == "c47e9aa" else base
+    current = checker.load_profile(str(repo / "alchemy-workspace.json"))
+    return checker.check_gate(ledger, plan, current, str(repo), None, checker.revision_digest(plan, 0))
+
+
+# (unowned write, bound raised during the run, claimed cycles, unowned file moved
+# into an owned directory) -> verdict, codes
+GATE_REPOSITORY_CASES = {
+    (False, False, 3, False): ("PASS", []),
+    (True, False, 3, False): ("FAIL", ["UNOWNED_WRITE"]),
+    (False, False, 4, False): ("ESCALATE", ["REWORK_LIMIT"]),
+    # The profile edit is also a write no package owns.
+    (False, True, 4, False): ("ESCALATE", ["AUTHORIZATION_UNPROVEN", "REWORK_LIMIT", "UNOWNED_WRITE"]),
+    # Rename detection would list only the owned destination.
+    (False, False, 3, True): ("FAIL", ["UNOWNED_WRITE"]),
+}
+
+
+def validate_gate_repository_rules() -> None:
+    """Gate rules that read git with --root, which a fixture directory cannot
+    hold: every path of the integrated diff has an owning package
+    (UNOWNED_WRITE), and the rework bound is the profile's as committed at the
+    plan base, so a bound raised during the run is refused and the base bound
+    applies (AUTHORIZATION_UNPROVEN). Each defect is replayed alone, next to
+    the same repository without it."""
+    checker = orchestration_checker()
+    for (unowned, raised, cycles, renamed), (verdict, codes) in GATE_REPOSITORY_CASES.items():
+        scratch = Path(tempfile.mkdtemp(prefix="l-gevity-gate-repo-"))
+        try:
+            report = gate_repository_report(checker, scratch, unowned, raised, cycles, renamed)
+        finally:
+            shutil.rmtree(scratch, ignore_errors=True)
+        got = sorted({error["code"] for error in report["errors"]})
+        if report["verdict"] != verdict or got != codes:
+            fail(f"gate repository rules (unowned write {unowned}, bound raised {raised}, {cycles} cycles, "
+                 f"unowned file moved into an owned directory {renamed}) "
+                 f"expected {verdict} {codes}, got {report['verdict']} {got}")
+
+
+UNSTOPPABLE = ORCHESTRATE / "adapters" / "unstoppable"
+
+
+def pipeline_jobs(text: str) -> dict[str, str]:
+    """Job name -> its block in a pipeline YAML, read by indentation: jobs sit
+    four spaces in under `jobs:`. No YAML parser is assumed."""
+    start = re.search(r"(?m)^  jobs:\n", text)
+    if not start:
+        return {}
+    body = text[start.end():]
+    heads = list(re.finditer(r"(?m)^    ([A-Za-z_][\w-]*):[ \t]*$", body))
+    return {head.group(1): body[head.end(): heads[i + 1].start() if i + 1 < len(heads) else len(body)]
+            for i, head in enumerate(heads)}
+
+
+def validate_unattended_adapter() -> None:
+    """The workflow adapter enforces the unattended-run preflight (ORCH-1a):
+    the check action runs preflight mode, the pipeline runs a preflight check
+    before the first execution wave and executes an unattended plan only on
+    PASS, and every gate check is handed the run's preflight record. The
+    runtime cannot run here, so the wiring is held by its text."""
+    action = UNSTOPPABLE / "actions" / "alchemy-check" / "check.py"
+    modes = re.search(r"^MODES = \(([^)]*)\)", action.read_text(encoding="utf-8"), re.M)
+    if not modes or '"preflight"' not in modes.group(1):
+        fail(f"{action.relative_to(ROOT)} MODES must include preflight")
+    path = UNSTOPPABLE / "pipelines" / "alchemy-multi-agent.yaml"
+    label = path.relative_to(ROOT)
+    jobs = pipeline_jobs(path.read_text(encoding="utf-8"))
+    if "unattended: ${{ steps.check.outputs.unattended }}" not in jobs.get("plan_check", ""):
+        fail(f"{label} plan_check must output the plan's unattended switch")
+    checks = [name for name, block in jobs.items()
+              if "uses: project/alchemy-check" in block and re.search(r"(?m)^\s+mode: preflight\s*$", block)]
+    if len(checks) != 1:
+        fail(f"{label} needs exactly one job running alchemy-check in preflight mode, found {checks}")
+    check = checks[0]
+    execute = jobs.get("execute", "")
+    condition = re.search(r"(?m)^      if: (.*)$", execute)
+    needs = re.search(r"(?ms)^      needs:\n((?:        - .*\n)+)", execute)
+    if not needs or f"- {check}\n" not in needs.group(1):
+        fail(f"{label} execute must need the preflight check job {check}")
+    required = f"|| (needs.{check}.result == 'success' && needs.{check}.outputs.verdict == 'PASS'))"
+    if not condition or required not in condition.group(1):
+        fail(f"{label} execute must run an unattended plan only on a preflight PASS: its if: needs "
+             f"({required})")
+    # The human, not the plan's author, decides that a run is watched (ORCH-1a, F1):
+    # only that choice, on a plan that is not unattended, skips the preflight.
+    attended = ("((needs.approve_plan.outputs.decision == 'continue-attended' "
+                "&& needs.plan_check.outputs.unattended != 'true') ||")
+    if attended not in condition.group(1):
+        fail(f"{label} execute may skip the preflight only when the human chose to attend: its if: needs "
+             f"({attended})")
+    if '"options":["continue-attended","continue-unattended","stop"]' not in jobs.get("approve_plan", ""):
+        fail(f"{label} approve_plan must ask the human to choose continue-attended, continue-unattended, or stop")
+    preflight = jobs.get("preflight", "")
+    runs = "(needs.approve_plan.outputs.decision != 'continue-attended' || needs.plan_check.outputs.unattended == 'true')"
+    if runs not in preflight:
+        fail(f"{label} preflight must run unless the human chose to attend a plan that is not unattended: "
+             f"its if: needs {runs}")
+    steps = re.split(r"(?m)^        - id: ", preflight)[1:]
+    if not steps or not (re.search(r"(?m)^\s+mode: plan\s*$", steps[0])
+                         and re.search(r"(?m)^\s+expect_unattended: 'true'\s*$", steps[0])):
+        fail(f"{label} preflight must first check that the plan says it is unattended (alchemy-check plan "
+             "mode with expect_unattended 'true') before anything is probed")
+    if not re.search(r"if stated != switch:\n\s+raise InputError", action.read_text(encoding="utf-8")):
+        fail(f"{action.relative_to(ROOT)} must refuse a plan whose execution.unattended is not expect_unattended")
+    for name, block in jobs.items():
+        for step in re.split(r"(?m)^        - id: ", block)[1:]:
+            if re.search(r"(?m)^\s+mode: gate\s*$", step) and not re.search(
+                    r"(?m)^\s+preflight: \$\{\{ needs\.plan_check\.outputs\.run_dir \}\}/preflight\.json\s*$", step):
+                fail(f"{label} job {name} runs a gate check without the run's preflight record")
+
+
+CORRECTION_STEPS = ("amend", "amend_check", "correct", "check", "review", "reconsolidate", "regate", "loop")
+
+
+def validate_correction_loop() -> None:
+    """The workflow adapter honors the rework bound (ORCH-3e): the gate check
+    outputs the correction passes the bound still allows, and one looping job
+    runs at most that many passes, each amending the plan, checking the
+    amendment before any edit, correcting, checking hand-offs, reviewing
+    read-only, updating the ledger, and gating, and restarting only when that
+    gate says FAIL with passes left. The runtime cannot run here, so the
+    wiring is held by its text."""
+    action = UNSTOPPABLE / "actions" / "alchemy-check" / "check.py"
+    if not re.search(r'outputs\["correction_passes"\] = .*left', action.read_text(encoding="utf-8")):
+        fail(f"{action.relative_to(ROOT)} must output correction_passes from the gate report's rework.passes_left")
+    path = UNSTOPPABLE / "pipelines" / "alchemy-multi-agent.yaml"
+    label = path.relative_to(ROOT)
+    text = path.read_text(encoding="utf-8")
+    jobs = pipeline_jobs(text)
+    if "correction_passes: ${{ steps.check.outputs.correction_passes }}" not in jobs.get("gate", ""):
+        fail(f"{label} gate must output the check's correction_passes")
+    looping = [name for name, block in jobs.items() if re.search(r"(?m)^      max_iterations:", block)]
+    if looping != ["correction"]:
+        fail(f"{label} needs exactly one looping job, correction, found {looping}")
+    block = jobs["correction"]
+    if not re.search(r"(?m)^      max_iterations: '\$\{\{ needs\.gate\.outputs\.correction_passes \}\}'\s*$", block):
+        fail(f"{label} correction must loop at most the gate's correction_passes times (max_iterations)")
+    condition = re.search(r"(?m)^      if: (.*)$", block)
+    for required in ("needs.gate.outputs.verdict == 'FAIL'", "needs.gate.outputs.correction_passes != '0'"):
+        if not condition or required not in condition.group(1):
+            fail(f"{label} correction must start only on a gate FAIL with passes left: its if: needs {required}")
+    steps = {}
+    for step in re.split(r"(?m)^        - id: ", block)[1:]:
+        steps[step.split("\n", 1)[0].strip()] = step
+    order = [name for name in steps if name in CORRECTION_STEPS]
+    if order != list(CORRECTION_STEPS):
+        fail(f"{label} correction must run {', '.join(CORRECTION_STEPS)} in that order, found {', '.join(order)}")
+    amend_check = steps["amend_check"]
+    if not re.search(r"(?m)^\s+mode: plan\s*$", amend_check) or "approved: ${{ needs.plan_check.outputs.plan_digest }}" \
+            not in amend_check or re.search(r"(?m)^\s+enforce: 'false'", amend_check):
+        fail(f"{label} correction's amend_check must enforce the plan check against the approved digest before any edit")
+    if "permission_preset: read_only" not in steps["review"]:
+        fail(f"{label} correction's review must stay read-only")
+    if not re.search(r"(?m)^\s+mode: gate\s*$", steps["regate"]):
+        fail(f"{label} correction's regate must run the gate check")
+    if "const again = verdict === 'FAIL' && Number.isInteger(passes) && passes > 0;" not in steps["loop"]:
+        fail(f"{label} correction may restart only when its own gate says FAIL with passes left")
+    restarts = [name for name, body in jobs.items() if "UNSTOPPABLE_CODE_JOB_RESTART" in body]
+    if restarts != ["correction"]:
+        fail(f"{label} only the correction loop may restart a job, found {restarts}")
+    for name, body in jobs.items():
+        for step in re.split(r"(?m)^        - id: ", body)[1:]:
+            if re.search(r"(?m)^\s+mode: gate\s*$", step) and not (
+                    "approved: ${{ needs.plan_check.outputs.plan_digest }}" in step
+                    and re.search(r"(?m)^\s+repository: 'true'\s*$", step) and re.search(r"(?m)^\s+run_plan: ", step)):
+                fail(f"{label} job {name} runs a gate check without the approved digest, the run plan, and the repository")
+    # Amendments are only appended (F4): the re-gate holds the revision this pass's
+    # amend_check accepted, and every later gate the last pass's; the re-gate also
+    # compares the ledger with the reviewer's own output (F7).
+    for line in ("revision: ${{ steps.amend_check.outputs.plan_digest }}",
+                 "review: ${{ steps.review.outputs.json_response_file }}"):
+        if line not in steps["regate"]:
+            fail(f"{label} correction's regate must take {line}")
+    if "revision: ${{ steps.amend_check.outputs.plan_digest }}" not in block.split("    steps:", 1)[0]:
+        fail(f"{label} correction must output the revision its amend_check accepted")
+    for name in ("escalate", "approve_pr"):
+        gates = [step for step in re.split(r"(?m)^        - id: ", jobs.get(name, ""))[1:]
+                 if re.search(r"(?m)^\s+mode: gate\s*$", step)]
+        if not gates or any("revision: ${{ needs.correction.outputs.revision }}" not in step for step in gates):
+            fail(f"{label} {name} must gate against the revision the last correction pass accepted")
+    # One correction pass is one cycle per origin chain (F11).
+    if "append one amendment per origin chain" not in steps["amend"]:
+        fail(f"{label} correction's amend must append one amendment per origin chain, never one per finding")
+    source = action.read_text(encoding="utf-8")
+    for needed, why in (('["--revision", option("revision")]', "pass the revision input as --revision"),
+                        ('extra += ["--review", str(review)]', "pass the review input as --review"),
+                        ("authorizations {granted(report)}", "list honoured authorizations in the plan summary"),
+                        ("Authorizations: {granted(report)}", "list honoured authorizations in the gate summary")):
+        if needed not in source:
+            fail(f"{action.relative_to(ROOT)} must {why}")
+    # The summaries the human approves from show every honoured authorization and
+    # the rework extension, read from real reports of cases that carry them.
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("alchemy_check_action", action)
+    summaries = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(summaries)
+    checker = orchestration_checker()
+    for name, mode in (("plan-amendment-broadens-approved-pass", "plan"), ("plan-extension-reported-pass", "plan"),
+                       ("gate-extension-anchored-reported-pass", "gate")):
+        _, report = run_adversarial_case(checker, ADVERSARIAL / name)
+        shown = summaries.summarize(mode, report)
+        needles = [value for item in report.get("authorizations") or []
+                   for value in (item.get("amendment") or item.get("extension"), item.get("ref"), *(item.get("grants") or []))]
+        extension = report.get("extension")
+        if isinstance(extension, dict):
+            needles += [f"ceiling {extension.get('ceiling')}", *(extension.get("conditions") or []), extension.get("ref")]
+        if not needles:
+            fail(f".adversarial/{name} reports no authorization or extension for the {mode} summary to show")
+        missing = [str(needle) for needle in needles if " ".join(str(needle).split()) not in shown]
+        if missing:
+            fail(f"{action.relative_to(ROOT)} {mode} summary omits {'; '.join(missing)}, which .adversarial/{name} reports")
+    for path in sorted((UNSTOPPABLE / "pipelines").glob("*.yaml")):
+        for problem in yaml_single_quote_problems(path.read_text(encoding="utf-8")):
+            fail(f"{path.relative_to(ROOT)}:{problem}")
+
+
+BLOCK_SCALAR_RE = re.compile(r"^\s*(?:-\s+)?[\w.-]+:\s*[|>][+-]?\s*(?:#.*)?$")
+QUOTED_VALUE_RE = re.compile(r"^\s*(?:-\s+|[\w.-]+:\s+|-\s+[\w.-]+:\s+)'")
+
+
+def yaml_single_quote_problems(text: str) -> list[str]:
+    """Single-quoted YAML scalars that end early, found without a YAML parser
+    (the validator is standard-library only). Inside a single-quoted scalar a
+    quote is written twice; a lone one closes it, and anything after the close
+    but a comment is a parse error. That catches an apostrophe in prose and a
+    single-quoted argument inside a single-quoted expression. Block scalar
+    bodies are skipped; a scalar may continue over lines."""
+    problems = []
+    lines = text.splitlines()
+    block = None
+    number = 0
+    while number < len(lines):
+        line = lines[number]
+        number += 1
+        stripped = line.lstrip(" ")
+        indent = len(line) - len(stripped)
+        if block is not None:
+            if not stripped or indent > block:
+                continue
+            block = None
+        if not stripped or stripped.startswith("#"):
+            continue
+        if BLOCK_SCALAR_RE.match(line):
+            block = indent
+            continue
+        match = QUOTED_VALUE_RE.match(line)
+        if not match:
+            continue
+        start, rest, position = number, line[match.end():], 0
+        while True:
+            quote = rest.find("'", position)
+            if quote < 0:
+                if number >= len(lines):
+                    problems.append(f"{start}: a single-quoted scalar never closes")
+                    break
+                rest += " " + lines[number].strip()
+                number += 1
+                continue
+            if rest[quote + 1:quote + 2] == "'":
+                position = quote + 2
+                continue
+            tail = rest[quote + 1:].strip()
+            if tail and not tail.startswith("#"):
+                problems.append(f"{start}: a single-quoted scalar closes before {tail[:40]!r}; write a quote "
+                                "inside it twice, or use double quotes")
+            break
+    return problems
+
+
 SKILL_CONTRACT_CAPABILITIES = (
     "lead", "architecture", "engineering", "verification", "optimization", "security", "scientific-validation",
 )
@@ -3397,7 +4793,11 @@ SKILL_CONTRACT_WRITES = ("none", "code", "tests", "rule-files", "pipeline-config
 def validate_skill_contracts() -> None:
     """The orchestrator composes agents from one map of every skill. A skill the
     map omits cannot be delegated, and a verdict the map invents is a decision
-    the skill never returns, so both directions are checked against the tree."""
+    the skill never returns, so both directions are checked against the tree.
+    Where a skill's references return decision records of their own, the row
+    is checked against the Decision line of every file named for the skill,
+    SKILL.md included, so a hand-off cannot return a decision the map does
+    not know and no file can stand in for a decision another one dropped."""
     path = ORCHESTRATE / "assets" / "skill-contracts.json"
     label = path.relative_to(ROOT)
     try:
@@ -3429,17 +4829,40 @@ def validate_skill_contracts() -> None:
             fail(f"{label} {name}: completion needs at least one decision")
         text = (AGENT_SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
         flat = flatten(text)
-        for decision in entry["completion"] + entry["failure"]:
+        decisions = entry["completion"] + entry["failure"]
+        contract_files = OUTPUT_CONTRACT_FILES.get(name, {})
+        returned: set[str] = set()
+        for relative, required in contract_files.items():
+            contract = (AGENT_SKILLS / name / relative).read_text(encoding="utf-8")
+            line = re.search(r"^Decision:[ \t]+(.+)$", contract, re.M)
+            if line is None:
+                fail(f"{label} {name}: {name}/{relative} has no Decision line")
+            values = [value.strip() for value in line.group(1).split("|")]
+            for value in values:
+                if value not in decisions:
+                    fail(f"{label} {name}: {name}/{relative} returns '{value}', which the row does not list")
+            for value in required:
+                if value not in values:
+                    fail(f"{label} {name}: {name}/{relative} no longer returns '{value}'")
+            returned.update(values)
+        for decision in decisions:
+            if contract_files:
+                # Each file above is held to its own decisions, so the lines
+                # together are what the skill returns.
+                if decision not in returned:
+                    fail(f"{label} {name}: decision '{decision}' does not appear on a Decision line of {name}")
             # A whole word or phrase, so an invented decision cannot pass by
             # matching inside another word.
-            if not re.search(rf"(?<![\w-]){re.escape(flatten(decision))}(?![\w-])", flat):
+            elif not re.search(rf"(?<![\w-]){re.escape(flatten(decision))}(?![\w-])", flat):
                 fail(f"{label} {name}: decision '{decision}' does not appear in {name}/SKILL.md")
 
 
 def validate_execution_contract() -> None:
     """Execution is decided by the router, after dispatch and apart from it: a
     fifth dispatch state, or orchestration the user must invoke by name, would
-    break the four states every scenario pins."""
+    break the four states every scenario pins. SKILL.md holds the decision and
+    the default every dispatch needs; the route holds the selection that only
+    ADAPTIVE, FULL, and audit runs make."""
     router = AGENT_SKILLS / "alchemy" / "SKILL.md"
     text = router.read_text(encoding="utf-8")
     preflight = text.find("### Dispatch Preflight")
@@ -3449,11 +4872,18 @@ def validate_execution_contract() -> None:
         fail(f"{router.relative_to(ROOT)} must decide execution after dispatch and before qualification")
     section = text[execution:qualification]
     for term in ("never a fifth dispatch", "`alchemy-orchestrate`", "`single-agent`", "`multi-agent`",
-                 "`execution.multi_agent`", "the user never names agents",
-                 "`SKIP` and `DIRECT` run `single-agent` and never load orchestration",
-                 "one writer and one independent reviewer is `multi-agent`"):
+                 "the user never names agents",
+                 "`SKIP` and `DIRECT` run `single-agent` and never load orchestration"):
         if not contains(section, term):
             fail(f"{router.relative_to(ROOT)} Execution Strategy missing '{term}'")
+    route = ALCHEMY_ROUTE.relative_to(ROOT).as_posix()
+    selection = re.search(r"^## \d+\. Execution\n(.*?)(?=^## |\Z)", ALCHEMY_ROUTE.read_text(encoding="utf-8"), re.M | re.S)
+    if not selection:
+        fail(f"{route} must hold the Execution selection the router points at")
+    for term in ("`alchemy-orchestrate`", "`single-agent`", "`multi-agent`", "`execution.multi_agent`",
+                 "one writer and one independent reviewer is `multi-agent`"):
+        if not contains(selection.group(1), term):
+            fail(f"{route} Execution missing '{term}'")
     if not re.search(r"^Execution:\s+<single-agent \| multi-agent>", text, re.M):
         fail(f"{router.relative_to(ROOT)} output contract must report Execution")
     public = {
@@ -3492,7 +4922,11 @@ def main() -> int:
     validate_runtime_neutrality()
     validate_skill_contracts()
     validate_execution_contract()
+    validate_alchemy_companion_order()
     validate_adversarial_cases()
+    validate_gate_repository_rules()
+    validate_unattended_adapter()
+    validate_correction_loop()
     validate_verdict_classification()
     validate_morphogenetic_mode_selection()
     validate_morphogenetic_graph_analyzer()
@@ -3508,6 +4942,7 @@ def main() -> int:
     validate_asset_references()
     validate_readme_index()
     validate_overview_skill_count()
+    validate_readme_check_counts()
     validate_readme_install_table()
     validate_test_strategy_contract()
     validate_requirements_grounding_contract()

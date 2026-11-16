@@ -1,0 +1,17 @@
+{
+  "criterion": "multi-agent-governance #179: deleting amendments cannot reset the rework count",
+  "description": "Three rework amendments of P1 were checked (revision passed as revision); they were then deleted from the plan and the ledger reset to zero cycles. The anchor still matches, because the approved part did not change.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6",
+    "revision": "e28468287d1f2bffab4bfed9b8b1c7a81dee3c6b518762e356f07b5cbbea6209"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AMENDMENT_INVALID"
+    ]
+  }
+}

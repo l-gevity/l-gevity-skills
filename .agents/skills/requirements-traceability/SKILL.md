@@ -39,18 +39,13 @@ source.
 ## Boundary
 
 Use this skill after a passing `implementation-readiness` decision when work
-enters architecture, implementation, verification, review, or closeout.
-
-Use `requirements-grounding` to establish meaning and authority,
-`requirements-topology` to own IDs, relationships, lineage, schemas, and
-generated views, and `implementation-readiness` to decide whether work may
-start. Apply the project's requirements profile for repository paths, ID
-formats, evidence stores, commands, and classifications.
+enters architecture, implementation, verification, review, or closeout. Apply
+the project's requirements profile for repository paths, ID formats, evidence
+stores, commands, and classifications.
 
 This skill owns live evidence relationships and outcome-evidence state.
-`requirements-grounding` owns hypothesis meaning, thresholds, guardrails, and
-revisit intent. `functionality-complexity-tradeoff` owns the resulting
-functionality-worth verdict. This skill does not add another stage or letter to
+`requirements-grounding` owns requirement and hypothesis meaning, thresholds,
+guardrails, and revisit intent. This skill does not add another stage or letter to
 A.L.C.H.E.M.Y.
 
 ## Minimum Inputs
@@ -175,45 +170,15 @@ contract or test already preserve the relationship.
 
 ## Formal Completion Records
 
-Formalize completion in the project's natural issue or change record. Do not
-rewrite canonical requirement meaning, approval, or readiness state merely to
-signal that delivery finished. Completion evidence, release state, and outcome
-evidence remain independent.
-
-Close the record only when it preserves:
-
-- the bounded canonical requirement and criterion IDs;
-- the completion boundary, such as acceptance, release, or production;
-- the exact revision, artifact, environment, and executed run evidence;
-- implementation and verification anchors;
-- evidence freshness when the operational proof can expire; and
-- named gaps, deferrals, and owners without implying a broader completion state.
-
-Use repository markers according to the repository's existing convention:
-
-- an immutable checkpoint or tag is optional when the exact source snapshot
-  matters; its name must not imply release, production, or outcome proof that
-  the evidence does not establish;
-- a milestone groups multiple work items toward a shared objective; do not
-  invent one for a single closeout unless the project explicitly uses that
-  convention; and
-- keep unresolved release or production work separate from an accepted
-  increment.
-
-```text
-Completion record:
-- Subject: <capability or bounded increment>
-- Decision: TRACEABLE | PARTIAL | BLOCKED
-- Canonical scope: <requirement and criterion IDs>
-- Completion boundary: <acceptance | release | production | other>
-- Revision/artifact/environment: <immutable identities>
-- Implementation: <stable anchors>
-- Executed evidence: <run identities and results>
-- Evidence freshness: <current through date, stale, or not applicable>
-- Gaps/deferred: <gap, owner, and the issue or milestone check that carries it>
-- Outcome status: <linked states or not assessed>
-- Repository marker: <change record; optional checkpoint; aggregate milestone>
-```
+Formalize completion in the project's natural issue or change record, and
+append the closeout trace note to every implementation or review closeout. Do
+not rewrite canonical requirement meaning, approval, or readiness state merely
+to signal that delivery finished. Completion evidence, release state, and
+outcome evidence remain independent. Read
+[references/closeout-records.md](references/closeout-records.md) before
+closing a record or writing the note: it holds what a closed record must
+preserve, the repository-marker rules, the `Completion record:` shape, and the
+`Trace:` note.
 
 ## Gap Taxonomy
 
@@ -281,42 +246,15 @@ Next action:         <implement, test, decide, repair reference, or close>
 Verification:        <trace check and tests run, or Not run + reason>
 ```
 
-For implementation or review closeout, append a compact note:
-
-```text
-Trace:
-- Source: <requirement set, issue, or admitted increment>
-- IDs: <requirement and criterion IDs>
-- Implementation: <stable artifacts>
-- Evidence: <executed tests or operational results>
-- Outcomes: <hypothesis IDs, evidence states, freshness, and observation links>
-- Gaps/deferred: <none or named gaps; representation gaps carry expiry>
-```
-
 ## Guardrails
 
-- Do not mark a requirement verified because code, a route shell, a fixture, or
-  a test definition exists.
 - Do not tag a test with a criterion it does not assert; when a criterion's
   wording or mechanism changes, re-verify every test tagged to it.
 - Do not use issue text as canonical when it conflicts with requirements.
 - Do not hide unrelated work under a convenient requirement ID.
-- Do not duplicate every trace edge in a giant registry and nearby artifacts.
-- Do not use completion, deployment, adoption, or telemetry presence alone as
-  evidence that an outcome hypothesis is supported.
-- Do not change a hypothesis threshold, cohort, window, or guardrail in an
-  evidence record; return meaning changes to `requirements-grounding`.
 - Do not issue BUILD, KEEP, SIMPLIFY, DROP, or removal decisions; hand current
   outcome evidence to `functionality-complexity-tradeoff`.
 - Do not recycle IDs; follow topology lineage after splits, merges, and
   replacements.
 - If grounding, topology, or readiness changes materially, invalidate or refresh
   affected trace decisions.
-
-## See also
-
-- `requirements-grounding` — requirement meaning, source authority, and evidence.
-- `functionality-complexity-tradeoff` — worth decisions using current outcome evidence.
-- `requirements-topology` — stable IDs, lineage, graph semantics, and repository gates.
-- `implementation-readiness` — admitted implementation increment and verification obligations.
-- `defect-shift-left` — earliest blocking placement for trace checks.

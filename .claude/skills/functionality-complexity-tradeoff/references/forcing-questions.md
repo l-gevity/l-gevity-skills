@@ -49,11 +49,11 @@ is a candidate for OBSOLETE / DROP-as-non-problem.
 - How long is the **dependency chain** a typical change traverses once this
   exists? (Max-chain-depth Δ)
 - How many tests — including error paths, edge cases, and integration —
-  will this require? (`M`)
+  will this require? (`Maintenance`)
 - **If this breaks, what else breaks** with it? What is the blast radius?
-  (`X`)
+  (`Risk`)
 - What future change does this make **harder, slower, or more dangerous**?
-  (`E`)
+  (`Evolution`)
 
 ### Counterfactual
 

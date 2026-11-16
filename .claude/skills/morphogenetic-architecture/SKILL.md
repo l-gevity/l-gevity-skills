@@ -47,17 +47,14 @@ instead of treating the initial grid as permanent truth.
    accept or reject both candidates.
    Never choose a topology because it resembles a spiral, tree, honeycomb, or
    sacred figure.
-6. **Preserve one owner per rule.** Hand complexity measurement to
-   `structural-simplification`, internal design to `architecture-guidelines`,
-   and enforceable edges to `architecture-as-code`.
-7. **Escalate proof monotonically.** Start with the smallest sufficient
+6. **Escalate proof monotonically.** Start with the smallest sufficient
    analysis mode, but never let a request for speed waive evidence,
    measurement, or hard-invariant checks.
-8. **Scale proof to reversibility.** Grade how expensive the change would be to
+7. **Scale proof to reversibility.** Grade how expensive the change would be to
    undo, then require evidence proportional to that cost. A cheap-to-reverse
    change still obeys every hard invariant; a hard-to-reverse change is never
    accepted on one field.
-9. **Close the loop.** Every accepted restructuring is a hypothesis: record
+8. **Close the loop.** Every accepted restructuring is a hypothesis: record
    the field it should improve, the window, and the recheck trigger, then
    re-enter Audit when the window closes. Route a systematic prediction miss
    to `continuous-improvement`.
@@ -335,8 +332,7 @@ DECLARE-RUNTIME-CYCLE omit all seven; Rapid never emits them. Their record
 ends at `Verification`: omit the lines, never fill them with `Not required`,
 which is a value for a restructuring record only. A KEEP that rejected a
 restructuring candidate is still a KEEP; put the rejected candidate and its
-evidence in **Boundary evidence** and **Next action**. Every other field
-appears in every report.
+evidence in **Boundary evidence** and **Next action**.
 
 Always emit the summary block in Design and Audit mode. Keep values terse when
 the user asks for a concise answer; do not omit a field your decision
@@ -348,11 +344,3 @@ qualifications in **Boundary evidence** or **Next action**.
 
 Do not claim that observed agreement proves an architecture optimal. Report the
 evidence window and residual judgment.
-
-## See Also
-
-- **`architecture-guidelines`** — decide what belongs inside a subsystem.
-- **`structural-simplification`** — measure whether an evolution is simpler.
-- **`architecture-as-code`** — enforce static dependency constraints.
-- **`defect-shift-left`** — move each topology defect to its earliest reliable check.
-- **`continuous-improvement`** — route a systematic prediction miss to its rule.

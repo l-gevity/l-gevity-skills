@@ -12,6 +12,8 @@ a rule with no check is marked as judgment and is reviewed in the report.
 | Worth (M) and gate verdicts (A–Y) | the package holding that capability | any agent, with evidence | the lead, on the owning skill's criteria and the evidence cited |
 | Interface contract | the `decide` package that produces it | any consumer | the lead; dependents start only after acceptance (`CONTRACT_ORDER`) |
 | Implementation inside a write set | the package owner | any verifier | the gate, on passing evidence at the integrated head |
+| Rework, a lead correction, replanning | the lead, as a plan amendment before anybody edits | the amendment's reviewer | the plan check, inside the approved envelope (`AMENDMENT_INVALID`, `AMENDMENT_BROADENS`); outside it, the human, by approving a revision that holds it |
+| More rework cycles than `max_rework_cycles` | the lead, in the plan before the run | — | the human only, as `execution.rework_extension` (`AUTHORIZATION_UNPROVEN`) |
 | Finding validity | the verifier | the package owner, with evidence | the gate: `resolved` or `rejected` need passing evidence (`UNSUPPORTED_RESOLUTION`) |
 | Accepted risk, deferred criterion | any agent | — | the human only (`RISK_NOT_ACCEPTED_BY_HUMAN`, `UNVERIFIED`) |
 | Merge, deploy, destructive or external action | the lead | — | the human only (`MERGE_POLICY`, `PERMISSION_EXCEEDS`) |
@@ -19,6 +21,30 @@ a rule with no check is marked as judgment and is reviewed in the report.
 Evidence is an executed check with a command, exit code, and commit; a file,
 line, and digest; or a canonical record by ID. Agreement between agents,
 model reputation, role title, and stated confidence are not evidence.
+
+**Authorization.** A human decision is an answer the human gave. An
+unanswered question, an expired one, a timeout, or a default an agent chose
+grants nothing: the run keeps the authority it started with and stops at the
+bound instead. A recorded authorization names the human, the place the human
+said so (`ref`: an approval step, an issue or review comment), the source
+`answer`, and an expiry when the answer had one; a record without those is
+`AUTHORIZATION_UNPROVEN`. It is captured before the work that uses it and
+cannot be widened from inside the run: an extension sits in the approved
+revision, which the gate holds to `--approved`, and with `--root` the gate
+takes `max_rework_cycles` as committed at the plan base, so a profile raised
+during the run is a violation, not a raised bound. An `approval` the lead
+writes into an amendment after the approved revision is the lead's text, not
+the human's answer, so it grants nothing: when a correction truly needs more
+scope, the run stops and asks, and the human approves a revision that holds
+the amendment, whose digest the next check takes as `--approved`. Run the
+plan check as `check_orchestration.py plan <plan> --approved <approved_digest>`
+and the gate as `check_orchestration.py gate <ledger> --plan <plan> --approved
+<approved_digest> --revision <last plan_digest>`; without `--approved` a plan
+with amendments, an extension, or recorded rework fails. What no script can
+establish is that `ref` says what the record claims: the gate lists every
+authorization it relied on under `authorizations`, the workflow adapter prints
+them with the extension's ceiling, conditions, and reference in the summary
+the human approves, and the human opens each one.
 
 ## 2. Disagreement
 
@@ -38,10 +64,50 @@ model reputation, role title, and stated confidence are not evidence.
 5. **No vote.** A resolution citing majority, seniority, or confidence fails
    the gate (`VOTE_NOT_EVIDENCE`).
 
-Rework is bounded: at most `max_rework_cycles` correction rounds per package
-(`REWORK_LIMIT`), and one re-entry per dispute (judgment: the ledger records
-it, no check counts it). Reaching a bound escalates with
-both positions and the evidence; it never restarts the loop.
+Rework is bounded: at most `max_rework_cycles` correction rounds per origin
+chain, counted from its rework amendments and never below the ledger's
+`rework_cycles` claims summed along it, so a renamed or new rework package
+does not start at zero (`REWORK_LIMIT`). An amendment counts against every
+chain whose approved writes its writes overlap, so a fix of one chain's files
+charged to another origin still counts, and amendments are only appended
+(`--revision`). One correction pass is one cycle per origin chain: it adds
+one amendment per chain that lists every finding it answers, never one per
+finding. And one re-entry per dispute
+(judgment: the ledger records it, no check counts it). Reaching a bound
+escalates with both positions and the evidence; it never restarts the loop.
+
+**Convergence.** Patching stops before the bound when it is not converging.
+The reviewer who raises a finding records its links: `after`, the amendment
+whose review raised it; `related_to`, earlier findings in the same component
+or of the same class; `introduced_by`, the fix that caused it;
+`reopened_after`, the fixes after which it came back. The gate fires
+`NOT_CONVERGING` for an origin chain, counting only since its last replanning
+amendment, when:
+
+1. a blocking or major finding is related to a blocking or major finding of
+   an earlier review round: the second round that finds a serious problem in
+   the same component means the design, not the patch, is wrong; or
+2. the second fix of the chain introduced a blocking or major regression or
+   reopened a blocking or major finding.
+
+Both thresholds sit at the first repeat, inside the default bound of two
+cycles, so the rule and not the rework limit ends the loop: a lead that
+names its own stop rule after one new edge case, then patches on, is the
+pattern rule 1 stops; six rounds that each fix one defect and break another
+are the pattern rule 2 stops at its second round. Ordinary rework does not
+fire it: two unrelated majors, a minor reopened once, a finding fixed in one
+cycle.
+
+Relatedness is a judgment. The reviewer of the round that raises the finding
+records it, never the package owner; the reviewer question for every rework
+review is "does this finding touch a file, contract, or class an earlier
+finding named?", and a yes is a link. The script cannot see a link nobody
+recorded, nor tell a wrong `no` from a right one: an independent verifier
+re-reads the findings against the diff. What the script does check: every
+blocking or major finding names its package once the plan has amendments, a
+linked one names `after`, and with `--review` the ledger keeps every serious
+finding and link of the reviewer's own output, so a lead that removes a link
+fails the gate (`SILENT_SKIP`) instead of editing a record the reviewer owns.
 
 ## 3. Shared State
 
@@ -76,7 +142,10 @@ both positions and the evidence; it never restarts the loop.
 | Concurrent modification | `WRITE_CONFLICT` at plan; a merge conflict at integration | Serialize: add a dependency edge, re-plan, re-run the later package on the new base |
 | Hand-off misrepresents the work | `CLAIM_CONTRADICTS_WORKSPACE`, `CLAIM_CONTRADICTS_EVIDENCE`, `UNSUPPORTED_CLAIM`, `SCOPE_VIOLATION` | `REJECT`; return to the owner with the failing check; counts as a rework cycle |
 | Context moved underneath a package | `STALE_BASE`, `STALE_CONTEXT` | `STALE`: rebase or re-validate against the current artifact, then re-check |
-| Failed validation after integration | profile verification command fails | Route to the owner of the package whose change it implicates; bounded by `max_rework_cycles` |
+| Failed validation after integration | profile verification command fails | Add a rework amendment for the package whose change it implicates, then route the correction to its owner; bounded by `max_rework_cycles` along its origin chain |
+| The lead must correct the work itself | the lead has no package | A rework amendment with the lead as owner and another agent as reviewer, before the edit; the write set names the files, never one taken from a test error |
+| A write no package owns | `UNOWNED_WRITE` at the gate, from git with `--root` | `FAIL`: revert it, or add the amendment that owns it and have it reviewed |
+| Patching does not converge | `NOT_CONVERGING` | `ESCALATE`: stop the `stopped` packages; add one replanning amendment (a `decide` package with its own reviewer) for the design; packages under `may_continue` go on. A rework amendment for stopped work is `AMENDMENT_INVALID` until the replanning amendment exists |
 | Invalid or contradictory requirements | `REQUIREMENT_CONFLICT` | Stop the affected packages; escalate to the human |
 
 Recovery is idempotent because a writer touches only its write set in an

@@ -179,12 +179,3 @@ Next action:       <one concrete action>
 
 `UNOBSERVED` is a reportable outcome. A risk with no affordable signal is
 recorded as undetectable, with the consequence stated, not quietly dropped.
-
-## 7. See Also
-
-- **`test-strategy`** - the risks and oracles that decide what remains residual.
-- **`defect-shift-left`** - the cost ladder, and moving a production signal earlier.
-- **`ci-cd-reliability-architecture`** - health probes, promotion, and rollback triggers.
-- **`requirements-traceability`** - outcome measurement linked to a requirement.
-- **`push-out`** - moving the response to a signal out of human memory.
-- **`system-optimization`** - the waste scan that surfaces missing or unclear signals.

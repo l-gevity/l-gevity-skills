@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #207: under same-check-green, the check that failed for the finding passes at head",
+  "description": "Same as gate-extension-same-check-green-pass, but F3 is resolved by E7, the whole orders suite, not by the rounding check that failed.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "a530bae478f1a6c3340730a2930f6bcd6b462703ef8630ea15f246da3a75b099"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "REWORK_LIMIT"
+    ]
+  }
+}

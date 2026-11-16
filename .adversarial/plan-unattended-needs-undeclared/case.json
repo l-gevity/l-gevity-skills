@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #126: the plan check refuses an unattended plan with a package that states no needs",
+  "description": "The unattended plan with P3's needs removed, checked before any preflight exists.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "NEEDS_UNDECLARED"
+    ]
+  }
+}

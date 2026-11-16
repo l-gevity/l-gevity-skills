@@ -1,0 +1,13 @@
+{
+  "criterion": "multi-agent-governance #136: a complete rework amendment is one checked plan",
+  "description": "A1 adds P1-R1, owned by agent-a, writing inside P1's write set from the plan base, depending on P1, reviewed by agent-c, who owns the verify package.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

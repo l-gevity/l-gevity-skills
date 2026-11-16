@@ -1,0 +1,95 @@
+{
+  "request": "Run continuous-improvement on this: it happened in our consumer project, a Go payments service. We do not write our generic agent skills ourselves: a platform team maintains them in a shared skills repository, and we copy a pinned release of it, byte for byte, into our `.claude/skills/`; our own project rules live in a separate project-only skill, `.claude/skills/payments-profile/`. Twice this month a reviewer had to make the same correction by hand: the agent named feature flags after the ticket that introduced them (`flag_PAY_1432`), and the reviewer renamed each one after the behavior it switches (`flag_instant_refunds`). The vendored `architecture-guidelines` skill has a naming rule, but it says nothing about feature flags. A teammate proposes to fix it today by adding a paragraph about flag names to our vendored copy of `architecture-guidelines/SKILL.md`. Where should this lesson go? Answer on a line of the form `Lesson goes to: vendored-copy`, `Lesson goes to: project-skill`, or `Lesson goes to: shared-repository`. Should we patch the vendored copy? Answer on a line of the form `Patch the vendored copy: yes` or `Patch the vendored copy: no`. And if the fix cannot wait for the platform team's next release, what may we do in our own tree in the meantime? The same teammate also wants the platform team to reword the first sentence of that naming rule, from 'reveals' to 'states', because it reads better to them; no review and no agent run has gone wrong because of the current wording. Is that an edit to make or a proposal to send? Answer on a line of the form `Reword the naming rule: edit` or `Reword the naming rule: proposal`, and say what has to go with it. A third teammate would rather have the platform team add a new skill, `flag-naming`, than touch the naming rule. Answer on a line of the form `New skill: yes` or `New skill: no`, with the reason.",
+  "skills": ["continuous-improvement"],
+  "expect": [
+    {
+      "id": "applies-improvement-guidance",
+      "criterion": "continuous-improvement #1: a recurring correction to a generic skill loads the improvement protocol",
+      "check": "guidance_includes",
+      "skills": ["continuous-improvement"]
+    },
+    {
+      "id": "refuses-vendored-patch",
+      "criterion": "continuous-improvement #2: a lesson about a generic method is not written into the vendored copy of the skill",
+      "check": "field_in",
+      "field": "Patch the vendored copy",
+      "values": ["no", "No", "NO"]
+    },
+    {
+      "id": "lesson-goes-to-shared-owner",
+      "criterion": "continuous-improvement #3: the lesson goes to the one canonical generic owner in the skill library, not to the vendored copy or a project overlay",
+      "check": "field_in",
+      "field": "Lesson goes to",
+      "values": ["shared-repository", "Shared-repository", "Shared-Repository"]
+    },
+    {
+      "id": "owner-not-vendored-copy",
+      "criterion": "continuous-improvement #4: the record does not name the vendored copy or the project overlay as the owner of the fix",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Owner:\\**[ \\t]*`?(?!(?:the |our )?(?:vendored|local|payments-profile))\\S"
+    },
+    {
+      "id": "local-patch-is-temporary-divergence",
+      "criterion": "continuous-improvement #5: a local patch is at most a temporary divergence that names its upstream owner",
+      "check": "text_matches",
+      "pattern": "temporar[^\\n]{0,120}(diverg|upstream)|(diverg|upstream)[^\\n]{0,120}temporar"
+    },
+    {
+      "id": "repins-after-library-fix",
+      "criterion": "continuous-improvement #6: the consumer takes the fix by repinning the library revision that carries it",
+      "check": "text_matches",
+      "pattern": "\\bre-?pin"
+    },
+    {
+      "id": "trigger-is-recurring-correction",
+      "criterion": "continuous-improvement #7: the record classifies a correction made twice as a correction or a systemic failure",
+      "check": "field_in",
+      "field": "Trigger",
+      "values": ["correction", "Correction", "systemic", "Systemic"]
+    },
+    {
+      "id": "weighs-automation-first",
+      "criterion": "continuous-improvement #8: the record states whether a mechanical check implements the lesson before prose",
+      "check": "field_in",
+      "field": "Automation",
+      "values": ["implemented", "Implemented", "infeasible", "Infeasible", "deferred", "Deferred"]
+    },
+    {
+      "id": "states-residual-risk",
+      "criterion": "continuous-improvement #9: the record states the risk left after the decision",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \\t>*_-]*Residual risk:\\**[ \\t]*(?!(none|n/a|nil|not applicable)\\b)\\S"
+    },
+    {
+      "id": "preferred-wording-is-proposal",
+      "criterion": "continuous-improvement #10: a preferred wording with no observed failure behind it is a proposal, not an edit",
+      "check": "field_in",
+      "field": "Reword the naming rule",
+      "values": ["proposal", "Proposal", "PROPOSAL"]
+    },
+    {
+      "id": "proposal-carries-worth-verdict",
+      "criterion": "continuous-improvement #11: a proposal without an observed failure is returned with an M verdict",
+      "check": "text_matches",
+      "pattern": "\\bM verdict|\\bM[- ]gate|\\bM \\(Minimum|functionality-complexity-tradeoff|\\bverdict[^\\n]{0,30}\\bM\\b"
+    },
+    {
+      "id": "no-new-skill",
+      "criterion": "continuous-improvement #12: a lesson an existing skill owns does not become a new skill",
+      "check": "field_in",
+      "field": "New skill",
+      "values": ["no", "No", "NO"]
+    },
+    {
+      "id": "new-skill-bar-named",
+      "criterion": "continuous-improvement #13: a skill is added only for a distinct trigger, lifecycle, and output contract",
+      "check": "text_matches",
+      "pattern": "(?m)^(?:(?!without|not need|n't need|needs? no\\b|regardless of)[^\\n])*\\btrigger[^\\n]{0,30}\\blifecycle[^\\n]{0,30}\\boutput\\b"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}

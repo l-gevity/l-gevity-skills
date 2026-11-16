@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #154: the rework count comes from the checked amendments, not from a number the lead types",
+  "description": "Three rework amendments of P1 (A1 to A3); the ledger claims one cycle.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "REWORK_LIMIT"
+    ]
+  }
+}

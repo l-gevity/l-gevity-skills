@@ -1,0 +1,12 @@
+{
+  "criterion": "multi-agent-governance #201: an authorization that has not expired is valid",
+  "description": "Same as plan-extension-authorized-pass, but the extension expires in 2099.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

@@ -49,14 +49,10 @@ chosen, inherited, or extended: after readiness has fixed what the increment
 must do, before Architecture places subsystems on it. Review mode runs in a
 single pass whenever a §6 trigger fires.
 
-This skill decides *which foundation fits the requirements, and whether it
-still does*.
-
 - `requirements-grounding` owns the quality-characteristic sweep that fills the
   profile. A blank dimension goes back there.
-- `bring-down` owns whether one capability is bespoke or external, and the
-  survey that selects a service. When its answer becomes a one-way door, this
-  skill's profile and record apply before adoption.
+- `bring-down` also owns the survey that selects a service. When its answer
+  becomes a one-way door, this skill's profile and record apply before adoption.
 - `dependency-lifecycle` owns vendor-side triggers on a platform already owned:
   advisories, pricing or license changes, end-of-life dates. Return here only
   when that event changes fit.
@@ -198,8 +194,7 @@ Review when:
    | `DEFER` | A required dimension or measurement is missing; name it |
 
 5. **Justify `MIGRATE` with forward costs only**: workaround effort, incidents,
-   and blocked requirements against the migration cost. Sunk investment is
-   never an argument.
+   and blocked requirements against the migration cost.
 6. **Update each record**: new snapshot, new tripwires, next review date.
 
 ## 8. Output Contract
@@ -220,12 +215,3 @@ Reversal cost:   <estimate, and what raises it>
 Handoff:         <skill that owns the next decision, or none>
 Next action:     <one concrete action>
 ```
-
-## 9. See Also
-
-- **`requirements-grounding`** - the quality-characteristic sweep that fills the profile.
-- **`bring-down`** - whether one capability should be bespoke or external, and which service.
-- **`dependency-lifecycle`** - vendor-side triggers on a platform already owned.
-- **`evolutionary-database-design`** - staging a store migration.
-- **`structural-simplification`** - component count and diversity deltas.
-- **`zero-copy-requirements`** - where the decision record lives.

@@ -27,7 +27,7 @@ from typing import Any
 SKILL = "alchemy-orchestrate"
 SKILL_ROOTS = (".agents/skills", ".claude/skills")
 PROFILE_NAME = "alchemy-workspace.json"
-MODES = ("plan", "handoff", "gate")
+MODES = ("plan", "preflight", "handoff", "gate")
 PASSING = ("PASS", "ACCEPT")
 # Verdict precedence from references/contracts.md: ESCALATE over REJECT/FAIL
 # over STALE over RETRY over a pass.
@@ -165,6 +165,35 @@ def same_commit(left: str, right: str) -> bool:
     return full.startswith(short)
 
 
+def graft_run_plan(data: dict, root: Path) -> bool:
+    """Add the run directory's amendments and integrated heads to the approved plan.
+
+    The approved part always comes from the plan input; from the run plan only
+    `amendments` and `base.integrated` are read, the two parts a run appends to."""
+    raw = option("run_plan")
+    if not raw:
+        return False
+    source = resolve(raw, root)
+    run_plan = read_json(source)
+    if not isinstance(run_plan, dict):
+        raise InputError(f"{source}: a plan must be a JSON object")
+    amendments = run_plan.get("amendments", [])
+    if not isinstance(amendments, list):
+        raise InputError(f"{source}: amendments must be a list")
+    if amendments:
+        data["amendments"] = amendments
+    elif "amendments" in data:
+        del data["amendments"]
+    heads = run_plan.get("base", {}).get("integrated") if isinstance(run_plan.get("base"), dict) else None
+    if isinstance(heads, list) and heads:
+        if not isinstance(data.get("base"), dict):
+            raise InputError("the plan has no base object to add integrated heads to")
+        known = data["base"].get("integrated")
+        known = list(known) if isinstance(known, list) else []
+        data["base"]["integrated"] = known + [head for head in heads if isinstance(head, str) and head not in known]
+    return True
+
+
 def prepare_plan(mode: str, root: Path, skill: Path, profile: Path | None, out: Path) -> dict[str, str]:
     """Extract the plan when plan_field is set; in plan mode also verify and publish it."""
     source = resolve(option("plan"), root)
@@ -186,6 +215,7 @@ def prepare_plan(mode: str, root: Path, skill: Path, profile: Path | None, out: 
         data = value
     if not isinstance(data, dict):
         raise InputError(f"{source}: a plan must be a JSON object")
+    grafted = graft_run_plan(data, root)
     heads = integrated_heads()
     if heads:
         if not isinstance(data.get("base"), dict):
@@ -194,7 +224,7 @@ def prepare_plan(mode: str, root: Path, skill: Path, profile: Path | None, out: 
         known = list(known) if isinstance(known, list) else []
         data["base"]["integrated"] = known + [head for head in heads if head not in known]
     if mode != "plan":
-        if not field and not heads:
+        if not field and not heads and not grafted:
             return {"plan_file": str(source)}
         plan_file = out / f"alchemy-plan-{uuid.uuid4().hex[:8]}.json"
         write_json(plan_file, data)
@@ -206,6 +236,18 @@ def prepare_plan(mode: str, root: Path, skill: Path, profile: Path | None, out: 
     if expected and not same_commit(base_commit, expected):
         raise InputError(f"plan base.commit {base_commit or '(none)'} is not {expected}, "
                          "the commit this run started from")
+    # The human decides at plan approval whether the run is watched; a plan that
+    # disagrees declares no needs for the preflight to prove, so the run stops.
+    switch = option("expect_unattended").lower()
+    if switch:
+        if switch not in ("true", "false"):
+            raise InputError(f"input expect_unattended must be true or false, not {switch!r}")
+        execution = data.get("execution") if isinstance(data.get("execution"), dict) else {}
+        stated = "true" if execution.get("unattended") is True else "false"
+        if stated != switch:
+            raise InputError(f"plan execution.unattended is {stated}, but this run proceeds "
+                             f"{'unattended' if switch == 'true' else 'attended'}; re-plan with the "
+                             "switch the human chose and the needs it requires")
 
     outputs = {"base_commit": base_commit, "run_dir": ""}
     plan_file = source
@@ -222,7 +264,7 @@ def prepare_plan(mode: str, root: Path, skill: Path, profile: Path | None, out: 
         plan_file = run / "plan.json"
         write_json(plan_file, data)
         outputs["run_dir"] = str(run)
-    elif field or heads:
+    elif field or heads or grafted:
         plan_file = out / f"alchemy-plan-{uuid.uuid4().hex[:8]}.json"
         write_json(plan_file, data)
     outputs["plan_file"] = str(plan_file)
@@ -257,16 +299,37 @@ def listing(values: Any) -> str:
     return ", ".join(items) or "None"
 
 
+def granted(report: dict[str, Any]) -> str:
+    """Every authorization the check honoured and the rework extension the plan
+    carries, with its ceiling, conditions, and reference: what a human approves
+    at plan or pull request approval must be on the screen, not only in the report."""
+    parts = []
+    for item in report.get("authorizations") or []:
+        if isinstance(item, dict):
+            subject = item.get("amendment") or item.get("extension") or "?"
+            parts.append(f"{subject} grants {', '.join(item.get('grants') or []) or 'nothing named'} (ref {item.get('ref')})")
+    extension = report.get("extension")
+    if isinstance(extension, dict):
+        parts.append(f"rework extension: ceiling {extension.get('ceiling')}, conditions "
+                     f"{', '.join(extension.get('conditions') or []) or 'none'} (ref {extension.get('ref')})")
+    return "; ".join(parts) or "none"
+
+
 def summarize(mode: str, report: dict[str, Any]) -> str:
     verdict = report["verdict"]
     if mode == "plan":
         waves = " | ".join(",".join(wave) for wave in report.get("waves") or [])
         text = (f"Plan: {verdict}; derived mode {report.get('derived_mode')}; recommendation "
-                f"{report.get('recommendation')}; waves {waves or 'none'}; errors {codes(report)}")
+                f"{report.get('recommendation')}; unattended {str(report.get('unattended') is True).lower()}; "
+                f"waves {waves or 'none'}; authorizations {granted(report)}; errors {codes(report)}")
+    elif mode == "preflight":
+        text = (f"Preflight: {verdict}; plan digest {report.get('plan_digest')}; queued "
+                f"{listing(report.get('queued'))}; errors {codes(report)}")
     elif mode == "gate":
         text = (f"Gate: {verdict}; Verified: {listing(report.get('verified'))}; "
                 f"Unverified: {listing(report.get('unverified'))}; Open: {listing(report.get('open'))}; "
-                f"Coverage: {report.get('coverage')}; Errors: {codes(report)}; Merge: human approval required")
+                f"Coverage: {report.get('coverage')}; Authorizations: {granted(report)}; Errors: {codes(report)}; "
+                "Merge: human approval required")
     elif "records" in report:
         parts = [f"{r['report'].get('package') or Path(r['file']).name}:{r['report']['verdict']}"
                  for r in report["records"]]
@@ -280,16 +343,39 @@ def summarize(mode: str, report: dict[str, Any]) -> str:
 
 def check(mode: str, root: Path, checker: Path, profile: Path | None, plan_file: str) -> dict[str, Any]:
     common = ["--profile", str(profile)] if profile is not None else []
+    # The approved revision's digest anchors the approved part of an amended plan.
+    approved = ["--approved", option("approved")] if option("approved") else []
+    # A revision an earlier check of the run accepted: amendments are only appended.
+    approved += ["--revision", option("revision")] if option("revision") else []
     if mode == "plan":
-        return run_checker(checker, ["plan", plan_file, *common])
+        return run_checker(checker, ["plan", plan_file, *common, *approved])
     raw_record = option("record")
     if not raw_record:
         raise InputError(f"{mode} mode needs the record input")
     record = resolve(raw_record, root)
+    if mode == "preflight":
+        # Probes ran at the plan base, so the repository must still be there and clean.
+        if not record.is_file():
+            raise InputError(f"preflight record not found: {record}")
+        return run_checker(checker, ["preflight", str(record), "--plan", plan_file, *common, "--root", str(root)])
     if mode == "gate":
         if not record.is_file():
             raise InputError(f"ledger not found: {record}")
-        return run_checker(checker, ["gate", str(record), "--plan", plan_file, *common])
+        # A missing record is passed over here; the checker then refuses an
+        # unattended plan (PREFLIGHT_REQUIRED), and an attended one needs none.
+        preflight = resolve(option("preflight"), root) if option("preflight") else None
+        extra = ["--preflight", str(preflight)] if preflight is not None and preflight.is_file() else []
+        # With the repository, the gate takes the integrated diff and the rework
+        # bound from git, not from the ledger or a profile edited during the run.
+        if flag("repository", "false"):
+            extra += ["--root", str(root)]
+        # The reviewer's own output, written by the review step, not the lead.
+        if option("review"):
+            review = resolve(option("review"), root)
+            if not review.is_file():
+                raise InputError(f"review output not found: {review}")
+            extra += ["--review", str(review)]
+        return run_checker(checker, ["gate", str(record), "--plan", plan_file, *common, *extra, *approved])
     extra = ["--plan", plan_file, *common]
     if flag("digests", "true"):
         workspace = resolve(option("root"), root) if option("root") else root
@@ -343,6 +429,18 @@ def main() -> int:
         report_file = out / f"alchemy-{mode}-report-{uuid.uuid4().hex[:8]}.json"
         write_json(report_file, report)
         print(json.dumps(report, indent=2, ensure_ascii=False))
+        if mode == "plan":
+            # The pipeline runs the preflight only for an unattended plan, and
+            # the preflight record binds to this digest.
+            outputs["unattended"] = "true" if report.get("unattended") is True else "false"
+            outputs["plan_digest"] = str(report.get("plan_digest") or "")
+            outputs["approved_digest"] = str(report.get("approved_digest") or "")
+        if mode == "gate":
+            # Correction passes the rework bound still allows, for the pipeline's loop.
+            rework = report.get("rework") if isinstance(report.get("rework"), dict) else {}
+            left = rework.get("passes_left")
+            outputs["correction_passes"] = str(left if isinstance(left, int) and left >= 0 else 0)
+            outputs["plan_digest"] = str(report.get("plan_digest") or "")
         emit({"verdict": report["verdict"], "summary": summarize(mode, report),
               "report_file": str(report_file), **outputs})
     except InputError as exc:

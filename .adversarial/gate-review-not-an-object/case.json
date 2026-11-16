@@ -1,0 +1,17 @@
+{
+  "criterion": "multi-agent-governance #213: a review record without a findings list is refused, not read as no findings",
+  "description": "Same as gate-review-recorded-pass, but the reviewer's output is a bare list.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "review": "review.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "SCHEMA"
+    ]
+  }
+}

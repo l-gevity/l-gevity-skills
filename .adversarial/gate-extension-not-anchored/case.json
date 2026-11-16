@@ -1,0 +1,17 @@
+{
+  "criterion": "multi-agent-governance #157: an extension counts only when the approved revision that holds it is anchored",
+  "description": "Same as gate-extension-authorized-pass, but the gate is not given the approved revision, so nothing shows the extension predates the run, and nothing anchors the amendments either.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "AMENDMENT_INVALID",
+      "AUTHORIZATION_UNPROVEN",
+      "REWORK_LIMIT"
+    ]
+  }
+}

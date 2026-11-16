@@ -80,7 +80,7 @@ and the plan check fails a multi-agent plan under `off` with `MODE_MISMATCH`.
 | `.claude/settings.json` | Depth 1, the concurrency cap, `worktree.baseRef: head`, and the ask, deny, and allow rules |
 | `.codex/agents/alchemy-analyst.toml`, `alchemy-implementer.toml` | The same two envelopes as Codex custom agents |
 | `.codex/config.toml` | The concurrency cap, plus `[features] multi_agent = false` under `off` |
-| `.unstoppable-code/actions/alchemy-check/` | Runs `check_orchestration.py` from the skills tree in `plan`, `handoff` (one file or a directory), or `gate` mode. Keeps the JSON report and outputs `verdict`, `summary`, and `report_file`. Fails unless the verdict is PASS or ACCEPT; `enforce: 'false'` only reports. It can extract the plan from a structured-output file (`plan_field`). `integrated` adds wave heads to the checked copy's `base.integrated`. `digests: 'false'` checks hand-offs structurally, without `--root`. In plan mode it can also require the plan's base (`expect_base`) and publish the plan to `<state_dir>/<run id>/plan.json` (`publish`). Commit prefixes match only when both sides have at least 7 hex characters. |
+| `.unstoppable-code/actions/alchemy-check/` | Runs `check_orchestration.py` from the skills tree in `plan`, `preflight`, `handoff` (one file or a directory), or `gate` mode. Keeps the JSON report and outputs `verdict`, `summary`, and `report_file`. Fails unless the verdict is PASS or ACCEPT; `enforce: 'false'` only reports. It can extract the plan from a structured-output file (`plan_field`). `integrated` adds wave heads to the checked copy's `base.integrated`. `digests: 'false'` checks hand-offs structurally, without `--root`. In plan mode it can also require the plan's base (`expect_base`) and its `execution.unattended` (`expect_unattended`), and publish the plan to `<state_dir>/<run id>/plan.json` (`publish`), and it outputs `unattended` and the `plan_digest` a preflight record binds to. Preflight mode checks the record with `--root` at the repository root, so the repository must still be at the plan base. In gate mode, `preflight` names the preflight record, passed when the file exists; a gate on an unattended plan without a passing one fails. `approved`, the approved digest, passes `--approved`; a plan with amendments, and a gate with an extension or recorded rework, fail without it. `revision`, a `plan_digest` an earlier check output, and in gate mode `review`, the reviewer's own output, pass `--revision` and `--review`. Commit prefixes match only when both sides have at least 7 hex characters. |
 | `.unstoppable-code/actions/alchemy-snapshot/` | Outputs the head commit. Given a base, it writes the diff from that base to the working tree for reviewers that cannot run git. `require_clean` fails on uncommitted changes. |
 | `.unstoppable-code/pipelines/alchemy-multi-agent.yaml` | The preconfigured workflow below |
 | `.unstoppable-code/review-tracks/alchemy-independent-review.md` | Cross-provider review track for the bundled multi-provider review pipeline |
@@ -95,32 +95,70 @@ Dispatch it with an `objective`. The `lead`, `reviewer_claude`, and
    `alchemy-plan/1` record as structured output.
 3. `plan_check` extracts and checks the plan, requires its base to be the
    recorded head, and publishes it to the run directory.
-4. `approve_plan` asks the human: continue or stop.
-5. `execute` has the lead run the packages through native sub-agents. It saves
+4. `approve_plan` asks the human: `continue-attended` (the human watches
+   until the pull request approval), `continue-unattended`, or `stop`. The
+   human decides; any answer but `continue-attended` or `stop` counts as
+   unattended.
+5. When the human did not choose `continue-attended`, or the plan sets
+   `execution.unattended`, the run is unattended. `preflight` first checks
+   the plan with `expect_unattended: 'true'`: a plan that does not set
+   `execution.unattended` declares no needs to prove, so the step fails,
+   nothing is probed, and the run ends there. Otherwise the lead runs a
+   probe for every need the packages and the profile declare, at the base,
+   and writes `preflight.json` to the run directory, bound to the plan digest.
+   `preflight_check` checks it and fails on any verdict but `PASS`. An
+   attended run on a plan that is not unattended skips both jobs.
+6. `execute` runs only when the human chose `continue-attended` on a plan
+   that is not unattended, or the preflight verdict is `PASS`. It has the lead run the packages through native sub-agents. It saves
    each hand-off to `handoffs/<package>.json` and checks it on receipt, digests
    included. It integrates and commits the accepted packages, records each
    wave's head in the run plan's `base.integrated`, and returns those heads as
    `integrated_heads`.
-6. `handoff_check` re-checks every hand-off structurally and snapshots the
+7. `handoff_check` re-checks every hand-off structurally and snapshots the
    diff from the base. It passes the returned heads as `integrated` and does
    not check digests, because later waves legitimately change files that
-   earlier hand-offs relied on or changed. `rereview` repeats this check after
-   the correction pass, adding that pass's heads.
-7. `review` runs two read-only reviewers on different providers, in parallel.
+   earlier hand-offs relied on or changed. Each correction pass repeats this
+   check, adding that pass's heads and the run plan's amendments.
+8. `review` runs two read-only reviewers on different providers, in parallel.
    They see the plan, the diff, and the test commands, not the hand-offs.
-8. `consolidate` has the lead re-run the checks and build `ledger.json`.
-9. `gate` runs the ledger through the gate check.
-10. On `FAIL`, one bounded correction pass follows: `correct`, then
-    `rereview` with one reviewer, then `reconsolidate`, then `regate`.
-11. `escalate` follows `ESCALATE`, a failed correction, a failed re-gate, or
-    an execution that did not integrate. It asks the human, re-runs the gate,
-    and ends the run failed unless the gate now passes.
-12. After a `PASS`, `approve_pr` re-runs the gate and asks the human: open a
-    pull request or stop. `create_pr` then opens it.
+9. `consolidate` has the lead re-run the checks and build `ledger.json`.
+10. `gate` runs the ledger through the gate check, with the run's
+    `preflight.json` when it exists, so unattended work without a passing
+    preflight bound to the plan cannot pass (`PREFLIGHT_REQUIRED`). It is
+    given the approved digest (`approved`) and the repository (`repository`),
+    so the rework bound is the one committed at the plan base, and it outputs
+    `correction_passes`: that bound, or an authorized extension's ceiling,
+    minus the most cycles any origin chain has taken.
+11. On `FAIL` with passes left, the `correction` job loops, at most
+    `correction_passes` times (`max_iterations`). Each pass runs, in order:
+    `amend`, where the lead appends one amendment per origin chain to the run
+    plan and changes no code; `amend_check`, the plan check on the amended plan
+    against the approved digest, which fails the job before anybody edits, so
+    an amendment that broadens scope stops the run for a revision the human
+    approves; `correct`, which carries out the new amendments by their owners;
+    the structural hand-off check and a snapshot; `review` by one read-only
+    reviewer, who records convergence links; `reconsolidate`; and `regate`,
+    the gate check, given the revision `amend_check` accepted (`revision`) and
+    the reviewer's own output (`review`), so deleted amendments and dropped
+    links fail it. `escalate` and `approve_pr` gate against the last pass's
+    revision.
+    `loop` restarts the job only when that gate says `FAIL` and passes are
+    left. `ESCALATE` (`REWORK_LIMIT`, `NOT_CONVERGING`) ends the loop.
+12. `escalate` follows `ESCALATE`, a `FAIL` with no passes left, a failed or
+    blocked correction pass, a last re-gate that did not pass, or an
+    execution that did not integrate. It asks the human, re-runs the gate,
+    and ends the run failed unless the gate now passes. Its answer records no
+    extension: a raised bound is a new approved plan.
+13. After a `PASS`, `approve_pr` re-runs the gate and asks the human: open a
+    pull request or stop. `create_pr` then opens it. The summaries shown at
+    `approve_plan` and `approve_pr` list every authorization the check
+    honoured and the rework extension's ceiling, conditions, and reference.
 
 Every check after planning re-extracts the plan from the planning step's own
 output, not from the copy the agents read, and adds the returned
-`integrated_heads` (execute and correction) as `base.integrated`. A job output
+`integrated_heads` as `base.integrated`. With `run_plan` it also adds the
+run plan's `amendments` and `base.integrated`; nothing else is read from the
+copy the agents write, so the approved part stays the planning step's. A job output
 the run never produced interpolates as an empty string, and `join()` turns the
 head list into one input; both rules were read from the CLI's expression
 evaluator. A job with its own `if:` runs
@@ -165,12 +203,21 @@ whether or not the jobs it needs succeeded, so each such condition tests
 - **Claude reviewers under `read_only` cannot run commands.** They judge the
   diff and the tests and list what they could not run. The lead re-runs the
   checks when it builds the ledger.
+- **One reviewer per correction pass.** The loop is one job, so its review
+  is a step, not a matrix over both providers as in `review`; the second
+  provider reviews only the planned work. The loop's bound is read from the
+  checked gate, not from the prompt.
 - **`pipelines validate` checks structure only.** It accepted a missing
-  project action, an unknown model alias, and a malformed `if:`. The pipeline
-  has been validated and its two actions run locally; the pipeline itself has
-  not been executed end to end.
+  project action, an unknown model alias, and a malformed `if:`. The pipeline's
+  structure was validated with the CLI and never run; its two actions run
+  locally, but the pipeline has not been executed end to end, and neither have
+  its preflight jobs or its correction loop. Whether a restarted job still sees
+  the outputs of its previous pass was not read from the runtime, so
+  amendments are bound within a pass (`revision`) and from the last pass to
+  the pull request gate, and the number of passes by `max_iterations`.
 - **One run costs several context loads.** A run takes a planning context, a
   lead execution context with one context per sub-agent, two reviewer
-  contexts, and a ledger context. The correction pass adds three more. Measure
+  contexts, and a ledger context. Each correction pass adds three more:
+  amend and correct for the lead, and one reviewer. Measure
   a run against the single-agent baseline as governance §6 describes before
   keeping the multi-agent mode.

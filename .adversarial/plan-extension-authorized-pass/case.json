@@ -1,0 +1,12 @@
+{
+  "criterion": "multi-agent-governance #151: an extension with a referenced human answer is a valid record",
+  "description": "The plan raises the rework ceiling to 4 with conditions and an authorization by the human that names where it was given.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

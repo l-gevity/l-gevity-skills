@@ -1,0 +1,66 @@
+# Normalized requirement records. Meaning lives in grounding.md, version 3.
+# `implemented` and `verified` are set by hand when a team reports them.
+
+- id: document-archive
+  statement: Every issued invoice and statement stays retrievable as issued for seven years.
+  actor: account owner
+  role: foundation
+  kind: compliance
+  requirement_scope: document-store
+  holds_across: []
+  priority: must
+  status: accepted
+  basis: authoritative
+  source_refs: [finance policy FP-12, tax retention rule]
+  complete_when_ref: requirements/grounding.md#document-archive
+  implemented: true
+  verified: true
+  notes: ""
+
+- id: invoice-download
+  statement: An account owner obtains any invoice issued to their account.
+  actor: account owner
+  role: workflow
+  kind: capability
+  requirement_scope: invoices
+  holds_across: []
+  priority: must
+  status: accepted
+  basis: evidenced
+  source_refs: [support tickets third-quarter count]
+  complete_when_ref: requirements/grounding.md#invoice-download
+  implemented: true
+  verified: true
+  notes: ""
+
+- id: statement-download
+  statement: An account owner obtains any monthly statement issued to their account.
+  actor: account owner
+  role: workflow
+  kind: capability
+  requirement_scope: statements
+  holds_across: []
+  priority: should
+  status: accepted
+  basis: evidenced
+  source_refs: [support tickets third-quarter count]
+  complete_when_ref: requirements/grounding.md#statement-download
+  implemented: false
+  verified: false
+  notes: ""
+
+- id: owner-only-access
+  statement: The invoices and statements of an account are available to its account owner only.
+  actor: account owner
+  role: constraint
+  kind: security
+  requirement_scope: document-store
+  holds_across: [invoices, statements]
+  priority: must
+  status: accepted
+  basis: authoritative
+  source_refs: [customer contract clause 9]
+  complete_when_ref: requirements/grounding.md#owner-only-access
+  implemented: true
+  verified: true
+  notes: ""

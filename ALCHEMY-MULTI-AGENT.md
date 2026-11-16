@@ -159,9 +159,11 @@ Objective
     tests, and re-run the checks it cites; a hand-off summary is a claim to
     test. *Check:* `REVIEW_NOT_INDEPENDENT`, `SELF_REVIEW`,
     `UNREVIEWED_CHANGE`; *judgment* for review depth.
-21. Rework MUST be bounded by `max_rework_cycles` per package; reaching the
-    bound MUST escalate rather than restart the loop. *Check:* `REWORK_LIMIT`
-    (an `ESCALATE` verdict outranks `FAIL`).
+21. Rework MUST be bounded by `max_rework_cycles` per origin chain, counted
+    from the plan's rework amendments, so a renamed or new rework package does
+    not start at zero, and a fix of one chain's files counts against that chain
+    whatever origin it names; reaching the bound MUST escalate rather than restart the
+    loop. *Check:* `REWORK_LIMIT` (an `ESCALATE` verdict outranks `FAIL`).
 
 ## 7. Shared State and Provenance
 
@@ -260,6 +262,22 @@ Objective
     conditions, and MUST report through an escalation channel proved by a test
     delivery; a blocked package parks while independent packages continue.
     *Check:* `UNBOUNDED_RUN`, `PREREQUISITE_UNPROVEN`; *judgment* for parking.
+44. Preflight MUST check coverage against what the work needs, not only the
+    entries a record submits: an unattended plan states each package's needs
+    (systems, identities, environment and tools, fixtures and inputs), a
+    package with a command criterion states an environment need, and every
+    need a package or the profile declares is covered by an entry of its
+    kind. *Check:* `NEEDS_UNDECLARED`, `PREREQUISITE_UNCOVERED`; *judgment*
+    for a need nobody declared.
+45. A preflight MUST be bound to the plan revision and base it was made for.
+    An amended plan or a moved base makes it stale until a record bound to
+    the new revision claims every need, and the gate of an unattended plan
+    fails without a current, passing preflight. A workflow adapter records
+    the human's choice to attend at plan approval, treats any other answer
+    as unattended, runs the preflight before the first wave, and executes an
+    unattended run only on `PASS`. *Check:* `PREFLIGHT_STALE`,
+    `PREFLIGHT_REQUIRED`; the validator's adapter check for the workflow;
+    *judgment* for whether a changed need was proved again.
 
 ## 13. Runtime Conformance
 
@@ -278,6 +296,38 @@ bound, and the concurrency cap to the strongest mechanism its runtime offers,
 and say where a bound is instruction-level only. The current bindings and
 their verified status are in the
 [adapters reference](./.claude/skills/alchemy-orchestrate/adapters/README.md).
+
+## 14. Rework and Convergence
+
+46. Rework, a lead correction included, MUST be a plan amendment before
+    anybody edits: origin package, superseded revision, base, a reviewer who is
+    not the owner, and a package record every package rule applies to. The
+    amendment MUST stay inside the approved plan's write sets, permissions, and
+    risk, and off protected paths, unless the human approved a revision that
+    holds it; an approval written into the amendment during the run grants
+    nothing. The plan and gate checks of a run with amendments, an
+    extension, or recorded rework MUST name that revision with `--approved`.
+    A write no
+    package owns MUST fail the gate. *Check:* `AMENDMENT_INVALID`,
+    `AMENDMENT_BROADENS`, `PROTECTED_PATH`, `SELF_REVIEW`, `UNOWNED_WRITE`.
+47. More cycles than `max_rework_cycles` MUST come from an extension the
+    human authorized, captured in the approved plan before its first use, with
+    a ceiling, conditions each extra cycle meets, and a reference to the
+    human's answer. A timeout, a default, or a bound edited during the run
+    MUST NOT authorize anything. *Check:* `AUTHORIZATION_UNPROVEN`,
+    `REWORK_LIMIT`; *judgment* for what the reference says.
+48. Patching MUST stop when it does not converge: a serious finding related
+    to a serious finding of an earlier review round, or a second fix that
+    broke something, stops that work. The next step is a replanning
+    amendment; work that does not depend on it MAY continue. *Check:*
+    `NOT_CONVERGING`, `AMENDMENT_INVALID`, and `SILENT_SKIP` when the ledger
+    drops a link the reviewer's own output records; *judgment* for
+    relatedness, which the reviewer records.
+49. A workflow adapter MUST run at most as many correction passes as the
+    checked rework bound still allows, each adding one amendment per origin
+    chain and checking it before any edit, then reviewing independently and gating;
+    only a gate `FAIL` with passes left starts another. *Check:* the
+    validator's correction-loop check for the workflow.
 
 ## Invariants
 

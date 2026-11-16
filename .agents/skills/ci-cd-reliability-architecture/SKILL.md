@@ -224,6 +224,7 @@ The OIDC login shape and the four-step zero-downtime rotation are in
   pre-commit hooks
 - If a secret leaks: rotate immediately, revoke old credential, audit access
   logs
+- Nice-to-have: rotate seed secrets quarterly and log each rotation
 
 ---
 
@@ -353,7 +354,8 @@ Owner:          <team or operational owner>
 ```
 
 For an aspect coverage gate, `Scope` is the governed set from the
-architecture-as-code registry.
+architecture-as-code registry. `gate-lifecycle` keeps a gate proven, its
+baseline shrinking, and its suspensions expiring.
 
 Do not run every expensive test on every commit. Fast deterministic checks
 block the PR; environment-dependent checks block preview or promotion; costly
@@ -362,65 +364,7 @@ must satisfy the release's evidence-freshness policy.
 
 ---
 
-## 10. Delivery Checklist
-
-### CRITICAL (Must-Have)
-
-- [ ] **Idempotency**: converges to the same desired state if skipped, run once,
-      or retried
-- [ ] **Timeouts**: All long-running steps have explicit timeout values
-- [ ] **Immutable artifacts**: Build once, promote same artifact; config
-      injected at deploy time; retention set per artifact by its longest reader
-- [ ] **Build in CI, not in the deploy platform**: every build runs as a
-      dedicated fail-fast CI step; deploy action receives a pre-built artifact
-      (no reliance on Oryx/Buildpacks/Vercel auto-build)
-- [ ] **Secrets**: OIDC/federated identity for cloud auth; no standing cloud
-      credentials
-- [ ] **Static quality gates**: format/lint, strict type-check, build, secret
-      scan, SAST, dependency/CVE, license, and applicable IaC checks block merge
-- [ ] **Unit and property tests**: results and coverage policy block merge
-- [ ] **Integration and contract tests**: boundaries, compatibility,
-      authorization negative paths, and candidate artifact verified
-- [ ] **Health check**: Post-deploy validation present; rollback on failure
-- [ ] **Preview verification**: smoke, critical E2E, supported browsers, and
-      applicable visual/link checks block merge via branch protection, or block
-      exposure when the verification stage follows merge
-- [ ] **Frontend quality**: applicable representative routes have bundle,
-      Lighthouse, and dedicated automated accessibility gates
-- [ ] **Pre-deploy tests**: config, migration, contract, secret, feature-flag,
-      IaC effect preview, IAM/capacity, and rollback-artifact checks abort
-      before mutation
-- [ ] **Scheduled risk tests**: applicable load/soak, resilience, rollback, and
-      restore evidence satisfies the release's freshness policy
-- [ ] **Delivery strategy**: permanent, ephemeral, or production-only
-      progressive exposure chosen by environment representativeness and
-      recorded; verification stage isolated from users; the user-facing change
-      promoted atomically or ramped on a bounded exposure schedule
-- [ ] **Environment parity**: under permanent stages, drift of the verification
-      stage from production is measured and recorded, not assumed; the rollout
-      shape and its zero-downtime claim are stated
-- [ ] **Release switch**: under progressive exposure, exposure to users is a
-      separate, reversible step from deployment (flag, ring, or canary weight);
-      under atomic promotion, reversal is re-promotion of the last known-good
-      artifact
-- [ ] **PR concurrency**: Cancel-in-progress enabled; only the latest commit
-      deploys
-- [ ] **Release evidence**: Artifact digest/provenance and preflight results recorded
-- [ ] **Test evidence**: Every gate records scope, policy, artifact, result,
-      report, failure action, and owner; exclusions include evidence
-- [ ] **Production verification**: Bounded signal window with automatic rollback
-- [ ] **Owner handoff**: Operational owner named before `DEPLOYED-HEALTHY`
-
-### ADVANCED (Nice-to-Have)
-
-- [ ] API backward-compatibility: additive changes only for tolerant readers;
-      version breaking changes; deprecation
-      documented
-- [ ] IaC migration: declarative infrastructure for resources managed at scale
-- [ ] DB migrations: Expand/Contract pattern for schema changes (multi-tenant)
-- [ ] Secret rotation audit: quarterly seed secret rotation logged
-
-## 11. Output Contract
+## 10. Output Contract
 
 When applying this skill, emit a coder-facing pipeline decision record:
 
@@ -442,10 +386,3 @@ Evidence:       <workflow file, command, log, branch rule, secret path, or deplo
 Verification:   <window, signals, outcome / local command / dry run / Not run + reason>
 Next action:    <specific workflow edit, test, policy, or owner question>
 ```
-
-## 12. See also
-
-- **`defect-shift-left`** — where each pipeline check belongs on the stage ladder.
-- **`system-optimization`** — value-stream optimization built on top of a reliable pipeline.
-- **`architecture-guidelines`** — first-principles rules out of scope here (idempotency etc. as system-level properties).
-- **`gate-lifecycle`** — keeps a gate proven, its baseline shrinking, and its suspensions expiring.

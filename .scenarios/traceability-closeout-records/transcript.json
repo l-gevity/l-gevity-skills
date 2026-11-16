@@ -1,0 +1,61 @@
+{
+  "scenario": "traceability-closeout-records",
+  "revision": "92174b062beb",
+  "recorded_with": "claude-code 2.1.321, model claude-opus-5-5",
+  "skills_available": [
+    "alchemy",
+    "alchemy-orchestrate",
+    "architecture-as-code",
+    "architecture-guidelines",
+    "batch",
+    "bring-down",
+    "ci-cd-reliability-architecture",
+    "claude-api",
+    "code-review",
+    "continuous-improvement",
+    "dataviz",
+    "debug",
+    "deep-research",
+    "defect-shift-left",
+    "dependency-lifecycle",
+    "design",
+    "design-sync",
+    "doctor",
+    "evolutionary-database-design",
+    "fewer-permission-prompts",
+    "functionality-complexity-tradeoff",
+    "gate-lifecycle",
+    "implementation-readiness",
+    "infrastructure-fit",
+    "loop",
+    "morphogenetic-architecture",
+    "observability-design",
+    "plugin-authoring",
+    "push-out",
+    "requirements-grounding",
+    "requirements-topology",
+    "requirements-traceability",
+    "run",
+    "run-skill-generator",
+    "schedule",
+    "simplify",
+    "structural-simplification",
+    "system-optimization",
+    "test-strategy",
+    "update-config",
+    "verify",
+    "workflow-authoring",
+    "zero-copy-requirements"
+  ],
+  "skills_invoked": [
+    "requirements-traceability"
+  ],
+  "files_read": [
+    ".claude/skills/requirements-traceability/references/closeout-records.md"
+  ],
+  "paths_searched": [
+    "."
+  ],
+  "turns": 5,
+  "output": "**What I found**\nI traced `invoice-download-v1` (issue #88) against `requirements/invoicing.md` v1.4. It is only partly proven, and the record calls this PARTIAL. CI run 5121 on `4f2a9c1` passed the AC1 and AC2 tests. The AC3 test exists but was skipped because the audit-log sandbox was down, so a skipped test can't count as verification. On the outcome side, the hypothesis `fewer-invoice-tickets` v1 is rejected. It needed at least 30% fewer invoice-copy tickets and got 7.5% (120 → 111 per month), even though 1,310 account owners used the download. Billing disputes did not rise.\n\n**Why it matters**\nIf #88 closes as complete, it claims audit logging works when no test run has shown it. The rejected hypothesis says this capability did not deliver the ticket reduction it was predicted to. It does not show the download is worthless. Whether to keep or remove it is a separate decision that this trace doesn't make.\n\n**Do this first**\n1. Get the AC3 test in `test/invoices/download.spec.ts` to pass in a CI run on `4f2a9c1` or a later revision (issue #93, Dana). Then update the record to TRACEABLE.\n2. Pass the outcome-evidence record below to `functionality-complexity-tradeoff` for the keep or remove question.\n\n**What I did not check**\nNone of the artifacts are in this workspace (`requirements/`, `src/` and `test/` are missing). Every fact below comes from your summary, and I ran no trace check or tests. To close this:\n- Confirm the IDs and the hypothesis wording in `requirements/invoicing.md` v1.4.\n- Run `git show --stat 4f2a9c1` to see which files changed.\n- Open the CI 5121 test report and check the AC tags against the test definitions.\n- Confirm production still runs `4f2a9c1` or a later revision.\n- Read the text of query Q-207.\n\n---\n\n```text\nSubject:             invoice-download-v1 (issue #88)\nDecision:            PARTIAL\nCanonical source:    requirements/invoicing.md v1.4\nRequirement IDs:     invoice-download#AC1, #AC2, #AC3\nImplemented:         3/3 — src/invoices/download.ts, src/invoices/policy.ts, src/audit/log.ts;\n                     test definitions tagged AC1, AC2, AC3 in test/invoices/download.spec.ts (commit 4f2a9c1)\nVerified:            2/3 — AC1, AC2 passed in CI run 5121 on 4f2a9c1\n                     AC3: blocked — test skipped in run 5121 (audit-log sandbox down); owner Dana, issue #93\nOutcome hypotheses:  fewer-invoice-tickets v1 — rejected\nOutcome evidence:    ticket-system query Q-207, run 5 Nov, window 9 Sep–3 Nov\nReverse-trace gaps:  none reported. All four changed files map to invoice-download (policy.ts → AC2, log.ts → AC3). Not confirmed against the diff\nStale references:    none known (not checked against the source file)\nRepresentation gaps: none\nOther gaps:          AC3 blocked by environment (audit-log sandbox); Dana; #93\nNext action:         test — run AC3 to a passing result; hand the outcome evidence to functionality-complexity-tradeoff\nVerification:        Not run — repository artifacts aren't in this workspace; evidence taken from the user's summary\n```\n\n```text\nOutcome evidence: fewer-invoice-tickets\nHypothesis version: requirements/invoicing.md v1.4, fewer-invoice-tickets v1\nApplies to requirements: invoice-download\nObservation identity: ticket-system query Q-207, run 5 November\nCohort and exposure: account owners who need a past invoice; 1,840 downloads by 1,310 distinct account owners in the window\nMeasurement window: 9 September–3 November (the eight weeks after the 9 September production release)\nBaseline: 120 invoice-copy tickets/month, ticket system, June–August\nObserved result: 111 invoice-copy tickets/month (7.5% fewer)\nThreshold evaluation: missed (needed ≥30% fewer)\nGuardrail results: billing-dispute tickets 14/month vs 15 before — not risen, satisfied\nComparison or attribution: pre/post against the historical baseline; no control group, so seasonal and volume effects aren't separated. The miss is large enough that this doesn't change the state\nFreshness: current — the full declared window has been observed for v1\nEvidence state: rejected\nConfidence: medium\nOwner: not named in the inputs — assign an evidence owner\nNext measurement or revisit: none under v1. Any new threshold, cohort or measure needs a new hypothesis version from requirements-grounding\n```\n\n```text\nCompletion record:\n- Subject: invoice-download-v1 (issue #88)\n- Decision: PARTIAL\n- Canonical scope: invoice-download#AC1, #AC2, #AC3 (requirements/invoicing.md v1.4)\n- Completion boundary: production (released 9 September); verification complete for AC1 and AC2 only\n- Revision/artifact/environment: commit 4f2a9c1 on main; CI run 5121; production since 9 September\n- Implementation: src/invoices/download.ts, src/invoices/policy.ts, src/audit/log.ts, test/invoices/download.spec.ts\n- Executed evidence: CI 5121 — AC1 pass, AC2 pass, AC3 skipped (not verification)\n- Evidence freshness: current for revision 4f2a9c1; a later change to these files needs a new run\n- Gaps/deferred: AC3 blocked by the audit-log sandbox outage — Dana, carried by #93. Keep #88 open until #93 links a passing AC3 run\n- Outcome status: fewer-invoice-tickets v1 — rejected (Q-207)\n- Repository marker: issue #88 change record; no checkpoint or milestone (none of either is in use for this closeout)\n```\n\n```text\nTrace:\n- Source: requirements/invoicing.md v1.4; increment invoice-download-v1; issue #88\n- IDs: invoice-download#AC1, #AC2, #AC3\n- Implementation: src/invoices/download.ts, src/invoices/policy.ts, src/audit/log.ts, test/invoices/download.spec.ts @ 4f2a9c1\n- Evidence: CI 5121 — AC1 pass, AC2 pass, AC3 skipped\n- Outcomes: fewer-invoice-tickets v1 — rejected, current, Q-207 (9 Sep–3 Nov)\n- Gaps/deferred: AC3 blocked (audit-log sandbox), Dana, #93\n```\n\nRemoval decision owner: functionality-complexity-tradeoff\n\nRemoval verdict: not decided here\n\nThe trace only shows that the 30% ticket reduction did not happen. It does not show that the download has no value: 1,310 owners used it and disputes did not rise. The removal decision belongs to `functionality-complexity-tradeoff`, with this evidence as input."
+}
