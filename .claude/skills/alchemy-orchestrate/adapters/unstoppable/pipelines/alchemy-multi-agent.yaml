@@ -3,8 +3,8 @@
 # deterministic checks, and stops at human checkpoints. It never merges.
 pipeline:
   name: 'ALCHEMY Multi-Agent'
-  version: '3.1'
-  description: 'Route with alchemy, plan and check, prove the prerequisites of an unattended run, execute with native sub-agents after approval, review across two providers, gate, and open a pull request only after a second approval. Never merges.'
+  version: '3.2'
+  description: 'Route with alchemy, plan and check, prove the prerequisites of an unattended run, execute with native sub-agents after approval, review across two providers, gate, correct within the profile's rework bound with a review and a gate after every pass, and open a pull request only after a second approval. Never merges.'
   scope: [directory, worktree]
   on:
     dispatch:
@@ -103,6 +103,17 @@ pipeline:
       "integrated_heads":{"type":"array","items":{"type":"string"},"description":"Every commit a wave was integrated at, in order, the final head included"},
       "report":{"type":"string"}},
       "required":["status","head_commit","integrated_heads","report"]}
+    AMEND_SCHEMA: >-
+      {"type":"object","additionalProperties":false,"properties":{
+      "status":{"type":"string","enum":["AMENDED","BLOCKED"]},
+      "report":{"type":"string","description":"Each amendment with its origin, findings, owner, reviewer, and write set; the plan check verdict; what needs the human"}},
+      "required":["status","report"]}
+    CONVERGENCE_RULES: >-
+      Read `references/governance.md` section 2 (Convergence). For each finding, set
+      `related_to` to the earlier ledger findings it touches the same file, contract,
+      component, or class as; set `regression` true when this pass's fix caused it; and
+      set `reopens` to the earlier finding it shows is back. Record a link whenever
+      the answer is yes; the gate stops patching on it, and you, not the lead, own it.
     CORRECT_SCHEMA: >-
       {"type":"object","additionalProperties":false,"properties":{
       "status":{"type":"string","enum":["CORRECTED","BLOCKED"]},
@@ -125,7 +136,8 @@ pipeline:
       "findings":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{
       "id":{"type":"string"},"package":{"type":"string"},
       "severity":{"type":"string","enum":["blocking","major","minor"]},
-      "location":{"type":"string"},"problem":{"type":"string"},"evidence":{"type":"string"}},
+      "location":{"type":"string"},"problem":{"type":"string"},"evidence":{"type":"string"},
+      "related_to":{"type":"array","items":{"type":"string"}},"regression":{"type":"boolean"},"reopens":{"type":"string"}},
       "required":["id","package","severity","location","problem","evidence"]}},
       "not_checked":{"type":"array","items":{"type":"string"}}},
       "required":["reviewed_commit","criteria","findings","not_checked"]}
@@ -381,6 +393,7 @@ pipeline:
         verdict: ${{ steps.check.outputs.verdict }}
         summary: ${{ steps.check.outputs.summary }}
         report_file: ${{ steps.check.outputs.report_file }}
+        correction_passes: ${{ steps.check.outputs.correction_passes }}
       steps:
         - id: check
           uses: project/alchemy-check
@@ -388,21 +401,76 @@ pipeline:
             mode: gate
             plan: ${{ needs.plan.outputs.response_file }}
             plan_field: plan
+            run_plan: ${{ needs.plan_check.outputs.run_dir }}/plan.json
+            approved: ${{ needs.plan_check.outputs.plan_digest }}
+            repository: 'true'
             record: ${{ needs.plan_check.outputs.run_dir }}/ledger.json
             preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json
             integrated: ${{ needs.execute.outputs.integrated_heads }}
             enforce: 'false'
 
-    correct:
+    # The correction loop (governance sections 2 and 4). One pass per rework cycle
+    # the gate still allows, never more: max_iterations is the gate's
+    # correction_passes, the rework bound (the profile's as committed at the plan
+    # base, or an authorized extension's ceiling) minus the cycles already taken,
+    # and a pass restarts only when its own gate says FAIL with passes left. Each
+    # pass amends the plan before anybody edits, checks the amendment, corrects,
+    # checks the hand-offs, reviews independently, updates the ledger, and gates.
+    # ESCALATE (REWORK_LIMIT, NOT_CONVERGING) ends the loop early.
+    correction:
       name: Correction Pass
       needs:
+        - plan
         - plan_check
+        - execute
         - gate
-      if: needs.gate.result == 'success' && needs.gate.outputs.verdict == 'FAIL'
+      if: needs.gate.result == 'success' && needs.gate.outputs.verdict == 'FAIL' && needs.gate.outputs.correction_passes != '0'
+      max_iterations: '${{ needs.gate.outputs.correction_passes }}'
       outputs:
         status: ${{ parseJson(steps.correct.outputs.json_response).status }}
-        integrated_heads: ${{ join(parseJson(steps.correct.outputs.json_response).integrated_heads, ',') }}
+        verdict: ${{ steps.regate.outputs.verdict }}
+        summary: ${{ steps.regate.outputs.summary }}
+        report_file: ${{ steps.regate.outputs.report_file }}
+        correction_passes: ${{ steps.regate.outputs.correction_passes }}
+        restart_requested: ${{ steps.loop.outputs.restart_requested }}
       steps:
+        - id: amend
+          uses: builtin/agent-prompt
+          with:
+            model: lead
+            thinking_effort: high
+            permission_preset: dangerous_all
+            structured_output_schema: ${{ env.AMEND_SCHEMA }}
+            prompt: |
+              You are the lead of an ALCHEMY run. The last gate failed; this is one bounded correction pass. ${{ env.SKILLS_NOTE }} ${{ env.UNTRUSTED_NOTE }}
+
+              - Approved plan: ${{ needs.plan_check.outputs.plan_file }}; approved digest ${{ needs.plan_check.outputs.plan_digest }}
+              - Run directory: ${{ needs.plan_check.outputs.run_dir }}; ledger `ledger.json`, hand-offs in `handoffs/`
+              - First gate: ${{ needs.gate.outputs.summary }} (report ${{ needs.gate.outputs.report_file }}). In a later pass, first run the `gate` command on `ledger.json` against `plan.json` with `--approved` set to the approved digest; its verdict and codes replace the first gate's.
+
+              Read `<skills>/alchemy-orchestrate/SKILL.md` section 4 step 9, `references/contracts.md` (Amendments) and `references/governance.md` sections 1, 2, and 4. Before anybody edits, append one amendment per correction to `amendments` in `<run directory>/plan.json`, the only other edit that file allows: for each open blocking or major finding and each failed or unverified criterion, the package it originates from, the revision it supersedes (the `plan_digest` the plan check prints for the plan before it), its base, the findings it corrects, a reviewer who is not its owner, and a package record whose write set names the files it will change, never one taken from a test error. A correction you make yourself is an amendment you own. Stay inside the approved writes, permissions, and risk; anything else needs the human, so return BLOCKED. When the gate reported NOT_CONVERGING, add only a replanning `decide` amendment for the stopped work. Never raise `max_rework_cycles` or edit the profile; a question nobody answered is no answer. For an unattended plan, also write a new `preflight.json` bound to the amended revision per `references/autonomy-preflight.md`. Change no code in this step. ${{ env.CHECK_NOTE }} Run the `plan` command on the amended plan with `--approved` set to the approved digest.
+
+              Return status AMENDED when every routed item has an amendment and the plan check passes, otherwise BLOCKED; and a report.
+        - id: require_amended
+          shell: node
+          run: |
+            const status = (process.env.AMEND_STATUS ?? '').trim();
+            if (status !== 'AMENDED') {
+              console.error(`The correction pass stopped before any edit: amend returned ${status || 'nothing'}.`);
+              process.exit(1);
+            }
+          env:
+            AMEND_STATUS: ${{ parseJson(steps.amend.outputs.json_response).status }}
+        # The amended plan is checked before anybody edits: the approved part from
+        # the planning step's own record, the amendments from the run directory.
+        - id: amend_check
+          uses: project/alchemy-check
+          with:
+            mode: plan
+            plan: ${{ needs.plan.outputs.response_file }}
+            plan_field: plan
+            run_plan: ${{ needs.plan_check.outputs.run_dir }}/plan.json
+            approved: ${{ needs.plan_check.outputs.plan_digest }}
         - id: correct
           uses: builtin/agent-prompt
           with:
@@ -411,27 +479,24 @@ pipeline:
             permission_preset: dangerous_all
             structured_output_schema: ${{ env.CORRECT_SCHEMA }}
             prompt: |
-              You are the lead of an ALCHEMY run. The gate failed; this is the run's one bounded correction pass. ${{ env.SKILLS_NOTE }} ${{ env.UNTRUSTED_NOTE }}
+              You are the lead of an ALCHEMY run, carrying out the amendments this correction pass added. ${{ env.SKILLS_NOTE }} ${{ env.UNTRUSTED_NOTE }}
 
-              - Plan: ${{ needs.plan_check.outputs.plan_file }}
+              - Amended plan: ${{ needs.plan_check.outputs.run_dir }}/plan.json; amendment check: ${{ steps.amend_check.outputs.summary }}
               - Run directory: ${{ needs.plan_check.outputs.run_dir }}; ledger `ledger.json`, hand-offs in `handoffs/`
-              - Gate: ${{ needs.gate.outputs.summary }} (report ${{ needs.gate.outputs.report_file }})
 
-              Follow alchemy-orchestrate section 4 step 9: route each open blocking or major finding and each failed or unverified criterion to the owner of its package. ${{ env.SPAWN_NOTE }} Check each new hand-off on receipt, save it as `<run directory>/handoffs/<package id>.json`, integrate, commit, and add one to that package's `rework_cycles` in the ledger. ${{ env.CHECK_NOTE }} Leave disputes, deferrals, and accepted risks to the human. Never weaken a check, criterion, or test. Do not push, open a pull request, or merge.
+              Carry out each new amendment's package by its owner, inside its write set, from its base. ${{ env.SPAWN_NOTE }} Check each new hand-off on receipt, save it as `<run directory>/handoffs/<package id>.json`, integrate, commit, and record the head in `base.integrated` of `plan.json`. Add, change, or remove no amendment in this step. ${{ env.CHECK_NOTE }} Leave disputes, deferrals, and accepted risks to the human. Never weaken a check, criterion, or test. Do not push, open a pull request, or merge.
 
-              Return status CORRECTED when every routed item has a new accepted hand-off, otherwise BLOCKED; head_commit; integrated_heads; and a report.
-
-    rereview:
-      name: Re-review
-      needs:
-        - plan
-        - plan_check
-        - execute
-        - correct
-      if: needs.correct.result == 'success' && needs.correct.outputs.status == 'CORRECTED'
-      outputs:
-        findings_file: ${{ steps.review.outputs.json_response_file }}
-      steps:
+              Return status CORRECTED when every new amendment has an accepted, integrated hand-off, otherwise BLOCKED; head_commit; integrated_heads; and a report.
+        - id: require_corrected
+          shell: node
+          run: |
+            const status = (process.env.CORRECT_STATUS ?? '').trim();
+            if (status !== 'CORRECTED') {
+              console.error(`The correction pass did not integrate its amendments: correct returned ${status || 'nothing'}.`);
+              process.exit(1);
+            }
+          env:
+            CORRECT_STATUS: ${{ parseJson(steps.correct.outputs.json_response).status }}
         # Structural checks only, as in handoff_check.
         - id: check
           uses: project/alchemy-check
@@ -439,9 +504,10 @@ pipeline:
             mode: handoff
             plan: ${{ needs.plan.outputs.response_file }}
             plan_field: plan
+            run_plan: ${{ needs.plan_check.outputs.run_dir }}/plan.json
             record: ${{ needs.plan_check.outputs.run_dir }}/handoffs
             digests: 'false'
-            integrated: '${{ needs.execute.outputs.integrated_heads }},${{ needs.correct.outputs.integrated_heads }}'
+            integrated: '${{ needs.execute.outputs.integrated_heads }},${{ join(parseJson(steps.correct.outputs.json_response).integrated_heads, ',') }}'
         - id: snapshot
           uses: project/alchemy-snapshot
           with:
@@ -455,22 +521,14 @@ pipeline:
             permission_preset: read_only
             structured_output_schema: ${{ env.FINDINGS_SCHEMA }}
             prompt: |
-              You are `reviewer_codex`, an independent reviewer of an ALCHEMY run after its correction pass. ${{ env.SKILLS_NOTE }} ${{ env.UNTRUSTED_NOTE }}
+              You are `reviewer_codex`, an independent reviewer of an ALCHEMY run after a correction pass. ${{ env.SKILLS_NOTE }} ${{ env.UNTRUSTED_NOTE }}
 
-              - Plan with requirements, packages, write sets, and acceptance criteria: ${{ needs.plan_check.outputs.plan_file }}
+              - Amended plan with requirements, packages, amendments, write sets, and acceptance criteria: ${{ needs.plan_check.outputs.run_dir }}/plan.json
               - Integrated diff from the plan base ${{ needs.plan_check.outputs.base_commit }} to head ${{ steps.snapshot.outputs.head_commit }}: ${{ steps.snapshot.outputs.diff_file }}
+              - Earlier findings: `${{ needs.plan_check.outputs.run_dir }}/ledger.json`
               - Test commands: every `command` criterion in the plan and `repository.verification` in `alchemy-workspace.json`.
 
-              ${{ env.REVIEW_RULES }}
-
-    reconsolidate:
-      name: Update Ledger
-      needs:
-        - plan_check
-        - gate
-        - correct
-        - rereview
-      steps:
+              ${{ env.REVIEW_RULES }} ${{ env.CONVERGENCE_RULES }}
         - id: reconsolidate
           uses: builtin/agent-prompt
           with:
@@ -479,39 +537,49 @@ pipeline:
             permission_preset: dangerous_all
             structured_output_schema: ${{ env.LEDGER_SCHEMA }}
             prompt: |
-              You are the lead of an ALCHEMY run, updating its gate ledger after the correction pass. ${{ env.SKILLS_NOTE }} ${{ env.UNTRUSTED_NOTE }}
+              You are the lead of an ALCHEMY run, updating its gate ledger after a correction pass. ${{ env.SKILLS_NOTE }} ${{ env.UNTRUSTED_NOTE }}
 
-              - Plan: ${{ needs.plan_check.outputs.plan_file }}
+              - Amended plan: ${{ needs.plan_check.outputs.run_dir }}/plan.json
               - Run directory: ${{ needs.plan_check.outputs.run_dir }}; ledger `ledger.json`, hand-offs in `handoffs/`
-              - Previous gate: ${{ needs.gate.outputs.summary }}
-              - Re-review findings from `reviewer_codex`: ${{ needs.rereview.outputs.findings_file }}
+              - Re-review findings from `reviewer_codex`: ${{ steps.review.outputs.json_response_file }}
 
-              Update the existing ledger for the new head and keep its `rework_cycles`. A finding the correction pass addressed is resolved only with evidence that exited 0 at the new head. ${{ env.LEDGER_RULES }} ${{ env.CHECK_NOTE }} Do not change code in this step.
+              Update the existing ledger for the new head; keep its `rework_cycles`, which the gate cross-checks against the amendments. A finding the pass addressed is resolved only with evidence that exited 0 at the new head. Record each new finding with `after` set to this pass's amendment of its package, and copy the reviewer's convergence links exactly: `related_to`, `introduced_by` for a regression, and the amendment added to `reopened_after` of a finding it reopens. Never drop or weaken a link the reviewer recorded. ${{ env.LEDGER_RULES }} ${{ env.CHECK_NOTE }} Do not change code in this step.
 
               Return head_commit, the gate verdict, and a report.
-
-    regate:
-      name: Re-gate
-      needs:
-        - plan
-        - plan_check
-        - execute
-        - correct
-        - reconsolidate
-      outputs:
-        verdict: ${{ steps.check.outputs.verdict }}
-        summary: ${{ steps.check.outputs.summary }}
-      steps:
-        - id: check
+        - id: regate
           uses: project/alchemy-check
           with:
             mode: gate
             plan: ${{ needs.plan.outputs.response_file }}
             plan_field: plan
+            run_plan: ${{ needs.plan_check.outputs.run_dir }}/plan.json
+            approved: ${{ needs.plan_check.outputs.plan_digest }}
+            repository: 'true'
             record: ${{ needs.plan_check.outputs.run_dir }}/ledger.json
             preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json
-            integrated: '${{ needs.execute.outputs.integrated_heads }},${{ needs.correct.outputs.integrated_heads }}'
+            integrated: ${{ needs.execute.outputs.integrated_heads }}
             enforce: 'false'
+        # The gate decides after each pass: only FAIL with passes left runs another.
+        - id: loop
+          shell: node
+          run: |
+            import fs from 'node:fs';
+
+            const output = process.env.UNSTOPPABLE_CODE_OUTPUT ?? '';
+            if (!output) {
+              throw new Error('UNSTOPPABLE_CODE_OUTPUT is required');
+            }
+            const verdict = (process.env.REGATE_VERDICT ?? '').trim();
+            const passes = Number.parseInt((process.env.REGATE_PASSES ?? '').trim(), 10);
+            const again = verdict === 'FAIL' && Number.isInteger(passes) && passes > 0;
+            fs.appendFileSync(
+              output,
+              again ? 'restart_requested=true\nUNSTOPPABLE_CODE_JOB_RESTART=true\n' : 'restart_requested=false\n',
+              'utf8',
+            );
+          env:
+            REGATE_VERDICT: ${{ steps.regate.outputs.verdict }}
+            REGATE_PASSES: ${{ steps.regate.outputs.correction_passes }}
 
     escalate:
       name: Escalate To Human
@@ -520,15 +588,14 @@ pipeline:
         - plan_check
         - execute
         - gate
-        - correct
-        - regate
-      if: (needs.execute.result == 'success' && needs.execute.outputs.status != 'INTEGRATED') || (needs.gate.result == 'success' && needs.gate.outputs.verdict == 'ESCALATE') || (needs.correct.result == 'success' && needs.correct.outputs.status != 'CORRECTED') || (needs.regate.result == 'success' && needs.regate.outputs.verdict != 'PASS')
+        - correction
+      if: (needs.execute.result == 'success' && needs.execute.outputs.status != 'INTEGRATED') || (needs.gate.result == 'success' && (needs.gate.outputs.verdict == 'ESCALATE' || (needs.gate.outputs.verdict == 'FAIL' && needs.gate.outputs.correction_passes == '0'))) || needs.correction.result == 'failure' || (needs.correction.result == 'success' && needs.correction.outputs.verdict != 'PASS')
       steps:
         - id: ask
           uses: builtin/request-input
           with:
             title: ALCHEMY run stopped at a bound or a blocker
-            message: 'Execution: ${{ needs.execute.outputs.status }}. Gate: ${{ needs.gate.outputs.summary }}. Correction: ${{ needs.correct.outputs.status }}. Re-gate: ${{ needs.regate.outputs.summary }}. Run directory: ${{ needs.plan_check.outputs.run_dir }}. Nothing was pushed. The run ends after this step with the current gate verdict.'
+            message: 'Execution: ${{ needs.execute.outputs.status }}. Gate: ${{ needs.gate.outputs.summary }}. Correction: ${{ needs.correction.result }}, last pass ${{ needs.correction.outputs.status }}. Last re-gate: ${{ needs.correction.outputs.summary }}. A raised rework bound needs your answer, recorded as execution.rework_extension in a new approved plan; this step records none. Run directory: ${{ needs.plan_check.outputs.run_dir }}. Nothing was pushed. The run ends after this step with the current gate verdict.'
             fields: '[{"key":"acknowledged","label":"I have read the run state","type":"boolean","required":true}]'
         - id: final_gate
           uses: project/alchemy-check
@@ -536,9 +603,12 @@ pipeline:
             mode: gate
             plan: ${{ needs.plan.outputs.response_file }}
             plan_field: plan
+            run_plan: ${{ needs.plan_check.outputs.run_dir }}/plan.json
+            approved: ${{ needs.plan_check.outputs.plan_digest }}
+            repository: 'true'
             record: ${{ needs.plan_check.outputs.run_dir }}/ledger.json
             preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json
-            integrated: '${{ needs.execute.outputs.integrated_heads }},${{ needs.correct.outputs.integrated_heads }}'
+            integrated: ${{ needs.execute.outputs.integrated_heads }}
 
     approve_pr:
       name: Approve Pull Request
@@ -547,9 +617,8 @@ pipeline:
         - plan_check
         - execute
         - gate
-        - correct
-        - regate
-      if: (needs.gate.result == 'success' && needs.gate.outputs.verdict == 'PASS') || (needs.regate.result == 'success' && needs.regate.outputs.verdict == 'PASS')
+        - correction
+      if: (needs.gate.result == 'success' && needs.gate.outputs.verdict == 'PASS') || (needs.correction.result == 'success' && needs.correction.outputs.verdict == 'PASS')
       outputs:
         decision: ${{ steps.ask.outputs.decision }}
         gate_summary: ${{ steps.final_gate.outputs.summary }}
@@ -560,9 +629,12 @@ pipeline:
             mode: gate
             plan: ${{ needs.plan.outputs.response_file }}
             plan_field: plan
+            run_plan: ${{ needs.plan_check.outputs.run_dir }}/plan.json
+            approved: ${{ needs.plan_check.outputs.plan_digest }}
+            repository: 'true'
             record: ${{ needs.plan_check.outputs.run_dir }}/ledger.json
             preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json
-            integrated: '${{ needs.execute.outputs.integrated_heads }},${{ needs.correct.outputs.integrated_heads }}'
+            integrated: ${{ needs.execute.outputs.integrated_heads }}
         - id: ask
           uses: builtin/request-input
           with:

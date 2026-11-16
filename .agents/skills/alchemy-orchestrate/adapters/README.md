@@ -110,25 +110,41 @@ Dispatch it with an `objective`. The `lead`, `reviewer_claude`, and
 7. `handoff_check` re-checks every hand-off structurally and snapshots the
    diff from the base. It passes the returned heads as `integrated` and does
    not check digests, because later waves legitimately change files that
-   earlier hand-offs relied on or changed. `rereview` repeats this check after
-   the correction pass, adding that pass's heads.
+   earlier hand-offs relied on or changed. Each correction pass repeats this
+   check, adding that pass's heads and the run plan's amendments.
 8. `review` runs two read-only reviewers on different providers, in parallel.
    They see the plan, the diff, and the test commands, not the hand-offs.
 9. `consolidate` has the lead re-run the checks and build `ledger.json`.
 10. `gate` runs the ledger through the gate check, with the run's
     `preflight.json` when it exists, so unattended work without a passing
-    preflight bound to the plan cannot pass (`PREFLIGHT_REQUIRED`).
-11. On `FAIL`, one bounded correction pass follows: `correct`, then
-    `rereview` with one reviewer, then `reconsolidate`, then `regate`.
-12. `escalate` follows `ESCALATE`, a failed correction, a failed re-gate, or
-    an execution that did not integrate. It asks the human, re-runs the gate,
-    and ends the run failed unless the gate now passes.
+    preflight bound to the plan cannot pass (`PREFLIGHT_REQUIRED`). It is
+    given the approved digest (`approved`) and the repository (`repository`),
+    so the rework bound is the one committed at the plan base, and it outputs
+    `correction_passes`: that bound, or an authorized extension's ceiling,
+    minus the most cycles any origin chain has taken.
+11. On `FAIL` with passes left, the `correction` job loops, at most
+    `correction_passes` times (`max_iterations`). Each pass runs, in order:
+    `amend`, where the lead appends amendments to the run plan and changes no
+    code; `amend_check`, the plan check on the amended plan against the
+    approved digest, which fails the job before anybody edits; `correct`,
+    which carries out the new amendments by their owners; the structural
+    hand-off check and a snapshot; `review` by one read-only reviewer, who
+    records convergence links; `reconsolidate`; and `regate`, the gate check.
+    `loop` restarts the job only when that gate says `FAIL` and passes are
+    left. `ESCALATE` (`REWORK_LIMIT`, `NOT_CONVERGING`) ends the loop.
+12. `escalate` follows `ESCALATE`, a `FAIL` with no passes left, a failed or
+    blocked correction pass, a last re-gate that did not pass, or an
+    execution that did not integrate. It asks the human, re-runs the gate,
+    and ends the run failed unless the gate now passes. Its answer records no
+    extension: a raised bound is a new approved plan.
 13. After a `PASS`, `approve_pr` re-runs the gate and asks the human: open a
     pull request or stop. `create_pr` then opens it.
 
 Every check after planning re-extracts the plan from the planning step's own
 output, not from the copy the agents read, and adds the returned
-`integrated_heads` (execute and correction) as `base.integrated`. A job output
+`integrated_heads` as `base.integrated`. With `run_plan` it also adds the
+run plan's `amendments` and `base.integrated`; nothing else is read from the
+copy the agents write, so the approved part stays the planning step's. A job output
 the run never produced interpolates as an empty string, and `join()` turns the
 head list into one input; both rules were read from the CLI's expression
 evaluator. A job with its own `if:` runs
@@ -173,12 +189,17 @@ whether or not the jobs it needs succeeded, so each such condition tests
 - **Claude reviewers under `read_only` cannot run commands.** They judge the
   diff and the tests and list what they could not run. The lead re-runs the
   checks when it builds the ledger.
+- **One reviewer per correction pass.** The loop is one job, so its review
+  is a step, not a matrix over both providers as in `review`; the second
+  provider reviews only the planned work. The loop's bound is read from the
+  checked gate, not from the prompt.
 - **`pipelines validate` checks structure only.** It accepted a missing
   project action, an unknown model alias, and a malformed `if:`. The pipeline
   has been validated and its two actions run locally; the pipeline itself has
   not been executed end to end, and neither have its preflight jobs.
 - **One run costs several context loads.** A run takes a planning context, a
   lead execution context with one context per sub-agent, two reviewer
-  contexts, and a ledger context. The correction pass adds three more. Measure
+  contexts, and a ledger context. Each correction pass adds three more:
+  amend and correct for the lead, and one reviewer. Measure
   a run against the single-agent baseline as governance §6 describes before
   keeping the multi-agent mode.

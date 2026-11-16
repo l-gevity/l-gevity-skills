@@ -3259,6 +3259,36 @@ def mutation_test() -> int:
         ("the check action drops preflight mode", actions,
          'MODES = ("plan", "preflight", "handoff", "gate")', 'MODES = ("plan", "handoff", "gate")',
          "MODES must include preflight"),
+        # The correction loop's bound and order, each link broken on its own.
+        ("the correction loop ignores the gate's bound", pipelines,
+         "      max_iterations: '${{ needs.gate.outputs.correction_passes }}'", "      max_iterations: 5",
+         "loop at most the gate's correction_passes times"),
+        ("the correction loop restarts whatever the gate says", pipelines,
+         "const again = verdict === 'FAIL' && Number.isInteger(passes) && passes > 0;", "const again = true;",
+         "restart only when its own gate says FAIL"),
+        ("the correction loop starts with no passes left", pipelines,
+         " && needs.gate.outputs.correction_passes != '0'\n      max_iterations", "\n      max_iterations",
+         "only on a gate FAIL with passes left"),
+        ("the amendment check only reports", pipelines,
+         "            approved: ${{ needs.plan_check.outputs.plan_digest }}\n        - id: correct\n",
+         "            approved: ${{ needs.plan_check.outputs.plan_digest }}\n            enforce: 'false'\n        - id: correct\n",
+         "amend_check must enforce the plan check"),
+        ("the correction pass edits before its amendment is checked", pipelines,
+         "        - id: amend_check\n", "        - id: amend_note\n",
+         "must run amend, amend_check, correct"),
+        ("the correction review may write", pipelines,
+         "            model: reviewer_codex\n            thinking_effort: high\n            permission_preset: read_only",
+         "            model: reviewer_codex\n            thinking_effort: high\n            permission_preset: dangerous_all",
+         "review must stay read-only"),
+        ("the gate job drops its correction passes", pipelines,
+         "        correction_passes: ${{ steps.check.outputs.correction_passes }}\n", "",
+         "gate must output the check's correction_passes"),
+        ("a gate check reads the bound from the working profile", pipelines,
+         "            repository: 'true'\n", "",
+         "without the approved digest, the run plan, and the repository"),
+        ("the check action drops correction_passes", actions,
+         'outputs["correction_passes"] = ', 'outputs["passes"] = ',
+         "must output correction_passes"),
     ):
         def break_adapter(files=files, old=old, new=new, label=label):
             for path in files:
@@ -4456,6 +4486,63 @@ def validate_unattended_adapter() -> None:
                 fail(f"{label} job {name} runs a gate check without the run's preflight record")
 
 
+CORRECTION_STEPS = ("amend", "amend_check", "correct", "check", "review", "reconsolidate", "regate", "loop")
+
+
+def validate_correction_loop() -> None:
+    """The workflow adapter honors the rework bound (ORCH-3e): the gate check
+    outputs the correction passes the bound still allows, and one looping job
+    runs at most that many passes, each amending the plan, checking the
+    amendment before any edit, correcting, checking hand-offs, reviewing
+    read-only, updating the ledger, and gating, and restarting only when that
+    gate says FAIL with passes left. The runtime cannot run here, so the
+    wiring is held by its text."""
+    action = UNSTOPPABLE / "actions" / "alchemy-check" / "check.py"
+    if not re.search(r'outputs\["correction_passes"\] = .*left', action.read_text(encoding="utf-8")):
+        fail(f"{action.relative_to(ROOT)} must output correction_passes from the gate report's rework.passes_left")
+    path = UNSTOPPABLE / "pipelines" / "alchemy-multi-agent.yaml"
+    label = path.relative_to(ROOT)
+    text = path.read_text(encoding="utf-8")
+    jobs = pipeline_jobs(text)
+    if "correction_passes: ${{ steps.check.outputs.correction_passes }}" not in jobs.get("gate", ""):
+        fail(f"{label} gate must output the check's correction_passes")
+    looping = [name for name, block in jobs.items() if re.search(r"(?m)^      max_iterations:", block)]
+    if looping != ["correction"]:
+        fail(f"{label} needs exactly one looping job, correction, found {looping}")
+    block = jobs["correction"]
+    if not re.search(r"(?m)^      max_iterations: '\$\{\{ needs\.gate\.outputs\.correction_passes \}\}'\s*$", block):
+        fail(f"{label} correction must loop at most the gate's correction_passes times (max_iterations)")
+    condition = re.search(r"(?m)^      if: (.*)$", block)
+    for required in ("needs.gate.outputs.verdict == 'FAIL'", "needs.gate.outputs.correction_passes != '0'"):
+        if not condition or required not in condition.group(1):
+            fail(f"{label} correction must start only on a gate FAIL with passes left: its if: needs {required}")
+    steps = {}
+    for step in re.split(r"(?m)^        - id: ", block)[1:]:
+        steps[step.split("\n", 1)[0].strip()] = step
+    order = [name for name in steps if name in CORRECTION_STEPS]
+    if order != list(CORRECTION_STEPS):
+        fail(f"{label} correction must run {', '.join(CORRECTION_STEPS)} in that order, found {', '.join(order)}")
+    amend_check = steps["amend_check"]
+    if not re.search(r"(?m)^\s+mode: plan\s*$", amend_check) or "approved: ${{ needs.plan_check.outputs.plan_digest }}" \
+            not in amend_check or re.search(r"(?m)^\s+enforce: 'false'", amend_check):
+        fail(f"{label} correction's amend_check must enforce the plan check against the approved digest before any edit")
+    if "permission_preset: read_only" not in steps["review"]:
+        fail(f"{label} correction's review must stay read-only")
+    if not re.search(r"(?m)^\s+mode: gate\s*$", steps["regate"]):
+        fail(f"{label} correction's regate must run the gate check")
+    if "const again = verdict === 'FAIL' && Number.isInteger(passes) && passes > 0;" not in steps["loop"]:
+        fail(f"{label} correction may restart only when its own gate says FAIL with passes left")
+    restarts = [name for name, body in jobs.items() if "UNSTOPPABLE_CODE_JOB_RESTART" in body]
+    if restarts != ["correction"]:
+        fail(f"{label} only the correction loop may restart a job, found {restarts}")
+    for name, body in jobs.items():
+        for step in re.split(r"(?m)^        - id: ", body)[1:]:
+            if re.search(r"(?m)^\s+mode: gate\s*$", step) and not (
+                    "approved: ${{ needs.plan_check.outputs.plan_digest }}" in step
+                    and re.search(r"(?m)^\s+repository: 'true'\s*$", step) and re.search(r"(?m)^\s+run_plan: ", step)):
+                fail(f"{label} job {name} runs a gate check without the approved digest, the run plan, and the repository")
+
+
 SKILL_CONTRACT_CAPABILITIES = (
     "lead", "architecture", "engineering", "verification", "optimization", "security", "scientific-validation",
 )
@@ -4598,6 +4685,7 @@ def main() -> int:
     validate_adversarial_cases()
     validate_gate_repository_rules()
     validate_unattended_adapter()
+    validate_correction_loop()
     validate_verdict_classification()
     validate_morphogenetic_mode_selection()
     validate_morphogenetic_graph_analyzer()

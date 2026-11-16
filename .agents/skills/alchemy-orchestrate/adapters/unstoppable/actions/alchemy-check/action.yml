@@ -55,6 +55,29 @@ inputs:
       the plan; an attended plan needs none.
     required: false
     default: ''
+  run_plan:
+    description: >-
+      The run directory's plan.json. Its amendments and base.integrated are
+      added to the checked copy of the plan; nothing else in it is read, so the
+      approved part always comes from the plan input. Empty adds nothing.
+    required: false
+    default: ''
+  approved:
+    description: >-
+      plan and gate modes, the approved revision's digest (the plan check's
+      plan_digest before any amendment), passed as --approved: an amended plan
+      whose approved part changed fails, and an extension of the rework bound
+      counts only when this anchors it.
+    required: false
+    default: ''
+  repository:
+    description: >-
+      gate mode, "true" passes the repository root as --root: the repository
+      must be at the ledger head and clean outside the state directory, the
+      integrated diff comes from git, and the rework bound is the one committed
+      at the plan base.
+    required: false
+    default: 'false'
   plan_field:
     description: The field of the plan input that holds the plan; empty when the input is the plan.
     required: false
@@ -91,6 +114,13 @@ outputs:
     description: plan mode, "true" when the plan sets execution.unattended, otherwise "false".
   plan_digest:
     description: plan mode, the plan revision digest a preflight record binds to in its plan.digest.
+  approved_digest:
+    description: plan mode, the digest of the plan without its amendments, the approved revision.
+  correction_passes:
+    description: >-
+      gate mode, the correction passes the rework bound still allows: the bound
+      (the profile's, or an authorized extension's ceiling) minus the most
+      cycles any origin chain has taken; 0 when none is left.
   run_dir:
     description: plan mode with publish, the run directory holding plan.json.
 runs:

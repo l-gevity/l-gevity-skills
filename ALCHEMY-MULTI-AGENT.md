@@ -314,6 +314,11 @@ their verified status are in the
     amendment; work that does not depend on it MAY continue. *Check:*
     `NOT_CONVERGING`, `AMENDMENT_INVALID`; *judgment* for relatedness, which
     the reviewer records.
+49. A workflow adapter MUST run at most as many correction passes as the
+    checked rework bound still allows, each amending the plan and checking
+    the amendment before any edit, then reviewing independently and gating;
+    only a gate `FAIL` with passes left starts another. *Check:* the
+    validator's correction-loop check for the workflow.
 
 ## Invariants
 

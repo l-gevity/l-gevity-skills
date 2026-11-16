@@ -165,6 +165,35 @@ def same_commit(left: str, right: str) -> bool:
     return full.startswith(short)
 
 
+def graft_run_plan(data: dict, root: Path) -> bool:
+    """Add the run directory's amendments and integrated heads to the approved plan.
+
+    The approved part always comes from the plan input; from the run plan only
+    `amendments` and `base.integrated` are read, the two parts a run appends to."""
+    raw = option("run_plan")
+    if not raw:
+        return False
+    source = resolve(raw, root)
+    run_plan = read_json(source)
+    if not isinstance(run_plan, dict):
+        raise InputError(f"{source}: a plan must be a JSON object")
+    amendments = run_plan.get("amendments", [])
+    if not isinstance(amendments, list):
+        raise InputError(f"{source}: amendments must be a list")
+    if amendments:
+        data["amendments"] = amendments
+    elif "amendments" in data:
+        del data["amendments"]
+    heads = run_plan.get("base", {}).get("integrated") if isinstance(run_plan.get("base"), dict) else None
+    if isinstance(heads, list) and heads:
+        if not isinstance(data.get("base"), dict):
+            raise InputError("the plan has no base object to add integrated heads to")
+        known = data["base"].get("integrated")
+        known = list(known) if isinstance(known, list) else []
+        data["base"]["integrated"] = known + [head for head in heads if isinstance(head, str) and head not in known]
+    return True
+
+
 def prepare_plan(mode: str, root: Path, skill: Path, profile: Path | None, out: Path) -> dict[str, str]:
     """Extract the plan when plan_field is set; in plan mode also verify and publish it."""
     source = resolve(option("plan"), root)
@@ -186,6 +215,7 @@ def prepare_plan(mode: str, root: Path, skill: Path, profile: Path | None, out: 
         data = value
     if not isinstance(data, dict):
         raise InputError(f"{source}: a plan must be a JSON object")
+    grafted = graft_run_plan(data, root)
     heads = integrated_heads()
     if heads:
         if not isinstance(data.get("base"), dict):
@@ -194,7 +224,7 @@ def prepare_plan(mode: str, root: Path, skill: Path, profile: Path | None, out: 
         known = list(known) if isinstance(known, list) else []
         data["base"]["integrated"] = known + [head for head in heads if head not in known]
     if mode != "plan":
-        if not field and not heads:
+        if not field and not heads and not grafted:
             return {"plan_file": str(source)}
         plan_file = out / f"alchemy-plan-{uuid.uuid4().hex[:8]}.json"
         write_json(plan_file, data)
@@ -222,7 +252,7 @@ def prepare_plan(mode: str, root: Path, skill: Path, profile: Path | None, out: 
         plan_file = run / "plan.json"
         write_json(plan_file, data)
         outputs["run_dir"] = str(run)
-    elif field or heads:
+    elif field or heads or grafted:
         plan_file = out / f"alchemy-plan-{uuid.uuid4().hex[:8]}.json"
         write_json(plan_file, data)
     outputs["plan_file"] = str(plan_file)
@@ -284,8 +314,10 @@ def summarize(mode: str, report: dict[str, Any]) -> str:
 
 def check(mode: str, root: Path, checker: Path, profile: Path | None, plan_file: str) -> dict[str, Any]:
     common = ["--profile", str(profile)] if profile is not None else []
+    # The approved revision's digest anchors the approved part of an amended plan.
+    approved = ["--approved", option("approved")] if option("approved") else []
     if mode == "plan":
-        return run_checker(checker, ["plan", plan_file, *common])
+        return run_checker(checker, ["plan", plan_file, *common, *approved])
     raw_record = option("record")
     if not raw_record:
         raise InputError(f"{mode} mode needs the record input")
@@ -302,7 +334,11 @@ def check(mode: str, root: Path, checker: Path, profile: Path | None, plan_file:
         # unattended plan (PREFLIGHT_REQUIRED), and an attended one needs none.
         preflight = resolve(option("preflight"), root) if option("preflight") else None
         extra = ["--preflight", str(preflight)] if preflight is not None and preflight.is_file() else []
-        return run_checker(checker, ["gate", str(record), "--plan", plan_file, *common, *extra])
+        # With the repository, the gate takes the integrated diff and the rework
+        # bound from git, not from the ledger or a profile edited during the run.
+        if flag("repository", "false"):
+            extra += ["--root", str(root)]
+        return run_checker(checker, ["gate", str(record), "--plan", plan_file, *common, *extra, *approved])
     extra = ["--plan", plan_file, *common]
     if flag("digests", "true"):
         workspace = resolve(option("root"), root) if option("root") else root
@@ -361,6 +397,12 @@ def main() -> int:
             # the preflight record binds to this digest.
             outputs["unattended"] = "true" if report.get("unattended") is True else "false"
             outputs["plan_digest"] = str(report.get("plan_digest") or "")
+            outputs["approved_digest"] = str(report.get("approved_digest") or "")
+        if mode == "gate":
+            # Correction passes the rework bound still allows, for the pipeline's loop.
+            rework = report.get("rework") if isinstance(report.get("rework"), dict) else {}
+            left = rework.get("passes_left")
+            outputs["correction_passes"] = str(left if isinstance(left, int) and left >= 0 else 0)
         emit({"verdict": report["verdict"], "summary": summarize(mode, report),
               "report_file": str(report_file), **outputs})
     except InputError as exc:
