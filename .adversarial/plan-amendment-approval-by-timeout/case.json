@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #148: a question that timed out grants nothing",
+  "description": "Same as plan-amendment-broadens-approved-pass, but the approval's source is the timeout of an unanswered question.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AUTHORIZATION_UNPROVEN"
+    ]
+  }
+}

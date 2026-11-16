@@ -110,7 +110,11 @@ re-run on the merged result. If one side has passing evidence and the other
 has none, that side wins. If both have evidence, neither has, the decision is
 high-impact, or it is still open after one exchange, a human decides. Rework
 rounds are bounded, so a disagreement cannot loop forever; reaching the bound
-stops the run and asks.
+stops the run and asks. Each correction is added to the plan before anyone
+edits, with an owner and a reviewer, so a renamed task cannot reset its count.
+Only a human answer raises the bound; a question left unanswered raises
+nothing. When the same part keeps producing serious problems, patching stops
+and the design is planned again.
 
 ## A gate before the pull request
 
@@ -132,4 +136,4 @@ the first missed and cost twice as much, use one.
 [SKILL.md](../.claude/skills/alchemy-orchestrate/SKILL.md) and its references;
 the routing it builds on is explained in [the alchemy primer](READ-alchemy.md).*
 
-<!-- skill-revision: d3d57d61a7d1 -->
+<!-- skill-revision: 580d00283e2b -->

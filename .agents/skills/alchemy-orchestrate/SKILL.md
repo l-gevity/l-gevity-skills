@@ -163,8 +163,12 @@ the runtime transcript).
 8. **Verify independently.** Verifiers read the requirements, the integrated
    diff, and the tests, and re-run checks. A hand-off summary is a claim to
    test, never evidence.
-9. **Correct, bounded.** Route each blocking finding to the package owner. At
-   most `max_rework_cycles` per package; then escalate with both positions.
+9. **Correct, bounded.** Before anybody edits, add a plan amendment (yours
+   too) and re-run the plan check.
+   At most `max_rework_cycles` per origin chain; then escalate with both
+   positions. Never raise a bound yourself: an unanswered question is no
+   answer. On `NOT_CONVERGING`, stop patching that work and propose a
+   replanning package; independent work continues.
 10. **Gate.** Record criteria, evidence, findings, and disputes in the ledger;
     run `check_orchestration.py gate <ledger.json> --plan <plan.json>
     --profile alchemy-workspace.json --root .`, plus `--preflight
@@ -220,7 +224,7 @@ and limitations. It links decisions and evidence; it does not restate them.
 ## 7. Discipline
 
 - Never report a gate, hand-off, or plan verdict whose check did not run; say
-  `Not run` and why.
+  `Not run` and why on its line, whatever reading predicts.
 - Never weaken a check, an acceptance criterion, or a test to reach `PASS`.
 - A bound reached is a result to report, not a reason to retry silently.
 - When the same orchestration failure recurs, route it to

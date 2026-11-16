@@ -1,0 +1,13 @@
+{
+  "criterion": "multi-agent-governance #168: every write of the integrated diff owned by a package or amendment passes",
+  "description": "The integrated diff holds only files inside P1, P2, and the lead's rework amendment, plus run records.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

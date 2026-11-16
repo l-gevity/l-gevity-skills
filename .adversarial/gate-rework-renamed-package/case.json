@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #153: renaming a package cannot reset its rework budget",
+  "description": "P1 took 2 correction rounds and was renamed to P1b by amendment A1; the ledger counts 1 round for P1b, so per package ID neither exceeds the bound of 2.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "REWORK_LIMIT"
+    ]
+  }
+}

@@ -159,9 +159,10 @@ Objective
     tests, and re-run the checks it cites; a hand-off summary is a claim to
     test. *Check:* `REVIEW_NOT_INDEPENDENT`, `SELF_REVIEW`,
     `UNREVIEWED_CHANGE`; *judgment* for review depth.
-21. Rework MUST be bounded by `max_rework_cycles` per package; reaching the
-    bound MUST escalate rather than restart the loop. *Check:* `REWORK_LIMIT`
-    (an `ESCALATE` verdict outranks `FAIL`).
+21. Rework MUST be bounded by `max_rework_cycles` per origin chain, counted
+    from the plan's rework amendments, so a renamed or new rework package does
+    not start at zero; reaching the bound MUST escalate rather than restart the
+    loop. *Check:* `REWORK_LIMIT` (an `ESCALATE` verdict outranks `FAIL`).
 
 ## 7. Shared State and Provenance
 
@@ -291,6 +292,28 @@ bound, and the concurrency cap to the strongest mechanism its runtime offers,
 and say where a bound is instruction-level only. The current bindings and
 their verified status are in the
 [adapters reference](./.claude/skills/alchemy-orchestrate/adapters/README.md).
+
+## 14. Rework and Convergence
+
+46. Rework, a lead correction included, MUST be a plan amendment before
+    anybody edits: origin package, superseded revision, base, a reviewer who is
+    not the owner, and a package record every package rule applies to. The
+    amendment MUST stay inside the approved plan's write sets, permissions, and
+    risk, and off protected paths, unless the human approved it. A write no
+    package owns MUST fail the gate. *Check:* `AMENDMENT_INVALID`,
+    `AMENDMENT_BROADENS`, `PROTECTED_PATH`, `SELF_REVIEW`, `UNOWNED_WRITE`.
+47. More cycles than `max_rework_cycles` MUST come from an extension the
+    human authorized, captured in the approved plan before its first use, with
+    a ceiling, conditions each extra cycle meets, and a reference to the
+    human's answer. A timeout, a default, or a bound edited during the run
+    MUST NOT authorize anything. *Check:* `AUTHORIZATION_UNPROVEN`,
+    `REWORK_LIMIT`; *judgment* for what the reference says.
+48. Patching MUST stop when it does not converge: a serious finding related
+    to a serious finding of an earlier review round, or a second fix that
+    broke something, stops that work. The next step is a replanning
+    amendment; work that does not depend on it MAY continue. *Check:*
+    `NOT_CONVERGING`, `AMENDMENT_INVALID`; *judgment* for relatedness, which
+    the reviewer records.
 
 ## Invariants
 

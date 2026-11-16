@@ -1,0 +1,17 @@
+{
+  "criterion": "multi-agent-governance #158: an extension with an agent-written approved_by and no reference raises no bound",
+  "description": "Same as gate-extension-authorized-pass, but the extension carries only approved_by: human.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "b9d723d06536a8242bb185f5018e88cdc6b649c717493f051a1dbfc7f8622862"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "AUTHORIZATION_UNPROVEN",
+      "REWORK_LIMIT"
+    ]
+  }
+}

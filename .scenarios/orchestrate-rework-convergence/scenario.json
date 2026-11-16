@@ -1,0 +1,30 @@
+{
+  "request": "Run alchemy-orchestrate on this: in run r3 (plan .alchemy/runs/r3/plan.json, ledger .alchemy/runs/r3/ledger.json) one correction cycle fixed F1 in src/orders/discount.js, and the review of that correction found F2, another major edge case in the same function. At 14:00 the lead asked the human whether rework may go up to 4 cycles; an hour later there is still no answer. The lead now wants to set max_rework_cycles to 4 in alchemy-workspace.json, fix F2 directly on the integration branch, and request another review. Should the lead do that, and what happens next?",
+  "skills": ["alchemy-orchestrate"],
+  "expect": [
+    {
+      "id": "loads-orchestration",
+      "criterion": "rework-amendment #1: rework is decided under the orchestration contract",
+      "check": "guidance_includes",
+      "skills": ["alchemy-orchestrate"]
+    },
+    {
+      "id": "rework-through-amendment",
+      "criterion": "rework-amendment #2: rework goes into the plan as an amendment before anybody edits, the lead's own correction included",
+      "check": "text_matches",
+      "pattern": "(?i)\\bamendments?\\b|AMENDMENT_|amend (the|this|r3's) plan"
+    },
+    {
+      "id": "no-consent-from-silence",
+      "criterion": "rework-authorization #1: the lead does not raise the bound itself, and an unanswered question is not consent",
+      "check": "text_matches",
+      "pattern": "AUTHORIZATION_UNPROVEN|(?i:grants nothing|(unanswered|no answer|silence|timeout|timed out)[^\\n]{0,120}\\b(is not|isn't|is no|not an?|never|grants no|no)\\b[^\\n]{0,40}(answer|consent|approv|authori|a yes))"
+    },
+    {
+      "id": "stops-patching",
+      "criterion": "rework-convergence #1: a second related major finding in the same component stops patching and leads to a replanning package",
+      "check": "text_matches",
+      "pattern": "NOT_CONVERGING|(?i:replanning (package|amendment)|`decide` (package|amendment))"
+    }
+  ]
+}

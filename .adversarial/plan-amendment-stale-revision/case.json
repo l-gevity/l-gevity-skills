@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #140: an amendment names the revision it supersedes",
+  "description": "Same as plan-amendment-rework-pass, but A1 claims to supersede a revision that is not the plan before it.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AMENDMENT_INVALID"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #142: an amendment cannot silently broaden permissions",
+  "description": "P1 holds read, edit, test; its rework P1-R1 asks for commit as well, without a recorded approval.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AMENDMENT_BROADENS"
+    ]
+  }
+}

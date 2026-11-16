@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #161: a second related major finding in a later round stops the patching",
+  "description": "The review of P1 raised blocking F1; after the fix A1 the next review raised major F3 in the same component, related to F1. P2 does not depend on P1.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "NOT_CONVERGING"
+    ]
+  }
+}

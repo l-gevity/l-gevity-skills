@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #145: an amendment cannot lower its origin's risk to escape review",
+  "description": "P1 is medium risk; its rework P1-R1 is graded low without a recorded approval.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AMENDMENT_BROADENS"
+    ]
+  }
+}

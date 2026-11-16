@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #156: a captured, human-authorized extension allows a cycle that shows progress",
+  "description": "The approved plan raises the ceiling to 3 with a referenced human answer; cycle 3 (A3) corrects F3, new in the review after A2, whose failing check passes at head.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "f4adeac9e2dfa291bc730bd4e269f89f3de3cb09d8f3d19fef261cb2587be524"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

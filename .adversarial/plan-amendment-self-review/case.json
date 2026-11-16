@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #139: a rework amendment is not reviewed by its own owner",
+  "description": "Same as plan-amendment-lead-rework-pass, but the lead names itself as reviewer.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "SELF_REVIEW",
+      "UNREVIEWED_CHANGE"
+    ]
+  }
+}

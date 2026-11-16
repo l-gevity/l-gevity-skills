@@ -1,0 +1,13 @@
+{
+  "criterion": "multi-agent-governance #147: a protected write with a recorded human approval passes",
+  "description": "Same as plan-amendment-protected-path, with an approval by the human that names where it was given.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

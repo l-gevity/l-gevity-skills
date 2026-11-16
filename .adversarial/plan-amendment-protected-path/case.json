@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #146: an amendment that writes a protected path needs a recorded human approval",
+  "description": "P1 was approved to write src/orders/ including the protected src/orders/schema/; the rework P1-R1 writes src/orders/schema/ carrying only approved_by: human.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "PROTECTED_PATH"
+    ]
+  }
+}

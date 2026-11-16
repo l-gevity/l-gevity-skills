@@ -1,0 +1,302 @@
+{
+  "schema": "alchemy-plan/1",
+  "objective": "Validate order input and paginate shipments",
+  "requirements": [
+    "REQ-12",
+    "REQ-13"
+  ],
+  "conflicts": [],
+  "base": {
+    "commit": "3f9c2e1"
+  },
+  "contracts_existing": [
+    "contract:orders-repository"
+  ],
+  "execution": {
+    "mode": "multi-agent",
+    "strategy": "dependency-aware",
+    "max_parallel_agents": 2,
+    "integration_owner": "lead",
+    "independent_review": true,
+    "merge_policy": "human-approval",
+    "rework_extension": {
+      "ceiling": 3,
+      "conditions": [
+        "new-finding",
+        "same-check-green"
+      ],
+      "authorization": {
+        "by": "human",
+        "ref": "issue #42, comment of 2026-11-14 approving the change",
+        "source": "timeout"
+      }
+    }
+  },
+  "packages": [
+    {
+      "id": "P1",
+      "kind": "implement",
+      "capabilities": [
+        "engineering"
+      ],
+      "skills": [
+        "test-strategy"
+      ],
+      "owner": "agent-a",
+      "envelope": "implementer",
+      "risk": "medium",
+      "requirements": [
+        "REQ-12"
+      ],
+      "writes": [
+        "src/orders/",
+        "test/orders/"
+      ],
+      "reads": [
+        "src/"
+      ],
+      "depends_on": [],
+      "produces": [],
+      "consumes": [
+        "contract:orders-repository"
+      ],
+      "acceptance": [
+        {
+          "id": "REQ-12-AC1",
+          "check": "command",
+          "command": "npm test -- orders"
+        }
+      ],
+      "permissions": [
+        "read",
+        "edit",
+        "test"
+      ]
+    },
+    {
+      "id": "P2",
+      "kind": "implement",
+      "capabilities": [
+        "engineering"
+      ],
+      "skills": [
+        "test-strategy"
+      ],
+      "owner": "agent-b",
+      "envelope": "implementer",
+      "risk": "medium",
+      "requirements": [
+        "REQ-13"
+      ],
+      "writes": [
+        "src/shipments/",
+        "test/shipments/"
+      ],
+      "reads": [
+        "src/"
+      ],
+      "depends_on": [],
+      "produces": [],
+      "consumes": [],
+      "acceptance": [
+        {
+          "id": "REQ-13-AC1",
+          "check": "command",
+          "command": "npm test -- shipments"
+        },
+        {
+          "id": "REQ-13-AC2",
+          "check": "command",
+          "command": "npm run load-test -- shipments"
+        }
+      ],
+      "permissions": [
+        "read",
+        "edit",
+        "test"
+      ]
+    },
+    {
+      "id": "P3",
+      "kind": "verify",
+      "capabilities": [
+        "verification"
+      ],
+      "skills": [
+        "test-strategy"
+      ],
+      "owner": "agent-c",
+      "envelope": "analyst",
+      "risk": "medium",
+      "requirements": [
+        "REQ-12",
+        "REQ-13"
+      ],
+      "writes": [],
+      "reads": [
+        "src/"
+      ],
+      "depends_on": [
+        "P1",
+        "P2"
+      ],
+      "produces": [],
+      "consumes": [],
+      "acceptance": [
+        {
+          "id": "P3-AC1",
+          "check": "review",
+          "question": "Do the diffs meet REQ-12 and REQ-13 with passing evidence?"
+        }
+      ],
+      "permissions": [
+        "read",
+        "test"
+      ],
+      "reviews": [
+        "P1",
+        "P2"
+      ]
+    }
+  ],
+  "amendments": [
+    {
+      "id": "A1",
+      "origin": "P1",
+      "supersedes": "d4d69550c4055083c9024b52c33668e359f69cd28eee582f1bb3a558579c4399",
+      "base": "3f9c2e1",
+      "reason": "corrects F1",
+      "package": {
+        "id": "P1-R1",
+        "kind": "implement",
+        "capabilities": [
+          "engineering"
+        ],
+        "skills": [
+          "test-strategy"
+        ],
+        "owner": "agent-a",
+        "envelope": "implementer",
+        "risk": "medium",
+        "requirements": [
+          "REQ-12"
+        ],
+        "writes": [
+          "src/orders/"
+        ],
+        "reads": [
+          "src/"
+        ],
+        "depends_on": [
+          "P1"
+        ],
+        "acceptance": [
+          {
+            "id": "P1-R1-AC1",
+            "check": "command",
+            "command": "npm test -- orders"
+          }
+        ],
+        "permissions": [
+          "read",
+          "edit",
+          "test"
+        ]
+      },
+      "reviewer": "agent-c"
+    },
+    {
+      "id": "A2",
+      "origin": "P1-R1",
+      "supersedes": "7cf11530c0fc7839575fc33d0a9346b895ca450e50ae084133883ae1b729aefa",
+      "base": "3f9c2e1",
+      "reason": "corrects F1",
+      "package": {
+        "id": "P1-R2",
+        "kind": "implement",
+        "capabilities": [
+          "engineering"
+        ],
+        "skills": [
+          "test-strategy"
+        ],
+        "owner": "agent-a",
+        "envelope": "implementer",
+        "risk": "medium",
+        "requirements": [
+          "REQ-12"
+        ],
+        "writes": [
+          "src/orders/"
+        ],
+        "reads": [
+          "src/"
+        ],
+        "depends_on": [
+          "P1-R1"
+        ],
+        "acceptance": [
+          {
+            "id": "P1-R2-AC1",
+            "check": "command",
+            "command": "npm test -- orders"
+          }
+        ],
+        "permissions": [
+          "read",
+          "edit",
+          "test"
+        ]
+      },
+      "reviewer": "agent-c"
+    },
+    {
+      "id": "A3",
+      "origin": "P1-R2",
+      "supersedes": "90230cfd6b6e75516feab6f6202f6346dc59cad01ab114c49a1ba8a5e8401cd8",
+      "base": "3f9c2e1",
+      "reason": "corrects F3",
+      "package": {
+        "id": "P1-R3",
+        "kind": "implement",
+        "capabilities": [
+          "engineering"
+        ],
+        "skills": [
+          "test-strategy"
+        ],
+        "owner": "agent-a",
+        "envelope": "implementer",
+        "risk": "medium",
+        "requirements": [
+          "REQ-12"
+        ],
+        "writes": [
+          "src/orders/"
+        ],
+        "reads": [
+          "src/"
+        ],
+        "depends_on": [
+          "P1-R2"
+        ],
+        "acceptance": [
+          {
+            "id": "P1-R3-AC1",
+            "check": "command",
+            "command": "npm test -- orders"
+          }
+        ],
+        "permissions": [
+          "read",
+          "edit",
+          "test"
+        ]
+      },
+      "reviewer": "agent-c",
+      "findings": [
+        "F3"
+      ]
+    }
+  ]
+}

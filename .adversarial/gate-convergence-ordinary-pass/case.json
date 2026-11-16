@@ -1,0 +1,13 @@
+{
+  "criterion": "multi-agent-governance #166: ordinary rework does not fire the convergence rule",
+  "description": "Two unrelated major findings (F3, F4), one reopening of the minor F2, one regression F5, and the blocking F1 fixed in one cycle.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

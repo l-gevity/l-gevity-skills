@@ -1,0 +1,13 @@
+{
+  "criterion": "multi-agent-governance #150: amendments leave the approved revision unchanged",
+  "description": "Same as plan-amendment-rework-pass, checked against the approved revision of the plan without its amendments.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

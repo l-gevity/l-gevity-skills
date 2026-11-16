@@ -84,12 +84,54 @@ omitted.
 | `reviews` | `verify` only: the packages it reviews. Its owner owns none of them, and it depends, directly or transitively, on each. |
 | `acceptance` | At least one criterion per package, so the plan holds at least one. `check` is `command` with a `command`, or `review` with a `question`. IDs are canonical criterion IDs where they exist. |
 | `permissions` | Subset of `read`, `test`, `edit`, `commit`, and of the package's envelope. `push` and `pull_request` belong to the lead after human approval; `merge` and `deploy` never appear in a plan. |
-| `approved_by` | `human` on a package that writes a protected path. A protected entry guards itself and every path under it, with or without a trailing `/`, case-insensitively. |
+| `approved_by` | `human` on a package of the approved plan that writes a protected path; the human approves the plan that carries it. A protected entry guards itself and every path under it, with or without a trailing `/`, case-insensitively. An amendment's protected write needs an `approval` record instead. |
 | `may_delegate` | Absent or `false`. Delegation depth is 1. |
 | `execution.unattended` | `true` when the run proceeds while nobody watches; absent is `false`. Every package then states `needs`, and the gate requires a passing preflight bound to the plan. |
 | `needs` | Package prerequisites for an unattended run, each `{"id", "kind", "what"}` with `kind` `access`, `account`, `environment`, or `fixture`; absent is undeclared, `[]` declares none. Shared needs repeat one `id` with one kind. Coverage rules are in [autonomy-preflight.md](autonomy-preflight.md). |
 | required | `id`, `kind`, `owner`, `envelope` (a profile envelope), `risk` (`low`, `medium`, `high`), `requirements`, `writes`, `depends_on`, `acceptance`, `permissions`. Package and criterion IDs are unique. |
+| `amendments` | Rework and replanning added after approval, in order; see Amendments below. Absent is none. |
+| `execution.rework_extension` | A ceiling above the profile's `max_rework_cycles` for this run: `{"ceiling", "conditions", "authorization"}`, captured in the approved plan before the first cycle that uses it; see Amendments below. |
 | `conflicts` | `{"between": [ids], "resolution": null}` until a human or evidence resolves it: `{"basis": "human", "decided_by": "human", "rationale": "..."}` or `{"basis": "evidence", "evidence": [...], "rationale": "..."}`. |
+
+### Amendments
+
+The plan owns packages, so rework is a change to the plan: the lead appends
+an amendment before anybody edits, and every rule that holds for a package
+holds for the package it adds, whoever owns it, the lead included. The
+approved revision is the plan without `amendments`; the plan check prints its
+digest as `approved_digest`, and `--approved <digest>` on the plan and gate
+checks refuses a plan whose approved part changed since (`AMENDMENT_INVALID`).
+
+```json
+{"id": "A1", "origin": "P1", "supersedes": "<digest of the revision before it>", "base": "c47e9aa",
+ "reason": "corrects F1", "findings": ["F1"], "reviewer": "agent-c",
+ "package": {"id": "P1-R1", "kind": "implement", "owner": "agent-a", "depends_on": ["P1"], "...": "a package record"}}
+```
+
+| Field | Rule |
+|:--|:--|
+| `origin` | The package the work originates from: an approved package or one an earlier amendment added. A rename is an amendment whose package has a new ID. The rework budget is counted along the chain of origins (`REWORK_LIMIT`). |
+| `supersedes` | `revision_digest` of the plan with the amendments before this one; the first names `approved_digest`. |
+| `base` | The plan base or an integrated head the rework starts from. |
+| `reviewer` | Required on an `implement` (rework) or `decide` (replanning) amendment; never the package owner (`SELF_REVIEW`). Under independent review or high risk it owns a `verify` package of the plan. It verifies the package's criteria at the gate. |
+| `findings` | Ledger finding IDs the cycle corrects; a cycle beyond `max_rework_cycles` needs them to meet the extension's conditions. |
+| `package` | A full package record. It depends on its `origin`. Inside the approved envelope it writes only paths an approved `implement` package writes, asks for no permission the first package of its origin chain lacks, and keeps that package's risk or raises it; anything else is `AMENDMENT_BROADENS`, and a protected write is `PROTECTED_PATH`, unless `approval` holds a valid authorization. |
+| `approval` | An authorization: `{"by": "human", "ref", "source": "answer", "expires"}`. `ref` names where the human said so (an approval step, an issue or review comment); `source` is `answer`, never a timeout or a default; `expires`, when present, is still ahead. Otherwise `AUTHORIZATION_UNPROVEN`. The checker cannot open `ref`: the gate lists each one under `authorizations` for the human to read. |
+
+An amendment is inside the plan revision: `plan_digest` covers it, so a
+preflight made before it is `PREFLIGHT_STALE`, and a need it adds is
+`PREREQUISITE_UNCOVERED` until an entry of a record bound to the new
+revision claims it.
+
+`execution.rework_extension` raises the bound only when its `authorization`
+is valid, its `ceiling` exceeds the profile's bound, and the gate is given
+the approved revision with `--approved`, which shows the extension predates
+the run (`AUTHORIZATION_UNPROVEN` otherwise; the profile's bound applies).
+Each cycle beyond the profile's bound then meets every listed condition:
+`new-finding`, it corrects a blocking or major finding the review after the
+previous cycle raised and nobody reopened; `same-check-green`, a check that
+failed for that finding passes at head. A cycle that misses one is
+`REWORK_LIMIT`.
 
 ## Hand-off — `alchemy-handoff/1`
 
@@ -163,9 +205,11 @@ Kept by the lead from hand-offs, independent verification, and integration.
 | `criteria[].status` | `verified` (evidence IDs that passed at `head_commit`), `failed`, `unverified`, or `deferred` with `deferred_by: human`. Every plan criterion appears once. |
 | `criteria[]` | `verified_by` is required when verified; `reason` when deferred. Only plan criteria, under their own package. When independent review is on or the package's risk is `high`, an `implement` criterion's `verified_by` is the owner of a `verify` package that reviews it. A verified `command` criterion cites evidence whose `command` is the plan's, whitespace-normalized, or that of an `equivalent: {"command", "accepted_by": "human"}` the human accepted in its place. |
 | `evidence[]` | `id`, `command`, `exit_code`, `commit`; optional `produced_by`, `expect_exit` as in the hand-off, and `criterion`, the only criterion the item may verify. Items with the same normalized command, commit, and exit code are the same evidence, whatever their IDs. Profile verification commands pass only on exit 0. |
+| `findings[]` | Optional convergence links, recorded by the reviewer who raises the finding: `after`, the amendment whose review raised it (absent: the review of the planned work); `related_to`, earlier finding IDs in the same component or of the same class; `introduced_by`, the amendment whose fix caused it; `reopened_after`, the amendments after which it was reopened. Each named amendment and finding exists. The gate evaluates them as governance section 2 states (`NOT_CONVERGING`). |
 | `findings[].severity` | `blocking`, `major`, or `minor`. Blocking and major must end `resolved` with `resolution.evidence`, `rejected` with `resolution.evidence` showing the finding is wrong — sharing no evidence, by ID or identity, with the raiser's own `evidence` — or `accepted-risk` with `accepted_by: human`. |
 | `disputes[].resolution.basis` | `evidence` with evidence IDs, only when exactly one position's evidence all exists and exited 0; when both positions or neither have it, the human decides. Or `human` with `decided_by: human`. Majority, seniority, model, and confidence are not a basis. |
-| `rework_cycles` | Correction rounds per package; above the profile's `max_rework_cycles` the gate escalates. |
+| `rework_cycles` | A claim of correction rounds per package, summed along each origin chain. The gate counts the chain's rework amendments and takes the larger number, so neither a rename nor a new rework package starts at zero; above the bound it escalates. A ledger without amendments works as before. |
+| `changed_files` | Optional: the paths of the integrated diff from the plan base. With `--root` the gate reads them from git instead. Each lies in an `implement` package's write set, amendments included, or under `state_dir` (`UNOWNED_WRITE`). |
 
 ## Preflight — `alchemy-preflight/1`
 
@@ -220,13 +264,13 @@ bound reached must stop rework rather than restart it.
 | `READ_ONLY_WRITES` | plan, gate | FAIL | A `decide`, `verify`, or `analyze` package, or an `analyst` envelope, declares writes or `edit` |
 | `CONTRACT_ORDER` | plan, gate | FAIL | A consumer does not depend on the producer of a contract it consumes |
 | `UNKNOWN_CONTRACT` | plan, gate | FAIL | A consumed contract is neither produced nor existing |
-| `SELF_REVIEW` | plan, gate | FAIL | A verifier owns a package it reviews |
+| `SELF_REVIEW` | plan, gate | FAIL | A verifier owns a package it reviews, or an amendment names its package's owner as reviewer |
 | `REVIEW_ORDER` | plan, gate | FAIL | A `verify` package does not depend, directly or transitively, on a package it reviews |
 | `UNREVIEWED_CHANGE` | plan, gate | FAIL | An `implement` package lacks an independent `verify` package while `independent_review` is true or its risk is `high` |
 | `DELEGATION` | plan, gate | FAIL | A package may delegate, or the profile allows depth above 1 |
 | `CAP_EXCEEDED` | plan, gate | FAIL | Declared parallelism or distinct owners exceed the profile |
 | `PERMISSION_EXCEEDS` | plan, gate | FAIL | A package asks for `push`, `pull_request`, `merge`, `deploy`, an unknown permission, or one its envelope does not grant |
-| `PROTECTED_PATH` | plan, gate | FAIL | A package writes a protected path, or a path under one, without `approved_by: human` |
+| `PROTECTED_PATH` | plan, gate | FAIL | A package writes a protected path, or a path under one, without `approved_by: human`, or an amendment does without a valid `approval` |
 | `MERGE_POLICY` | plan, gate | FAIL | `merge_policy` is not `human-approval` |
 | `MODE_MISMATCH` | plan, gate | FAIL | `single-agent` with more than one agent (package owners plus the integration owner), `multi-agent` with one, or any multi-agent plan while the profile sets `execution.multi_agent` to `off` |
 | `REQUIREMENT_CONFLICT` | plan, gate | ESCALATE | A recorded requirement conflict has no resolution, or a `human` basis the human did not decide |
@@ -258,7 +302,7 @@ bound reached must stop rework rather than restart it.
 | `VERIFICATION_FAILED` | gate | FAIL | A profile `repository.verification` command has no passing evidence at `head_commit` |
 | `WORKSPACE_MISMATCH` | plan, preflight, gate | FAIL | With `--root`, the repository's HEAD is not the plan's base or an integrated head (plan), the plan's base (preflight), or `head_commit` (gate), it holds uncommitted changes outside `state_dir`, or git cannot confirm either |
 | `DISPUTE_OPEN` | gate | ESCALATE | A dispute is open or escalated, or decided on evidence while both positions, or neither, have passing evidence |
-| `REWORK_LIMIT` | gate | ESCALATE | A package exceeded `max_rework_cycles` |
+| `REWORK_LIMIT` | gate | ESCALATE | An origin chain took more correction cycles than `max_rework_cycles` or an extension's ceiling, or a cycle beyond the profile's bound misses an extension condition |
 | `WORK_NOT_READY` | preflight | FAIL | A plan requirement sits in no `READY` increment and no reversible `PARTLY-READY` one |
 | `PREREQUISITE_UNPROVEN` | preflight | FAIL | An access, account, environment, or escalation entry cites no probe, unknown evidence, a failing probe, or one run on a commit other than the plan base; or no access is recorded |
 | `INTERACTIVE_STEP` | preflight | FAIL | An entry needs a person at a prompt inside the window |
@@ -271,4 +315,9 @@ bound reached must stop rework rather than restart it.
 | `NEEDS_UNDECLARED` | plan, preflight, gate | FAIL | In an unattended plan, a package has no `needs`, or has a `command` criterion and no `environment` need |
 | `PREREQUISITE_UNCOVERED` | preflight | FAIL | A need a package or the profile declares is covered by no preflight entry of its kind, or an account need only by accounts that do not name the package |
 | `PREFLIGHT_STALE` | preflight | STALE | The record's `plan.digest` or `plan.base` is not the checked plan's: the plan changed, or the base moved, after the preflight |
+| `AMENDMENT_INVALID` | plan, gate | FAIL | An amendment names an origin that does not exist before it, a superseded revision other than the one before it, a base the run does not hold, or no reviewer; its package does not depend on its origin; it patches work the convergence rule stopped; or, with `--approved`, the plan's approved part is not that revision |
+| `AMENDMENT_BROADENS` | plan, gate | FAIL | An amendment writes outside the approved plan's write sets, asks for a permission its origin lacks, or lowers its origin's risk, without a valid `approval` |
+| `AUTHORIZATION_UNPROVEN` | plan, gate | FAIL | An extension or amendment approval is not granted by the human, names no reference, names a source other than the human's answer (a timeout, a default), or expired; an extension no approved revision anchors; or, with `--root`, a `max_rework_cycles` above the one committed at the plan base |
+| `UNOWNED_WRITE` | gate | FAIL | A path of the integrated diff lies in no `implement` package's write set, amendments included, and not under `state_dir` |
+| `NOT_CONVERGING` | gate | ESCALATE | The convergence rule of governance section 2 fired for an origin chain; the report lists the `stopped` packages and those that `may_continue` |
 | `PREFLIGHT_REQUIRED` | gate | FAIL | The plan is unattended and the gate has no preflight record, or a given record does not pass against the plan: missing, failed, or stale |

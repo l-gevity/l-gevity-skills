@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #163: the second fix that breaks something stops the patching",
+  "description": "Fix A1 introduced major regression F3 and fix A2 introduced major regression F4, within the bound of 2.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "NOT_CONVERGING"
+    ]
+  }
+}

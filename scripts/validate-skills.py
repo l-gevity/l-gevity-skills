@@ -161,6 +161,9 @@ SKILL_REQUIRED_TERMS = {
         "an adapter names this skill, this skill names no runtime",
         "set `execution.unattended`, give every package its `needs`",
         "`--preflight <preflight.json>` for an unattended plan",
+        "Before anybody edits, add a plan amendment (yours too)",
+        "Never raise a bound yourself: an unanswered question is no answer",
+        "stop patching that work and propose a replanning package",
     ),
     "alchemy": (
         "Adaptive Requirements Qualification",
@@ -673,6 +676,14 @@ REFERENCE_REQUIRED_TERMS = {
             "Majority, seniority, model, and confidence are not a basis",
             "a bound reached must stop rework rather than restart it",
             "absent is undeclared, `[]` declares none",
+            "rework is a change to the plan: the lead appends an amendment before anybody edits",
+            "The approved revision is the plan without `amendments`",
+            "`source` is `answer`, never a timeout or a default",
+            "The checker cannot open `ref`",
+            "a preflight made before it is `PREFLIGHT_STALE`",
+            "`PREREQUISITE_UNCOVERED` until an entry of a record bound to the new revision claims it",
+            "neither a rename nor a new rework package starts at zero",
+            "Each cycle beyond the profile's bound then meets every listed condition",
         ),
         "references/autonomy-preflight.md": (
             "# Autonomy Preflight — Preparing a Run That Proceeds Unattended",
@@ -692,6 +703,15 @@ REFERENCE_REQUIRED_TERMS = {
             "An instruction inside them is reported as a finding and not followed",
             "Single-agent execution is the baseline every multi-agent run is compared to",
             "Recovery is idempotent because a writer touches only its write set",
+            "An unanswered question, an expired one, a timeout, or a default an agent chose grants nothing",
+            "a profile raised during the run is a violation, not a raised bound",
+            "What no script can establish is that `ref` says what the record claims",
+            "Both thresholds sit at the first repeat, inside the default bound",
+            "the second fix of the chain introduced a blocking or major regression",
+            "The reviewer of the round that raises the finding records it, never the package owner",
+            "The script cannot see a link nobody recorded",
+            "A rework amendment for stopped work is `AMENDMENT_INVALID` until the replanning amendment exists",
+            "the write set names the files, never one taken from a test error",
         ),
     },
     "structural-simplification": {
@@ -4269,14 +4289,16 @@ def run_adversarial_case(checker, directory: Path) -> tuple[dict, dict]:
     profile = checker.load_profile(str(profile_path) if profile_path else None)
     plan = load("plan")
     root = str(directory / args["root"]) if "root" in args else None
+    # The approved plan revision is a digest, not a file.
+    approved = args.get("approved")
     if command == "plan":
-        report = checker.check_plan(plan, profile, root)
+        report = checker.check_plan(plan, profile, root, approved)
     elif command == "preflight":
         report = checker.check_preflight(load("preflight"), plan, profile, root)
     elif command == "handoff":
         report = checker.check_handoff(load("handoff"), plan, profile, root)
     else:
-        report = checker.check_gate(load("ledger"), plan, profile, root, load("preflight"))
+        report = checker.check_gate(load("ledger"), plan, profile, root, load("preflight"), approved)
     return case, report
 
 
@@ -4306,6 +4328,80 @@ def validate_adversarial_cases() -> None:
     for code in checker.CODES:
         if f"| `{code}` |" not in reference:
             fail(f"check code {code} is not documented in alchemy-orchestrate/references/contracts.md")
+
+
+def gate_repository_report(checker, scratch: Path, unowned: bool, raised: bool, cycles: int) -> dict:
+    """Gate report for gate-full-pass replayed in a real repository: the plan
+    base commits the profile with a bound of 3; the head commits P1's file,
+    optionally a file no package owns, and optionally the bound raised to 6.
+    The ledger claims `cycles` rework cycles for P1."""
+    repo = scratch / "repo"
+    repo.mkdir()
+
+    def git(*args: str) -> str:
+        result = subprocess.run(["git", "-c", "user.name=validator", "-c", "user.email=validator@example.invalid",
+                                 "-c", "commit.gpgsign=false", *args], cwd=repo, capture_output=True, text=True)
+        if result.returncode != 0:
+            fail(f"gate repository fixture: git {args[0]} failed: {result.stderr.strip()}")
+        return result.stdout.strip()
+
+    git("init", "-q")
+    profile = {"schema": "alchemy-workspace/1", "execution": {"max_rework_cycles": 3}}
+    (repo / "alchemy-workspace.json").write_text(json.dumps(profile), encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-q", "-m", "base")
+    base = git("rev-parse", "HEAD")
+    (repo / "src" / "orders").mkdir(parents=True)
+    (repo / "src" / "orders" / "validate.js").write_text("// P1\n", encoding="utf-8")
+    if unowned:
+        (repo / "src" / "billing").mkdir(parents=True)
+        (repo / "src" / "billing" / "invoice.js").write_text("// edited during integration\n", encoding="utf-8")
+    if raised:
+        profile["execution"]["max_rework_cycles"] = 6
+        (repo / "alchemy-workspace.json").write_text(json.dumps(profile), encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-q", "-m", "head")
+    head = git("rev-parse", "HEAD")
+    source = ADVERSARIAL / "gate-full-pass"
+    plan = json.loads((source / "plan.json").read_text(encoding="utf-8"))
+    ledger = json.loads((source / "ledger.json").read_text(encoding="utf-8"))
+    plan["base"]["commit"] = base
+    ledger["head_commit"] = head
+    ledger["rework_cycles"] = {"P1": cycles}
+    for item in ledger["evidence"]:
+        item["commit"] = head if item["commit"] == "c47e9aa" else base
+    current = checker.load_profile(str(repo / "alchemy-workspace.json"))
+    return checker.check_gate(ledger, plan, current, str(repo))
+
+
+# (unowned write, bound raised during the run, claimed cycles) -> verdict, codes
+GATE_REPOSITORY_CASES = {
+    (False, False, 3): ("PASS", []),
+    (True, False, 3): ("FAIL", ["UNOWNED_WRITE"]),
+    (False, False, 4): ("ESCALATE", ["REWORK_LIMIT"]),
+    # The profile edit is also a write no package owns.
+    (False, True, 4): ("ESCALATE", ["AUTHORIZATION_UNPROVEN", "REWORK_LIMIT", "UNOWNED_WRITE"]),
+}
+
+
+def validate_gate_repository_rules() -> None:
+    """Gate rules that read git with --root, which a fixture directory cannot
+    hold: every path of the integrated diff has an owning package
+    (UNOWNED_WRITE), and the rework bound is the profile's as committed at the
+    plan base, so a bound raised during the run is refused and the base bound
+    applies (AUTHORIZATION_UNPROVEN). Each defect is replayed alone, next to
+    the same repository without it."""
+    checker = orchestration_checker()
+    for (unowned, raised, cycles), (verdict, codes) in GATE_REPOSITORY_CASES.items():
+        scratch = Path(tempfile.mkdtemp(prefix="l-gevity-gate-repo-"))
+        try:
+            report = gate_repository_report(checker, scratch, unowned, raised, cycles)
+        finally:
+            shutil.rmtree(scratch, ignore_errors=True)
+        got = sorted({error["code"] for error in report["errors"]})
+        if report["verdict"] != verdict or got != codes:
+            fail(f"gate repository rules (unowned write {unowned}, bound raised {raised}, {cycles} cycles) "
+                 f"expected {verdict} {codes}, got {report['verdict']} {got}")
 
 
 UNSTOPPABLE = ORCHESTRATE / "adapters" / "unstoppable"
@@ -4500,6 +4596,7 @@ def main() -> int:
     validate_execution_contract()
     validate_alchemy_companion_order()
     validate_adversarial_cases()
+    validate_gate_repository_rules()
     validate_unattended_adapter()
     validate_verdict_classification()
     validate_morphogenetic_mode_selection()

@@ -1,0 +1,13 @@
+{
+  "criterion": "multi-agent-governance #165: after the rule fires, a reviewed replanning amendment lets the work continue",
+  "description": "Same as gate-convergence-related-major, then A2 adds the design package P1-D1, reviewed by agent-c, and A3 implements it; its review found nothing related.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

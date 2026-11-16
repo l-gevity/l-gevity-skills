@@ -1,0 +1,34 @@
+{
+  "schema": "alchemy-plan/1",
+  "objective": "Move discount tiers out of priceOrder into their own module",
+  "requirements": ["REQ-12"],
+  "conflicts": [],
+  "base": {"commit": "4a9c1e0"},
+  "contracts_existing": [],
+  "execution": {
+    "mode": "multi-agent",
+    "strategy": "sequential",
+    "max_parallel_agents": 2,
+    "integration_owner": "lead",
+    "independent_review": true,
+    "merge_policy": "human-approval"
+  },
+  "packages": [
+    {
+      "id": "P1", "kind": "implement", "capabilities": ["engineering"], "skills": ["structural-simplification"],
+      "owner": "agent-a", "envelope": "implementer", "risk": "medium",
+      "requirements": ["REQ-12"], "writes": ["src/orders/"], "reads": ["src/"],
+      "depends_on": [], "produces": [], "consumes": [],
+      "acceptance": [{"id": "REQ-12-AC1", "check": "command", "command": "npm test"}],
+      "permissions": ["read", "edit", "test"]
+    },
+    {
+      "id": "P2", "kind": "verify", "capabilities": ["verification"], "skills": ["test-strategy"],
+      "owner": "agent-c", "envelope": "analyst", "risk": "low",
+      "requirements": ["REQ-12"], "writes": [], "reads": ["src/"],
+      "depends_on": ["P1"], "reviews": ["P1"],
+      "acceptance": [{"id": "P2-AC1", "check": "review", "question": "Do discounts match the old totals on every recorded order?"}],
+      "permissions": ["read", "test"]
+    }
+  ]
+}

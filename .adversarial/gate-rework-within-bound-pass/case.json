@@ -1,0 +1,13 @@
+{
+  "criterion": "multi-agent-governance #155: rework within its bound passes",
+  "description": "Two rework amendments of P1, within the bound of 2.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

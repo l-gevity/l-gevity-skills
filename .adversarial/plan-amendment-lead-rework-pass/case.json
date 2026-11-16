@@ -1,0 +1,12 @@
+{
+  "criterion": "multi-agent-governance #137: a lead correction is a rework package with the lead as owner and another agent as reviewer",
+  "description": "A1 adds P1-L1, owned by lead and reviewed by agent-c, writing src/orders/ after P1.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

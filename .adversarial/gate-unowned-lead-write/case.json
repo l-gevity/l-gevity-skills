@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #167: a write no package owns stays a violation at the gate",
+  "description": "The integrated diff holds src/billing/invoice.js, which the lead edited during integration and no package or amendment owns.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "UNOWNED_WRITE"
+    ]
+  }
+}

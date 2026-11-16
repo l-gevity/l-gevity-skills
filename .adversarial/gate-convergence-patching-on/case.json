@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #162: a rework amendment for work the convergence rule stopped is refused",
+  "description": "Same as gate-convergence-related-major, but the lead patched on with a second fix A2 instead of replanning.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "ESCALATE",
+    "codes": [
+      "AMENDMENT_INVALID",
+      "NOT_CONVERGING"
+    ]
+  }
+}

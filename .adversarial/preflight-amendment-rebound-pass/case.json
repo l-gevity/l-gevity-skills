@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #170: a record rebound to the amended revision passes when the amendment adds no need",
+  "description": "Same as preflight-amendment-stale, with a record bound to the amended revision; A1 repeats P1's needs and P1's accounts name P1-R1.",
+  "command": "preflight",
+  "args": {
+    "plan": "plan.json",
+    "preflight": "preflight.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

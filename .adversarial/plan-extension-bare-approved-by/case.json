@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #152: an agent-written approved_by: human does not authorize an extension",
+  "description": "The plan raises the rework ceiling to 4 with approved_by: human and no authorization record.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "AUTHORIZATION_UNPROVEN"
+    ]
+  }
+}

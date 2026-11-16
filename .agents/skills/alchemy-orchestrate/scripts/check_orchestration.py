@@ -12,14 +12,14 @@ states.
 
 Usage:
     check_orchestration.py plan <plan.json> [--profile <alchemy-workspace.json>]
-                                [--root <repository>]
+                                [--root <repository>] [--approved <plan_digest>]
     check_orchestration.py preflight <preflight.json> --plan <plan.json>
                                      [--profile <profile>] [--root <repository>]
     check_orchestration.py handoff <handoff.json> --plan <plan.json>
                                    [--profile <profile>] [--root <workspace>]
     check_orchestration.py gate <ledger.json> --plan <plan.json>
                                 [--profile <profile>] [--root <repository>]
-                                [--preflight <preflight.json>]
+                                [--preflight <preflight.json>] [--approved <plan_digest>]
 
 Without --profile the CLI reads alchemy-workspace.json from the current
 directory when one exists, and reports which profile it used. Prints one JSON
@@ -37,7 +37,7 @@ import posixpath
 import re
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -119,6 +119,11 @@ CODES = {
     "PREREQUISITE_UNCOVERED": "FAIL",
     "PREFLIGHT_STALE": "STALE",
     "PREFLIGHT_REQUIRED": "FAIL",
+    "AMENDMENT_INVALID": "FAIL",
+    "AMENDMENT_BROADENS": "FAIL",
+    "AUTHORIZATION_UNPROVEN": "FAIL",
+    "UNOWNED_WRITE": "FAIL",
+    "NOT_CONVERGING": "ESCALATE",
 }
 
 # ESCALATE over REJECT/FAIL over STALE over RETRY over a pass: a bound reached
@@ -145,6 +150,23 @@ DECISION_STATUSES = {"answered", "default", "stop", "open"}
 HUMAN_STEP_TIMES = {"before", "end", "during"}
 # Kind of prerequisite a package needs -> the preflight section that proves it.
 NEED_KINDS = {"access": "access", "account": "accounts", "environment": "environment", "fixture": "fixtures"}
+RISK_ORDER = {"low": 0, "medium": 1, "high": 2}
+# Amendment kinds that carry a reviewer: rework (implement) and replanning (decide).
+REVIEWED_AMENDMENT_KINDS = {"implement", "decide"}
+# What each correction cycle beyond the default bound must show, when an
+# extension names it (governance.md section 2). Fresh verification at the
+# head is required of every cycle by the gate's evidence rules.
+EXTENSION_CONDITIONS = {"new-finding", "same-check-green"}
+# The only source an authorization may name: the human answered. A timeout,
+# a default, or silence is no answer (governance.md section 1).
+AUTHORIZATION_SOURCE = "answer"
+# Convergence thresholds (governance.md section 2), from the incidents behind
+# them: patching stopped converging when a review round raised a blocking or
+# major finding related to one an earlier round of the same work raised, and
+# when a second fix broke something (a regression, or a reopened blocking or
+# major finding). Both fire inside the default rework bound.
+BROKEN_FIXES_LIMIT = 2
+SERIOUS = {"blocking", "major"}
 
 SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-fA-F]{7,64}$")
@@ -545,6 +567,10 @@ def _empty_plan() -> dict[str, Any]:
             "unattended": False,
         },
         "packages": {},
+        "approved": set(),
+        "amendments": [],
+        "revisions": [],
+        "extension": None,
     }
 
 
@@ -602,8 +628,8 @@ def _parse_acceptance(raw: list[Any], report: Report, label: str, subject: str) 
 
 
 def _parse_package(raw: Any, index: int, profile: dict[str, Any], report: Report,
-                   where: str) -> dict[str, Any] | None:
-    label = f"{where}.packages[{index}]"
+                   where: str, label: str | None = None) -> dict[str, Any] | None:
+    label = label or f"{where}.packages[{index}]"
     if not isinstance(raw, dict):
         report.add("SCHEMA", f"{label} must be an object")
         return None
@@ -647,7 +673,105 @@ def _parse_package(raw: Any, index: int, profile: dict[str, Any], report: Report
     # Absent means undeclared, which an unattended run refuses; [] is a claim.
     needs = _get(raw, "needs", "list", report, label, pid, required=False)
     pkg["needs"] = None if needs is None else _parse_needs(needs, report, label, pid)
+    pkg["amendment"] = None
     return pkg
+
+
+def _parse_authorization(raw: Any, report: Report, label: str, subject: str | None) -> dict[str, Any] | None:
+    """An authorization record: who granted it, where a reader can open it, its
+    source, and an optional expiry. Its validity is _authorization_problem's question."""
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        report.add("SCHEMA", f"{label} must be an object", subject)
+        return None
+    return {"by": raw.get("by"), "ref": raw.get("ref"), "source": raw.get("source"),
+            "expires": raw.get("expires"), "label": label}
+
+
+def _authorization_problem(auth: dict[str, Any] | None, now: datetime | None = None) -> str | None:
+    """None when the record names the human, a reference a reader can open, an
+    answer as its source, and no expiry already passed. A bare approved_by
+    string, a timeout, or a default an agent picked is no authorization; the
+    reference itself is the gate reader's to open (governance.md section 1)."""
+    if auth is None:
+        return "carries no authorization record"
+    problems = []
+    if not _is_human(auth["by"]):
+        problems.append(f"is granted by {auth['by']!r}, not the human")
+    if not _text(auth["ref"]):
+        problems.append("names no reference to where the human granted it")
+    source = auth["source"]
+    if not (isinstance(source, str) and source.strip().casefold() == AUTHORIZATION_SOURCE):
+        problems.append(f"names {source!r} as its source; only the human's answer grants it, never "
+                        "a timeout, an unanswered question, or a default")
+    if auth["expires"] is not None:
+        moment = _instant(auth["expires"])
+        if moment is None:
+            problems.append("has an expires value that is not an ISO 8601 instant with a zone")
+        elif moment <= (now or datetime.now(timezone.utc)):
+            problems.append(f"expired at {auth['expires']}")
+    return "; and ".join(problems) or None
+
+
+def _parse_extension(raw: Any, report: Report, where: str) -> dict[str, Any] | None:
+    """execution.rework_extension: a ceiling above the profile's bound, the
+    conditions each extra cycle must meet, and the authorization behind it."""
+    if raw is None:
+        return None
+    label = f"{where}.execution.rework_extension"
+    if not isinstance(raw, dict):
+        report.add("SCHEMA", f"{label} must be an object")
+        return None
+    ceiling = _get(raw, "ceiling", "positive", report, label)
+    conditions = _get(raw, "conditions", "strs", report, label, default=[])
+    unknown = sorted(set(conditions) - EXTENSION_CONDITIONS)
+    if unknown:
+        report.add("SCHEMA", f"{label}.conditions names {', '.join(unknown)}; known conditions are "
+                   f"{', '.join(sorted(EXTENSION_CONDITIONS))}")
+    if not conditions:
+        report.add("SCHEMA", f"{label}.conditions names no condition an extra cycle must meet")
+    auth = _parse_authorization(raw.get("authorization"), report, f"{label}.authorization", None)
+    return {"ceiling": ceiling, "conditions": set(conditions) & EXTENSION_CONDITIONS,
+            "authorization": auth, "label": label}
+
+
+def _parse_amendments(raw: list[Any], report: Report, where: str) -> list[dict[str, Any]]:
+    """Each amendment's fields; its package is parsed with the plan's packages."""
+    amendments = []
+    seen: set[str] = set()
+    for index, item in enumerate(raw):
+        label = f"{where}.amendments[{index}]"
+        if not isinstance(item, dict):
+            report.add("SCHEMA", f"{label} must be an object")
+            continue
+        aid = _get(item, "id", "str", report, label)
+        if aid is not None and aid in seen:
+            report.add("SCHEMA", f"{label} repeats amendment id '{aid}'", aid)
+            continue
+        supersedes = _get(item, "supersedes", "str", report, label, aid)
+        if supersedes is not None and not SHA256_RE.match(supersedes):
+            report.add("SCHEMA", f"{label}.supersedes must be 64 hex characters", aid)
+            supersedes = None
+        entry = {
+            "id": aid,
+            "index": index,
+            "label": label,
+            "origin": _get(item, "origin", "str", report, label, aid),
+            "supersedes": supersedes,
+            "base": _get(item, "base", "commit", report, label, aid),
+            "reason": _get(item, "reason", "str", report, label, aid),
+            "reviewer": _get(item, "reviewer", "str", report, label, aid, required=False),
+            "findings": _get(item, "findings", "strs", report, label, aid, required=False, default=[]),
+            "approval": _parse_authorization(item.get("approval"), report, f"{label}.approval", aid),
+            "raw_package": _get(item, "package", "dict", report, label, aid),
+            "package": None,
+        }
+        if aid is None:
+            continue
+        seen.add(aid)
+        amendments.append(entry)
+    return amendments
 
 
 def _parse_plan(plan: Any, profile: dict[str, Any], report: Report, where: str = "plan") -> dict[str, Any]:
@@ -685,18 +809,34 @@ def _parse_plan(plan: Any, profile: dict[str, Any], report: Report, where: str =
                                default=False),
         }
         _enum(execution, "strategy", STRATEGIES, report, label, required=False)
+        # Captured with the approved revision, never by an amendment.
+        parsed["extension"] = _parse_extension(execution.get("rework_extension"), report, where)
     packages = _get(plan, "packages", "list", report, where, default=[])
     if isinstance(plan.get("packages"), list) and not packages:
         report.add("SCHEMA", f"{where}.packages needs at least one package")
+    # Rework and replanning are amendments: packages appended to the approved
+    # plan, each checked by every package rule (governance.md section 4).
+    parsed["amendments"] = _parse_amendments(
+        _get(plan, "amendments", "list", report, where, required=False, default=[]), report, where)
+    parsed["revisions"] = [revision_digest(plan, count) for count in range(len(parsed["amendments"]) + 1)]
+    entries = [(raw, index, None, None) for index, raw in enumerate(packages)]
+    entries += [(amendment["raw_package"], 0, f"{amendment['label']}.package", amendment)
+                for amendment in parsed["amendments"] if amendment["raw_package"] is not None]
     seen_criteria: dict[str, str] = {}
     seen_needs: dict[str, str] = {}
-    for index, raw in enumerate(packages):
-        pkg = _parse_package(raw, index, profile, report, where)
+    for raw, index, override, amendment in entries:
+        pkg = _parse_package(raw, index, profile, report, where, override)
         if pkg is None:
             continue
         if pkg["id"] in parsed["packages"]:
-            report.add("SCHEMA", f"{where}.packages[{index}] repeats package id '{pkg['id']}'", pkg["id"])
+            report.add("SCHEMA", f"{override or f'{where}.packages[{index}]'} repeats package id "
+                       f"'{pkg['id']}'", pkg["id"])
             continue
+        if amendment is None:
+            parsed["approved"].add(pkg["id"])
+        else:
+            pkg["amendment"] = amendment
+            amendment["package"] = pkg["id"]
         for criterion in pkg["acceptance"]:
             if criterion in seen_criteria:
                 report.add("SCHEMA", f"criterion '{criterion}' is declared by both "
@@ -843,7 +983,9 @@ def _rule_write_conflicts(writes: dict[str, list[str]], reach: dict[str, set[str
 def _rule_protected(packages: dict[str, Any], writes: dict[str, list[str]], profile: dict[str, Any],
                     report: Report) -> None:
     for pid, entries in writes.items():
-        if _is_human(packages[pid]["approved_by"]):
+        # An amendment's protected write needs a recorded authorization, not a
+        # string; _rule_amendments holds it to that.
+        if _is_human(packages[pid]["approved_by"]) or packages[pid]["amendment"] is not None:
             continue
         hits = sorted({entry for entry in entries for guarded in profile["protected_paths"]
                        if _protects(guarded, entry)})
@@ -871,13 +1013,35 @@ def _rule_contracts(packages: dict[str, Any], existing: set[str], reach: dict[st
 
 
 def _reviewer_owners(packages: dict[str, Any], pid: str) -> set[str]:
-    """Owners of verify packages that review `pid` and do not own it."""
+    """Owners of verify packages that review `pid` and do not own it. An
+    amendment's named reviewer counts too when it owns a verify package
+    of the plan, so a rework package is reviewed by an independent identity
+    the plan already holds, never by a label the lead made up."""
     owner = packages[pid]["owner_key"]
-    return {
+    reviewers = {
         verifier["owner_key"] for verifier in packages.values()
         if verifier["kind"] == "verify" and pid in verifier["reviews"]
         and verifier["owner_key"] and verifier["owner_key"] != owner
     }
+    amendment = packages[pid]["amendment"]
+    named = _label(amendment["reviewer"]) if amendment else None
+    if named and named != owner and any(
+            other["kind"] == "verify" and other["owner_key"] == named for other in packages.values()):
+        reviewers.add(named)
+    return reviewers
+
+
+def _chain(packages: dict[str, Any], pid: str) -> list[str]:
+    """pid followed by every package it amends, back to the approved package
+    the work originates from; the rework budget is counted along it."""
+    chain, current = [], pid
+    while current in packages and current not in chain:
+        chain.append(current)
+        amendment = packages[current]["amendment"]
+        if amendment is None:
+            break
+        current = amendment["origin"]
+    return chain
 
 
 def _rule_review(packages: dict[str, Any], independent: bool, reach: dict[str, set[str]],
@@ -971,6 +1135,100 @@ def _rule_conflicts(parsed: dict[str, Any], report: Report) -> None:
                        "the human resolves it", conflict["id"])
 
 
+def _rule_amendments(parsed: dict[str, Any], writes: dict[str, list[str]], reach: dict[str, set[str]],
+                     view: dict[str, Any], report: Report) -> list[dict[str, Any]]:
+    """Rework as checked plan amendments (governance.md section 4).
+
+    AMENDMENT_INVALID unless each amendment names an origin that exists before
+    it, the revision it supersedes, a base the run holds, and a reviewer, and
+    its package depends on its origin. AMENDMENT_BROADENS, or PROTECTED_PATH
+    for a protected write, when it writes outside the approved plan's write
+    sets, asks for a permission its origin lacks, or lowers its origin's risk,
+    unless a valid human authorization is recorded with it. Returns the
+    authorizations the gate's human reader must open."""
+    packages = parsed["packages"]
+    approved_writes = [entry for pid in sorted(parsed["approved"]) for entry in writes.get(pid, [])
+                       if packages[pid]["kind"] == "implement"]
+    bases = [parsed["base_commit"], *parsed["integrated"]] if parsed["base_commit"] else []
+    earlier: set[str] = set(parsed["approved"])
+    claimed = []
+    for amendment in parsed["amendments"]:
+        aid, label, pid = amendment["id"], amendment["label"], amendment["package"]
+        pkg = packages.get(pid) if pid else None
+        if pkg is None or pkg["amendment"] is not amendment:
+            continue
+        problems = []
+        origin = amendment["origin"]
+        if origin is not None and origin not in earlier:
+            problems.append(f"names origin {origin}, which is no approved package and no package of an "
+                            "earlier amendment")
+        expected = parsed["revisions"][amendment["index"]]
+        if amendment["supersedes"] is not None and amendment["supersedes"].lower() != expected:
+            problems.append(f"supersedes revision {amendment['supersedes'][:12]}..., but the revision "
+                            f"before it is {expected[:12]}...; amendments are appended in order")
+        if amendment["base"] is not None and bases and not any(_same_commit(amendment["base"], b) for b in bases):
+            problems.append(f"starts from {amendment['base']}, neither the plan base nor an integrated head")
+        if pkg["kind"] in REVIEWED_AMENDMENT_KINDS and not _text(amendment["reviewer"]):
+            problems.append(f"adds {pkg['kind']} package {pid} without a reviewer")
+        if origin in packages and origin != pid and origin not in reach.get(pid, set()):
+            problems.append(f"adds {pid}, which does not depend on its origin {origin}; rework follows "
+                            "the work it corrects")
+        if problems:
+            report.add("AMENDMENT_INVALID", f"{label} ({aid}) {'; and '.join(problems)}", aid)
+        if _label(amendment["reviewer"]) and _label(amendment["reviewer"]) == pkg["owner_key"]:
+            report.add("SELF_REVIEW", f"{label} ({aid}) names {pkg['owner']}, the owner of {pid}, as its "
+                       "reviewer", aid)
+        earlier.add(pid)
+
+        chain = _chain(packages, pid)
+        root = packages[chain[-1]]
+        broadening = []
+        outside = sorted(entry for entry in writes.get(pid, []) if not _inside(entry, approved_writes))
+        if outside:
+            broadening.append(f"writes {', '.join(outside)}, outside every write set of the approved plan")
+        gained = sorted(set(pkg["permissions"]) - set(root["permissions"]))
+        if gained and root is not pkg:
+            broadening.append(f"asks for {', '.join(gained)}, which its origin {root['id']} does not hold")
+        if (pkg["risk"] in RISK_ORDER and root["risk"] in RISK_ORDER and root is not pkg
+                and RISK_ORDER[pkg["risk"]] < RISK_ORDER[root["risk"]]):
+            broadening.append(f"lowers risk from {root['risk']} to {pkg['risk']}, which can drop its review")
+        protected = sorted({entry for entry in writes.get(pid, []) for guarded in view["protected_paths"]
+                            if _protects(guarded, entry)})
+        if not (broadening or protected):
+            continue
+        approval = amendment["approval"]
+        if approval is None:
+            if broadening:
+                report.add("AMENDMENT_BROADENS", f"{label} ({aid}) {'; and '.join(broadening)}; scope beyond "
+                           "the authorized envelope needs a recorded human approval", aid)
+            if protected:
+                report.add("PROTECTED_PATH", f"{label} ({aid}) writes protected {', '.join(protected)}; an "
+                           "amendment needs a recorded human approval, approved_by alone does not grant it", aid)
+            continue
+        problem = _authorization_problem(approval)
+        if problem:
+            report.add("AUTHORIZATION_UNPROVEN", f"{approval['label']} {problem}", aid)
+        else:
+            claimed.append({"amendment": aid, "ref": approval["ref"],
+                            "grants": broadening + [f"writes protected {p}" for p in protected]})
+    return claimed
+
+
+def _rule_extension_record(parsed: dict[str, Any], view: dict[str, Any], report: Report) -> None:
+    """AUTHORIZATION_UNPROVEN for an extension without a valid human
+    authorization; SCHEMA for a ceiling that extends nothing."""
+    extension = parsed["extension"]
+    if extension is None:
+        return
+    problem = _authorization_problem(extension["authorization"])
+    if problem:
+        report.add("AUTHORIZATION_UNPROVEN", f"{extension['label']} {problem}; the profile's bound applies")
+    limit = view["max_rework_cycles"]
+    if extension["ceiling"] is not None and limit is not None and extension["ceiling"] <= limit:
+        report.add("SCHEMA", f"{extension['label']}.ceiling {extension['ceiling']} does not exceed the "
+                   f"profile's max_rework_cycles {limit}")
+
+
 def _rule_needs_declared(packages: dict[str, Any], report: Report) -> None:
     """NEEDS_UNDECLARED for an unattended run: a package that states no needs,
     or whose command criteria run on tools it declares no environment need for.
@@ -996,6 +1254,20 @@ def plan_digest(plan: Any) -> str | None:
         body["base"] = {key: value for key, value in body["base"].items() if key != "integrated"}
     text = json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def revision_digest(plan: Any, count: int) -> str | None:
+    """plan_digest of the revision holding the plan's first `count` amendments.
+    Amendments are inside the plan revision, so an amendment makes a preflight
+    bound to the earlier revision stale; revision 0 is the approved plan, the
+    one the human approved before execution."""
+    if not isinstance(plan, dict):
+        return None
+    body = dict(plan)
+    amendments = body.pop("amendments", None)
+    if count > 0 and isinstance(amendments, list):
+        body["amendments"] = amendments[:count]
+    return plan_digest(body)
 
 
 def _plan_facts(parsed: dict[str, Any], graph: dict[str, list[str]], owners: list[str],
@@ -1116,26 +1388,48 @@ def _plan_rules(parsed: dict[str, Any], view: dict[str, Any], report: Report) ->
     _rule_merge_policy(parsed, report)
     _rule_mode(parsed, owners, view, report)
     _rule_conflicts(parsed, report)
+    authorizations = _rule_amendments(parsed, writes, reach, view, report)
+    _rule_extension_record(parsed, view, report)
     if parsed["execution"]["unattended"]:
         _rule_needs_declared(packages, report)
-    return {"graph": graph, "owners": owners}
+    return {"graph": graph, "owners": owners, "writes": writes, "reach": reach,
+            "authorizations": authorizations}
 
 
-def check_plan(plan: Any, profile: Any, root: str | Path | None = None) -> dict[str, Any]:
+def _rule_approved(plan: Any, approved: str | None, report: Report) -> None:
+    """AMENDMENT_INVALID when the plan without its amendments is not the
+    revision the human approved: the approved part changes only by a new
+    approval, never by an edit during the run."""
+    if approved is None:
+        return
+    actual = revision_digest(plan, 0)
+    if actual is None or actual != approved.strip().lower():
+        report.add("AMENDMENT_INVALID", f"the plan without its amendments is revision "
+                   f"{(actual or 'none')[:12]}..., not the approved revision {approved.strip()[:12]}...; "
+                   "change the approved part only through a new approval")
+
+
+def check_plan(plan: Any, profile: Any, root: str | Path | None = None,
+               approved: str | None = None) -> dict[str, Any]:
     """Decide whether a plan may run; report waves and the derived execution mode.
 
     With `root`, the repository there must be at the plan's base or an
     integrated head and hold no uncommitted change outside the state
     directory, so no agent starts from, or reports, changes the run did not make.
+    With `approved`, the plan without its amendments must be that revision.
     """
     report = Report("plan")
     view = _profile_view(profile, report)
     parsed = _parse_plan(plan, view, report)
     _rule_secrets(plan, "plan", report, None)
     shape = _plan_rules(parsed, view, report)
+    _rule_approved(plan, approved, report)
     facts = _plan_facts(parsed, shape["graph"], shape["owners"], view)
     facts["unattended"] = parsed["execution"]["unattended"]
     facts["plan_digest"] = plan_digest(plan)
+    facts["approved_digest"] = revision_digest(plan, 0)
+    facts["amendments"] = [amendment["id"] for amendment in parsed["amendments"]]
+    facts["authorizations"] = shape["authorizations"]
     facts["head_checked"] = False
     if root is not None:
         heads = [parsed["base_commit"], *parsed["integrated"]] if parsed["base_commit"] else []
@@ -1718,6 +2012,7 @@ def _evidence_gap(cited: list[str], evidence: dict[str, dict[str, Any]], strict:
 def _parse_ledger(ledger: Any, report: Report) -> dict[str, Any]:
     parsed: dict[str, Any] = {
         "head_commit": None, "rework_cycles": {}, "evidence": {}, "criteria": [], "findings": [], "disputes": [],
+        "changed_files": None,
     }
     where = "ledger"
     if not isinstance(ledger, dict):
@@ -1733,6 +2028,9 @@ def _parse_ledger(ledger: Any, report: Report) -> dict[str, Any]:
             report.add("SCHEMA", f"{where}.rework_cycles.{package} must be a non-negative integer", package)
     parsed["evidence"] = _parse_evidence(_get(ledger, "evidence", "list", report, where, default=[]),
                                          report, where, None)
+    # The integrated diff's paths, a claim the gate holds to the write sets;
+    # with --root the gate reads them from git instead.
+    parsed["changed_files"] = _get(ledger, "changed_files", "strs", report, where, required=False)
 
     for index, item in enumerate(_get(ledger, "criteria", "list", report, where, default=[])):
         label = f"{where}.criteria[{index}]"
@@ -1776,11 +2074,22 @@ def _parse_ledger(ledger: Any, report: Report) -> dict[str, Any]:
                                        default=[])
         entry = {
             "id": fid,
+            "index": index,
+            "package": _get(item, "package", "str", report, label, fid, required=False),
             "severity": _enum(item, "severity", SEVERITIES, report, label, fid),
             "status": _enum(item, "status", FINDING_STATUSES, report, label, fid),
             "evidence": _get(item, "evidence", "strs", report, label, fid, required=False, default=[]),
             "resolution_evidence": resolution_evidence,
             "accepted_by": _get(item, "accepted_by", "str", report, label, fid, required=False),
+            # Convergence (governance.md section 2): the amendment whose review
+            # raised it (absent: the review of the planned work), the earlier
+            # findings it is related to, the fix that caused it, and the fixes
+            # after which it was reopened.
+            "after": _get(item, "after", "str", report, label, fid, required=False),
+            "related_to": _get(item, "related_to", "strs", report, label, fid, required=False, default=[]),
+            "introduced_by": _get(item, "introduced_by", "str", report, label, fid, required=False),
+            "reopened_after": _get(item, "reopened_after", "strs", report, label, fid, required=False,
+                                   default=[]),
         }
         if fid is not None:
             parsed["findings"].append(entry)
@@ -1879,8 +2188,228 @@ def _stale(cited: list[str], evidence: dict[str, dict[str, Any]], head: str | No
             and not _same_commit(evidence[eid]["commit"], head)]
 
 
+def _root_of(packages: dict[str, Any], pid: Any) -> str | None:
+    return _chain(packages, pid)[-1] if isinstance(pid, str) and pid in packages else None
+
+
+def _rule_finding_links(led: dict[str, Any], parsed_plan: dict[str, Any], report: Report) -> None:
+    """SCHEMA for a convergence link to an amendment or finding that does not exist."""
+    known = {amendment["id"] for amendment in parsed_plan["amendments"]}
+    ids = {finding["id"] for finding in led["findings"]}
+    for finding in led["findings"]:
+        fid = finding["id"]
+        for key in ("after", "introduced_by"):
+            if finding[key] is not None and finding[key] not in known:
+                report.add("SCHEMA", f"finding {fid} {key} {finding[key]}, which is no plan amendment", fid)
+        for aid in finding["reopened_after"]:
+            if aid not in known:
+                report.add("SCHEMA", f"finding {fid} was reopened after {aid}, which is no plan amendment", fid)
+        for other in finding["related_to"]:
+            if other not in ids or other == fid:
+                report.add("SCHEMA", f"finding {fid} is related to {other}, which is no other ledger finding", fid)
+
+
+def _convergence(parsed_plan: dict[str, Any], led: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Origin chains whose patching stopped converging (governance.md section 2).
+
+    Counted since the chain's last replanning (decide) amendment. It fires when
+    a blocking or major finding is related to a blocking or major finding an
+    earlier review round raised, or on the BROKEN_FIXES_LIMIT-th fix of the
+    chain that introduced a blocking or major regression or reopened one.
+    Returns root -> {"order": the amendment index it fired at, "why": text}."""
+    packages = parsed_plan["packages"]
+    order = {amendment["id"]: amendment["index"] for amendment in parsed_plan["amendments"]}
+    by_id = {amendment["id"]: amendment for amendment in parsed_plan["amendments"]}
+    start: dict[str, int] = {}
+    for amendment in parsed_plan["amendments"]:
+        pkg = packages.get(amendment["package"]) if amendment["package"] else None
+        if pkg is not None and pkg["kind"] == "decide":
+            start[_root_of(packages, pkg["id"])] = amendment["index"]
+
+    def round_of(finding: dict[str, Any]) -> int:
+        return order.get(finding["after"], -1) if finding["after"] else -1
+
+    def in_epoch(chain_root: str | None, at: int) -> bool:
+        return chain_root is not None and (chain_root not in start or at > start[chain_root])
+
+    findings = {finding["id"]: finding for finding in led["findings"]}
+    fired: dict[str, dict[str, Any]] = {}
+
+    def fire(chain_root: str, at: int, why: str) -> None:
+        if chain_root not in fired or at < fired[chain_root]["order"]:
+            fired[chain_root] = {"order": at, "why": why}
+
+    for finding in led["findings"]:
+        if finding["severity"] not in SERIOUS:
+            continue
+        chain_root = _root_of(packages, finding["package"])
+        if not in_epoch(chain_root, round_of(finding)):
+            continue
+        for other_id in finding["related_to"]:
+            other = findings.get(other_id)
+            if other is None or other["severity"] not in SERIOUS:
+                continue
+            other_root = _root_of(packages, other["package"])
+            if in_epoch(other_root, round_of(other)) and round_of(other) < round_of(finding):
+                why = (f"{finding['severity']} finding {finding['id']} is related to {other['severity']} "
+                       f"finding {other['id']} of an earlier review round")
+                fire(chain_root, round_of(finding), why)
+                fire(other_root, round_of(finding), why)
+
+    broken: dict[str, list[tuple[int, str]]] = {}
+    for finding in led["findings"]:
+        if finding["severity"] not in SERIOUS:
+            continue
+        causes = [(aid, "introduced") for aid in [finding["introduced_by"]] if aid]
+        causes += [(aid, "reopened") for aid in finding["reopened_after"]]
+        for aid, how in causes:
+            amendment = by_id.get(aid)
+            pkg = packages.get(amendment["package"]) if amendment and amendment["package"] else None
+            if pkg is None or pkg["kind"] != "implement":
+                continue
+            chain_root = _root_of(packages, pkg["id"])
+            if in_epoch(chain_root, amendment["index"]):
+                broken.setdefault(chain_root, []).append(
+                    (amendment["index"], f"{aid} {how} {finding['severity']} finding {finding['id']}"))
+    for chain_root, events in broken.items():
+        events.sort()
+        if len(events) >= BROKEN_FIXES_LIMIT:
+            fire(chain_root, events[BROKEN_FIXES_LIMIT - 1][0],
+                 f"{len(events)} fixes broke something: {'; '.join(text for _at, text in events)}")
+    return fired
+
+
+def _profile_bound_at_base(root: Path, base: str | None) -> tuple[int | None, str | None]:
+    """max_rework_cycles of the project profile as committed at the plan base:
+    a bound edited during the run is not the bound the run was approved under."""
+    if base is None:
+        return None, None
+    text, error = _git(root, "show", f"{base}:{PROJECT_PROFILE}")
+    try:
+        profile = load_profile(None)
+        if error is None:
+            override = json.loads(text)
+            if isinstance(override, dict):
+                profile = _deep_merge(profile, override)
+    except (InputError, ValueError):
+        return None, f"the profile at the plan base {base} cannot be read"
+    execution = profile.get("execution") if isinstance(profile.get("execution"), dict) else {}
+    value = execution.get("max_rework_cycles")
+    return (value if _SHAPES["count"][0](value) else None), None
+
+
+def _changed_paths(root: Path, base: str | None, head: str | None) -> tuple[list[str] | None, str | None]:
+    """Paths the integrated diff from the plan base to the head touches, from git."""
+    if base is None or head is None:
+        return None, "the plan base or the ledger head is unknown"
+    out, error = _git(root, "diff", "--name-only", "-z", base, head)
+    if error:
+        return None, error
+    return [path for path in out.split("\0") if path], None
+
+
+def _extension_condition_gaps(amendment: dict[str, Any], previous: str | None, conditions: set[str],
+                              led: dict[str, Any]) -> list[str]:
+    """What a cycle beyond the default bound fails to show of the extension's conditions."""
+    findings = {finding["id"]: finding for finding in led["findings"]}
+    evidence = led["evidence"]
+    cited = [findings.get(fid) for fid in amendment["findings"]]
+    if not cited:
+        return ["cites no finding it corrects"]
+    gaps = []
+    for fid, finding in zip(amendment["findings"], cited):
+        if finding is None:
+            gaps.append(f"cites {fid}, which is no ledger finding")
+            continue
+        if "new-finding" in conditions and (finding["severity"] not in SERIOUS or finding["reopened_after"]
+                                            or finding["after"] != previous):
+            gaps.append(f"cites {fid}, which is not a new blocking or major finding of the review after "
+                        f"{previous or 'the planned work'}")
+        if "same-check-green" in conditions:
+            failed = {_command(evidence[eid]["command"]) for eid in finding["evidence"]
+                      if eid in evidence and _failing(evidence[eid])}
+            green = {_command(evidence[eid]["command"]) for eid in finding["resolution_evidence"] or []
+                     if eid in evidence and not _failing(evidence[eid])
+                     and _same_commit(evidence[eid]["commit"], led["head_commit"])}
+            if not failed & green:
+                gaps.append(f"shows no check that failed for {fid} and passes at head")
+    return gaps
+
+
+def _rule_rework(parsed_plan: dict[str, Any], led: dict[str, Any], view: dict[str, Any], report: Report,
+                 root: str | Path | None, approved: str | None) -> dict[str, Any]:
+    """REWORK_LIMIT when an origin chain took more correction cycles than its
+    bound. Cycles are the chain's implement amendments, never fewer than the
+    ledger's rework_cycles claims summed along the chain, so neither a rename
+    nor a new rework package starts at zero. The bound is the profile's as
+    committed at the plan base (with root); an extension raises it only when
+    its authorization is valid and the approved revision that holds it is
+    anchored by `approved`, and each cycle beyond the profile's bound meets
+    the extension's conditions."""
+    packages = parsed_plan["packages"]
+    limit = view["max_rework_cycles"]
+    if root is not None and limit is not None:
+        at_base, problem = _profile_bound_at_base(Path(root), parsed_plan["base_commit"])
+        if problem:
+            report.add("WORKSPACE_MISMATCH", problem)
+        elif at_base is not None and limit > at_base:
+            report.add("AUTHORIZATION_UNPROVEN", f"max_rework_cycles is {limit}, but the profile committed at the "
+                       f"plan base says {at_base}; a bound raised during the run authorizes nothing", None)
+            limit = at_base
+    chains: dict[str, list[dict[str, Any]]] = {}
+    for amendment in parsed_plan["amendments"]:
+        pkg = packages.get(amendment["package"]) if amendment["package"] else None
+        if pkg is not None and pkg["kind"] == "implement":
+            chains.setdefault(_root_of(packages, pkg["id"]), []).append(amendment)
+    counts: dict[str, int] = {}
+    for key, cycles in led["rework_cycles"].items():
+        chain_root = _root_of(packages, key) or key
+        counts[chain_root] = counts.get(chain_root, 0) + cycles
+    for chain_root, cycles in chains.items():
+        counts[chain_root] = max(counts.get(chain_root, 0), len(cycles))
+
+    extension, honored, claimed = parsed_plan["extension"], False, []
+    if extension is not None and limit is not None:
+        valid = (_authorization_problem(extension["authorization"]) is None
+                 and extension["ceiling"] is not None and extension["ceiling"] > limit)
+        anchored = approved is not None and _approved_matches(parsed_plan, approved)
+        if valid and not anchored:
+            report.add("AUTHORIZATION_UNPROVEN", f"{extension['label']} is not shown to predate the run: no approved "
+                       "revision anchors it (pass the approved revision with --approved); the profile's bound applies")
+        honored = valid and anchored
+        if honored:
+            claimed.append({"extension": extension["label"], "ref": extension["authorization"]["ref"],
+                            "grants": [f"max_rework_cycles {limit} -> {extension['ceiling']}"]})
+    bound = extension["ceiling"] if honored else limit
+    if bound is None:
+        return {"limit": None, "cycles": counts, "passes_left": 0, "authorizations": claimed}
+    for chain_root, cycles in sorted(counts.items()):
+        if cycles > bound:
+            report.add("REWORK_LIMIT", f"{chain_root} took {cycles} rework cycles, counted along its amendments; "
+                       f"the bound is {bound}", chain_root)
+        elif honored and cycles > limit:
+            previous = None
+            for ordinal, amendment in enumerate(chains.get(chain_root, []), 1):
+                if ordinal > limit:
+                    gaps = _extension_condition_gaps(amendment, previous, extension["conditions"], led)
+                    if gaps:
+                        report.add("REWORK_LIMIT", f"cycle {ordinal} of {chain_root} ({amendment['id']}) uses the "
+                                   f"extension but {'; and '.join(gaps)}", amendment["id"])
+                previous = amendment["id"]
+            if len(chains.get(chain_root, [])) < cycles:
+                report.add("REWORK_LIMIT", f"{chain_root} claims {cycles} cycles, more than its "
+                           f"{len(chains.get(chain_root, []))} amendments; a cycle beyond the bound of {limit} "
+                           "counts against the extension only as an amendment that meets its conditions", chain_root)
+    return {"limit": bound, "cycles": counts, "passes_left": max(0, bound - max(counts.values(), default=0)),
+            "authorizations": claimed}
+
+
+def _approved_matches(parsed_plan: dict[str, Any], approved: str) -> bool:
+    return bool(parsed_plan["revisions"]) and parsed_plan["revisions"][0] == approved.strip().lower()
+
+
 def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = None,
-               preflight: Any = None) -> dict[str, Any]:
+               preflight: Any = None, approved: str | None = None) -> dict[str, Any]:
     """Decide whether the integrated head may go to a human-approved pull request.
 
     With `root`, the repository there must be at the ledger's head and hold no
@@ -1894,7 +2423,9 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
     _rule_secrets(ledger, "ledger", report, None)
     _rule_secrets(plan, "plan", report, None)
     # A gate never passes on a plan the plan check would refuse.
-    _plan_rules(parsed_plan, view, report)
+    shape = _plan_rules(parsed_plan, view, report)
+    _rule_approved(plan, approved, report)
+    _rule_finding_links(led, parsed_plan, report)
     # Nor on unattended work whose preflight is missing, failed, or stale.
     preflight_verdict = None
     if preflight is not None:
@@ -1980,11 +2511,18 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
             if stale_rule(cid, f"{cid} is verified and", entry["evidence"]):
                 flagged.add(cid)
             pkg = packages[pid]
-            if (pkg["kind"] == "implement" and (independent or pkg["risk"] == "high")
+            # A rework or replanning amendment is reviewed whatever the plan's
+            # review switch: its reviewer was named for that.
+            reviewed_amendment = pkg["amendment"] is not None and pkg["kind"] in REVIEWED_AMENDMENT_KINDS
+            if ((reviewed_amendment or (pkg["kind"] == "implement" and (independent or pkg["risk"] == "high")))
                     and entry["verified_by"] is not None):
                 # Only the owner of a verify package that reviews this package
                 # may verify it; the writer, the lead, or a bystander may not.
                 reviewers = _reviewer_owners(packages, pid)
+                named = _label(pkg["amendment"]["reviewer"]) if pkg["amendment"] else None
+                if reviewed_amendment and named and named != pkg["owner_key"] and not (
+                        independent or pkg["risk"] == "high"):
+                    reviewers.add(named)
                 if _label(entry["verified_by"]) not in reviewers:
                     report.add("REVIEW_NOT_INDEPENDENT", f"{cid} is verified by {entry['verified_by']}; "
                                f"independent review of {pid} needs the owner of a verify package that reviews "
@@ -2058,11 +2596,37 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
                 report.add("VOTE_NOT_EVIDENCE", f"dispute {did} claims basis human but was decided by "
                            f"{dispute['decided_by'] or 'nobody named'}", did)
 
-    limit = view["max_rework_cycles"]
-    if limit is not None:
-        for package, cycles in sorted(led["rework_cycles"].items()):
-            if cycles > limit:
-                report.add("REWORK_LIMIT", f"{package} took {cycles} rework cycles; the bound is {limit}", package)
+    rework = _rule_rework(parsed_plan, led, view, report, root, approved)
+
+    # Non-convergence stops the affected work; work that does not depend on it may continue.
+    fired = _convergence(parsed_plan, led)
+    stopped: set[str] = set()
+    for chain_root, event in sorted(fired.items()):
+        members = {pid for pid in packages if _root_of(packages, pid) == chain_root}
+        stopped |= members | {pid for pid in packages if shape["reach"].get(pid, set()) & members}
+        report.add("NOT_CONVERGING", f"work originating from {chain_root} stopped converging: {event['why']}; "
+                   "stop patching it and add a replanning (decide) amendment", chain_root)
+        for amendment in parsed_plan["amendments"]:
+            pkg = packages.get(amendment["package"]) if amendment["package"] else None
+            if (pkg is not None and pkg["kind"] == "implement" and amendment["index"] > event["order"]
+                    and _root_of(packages, pkg["id"]) == chain_root):
+                report.add("AMENDMENT_INVALID", f"amendment {amendment['id']} patches work the convergence rule "
+                           f"stopped at {chain_root}; only a replanning amendment may follow", amendment["id"])
+
+    # Every write of the integrated diff belongs to a package (governance.md section 4).
+    owned = [entry for pid, pkg in packages.items() if pkg["kind"] == "implement"
+             for entry in shape["writes"].get(pid, [])]
+    changed, ownership = led["changed_files"], "ledger" if led["changed_files"] is not None else None
+    if root is not None:
+        changed, problem = _changed_paths(Path(root), parsed_plan["base_commit"], head)
+        ownership = "git" if changed is not None else None
+        if problem:
+            report.add("WORKSPACE_MISMATCH", f"the integrated diff cannot be listed: {problem}")
+    for raw in changed or []:
+        path = _normalize_file(raw)
+        if path is None or not (_inside(path, owned) or (view["state_dir"] and _protects(view["state_dir"], path))):
+            report.add("UNOWNED_WRITE", f"{raw} changed, and no package of the plan or its amendments owns it; "
+                       "a correction is an amendment with its own write set", raw)
 
     # The profile's verification commands must have passed on the integrated head.
     for item in view["verification"]:
@@ -2094,6 +2658,12 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
         "coverage": f"{len(verified)}/{len(plan_criteria)}",
         "preflight": preflight_verdict,
         "head_checked": head_checked,
+        "rework": rework,
+        "stopped": sorted(stopped),
+        "may_continue": sorted(set(packages) - stopped) if stopped else [],
+        "ownership_checked": ownership or False,
+        # Authorizations the checker cannot open: the human reads each reference.
+        "authorizations": shape["authorizations"] + rework.pop("authorizations"),
     })
 
 
@@ -2118,6 +2688,9 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     gate.add_argument("--root", type=Path, help="repository whose HEAD and work tree must match the ledger")
     gate.add_argument("--preflight", type=Path,
                       help="alchemy-preflight/1 record; required when the plan is unattended")
+    for sub in (plan, gate):
+        sub.add_argument("--approved", help="plan_digest of the revision the human approved; the plan "
+                         "without its amendments must be it, and it anchors a rework extension")
     for sub, needs_plan in ((plan, False), (preflight, True), (handoff, True), (gate, True)):
         if needs_plan:
             sub.add_argument("--plan", type=Path, required=True, help="alchemy-plan/1 JSON file")
@@ -2138,14 +2711,15 @@ def main(argv: list[str] | None = None) -> int:
         if root is not None and not root.is_dir():
             raise InputError(f"{root}: --root is not a directory")
         if args.command == "plan":
-            result = check_plan(_read_json(args.plan), profile, root)
+            result = check_plan(_read_json(args.plan), profile, root, args.approved)
         elif args.command == "preflight":
             result = check_preflight(_read_json(args.preflight), _read_json(args.plan), profile, root)
         elif args.command == "handoff":
             result = check_handoff(_read_json(args.handoff), _read_json(args.plan), profile, root)
         else:
             preflight = _read_json(args.preflight) if args.preflight is not None else None
-            result = check_gate(_read_json(args.ledger), _read_json(args.plan), profile, root, preflight)
+            result = check_gate(_read_json(args.ledger), _read_json(args.plan), profile, root, preflight,
+                                args.approved)
     except InputError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
