@@ -100,6 +100,9 @@ own follow-up date. And one honest asymmetry: obligations don't need
 hypotheses. A legal retention requirement doesn't wait for an experiment
 proving users "engage with" retention.
 
+For the path from hypothesis through measurement to a new worth decision, see
+the [outcome-evidence loop](READ-requirements-traceability.md#the-outcome-evidence-loop).
+
 ## Reading requirements out of code
 
 Often there is no requirements document — there's a codebase, and someone

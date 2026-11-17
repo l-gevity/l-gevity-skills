@@ -182,7 +182,9 @@ flowchart TD
 Grounding keeps decision-relevant outcome hypotheses separate from acceptance
 criteria, avoiding confusing impact with completion. Traceability maintains
 versioned outcome measurements and freshness. Revisiting value after release
-returns current evidence to Minimum for a new worth decision.
+returns current evidence to Minimum for a new worth decision. See the
+[outcome-evidence loop](./.documentation/READ-requirements-traceability.md#the-outcome-evidence-loop)
+for the steps and diagram.
 
 See the [pipeline design](./ALCHEMY-PIPELINE-DESIGN.md) for routing rules,
 requirements qualification, gate handshakes, and acceptance criteria.
