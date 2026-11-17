@@ -153,42 +153,30 @@ laundered the distinction the whole system exists to keep.
 
 ## The outcome-evidence loop
 
-The outcome-evidence loop connects an expected effect to real use and a new
-decision about whether the capability is worth its cost:
+Tests prove it works. This loop checks whether it helps.
 
-1. **State the hypothesis.** Grounding owns the expected effect, cohort,
-   baseline, threshold, evaluation window, guardrails, and revisit trigger.
-2. **Build and verify.** Delivery proves the capability works as specified;
-   its downstream effect remains unmeasured.
-3. **Measure representative use.** Establish who actually used the capability
-   and measure the effect against the baseline and guardrails.
-4. **Assess the evidence.** Traceability links the observation to the exact
-   hypothesis version and maintains its evidence state and freshness.
-5. **Reconsider worth when triggered.** M in Retrospective mode weighs current
-   evidence against complexity, maintenance, and risk. It may keep, simplify,
-   quarantine for further measurement, deprecate, delete, or declare obsolete.
+1. **Before building — Grounding:** name the users, expected effect, baseline,
+   target, what must not worsen, owner, and review date.
+2. **After real use — Traceability:** link a measurement to the hypothesis
+   version. Did it meet the target without worsening the guardrails?
+3. **At the review trigger — M:** weigh the measured benefit against costs.
+   Keep, simplify, or retire the capability. Insufficient evidence? Measure
+   again before making an irreversible decision.
 
 ```mermaid
-flowchart TD
-    Hypothesis["Grounding: state the hypothesis"] --> Build["Build and verify the capability"]
-    Build --> Measure["Measure effects after representative use"]
-    Measure --> Assess["Traceability: assess evidence and freshness"]
-    Assess --> Trigger{"Revisit trigger reached?"}
-    Trigger -->|"No: next planned measurement"| Measure
-    Trigger -->|Yes| Worth["M: reconsider value against cost"]
-    Worth --> Action["Keep, simplify, deprecate, delete, or declare obsolete"]
-    Worth -->|"Quarantine: gather missing evidence"| Measure
+flowchart LR
+    A[Set target] --> B[Build and verify] --> C[Measure real use]
+    C --> D[Review worth at trigger]
+    D --> E[Keep, simplify, or retire]
+    D -->|Need more evidence| C
 ```
 
-The loop closes with a new worth decision for the bounded functionality; it
-does not restart the whole delivery pipeline. Evidence informs that decision:
-a missed threshold does not automatically justify deletion. Any resulting
-implementation change follows its applicable delivery route.
+Example: "For finance leads, reduce monthly close from four hours to two
+without increasing errors; review after three closes. Owner: finance lead."
 
-The operational rules stay with their owners: Grounding defines the
-[hypothesis](../.claude/skills/requirements-grounding/references/outcome-hypothesis.md),
-Traceability defines [evidence states, freshness, and versioning](../.claude/skills/requirements-traceability/SKILL.md#outcome-evidence-states),
-and M defines the [worth decision](../.claude/skills/functionality-complexity-tradeoff/SKILL.md#6-decision-protocol).
+Rules: [hypothesis](../.claude/skills/requirements-grounding/references/outcome-hypothesis.md),
+[evidence](../.claude/skills/requirements-traceability/SKILL.md#outcome-evidence-states),
+[worth](../.claude/skills/functionality-complexity-tradeoff/SKILL.md#6-decision-protocol).
 
 ## The habit
 
