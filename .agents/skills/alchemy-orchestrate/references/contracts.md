@@ -78,7 +78,7 @@ omitted.
 | `owner` | The agent label. `lead` is the integration owner. Distinct owners are the agent count. Owner labels and `human` compare trimmed and case-insensitively. |
 | `envelope` | `analyst` (read, test) or `implementer` (read, edit, test, commit); the runtime adapter enforces it where it can. |
 | `skills` | At least one skill the agent loads from the library, never from text pasted into its prompt. |
-| `writes` | Files, or directories ending in `/`. `dir/**` is read as `dir/`. Any other wildcard is rejected, so overlap stays decidable: two write sets overlap when one entry equals or is a directory prefix of the other, compared case-insensitively. |
+| `writes` | Files, or directories ending in `/`. `dir/**` is read as `dir/`. Any other wildcard is rejected, so overlap stays decidable: two write sets overlap when one entry equals or is a directory prefix of the other, compared case-insensitively. An entry that is or lies under a `repository.generated` path is `GENERATED_WRITE`: generated outputs are regenerated, never written. |
 | `depends_on` | Package IDs. The graph must be acyclic. |
 | `produces` / `consumes` | Contract names. A consumer depends, directly or transitively, on the producer; a consumed contract nobody produces must be listed in `contracts_existing`. |
 | `reviews` | `verify` only: the packages it reviews. Its owner owns none of them, and it depends, directly or transitively, on each. |
@@ -179,6 +179,9 @@ of the other and at least seven characters long. `relied_on` lists every
 artifact the work depended on with the digest it saw, so a receiver detects a
 context that moved underneath it. `changed_files` digests are taken after the
 change, so a receiver detects a summary that does not match the workspace.
+A changed file under a `repository.generated` path is one the repository's
+hooks rewrote when the writer committed through them: it is no
+`SCOPE_VIOLATION`, and its digest is checked like any other.
 
 ## Ledger — `alchemy-ledger/1`
 
@@ -218,7 +221,7 @@ Kept by the lead from hand-offs, independent verification, and integration.
 | `findings[].severity` | `blocking`, `major`, or `minor`. Blocking and major must end `resolved` with `resolution.evidence`, `rejected` with `resolution.evidence` showing the finding is wrong — sharing no evidence, by ID or identity, with the raiser's own `evidence` — or `accepted-risk` with `accepted_by: human`. |
 | `disputes[].resolution.basis` | `evidence` with evidence IDs, only when exactly one position's evidence all exists and exited 0; when both positions or neither have it, the human decides. Or `human` with `decided_by: human`. Majority, seniority, model, and confidence are not a basis. |
 | `rework_cycles` | A claim of correction rounds per package, summed along each origin chain. The gate counts the chain's rework amendments and takes the larger number, so neither a rename nor a new rework package starts at zero; above the bound it escalates. A ledger that records it, even for a plan without amendments, needs `--approved` on the gate (`AMENDMENT_INVALID` otherwise; see the upgrade table below). |
-| `changed_files` | Optional: the paths of the integrated diff from the plan base. With `--root` the gate reads them from git instead, without rename detection, so a moved file counts at its source and its destination. Each lies in an `implement` package's write set, amendments included, or under `state_dir` (`UNOWNED_WRITE`). |
+| `changed_files` | Optional: the paths of the integrated diff from the plan base. With `--root` the gate reads them from git instead, without rename detection, so a moved file counts at its source and its destination. Each lies in an `implement` package's write set, amendments included, or under a `repository.generated` path or `state_dir` (`UNOWNED_WRITE`). |
 
 A plan or gate check that passed without the approved revision before rework
 was anchored fails after the upgrade:
@@ -256,6 +259,7 @@ a project file overrides only the keys it states.
 | `execution.max_retries` | `1` | Re-runs of a failed package from its base |
 | `execution.max_rework_cycles` | `2` | Correction rounds per package before escalation |
 | `repository.protected_paths` | `[]` | Writes need `approved_by: human` |
+| `repository.generated` | `[]` | Outputs a repository generator or hook rewrites, as files or directories ending in `/`, written like `writes` entries; an entry covers itself and every path under it, case-insensitively. No package writes one (`GENERATED_WRITE`), and a hand-off or the integrated diff may hold one. The integration owner owns them: it regenerates them on the integrated head and never merges them by hand. Declaring any needs a `repository.verification` command that proves them current (`SCHEMA` otherwise) |
 | `repository.verification` | `[]` | Commands, as `{"id", "command"}` or plain strings, the integrated head must pass; the gate needs passing ledger evidence for each at `head_commit` |
 | `preflight.needs` | `[]` | Needs every unattended run of the project has, shaped as a package's `needs`; a preflight covers them too |
 | `repository.state_dir` | `.alchemy/runs/` | Run records; never committed; the only uncommitted changes `gate --root` tolerates |
@@ -271,7 +275,7 @@ bound reached must stop rework rather than restart it.
 
 | Code | Check | Verdict | Meaning |
 |:--|:--|:--|:--|
-| `SCHEMA` | all | FAIL / REJECT | A required field is missing or mistyped, a commit is not 7 to 64 hex characters, or the schema version is unknown |
+| `SCHEMA` | all | FAIL / REJECT | A required field is missing or mistyped, a commit is not 7 to 64 hex characters, the schema version is unknown, or the profile declares `repository.generated` without a `repository.verification` command |
 | `SECRET_IN_RECORD` | all | FAIL / REJECT | A plan, preflight, hand-off, or ledger value matches a credential pattern or sits under a credential key; every report redacts it |
 | `MISSING_TRACE` | plan, gate | FAIL | A package has no requirement ID, no acceptance criterion, or no skill, or the plan holds no criterion |
 | `CYCLE` | plan, gate | FAIL | `depends_on` forms a cycle |
@@ -288,13 +292,14 @@ bound reached must stop rework rather than restart it.
 | `CAP_EXCEEDED` | plan, gate | FAIL | Declared parallelism or distinct owners exceed the profile |
 | `PERMISSION_EXCEEDS` | plan, gate | FAIL | A package asks for `push`, `pull_request`, `merge`, `deploy`, an unknown permission, or one its envelope does not grant |
 | `PROTECTED_PATH` | plan, gate | FAIL | A package writes a protected path, or a path under one, without `approved_by: human`, or an amendment does without a valid `approval` in a revision `--approved` names |
+| `GENERATED_WRITE` | plan, gate | FAIL | A package, amendments included, writes a `repository.generated` path or a path under one; no approval grants it |
 | `MERGE_POLICY` | plan, gate | FAIL | `merge_policy` is not `human-approval` |
 | `MODE_MISMATCH` | plan, gate | FAIL | `single-agent` with more than one agent (package owners plus the integration owner), `multi-agent` with one, or any multi-agent plan while the profile sets `execution.multi_agent` to `off` |
 | `REQUIREMENT_CONFLICT` | plan, gate | ESCALATE | A recorded requirement conflict has no resolution, or a `human` basis the human did not decide |
 | `UNKNOWN_PACKAGE` | handoff | REJECT | The hand-off names a package the plan does not hold |
 | `OWNER_MISMATCH` | handoff | REJECT | The sender is not the package owner |
 | `NOT_DONE` | handoff | REJECT | `PARTIAL` (returns to the owner), `BLOCKED` (escalates to the lead, then the human), or an `implement` package `DONE` but not integration-ready |
-| `SCOPE_VIOLATION` | handoff | REJECT | A changed file lies outside the write set, or a read-only package changed files |
+| `SCOPE_VIOLATION` | handoff | REJECT | A changed file lies outside the write set and every `repository.generated` path, or a read-only package changed files |
 | `SCOPE_EXPANSION` | handoff | REJECT | The hand-off claims requirements its package was not assigned |
 | `CLAIM_CONTRADICTS_WORKSPACE` | handoff | REJECT | A changed file is missing or its digest differs from the workspace |
 | `CLAIM_CONTRADICTS_EVIDENCE` | handoff | REJECT | A claim cites failing evidence, or `DONE` or integration-ready while any evidence failed; failing is an exit code other than the item's expected one |
@@ -335,6 +340,6 @@ bound reached must stop rework rather than restart it.
 | `AMENDMENT_INVALID` | plan, gate | FAIL | An amendment names an origin that does not exist before it, a superseded revision other than the one before it, a base the run does not hold, or no reviewer; its package does not depend on its origin; it patches work the convergence rule stopped; with `--approved`, the plan holds no such revision; without it, the plan carries amendments, or at the gate an extension or recorded rework; or, with `--revision`, the plan no longer holds that revision |
 | `AMENDMENT_BROADENS` | plan, gate | FAIL | An amendment writes outside the approved plan's write sets, asks for a permission its origin lacks, or lowers its origin's risk, without a valid `approval` in a revision `--approved` names |
 | `AUTHORIZATION_UNPROVEN` | plan, gate | FAIL | An extension or amendment approval is not granted by the human, names no reference, names a source other than the human's answer (a timeout, a default), or expired; an extension no approved revision anchors; or, with `--root`, a `max_rework_cycles` above the one committed at the plan base |
-| `UNOWNED_WRITE` | gate | FAIL | A path of the integrated diff lies in no `implement` package's write set, amendments included, and not under `state_dir` |
+| `UNOWNED_WRITE` | gate | FAIL | A path of the integrated diff lies in no `implement` package's write set, amendments included, and not under a `repository.generated` path or `state_dir` |
 | `NOT_CONVERGING` | gate | ESCALATE | The convergence rule of governance section 2 fired for an origin chain; the report lists the `stopped` packages and those that `may_continue` |
 | `PREFLIGHT_REQUIRED` | gate | FAIL | The plan is unattended and the gate has no preflight record, or a given record does not pass against the plan: missing, failed, or stale |

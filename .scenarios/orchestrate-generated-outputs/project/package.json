@@ -1,0 +1,12 @@
+{
+  "name": "shop-api",
+  "version": "1.4.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "scan:secrets": "node tools/scan-secrets.js",
+    "generate:size-baseline": "node tools/size-baseline.js --write",
+    "generate:types": "node tools/generate-types.js",
+    "check:generated": "node tools/size-baseline.js --check && node tools/generate-types.js --check"
+  }
+}

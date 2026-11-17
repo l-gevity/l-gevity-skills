@@ -1,0 +1,30 @@
+{
+  "request": "Run alchemy-orchestrate on this: the plan .alchemy/runs/r3/plan.json passed its plan check, and P1 and P2 are about to start in parallel. The pre-commit hook in .githooks/pre-commit scans for secrets and rewrites size-baseline.json and src/generated/ on every commit; neither package's write set holds those files. How do P1 and P2 commit their work, and who owns the files the hook rewrites?",
+  "skills": ["alchemy-orchestrate"],
+  "expect": [
+    {
+      "id": "loads-orchestration",
+      "criterion": "generated-outputs #1: commits and file ownership in a run are decided under the orchestration contract",
+      "check": "guidance_includes",
+      "skills": ["alchemy-orchestrate"]
+    },
+    {
+      "id": "declares-generated",
+      "criterion": "generated-outputs #2: outputs a hook rewrites are declared generated in the profile, outside every package's write set",
+      "check": "text_matches",
+      "pattern": "repository\\.generated"
+    },
+    {
+      "id": "commits-through-hooks",
+      "criterion": "generated-outputs #3: implementers commit through the repository's hooks, never around them",
+      "check": "text_matches",
+      "pattern": "commit[^\\n]{0,60}through[^\\n]{0,40}hooks?|(never|not|don't|do not|no|without)\\b[^\\n]{0,40}--no-verify|hooks?[^\\n]{0,40}(never|not) (be )?(skipped|bypassed)"
+    },
+    {
+      "id": "lead-regenerates",
+      "criterion": "generated-outputs #4: the integration owner regenerates the outputs on the integrated head instead of merging them",
+      "check": "text_matches",
+      "pattern": "(lead|integration owner)[^\\n]{0,120}regenerat|regenerat[^\\n]{0,120}integrated head"
+    }
+  ]
+}

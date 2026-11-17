@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #227: generated outputs the integration owner regenerated on the integrated head are owned",
+  "description": "The integrated diff holds P1's and P2's files plus size-baseline.json and docs/generated/inventory.json, which the profile declares generated and the lead regenerated on the integrated head; the verification commands passed there.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "profile": "profile.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

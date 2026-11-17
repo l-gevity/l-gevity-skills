@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #229: generated outputs are regenerated on the integrated head, never written by a package",
+  "description": "The profile declares docs/generated/ generated; P1's write set names docs/generated/inventory.json.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "GENERATED_WRITE"
+    ]
+  }
+}

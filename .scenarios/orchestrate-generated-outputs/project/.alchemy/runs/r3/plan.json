@@ -1,0 +1,42 @@
+{
+  "schema": "alchemy-plan/1",
+  "objective": "Reject order lines with a non-positive quantity before pricing, and weigh shipping labels by quantity",
+  "requirements": ["REQ-7", "REQ-8"],
+  "conflicts": [],
+  "base": {"commit": "b6e8d7f"},
+  "contracts_existing": [],
+  "execution": {
+    "mode": "multi-agent",
+    "strategy": "dependency-aware",
+    "max_parallel_agents": 2,
+    "integration_owner": "lead",
+    "independent_review": true,
+    "merge_policy": "human-approval"
+  },
+  "packages": [
+    {
+      "id": "P1", "kind": "implement", "capabilities": ["engineering"], "skills": ["test-strategy"],
+      "owner": "agent-a", "envelope": "implementer", "risk": "medium",
+      "requirements": ["REQ-7"], "writes": ["src/orders/", "test/orders/"], "reads": ["src/"],
+      "depends_on": [], "produces": [], "consumes": [],
+      "acceptance": [{"id": "REQ-7-AC1", "check": "command", "command": "npm test -- test/orders"}],
+      "permissions": ["read", "edit", "test", "commit"]
+    },
+    {
+      "id": "P2", "kind": "implement", "capabilities": ["engineering"], "skills": ["test-strategy"],
+      "owner": "agent-b", "envelope": "implementer", "risk": "low",
+      "requirements": ["REQ-8"], "writes": ["src/shipping/", "test/shipping/"], "reads": ["src/"],
+      "depends_on": [], "produces": [], "consumes": [],
+      "acceptance": [{"id": "REQ-8-AC1", "check": "command", "command": "npm test -- test/shipping"}],
+      "permissions": ["read", "edit", "test", "commit"]
+    },
+    {
+      "id": "P3", "kind": "verify", "capabilities": ["verification"], "skills": ["test-strategy"],
+      "owner": "agent-c", "envelope": "analyst", "risk": "low",
+      "requirements": ["REQ-7", "REQ-8"], "writes": [], "reads": ["src/", "test/"],
+      "depends_on": ["P1", "P2"], "reviews": ["P1", "P2"],
+      "acceptance": [{"id": "P3-AC1", "check": "review", "question": "Do the integrated changes meet REQ-7 and REQ-8 with passing evidence?"}],
+      "permissions": ["read", "test"]
+    }
+  ]
+}

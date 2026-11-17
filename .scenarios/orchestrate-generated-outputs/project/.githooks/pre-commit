@@ -1,0 +1,8 @@
+#!/bin/sh
+# Runs on every commit. Scans the staged change for secrets, then rewrites the
+# derived files from the source tree and stages them with the commit.
+set -e
+npm run --silent scan:secrets
+npm run --silent generate:size-baseline
+npm run --silent generate:types
+git add size-baseline.json src/generated/

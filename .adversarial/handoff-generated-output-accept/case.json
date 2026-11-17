@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #224: a writer commits through the repository's hooks, so the generated outputs they rewrote are no scope violation",
+  "description": "The profile declares size-baseline.json and docs/generated/ as generated outputs; P1 committed through the pre-commit hook, which rewrote both, and its hand-off lists them with digests that match the workspace.",
+  "command": "handoff",
+  "args": {
+    "plan": "plan.json",
+    "handoff": "handoff.json",
+    "profile": "profile.json",
+    "root": "workspace"
+  },
+  "expect": {
+    "verdict": "ACCEPT",
+    "codes": []
+  }
+}

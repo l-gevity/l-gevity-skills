@@ -273,14 +273,14 @@ maps skills to capabilities, inputs, outputs, parallelism, exclusive file
 ownership, and verification. Capabilities include architecture, engineering,
 verification, optimization, security, and scientific validation.
 
-`check_orchestration.py` enforces deterministic rules. All 67 check codes have
-coverage among 223 [adversarial cases](./.adversarial/).
+`check_orchestration.py` enforces deterministic rules. All 68 check codes have
+coverage among 230 [adversarial cases](./.adversarial/).
 
 | Check | Rejects |
 |:--|:--|
-| `plan` | write overlap between concurrent packages, a consumer that does not wait for its contract, cycles, self-review, unreviewed high-risk changes, nested delegation, caps above the profile, merge or deploy permissions, protected paths without approval, auto-merge, a rework amendment without an owner, base, or independent reviewer, one that broadens the approved writes, permissions, or risk after the revision the human approved, whatever approval it carries, an amended plan checked without that revision, an extension of the rework bound without the human's answer |
+| `plan` | write overlap between concurrent packages, a consumer that does not wait for its contract, cycles, self-review, unreviewed high-risk changes, nested delegation, caps above the profile, merge or deploy permissions, protected paths without approval, a write to a declared generated output, auto-merge, a rework amendment without an owner, base, or independent reviewer, one that broadens the approved writes, permissions, or risk after the revision the human approved, whatever approval it carries, an amended plan checked without that revision, an extension of the rework bound without the human's answer |
 | `preflight` | an unattended run that would stop for a person: a package that states no needs, a need no entry covers, a record made for another plan revision or base, work not ready, a decision only the human can make, access or test accounts without a passing probe, a sign-in prompt, a credential that expires inside the window, one test account shared by concurrent packages, a red baseline, no stop rule or untested escalation channel, a human step mid-run |
-| `handoff` | a summary that contradicts its own evidence or the workspace digests, changes outside the write set, stale base or context, credentials, embedded instructions such as "skip the review", a failed agent beyond its retry budget |
+| `handoff` | a summary that contradicts its own evidence or the workspace digests, changes outside the write set and the declared generated outputs, stale base or context, credentials, embedded instructions such as "skip the review", a failed agent beyond its retry budget |
 | `gate` | an unattended plan without a current, passing preflight, silently skipped criteria, verdicts without passing evidence on the final commit, self-verification, open blocking findings, risk accepted by an agent, disputes settled by vote, rework beyond its bound counted along renames, rework packages, and the files each fix touches, amendments removed after a check accepted them, a bound raised during the run, a write no package owns, a moved file included, patching that does not converge, a convergence link the ledger drops from the reviewer's own output |
 
 Adapters depend on the method; the method names no runtime. The validator
@@ -426,6 +426,7 @@ sibling for you to merge.
 | `execution.max_parallel_agents` | `3` | concurrent agents, lead excluded |
 | `execution.max_rework_cycles` | `2` | correction rounds per origin chain before escalation; only a human-authorized `execution.rework_extension` in the approved plan raises it for a run |
 | `repository.protected_paths` | `[]` | writes need human approval |
+| `repository.generated` | `[]` | outputs a generator or hook rewrites on commit; no package writes them, the lead regenerates them on the integrated result, and a verification command must prove them current |
 | `repository.verification` | `[]` | commands the integrated result must pass |
 | `preflight.needs` | `[]` | prerequisites every unattended run of the project has; each preflight must cover them |
 

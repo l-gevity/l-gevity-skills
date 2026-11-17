@@ -74,6 +74,7 @@ CODES = {
     "CAP_EXCEEDED": "FAIL",
     "PERMISSION_EXCEEDS": "FAIL",
     "PROTECTED_PATH": "FAIL",
+    "GENERATED_WRITE": "FAIL",
     "MERGE_POLICY": "FAIL",
     "MODE_MISMATCH": "FAIL",
     "REQUIREMENT_CONFLICT": "ESCALATE",
@@ -423,6 +424,14 @@ def _inside(path: str, entries: list[str]) -> bool:
     return any(path == entry or (entry.endswith("/") and path.startswith(entry)) for entry in entries)
 
 
+def _generated(path: str, generated: list[str]) -> bool:
+    """A declared generated output, or a path under one, case-insensitively,
+    with or without a trailing '/'; a directory above one is not."""
+    path = path.rstrip("/").casefold()
+    return any(path == root or path.startswith(root + "/")
+               for root in (entry.rstrip("/").casefold() for entry in generated))
+
+
 # ------------------------------------------------------------------ profile
 
 def _read_json(path: Path | str) -> Any:
@@ -465,6 +474,7 @@ def _profile_view(profile: Any, report: Report) -> dict[str, Any]:
         "max_retries": None,
         "max_rework_cycles": None,
         "protected_paths": [],
+        "generated": [],
         "verification": [],
         "state_dir": None,
         "envelopes": {},
@@ -494,6 +504,16 @@ def _profile_view(profile: Any, report: Report) -> dict[str, Any]:
                 report.add("SCHEMA", f"profile.repository.protected_paths entry '{raw}' {problem}")
             else:
                 view["protected_paths"].append(normalized)
+        # Outputs a repository generator or hook rewrites: never a package's
+        # write, owned by the integration owner, regenerated on the integrated head.
+        generated = _get(repository, "generated", "strs", report, f"{where}.repository",
+                         required=False, default=[])
+        for raw in generated:
+            normalized, problem = _normalize_write(raw)
+            if problem:
+                report.add("SCHEMA", f"profile.repository.generated entry '{raw}' {problem}")
+            else:
+                view["generated"].append(normalized)
         # Each verification entry is {"id", "command"} or a bare command string.
         entries = _get(repository, "verification", "list", report, f"{where}.repository",
                        required=False, default=[])
@@ -506,6 +526,9 @@ def _profile_view(profile: Any, report: Report) -> dict[str, Any]:
                 view["verification"].append({"id": vid, "command": entry["command"]})
             else:
                 report.add("SCHEMA", f"{label} must be a command string or an object with a 'command'")
+        if generated and not view["verification"]:
+            report.add("SCHEMA", "profile.repository.generated is declared but repository.verification holds no "
+                       "command; something at the integrated head must prove the generated outputs current")
         state_dir = _get(repository, "state_dir", "str", report, f"{where}.repository", required=False)
         if state_dir is not None:
             normalized, problem = _normalize_write(state_dir)
@@ -996,6 +1019,17 @@ def _rule_protected(packages: dict[str, Any], writes: dict[str, list[str]], prof
                        "approved_by: human", pid)
 
 
+def _rule_generated(writes: dict[str, list[str]], profile: dict[str, Any], report: Report) -> None:
+    """Generated outputs are regenerated on the integrated head by the
+    integration owner, never written by a package; no approval grants it."""
+    for pid, entries in writes.items():
+        hits = sorted(entry for entry in entries if _generated(entry, profile["generated"]))
+        if hits:
+            report.add("GENERATED_WRITE", f"{pid} writes {', '.join(hits)}, inside repository.generated; the "
+                       "integration owner regenerates those outputs on the integrated head, so drop them from "
+                       "the write set", pid)
+
+
 def _rule_contracts(packages: dict[str, Any], existing: set[str], reach: dict[str, set[str]],
                     report: Report) -> None:
     producers: dict[str, list[str]] = {}
@@ -1391,6 +1425,7 @@ def _plan_rules(parsed: dict[str, Any], view: dict[str, Any], report: Report) ->
     _rule_read_only(packages, view, report)
     _rule_write_conflicts(writes, reach, report)
     _rule_protected(packages, writes, view, report)
+    _rule_generated(writes, view, report)
     _rule_contracts(packages, parsed["contracts_existing"], reach, report)
     _rule_review(packages, parsed["execution"]["independent_review"], reach, report)
     _rule_bounds(parsed, owners, view, report)
@@ -1946,9 +1981,12 @@ def check_handoff(handoff: Any, plan: Any, profile: Any, root: str | Path | None
                        f"{', '.join(entry['path'] for entry in h['changed_files'])}", pid)
         elif h["changed_files"]:
             allowed = [entry for entry in (_normalize_write(raw)[0] for raw in pkg["writes"]) if entry]
+            # A declared generated output is what the repository's hooks
+            # rewrote on commit; its digest is still checked below.
             for entry in h["changed_files"]:
                 normalized = _normalize_file(entry["path"])
-                if normalized is None or not _inside(normalized, allowed):
+                if normalized is None or not (_inside(normalized, allowed)
+                                              or _generated(normalized, view["generated"])):
                     report.add("SCOPE_VIOLATION", f"{pid} changed {entry['path']}, outside its write set", pid)
         extra = [req for req in h["requirements"] if req not in pkg["requirements"]]
         if extra:
@@ -2731,7 +2769,8 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
                 report.add("AMENDMENT_INVALID", f"amendment {amendment['id']} patches work the convergence rule "
                            f"stopped at {chain_root}; only a replanning amendment may follow", amendment["id"])
 
-    # Every write of the integrated diff belongs to a package (governance.md section 4).
+    # Every write of the integrated diff belongs to a package (governance.md
+    # section 4), or is a declared generated output the integration owner regenerated.
     owned = [entry for pid, pkg in packages.items() if pkg["kind"] == "implement"
              for entry in shape["writes"].get(pid, [])]
     changed, ownership = led["changed_files"], "ledger" if led["changed_files"] is not None else None
@@ -2742,7 +2781,8 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
             report.add("WORKSPACE_MISMATCH", f"the integrated diff cannot be listed: {problem}")
     for raw in changed or []:
         path = _normalize_file(raw)
-        if path is None or not (_inside(path, owned) or (view["state_dir"] and _protects(view["state_dir"], path))):
+        if path is None or not (_inside(path, owned) or _generated(path, view["generated"])
+                                or (view["state_dir"] and _protects(view["state_dir"], path))):
             report.add("UNOWNED_WRITE", f"{raw} changed, and no package of the plan or its amendments owns it; "
                        "a correction is an amendment with its own write set", raw)
 

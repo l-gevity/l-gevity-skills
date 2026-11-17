@@ -146,7 +146,9 @@ the runtime transcript).
    and wait for all of them before ending your turn; contract packages go
    first. Each writer starts
    from the plan's base or an integrated head, works in an isolated workspace
-   when the runtime provides one, and touches only its write set. Delegated
+   when the runtime provides one, and touches only its write set. Writers
+   commit through the repository's hooks, never around them; the lead
+   regenerates `repository.generated` outputs on the integrated head. Delegated
    agents never delegate. When the runtime cannot spawn agents, re-plan as
    `single-agent` and report the limitation: a plan nobody was delegated is
    not a multi-agent run.

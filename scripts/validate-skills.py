@@ -27,7 +27,7 @@ SIZE_BUDGET_GRAIN = 100
 SIZE_BUDGET_WORDS = {
     "CLAUDE.md": 900,
     "alchemy": 1800,
-    "alchemy-orchestrate": 1900,
+    "alchemy-orchestrate": 2000,
     "architecture-as-code": 2200,
     "architecture-guidelines": 1800,
     "bring-down": 2400,
@@ -56,7 +56,7 @@ SIZE_BUDGET_WORDS = {
 # total rose with every new entry and with growth inside each file's own
 # grain, and nothing failed. A new skill funds its words with a cut. Skills
 # are counted whole, so the count is slack as soon as it is one below its cap.
-LIBRARY_BUDGET_WORDS = 49200
+LIBRARY_BUDGET_WORDS = 49300
 LIBRARY_BUDGET_SKILLS = 24
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
@@ -164,6 +164,7 @@ SKILL_REQUIRED_TERMS = {
         "Before anybody edits, add a plan amendment (yours too)",
         "Never raise a bound yourself: an unanswered question is no answer",
         "stop patching that work and propose a replanning package",
+        "Writers commit through the repository's hooks, never around them",
     ),
     "alchemy": (
         "Adaptive Requirements Qualification",
@@ -692,6 +693,8 @@ REFERENCE_REQUIRED_TERMS = {
             "without rename detection, so a moved file counts at its source and its destination",
             "this holds for a plan without amendments too, which used to pass",
             "`--approved <digest>` on the gate: the `approved_digest` the plan check printed",
+            "it regenerates them on the integrated head and never merges them by hand",
+            "it is no `SCOPE_VIOLATION`, and its digest is checked like any other",
         ),
         "references/autonomy-preflight.md": (
             "# Autonomy Preflight — Preparing a Run That Proceeds Unattended",
@@ -3265,6 +3268,38 @@ def mutation_test() -> int:
             write_raw(path, text.replace("CODES = {", 'CODES = {"MUTATION_UNTESTED": "FAIL", ', 1), crlf)
 
     cases.append((Case("orchestration: a check code no adversarial case exercises", checkers, ("MUTATION_UNTESTED",)), declare_untested_code))
+
+    # Integration-owned generated outputs, each rule removed or widened on its
+    # own: a run whose implementers had to skip the repository's hooks to stay
+    # inside their write sets showed what each one prevents.
+    for label, old, new, expected in (
+        ("a hand-off may not hold the generated outputs its hooks rewrote",
+         '_generated(normalized, view["generated"])', "False", "handoff-generated-output-accept"),
+        ("declared generated outputs widen every write set",
+         '_generated(normalized, view["generated"])', 'bool(view["generated"])', "handoff-generated-output-outside-scope"),
+        ("a generated output skips its hand-off digest",
+         '        for entry in h["changed_files"]:\n            problem = _digest_problem(',
+         '        for entry in [item for item in h["changed_files"] if not _generated(item["path"], view["generated"])]:\n'
+         '            problem = _digest_problem(', "handoff-generated-output-digest-mismatch"),
+        ("the gate counts regenerated outputs as unowned",
+         '_inside(path, owned) or _generated(path, view["generated"])', "_inside(path, owned) or False",
+         "gate-generated-output-pass"),
+        ("declared generated outputs own the whole integrated diff",
+         '_inside(path, owned) or _generated(path, view["generated"])', '_inside(path, owned) or bool(view["generated"])',
+         "gate-generated-output-unowned-neighbour"),
+        ("a package may write a generated output", "    _rule_generated(writes, view, report)\n", "",
+         "plan-generated-write"),
+        ("generated outputs need no verification command", 'if generated and not view["verification"]:', "if False:",
+         "plan-generated-without-verification"),
+    ):
+        def break_checker(files=checkers, old=old, new=new, label=label):
+            for path in files:
+                text, crlf = read_raw(path)
+                if text.count(old) != 1:
+                    raise RuntimeError(f"{label}: text not found once in {path}")
+                write_raw(path, text.replace(old, new, 1), crlf)
+
+        cases.append((Case(f"orchestration: {label}", checkers, (f".adversarial/{expected} expected",)), break_checker))
 
     # The workflow adapter's preflight wiring, each link broken on its own.
     pipelines = both("alchemy-orchestrate/adapters/unstoppable/pipelines/alchemy-multi-agent.yaml")
