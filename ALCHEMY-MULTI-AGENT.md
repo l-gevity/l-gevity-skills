@@ -218,8 +218,13 @@ Objective
     `MERGE_POLICY`, `PERMISSION_EXCEEDS`; the pipeline's `request-input`
     checkpoints and the Claude Code ask and deny rules; *judgment* where a
     runtime has no such mechanism.
-35. Checks and hooks MUST NOT be skipped or weakened to reach a passing gate.
-    *Judgment*, reviewed in the report.
+35. Checks and hooks MUST NOT be skipped or weakened to reach a passing gate;
+    writers commit through the repository's hooks. Outputs a generator or
+    hook rewrites are declared in `repository.generated`: no package writes
+    them, the integration owner regenerates them on the integrated head, and
+    a verification command proves them current. *Check:* `GENERATED_WRITE`,
+    and `SCHEMA` for a declaration without a verification command;
+    *judgment* for a skipped hook, reviewed in the report.
 
 ## 10. Completion
 
@@ -307,8 +312,8 @@ their verified status are in the
     holds it; an approval written into the amendment during the run grants
     nothing. The plan and gate checks of a run with amendments, an
     extension, or recorded rework MUST name that revision with `--approved`.
-    A write no
-    package owns MUST fail the gate. *Check:* `AMENDMENT_INVALID`,
+    A write no package owns, other than a declared generated output, MUST
+    fail the gate. *Check:* `AMENDMENT_INVALID`,
     `AMENDMENT_BROADENS`, `PROTECTED_PATH`, `SELF_REVIEW`, `UNOWNED_WRITE`.
 47. More cycles than `max_rework_cycles` MUST come from an extension the
     human authorized, captured in the approved plan before its first use, with

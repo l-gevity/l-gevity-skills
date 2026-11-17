@@ -1,0 +1,15 @@
+{
+  "repository": {
+    "verification": [
+      {
+        "id": "V1",
+        "command": "npm test"
+      },
+      "npm run lint"
+    ],
+    "generated": [
+      "size-baseline.json",
+      "docs/generated/"
+    ]
+  }
+}

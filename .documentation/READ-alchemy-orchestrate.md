@@ -45,6 +45,11 @@ mechanically:
 - Merging and deploying are never part of the plan; they belong to a human.
 - The run starts from a clean commit. Leftover changes would otherwise turn
   up in every agent's report as work nobody can account for.
+- Some files are rewritten by the repository's own hooks on every commit,
+  such as a size baseline or generated types. No package owns them. Agents
+  commit through those hooks, never around them, so checks such as a secret
+  scan still run per package; the lead regenerates the files once on the
+  merged result, where a verification command proves them current.
 
 These are the same rules a good tech lead applies in their head. Writing them
 as checks means they hold on a tired day too.
@@ -143,4 +148,4 @@ the first missed and cost twice as much, use one.
 [SKILL.md](../.claude/skills/alchemy-orchestrate/SKILL.md) and its references;
 the routing it builds on is explained in [the alchemy primer](READ-alchemy.md).*
 
-<!-- skill-revision: 5b6ab48d7f91 -->
+<!-- skill-revision: cd47051f4919 -->

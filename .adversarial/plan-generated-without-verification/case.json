@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #230: declared generated outputs need a verification command that proves them current",
+  "description": "The profile declares size-baseline.json generated and no repository.verification command, so nothing at the integrated head would show the regenerated file is current.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "SCHEMA"
+    ]
+  }
+}

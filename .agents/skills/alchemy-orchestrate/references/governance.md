@@ -139,7 +139,7 @@ fails the gate (`SILENT_SKIP`) instead of editing a record the reviewer owns.
 |:--|:--|:--|
 | Agent crashes, stalls, or exceeds its budget | `status: FAILED`, or no hand-off within the budget | `RETRY`: discard its workspace and re-run once from the base commit; then `ESCALATE` (`RETRY_EXHAUSTED`) |
 | Context lost mid-package | missing or partial hand-off | Resume from plan and ledger; re-run from the base when the workspace state is unknown |
-| Concurrent modification | `WRITE_CONFLICT` at plan; a merge conflict at integration | Serialize: add a dependency edge, re-plan, re-run the later package on the new base |
+| Concurrent modification | `WRITE_CONFLICT` at plan; a merge conflict at integration | Serialize: add a dependency edge, re-plan, re-run the later package on the new base. A conflict only in `repository.generated` outputs is no overlap: the lead regenerates them on the integrated head |
 | Hand-off misrepresents the work | `CLAIM_CONTRADICTS_WORKSPACE`, `CLAIM_CONTRADICTS_EVIDENCE`, `UNSUPPORTED_CLAIM`, `SCOPE_VIOLATION` | `REJECT`; return to the owner with the failing check; counts as a rework cycle |
 | Context moved underneath a package | `STALE_BASE`, `STALE_CONTEXT` | `STALE`: rebase or re-validate against the current artifact, then re-check |
 | Failed validation after integration | profile verification command fails | Add a rework amendment for the package whose change it implicates, then route the correction to its owner; bounded by `max_rework_cycles` along its origin chain |

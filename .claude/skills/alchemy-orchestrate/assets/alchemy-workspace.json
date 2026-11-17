@@ -17,6 +17,7 @@
   "repository": {
     "base_branch": "main",
     "protected_paths": [],
+    "generated": [],
     "verification": [],
     "state_dir": ".alchemy/runs/"
   },

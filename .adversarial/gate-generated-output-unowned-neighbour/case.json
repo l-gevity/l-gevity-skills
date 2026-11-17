@@ -1,0 +1,17 @@
+{
+  "criterion": "multi-agent-governance #228: declared generated outputs leave every other unowned write a violation",
+  "description": "The integrated diff holds the generated size-baseline.json and src/billing/invoice.js, which no package owns and the profile does not declare generated.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "profile": "profile.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "UNOWNED_WRITE"
+    ]
+  }
+}

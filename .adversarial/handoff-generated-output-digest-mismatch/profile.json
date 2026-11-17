@@ -1,0 +1,11 @@
+{
+  "repository": {
+    "generated": [
+      "size-baseline.json",
+      "docs/generated/"
+    ],
+    "verification": [
+      "npm test"
+    ]
+  }
+}

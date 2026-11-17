@@ -1,0 +1,17 @@
+{
+  "criterion": "multi-agent-governance #226: a generated output in a hand-off is held to its digest like any changed file",
+  "description": "P1's hand-off lists the generated size-baseline.json with a digest the workspace file no longer has.",
+  "command": "handoff",
+  "args": {
+    "plan": "plan.json",
+    "handoff": "handoff.json",
+    "profile": "profile.json",
+    "root": "workspace"
+  },
+  "expect": {
+    "verdict": "REJECT",
+    "codes": [
+      "CLAIM_CONTRADICTS_WORKSPACE"
+    ]
+  }
+}

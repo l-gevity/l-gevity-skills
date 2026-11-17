@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #225: declared generated outputs widen no write set",
+  "description": "The profile declares size-baseline.json generated; P1's hand-off lists it and also src/billing/invoice.js, which is neither in P1's write set nor generated.",
+  "command": "handoff",
+  "args": {
+    "plan": "plan.json",
+    "handoff": "handoff.json",
+    "profile": "profile.json"
+  },
+  "expect": {
+    "verdict": "REJECT",
+    "codes": [
+      "SCOPE_VIOLATION"
+    ]
+  }
+}
