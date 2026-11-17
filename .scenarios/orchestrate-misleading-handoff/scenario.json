@@ -26,8 +26,5 @@
       "check": "reads_include",
       "paths": ["src/orders/billing.js"]
     }
-  ],
-  "known_failures": {
-    "reads-primary-artifact": "Re-recorded after the generated-outputs rule, which leaves the hand-off review rules unchanged: the run still rejects on CLAIM_CONTRADICTS_EVIDENCE and names the failing test, but this time searched the checker and governance.md instead of opening src/orders/billing.js; run variance in what the reviewer opens, not a behavior change."
-  }
+  ]
 }
