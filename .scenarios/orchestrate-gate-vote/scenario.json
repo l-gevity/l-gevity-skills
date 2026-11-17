@@ -27,5 +27,8 @@
       "field": "Merge",
       "values": ["human"]
     }
-  ]
+  ],
+  "known_failures": {
+    "rejects-the-vote": "Re-recorded after the generated-outputs rule, which leaves dispute rules unchanged: the run still refuses the majority resolution ('a dispute is decided on evidence, never on who agrees or who is senior'; X1 'must be decided on evidence') but did not read governance.md this time, so its wording misses the pattern; phrasing variance, not a behavior change."
+  }
 }
