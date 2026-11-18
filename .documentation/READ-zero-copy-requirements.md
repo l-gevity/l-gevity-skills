@@ -1,200 +1,33 @@
-# Zero-Copy Requirements: Where Does the Truth Live?
+# Zero-copy requirements: give each fact one authoritative home
 
-A new engineer joins and asks why the export runs at 02:00. Four answers are
-available. The cron expression says 02:00. The architecture document says
-03:00, because it was written before a daylight-saving incident. The wiki page
-says "overnight". And a commit message from last spring explains that 02:00 was
-chosen because the upstream feed lands at 01:40 — which is the only answer that tells
-them anything they couldn't have read off the schedule itself.
+This skill decides where facts belong and removes documents that duplicate existing authority. Use it before adding documentation, when pruning a documentation tree, or when deciding where a decision or follow-up should live.
 
-Three of those four artifacts were written by people trying to be helpful. Two
-of them are now wrong. Nobody was careless: the architecture document was
-accurate the day it was written, and the wiki page was accurate for about a
-year. What went wrong is structural. The same fact was recorded in four places,
-and only one of them — the cron expression — is *forced* to stay true, because
-the system reads it.
+## Core concepts
 
-This document explains zero-copy requirements: the idea that every fact should
-live in exactly one artifact, and that the number of documents a team maintains
-is a much better predictor of how much of its documentation is lying than how
-carefully the team writes.
+```mermaid
+flowchart TB
+    C["Code and tests<br/>Behavior"] --> V["Generated view<br/>Read-only"]
+    H["History<br/>Changes and rationale"] --> V
+    I["Issues<br/>Active work and questions"] --> V
+    R["Requirements<br/>Obligations and completion"] --> V
+```
 
-## A second copy is not a backup
+If a document can be reconstructed entirely from those sources, generate it or remove it. A generated report is a view: mark it read-only and check drift. Links avoid maintaining the same fact twice.
 
-The intuition worth dismantling first is that writing something down twice is
-belt-and-braces — redundancy, safety, helpfulness. In prose about a running
-system, a second copy is not a backup. It is a second authority, and the moment
-the system changes, exactly one of them gets updated.
+Standalone onboarding guidance, required external deliverables, and frozen historical records can still earn a place. They must have a distinct purpose rather than become competing descriptions of live behavior.
 
-Which one? The one the system reads. The cron expression changes because
-changing it is how you change the schedule. The architecture document doesn't
-change, because nothing breaks when it doesn't. So duplication doesn't produce
-two true statements that reinforce each other; it produces one true statement
-and a growing set of confidently-worded false ones, with no marker saying
-which is which. The new engineer has no way to tell the live fact from the
-fossil. That's the actual cost: not the wasted writing, but the reader who
-can't distinguish.
+## Apply it
 
-Hence the rule the concept is named for: **no artifact may exist whose content
-is fully reconstructable from another artifact already in the system.** If you
-can derive it from something that already exists, deriving it is the only safe
-way to have it.
+1. For each claim, identify the artifact that already owns it. Prove redundancy before deleting; a unique claim needs an owner, not erasure.
+2. Keep reversible technical decisions beside the implementing diff. Close owner questions where they were asked. Preserve approvals that need durable proof in a merged record.
+3. Generate useful summaries from authoritative inputs. Keep open issues for active work, defects, or checks blocking a named milestone; keep unstarted obligations in the requirement register.
 
-## Four things, and only four
+## Project example
 
-If duplication is the disease, the cure has to be an answer to "then where does
-each fact go?" — because facts don't stop existing when you delete the page
-that held them. There are exactly four homes, and each one answers a different
-question:
+A wiki repeats the nightly export schedule from CI configuration. Remove that duplicate schedule and link to the job. Keep the reason for choosing the time with the change that introduced it. Put a future requirement to support another timezone in the requirement register until work begins.
 
-| The authority | Answers | Because |
-| --- | --- | --- |
-| **Code and its tests** | *What does the system do?* | It is the system. It cannot be out of date with itself. |
-| **Version-control history** | *What changed, when, why that change, and which technical choice it made?* | Each commit is welded to a diff and immutable afterwards. |
-| **The issue tracker** | *What work is live, and what is waiting on an owner's answer?* | It is the only one of the four that can hold a question. |
-| **The requirement register** | *What should be built, and when is it done?* | It is the only one that can describe something not yet built. |
+> `$zero-copy-requirements` Review our export documentation. Identify each fact's owner, remove proven duplication, and preserve unique rationale.
 
-The division isn't arbitrary — it follows from what each medium is physically
-capable of. Code can't record a question, because a question has no runtime
-behavior. Git can't record a standing rule, because a commit describes one
-moment. Issues can't reliably describe current behavior, because nothing forces
-an issue to change when the code does. And a requirement register can describe
-something that doesn't exist yet, which is precisely what code cannot do.
-
-Two of the four are *immutable* — a commit and its diff never change — and two
-are *live*. That matters when deciding where something belongs: an approval
-that must still mean something in three years does not belong in a comment
-anyone can edit.
-
-## Decisions are the interesting case
-
-Most teams place three of these correctly by instinct. Nobody argues that code
-belongs in code. The one that goes wrong is decisions.
-
-A decision starts as a question — *should the export run at 02:00 or 03:00?* The
-temptation, once it's settled, is to promote the answer into a document: an ADR
-file, a decision log, a page in the wiki. It feels like respect for the
-decision. What it actually does is separate the answer from the question, so
-that the place it was settled holds no reasoning and the document has reasoning
-with no trace of what it was arguing against.
-
-The alternative is to let the decision close where it was raised. A technical
-choice that can be undone, and that changes nothing about what users see, about
-privacy, or about cost, is made by whoever is making the change and named in the
-pull request that makes it, where the reasoning sits beside the diff it
-explains. A question only an owner can answer closes on the issue that asked.
-Either way the argument, the rejected options, and the answer stay together.
-Anything downstream that needs the decision cites that ID rather than restating
-the conclusion — which, conveniently, is also a link back to the reasoning.
-
-There's one carve-out. A decision that must survive as *evidence* — a
-compliance sign-off, a legal basis, a regulator-facing approval — should not
-live in a comment that anybody can edit afterwards. That belongs in a merged
-commit or change request, where it's welded to a diff and a timestamp. The test
-isn't how important the decision feels; it's whether someone will later need
-to prove it wasn't changed.
-
-## A tracker is not a memory
-
-The same discipline applies to the tracker itself, because an open issue is a
-claim that something is going to happen. File every question, plan, audit
-finding, and follow-up, and that claim stops being true: issues nobody can act
-on, follow-ups nobody picks up, and new questions for an owner whose last
-answers were never built.
-
-So an open issue means one of three things: work someone has picked up now, a
-defect, or a check that blocks a named milestone. Everything else has a
-different home, or none:
-
-- **A technical choice** goes in the pull request that makes it. A technical
-  trade-off is never a question for the owner.
-- **Owner questions** sit in one standing issue, in plain language, at most
-  three at a time, each with the default that stands if nobody objects. An
-  irreversible step waits for a yes. An answer is work: build it before asking
-  anything new.
-- **Milestone checks and fixed dates** sit in one checklist. A check closes when
-  it ran, or when the owner accepted the risk for that milestone.
-- **An unbuilt obligation** nobody has picked up stays in the requirement
-  register until work on it starts.
-- **Findings, follow-ups, ideas, and reminders** are fixed in the change at hand
-  or dropped. They are never filed.
-
-## Reports are compiled, never written
-
-"Every fact in one place" seems to forbid the status page, the coverage
-summary, the quarterly compliance pack. It doesn't. It forbids *writing* them.
-
-A report that is assembled from the four authorities by a command is not a
-second authority — it's a view, and it's as true as its inputs at the moment it
-ran. The same document typed by hand is a second authority that was true once.
-The distinction is not what the document contains; it's whether the document
-can drift. Generate it, mark it read-only, and let the build fail when the
-committed copy differs from a fresh run.
-
-This gives a sharp diagnostic. If a generated report contains a fact that
-exists nowhere else, that fact is a bug: someone hand-patched the output rather
-than fixing the source. Move it into whichever authority owns the question, and
-regenerate.
-
-## Three documents that are allowed to exist
-
-A rule with no exceptions gets ignored the first time reality doesn't fit, so
-it's worth being explicit that exactly three kinds of standalone document
-survive the rule.
-
-**Onboarding and tooling documents** explain how to work *on* the system rather
-than what the system does — which command to run, which conventions apply,
-where things live. They're describing the team's practice, not the system's
-behavior, so there's no authority they duplicate. They earn their keep until
-the tooling says it itself, at which point delete them.
-
-**Compliance deliverables for an external audience** exist because someone
-outside the team requires a document in a particular shape. The authorities are
-the source; the deliverable is the format. Generate it if you possibly can —
-a hand-written one that gets re-typed every cycle is the anti-pattern, not the
-exception.
-
-**Frozen historical records** describe a completed migration, a superseded
-model, a one-time import whose provenance still gets cited. They're safe
-precisely because they're closed: dated, never backfilled, never the authority
-for anything live. The moment someone edits one to keep it current, it has
-stopped being a record and become an unowned second authority.
-
-Notice what all three have in common: none of them is a live description of
-current behavior. That's the actual boundary.
-
-## Asking the question
-
-The concept compresses to one question, asked before creating any document:
-*can someone reconstruct this from what already exists?*
-
-If yes, either delete it or generate it. If no, it answers exactly one of the
-four questions above, and belongs in that authority. If it seems to answer two,
-it's two artifacts wearing one filename, and splitting it is the whole job.
-
-Asked across a whole documentation tree at once, the question needs one guard.
-“Reconstructable” has to be shown, not assumed: point at the code, the commit,
-the issue, or the requirement that already carries the claim. Where nothing
-does, the claim is not redundant — it is *unowned*, and the tree you were about
-to prune holds the only copy of it. Those two look identical from the outside,
-and telling them apart is what stops a documentation cleanup from becoming a
-data loss. Redundant content gets deleted; unowned content gets moved.
-
-The signals that the question is overdue are easy to spot: two documents
-describing the same subsystem, a decision document whose issue was closed
-silently, a status page someone updates by hand every Friday, an architecture
-diagram that gets "refreshed" before each audit. Each is a fact that has been
-copied, and each copy is a promise to keep two things in sync that nobody can
-keep.
-
----
-
-*Zero-copy requirements is the placement rule that sits underneath the
-documentation advice in [push-out](READ-push-out.md) — which prunes prose that
-an executable source already covers — and ahead of
-[requirements-traceability](READ-requirements-traceability.md), which anchors
-evidence once a location exists. The full operational reference — the authority
-table, the issue scope, the generated-report rules, the three exceptions, and the
-litmus test — lives in [SKILL.md](../.claude/skills/zero-copy-requirements/SKILL.md).*
+[Full skill](../.claude/skills/zero-copy-requirements/SKILL.md)
 
 <!-- skill-revision: bd0a889723a3 -->

@@ -1,146 +1,38 @@
-# Orchestration: When Several Agents Beat One, and How to Keep Them Honest
+# Orchestration: use more agents only when it pays
 
-Give one capable engineer a well-scoped change and they will usually finish it
-faster than a committee. Give a committee the same change and you pay for
-meetings, hand-overs, merge conflicts, and the moment two people "fixed" the
-same file in different ways. Coding agents behave the same way. A second agent
-is not free: it has to load the context again, its work has to be merged, and
-everything it reports has to be checked by someone who did not write it.
+This skill decides whether one agent or several should do the work, then checks ownership, hand-offs, and completion. Use it for explicit delegation, independent review, or work split across agents.
 
-So the first idea here is unglamorous: **one agent is the default.** Several
-agents pay off in exactly two situations. The first is genuinely independent
-work: two changes that do not depend on each other and do not touch the same
-files can run side by side and save wall-clock time. The second is
-independent verification: a reviewer who did not write the change, starting
-from a clean context, catches what the author's own context hides. Everything
-else, such as "we have a security role and an architecture role, so we need
-two agents", is a reason that sounds structural and buys only overhead.
+## Core concepts
 
-## Capabilities, not a team
+- **One agent is the default.** Add agents for independent work or a useful independent review.
+- **Capabilities follow the task.** Architecture, implementation, and verification do not need permanent agent roles.
+- **Contracts precede dependent work.** Packages name their owner, allowed files, prerequisites, and acceptance checks.
+- **Evidence decides.** A hand-off saying “tests pass” needs commands, results, and file fingerprints the receiver can check.
 
-It is tempting to model a multi-agent system as an org chart: an architect
-agent, a developer agent, a tester agent, permanently on duty. That turns
-every change into a meeting of all of them. Orchestration instead treats
-architecture, engineering, verification, security, optimization, and
-scientific validation as *capabilities* a piece of work needs. One agent can
-hold several of them for a small package; a risky package can split
-verification across two reviewers with different lenses. The work decides the
-shape, not a standing roster, and no engineering gate is ever "owned" by an
-agent persona.
+Parallel packages must not write the same files. Reviewers do not review their own work. Delegation, retries, and corrections have explicit bounds.
 
-## Plans that a machine can check
+```mermaid
+flowchart LR
+    C["Agreed contract"] --> B["Backend owner<br/>Separate files"]
+    C --> F["Frontend owner<br/>Separate files"]
+    B --> V["Independent check<br/>Combined revision"]
+    F --> V
+```
 
-The second idea is that coordination rules are only real if code can check
-them. Before anything runs, the work is written down as *packages*: each with
-an owner, the files it may write, what it depends on, the requirement it
-serves, and the acceptance check that will prove it. That plan is then checked
-mechanically:
+## Apply it
 
-- Two packages that could run at the same time must not write the same files.
-  If they do, one waits for the other.
-- A package that uses an interface waits for the package that defines it.
-- A reviewer never reviews its own package.
-- Nobody delegates further: one level of delegation, a cap on concurrent
-  agents, a retry budget, and a rework budget.
-- Merging and deploying are never part of the plan; they belong to a human.
-- The run starts from a clean commit. Leftover changes would otherwise turn
-  up in every agent's report as work nobody can account for.
+1. Describe the change and identify work that can proceed independently. Keep shared contracts ahead of their consumers.
+2. Have the lead define and mechanically check the execution plan. For an unattended run, prove required tools, accounts, data, and escalation paths work before starting.
+3. Check hand-offs against the actual files, integrate the work, and verify acceptance criteria on the final combined revision.
 
-These are the same rules a good tech lead applies in their head. Writing them
-as checks means they hold on a tired day too.
+Blocking findings need evidence of resolution or explicit human risk acceptance. The skill's workflow requires human approval before merging.
 
-## Runs that nobody watches
+## Project example
 
-A sound plan can still stall at 2 a.m. In practice the interruptions are
-rarely in the code. A token expires halfway through the night. A test account
-asks for a second factor. Two agents log in as the same test user and
-overwrite each other's data. The tests were already red before anyone started.
-An escalation goes to a channel nobody receives. Or an agent reaches a
-question only the product owner can answer and waits until morning.
+An export feature needs a backend endpoint and a frontend screen. Agree on the response contract first. Then assign separate files to each package and give the integrated flow to a reviewer who wrote neither part. If both packages need to edit the same contract, sequence that work.
 
-So a run meant to proceed unattended passes a *preflight* before the first
-agent starts. In the workflow, the human who approves the plan also says
-whether anyone will watch; no answer counts as nobody. The plan is marked
-unattended to match, and each package states what it
-needs: the systems it reaches, the accounts it acts as, the tools it runs,
-and the data it reads. The lead runs a small probe for each of those needs,
-plus a deliberate test escalation. Each probe's result is recorded against
-the starting commit, and the record names the exact plan it was made for.
-The checker then refuses the run if:
+> `$alchemy-orchestrate` Plan backend and frontend export work after the response contract is agreed. Name file ownership and the final integration check.
 
-- a package states no needs, or runs tests without naming the tools they
-  need;
-- a stated need has no probe at all;
-- any of those probes is missing or failed;
-- the plan changed after the preflight was made;
-- a credential expires before the window ends;
-- a step needs someone at a sign-in prompt;
-- two agents that may run at the same time share a mutable test account;
-- the baseline is red;
-- a known question is still open.
-
-Questions are answered up front, or given a reversible default the human
-confirms at the end. Human steps happen before the window or wait until the
-merge. The final gate checks the preflight again, so work from an unattended
-run without a current, passing preflight never reaches a pull request. When
-the plan changes, a new preflight is needed, and every new need must be
-claimed in it. The checker cannot tell whether a probe was actually run
-again, so a reviewer confirms that each changed need was proved anew.
-
-## Hand-offs are claims, not facts
-
-The most dangerous sentence in multi-agent work is "done, all tests pass".
-Agents summarize optimistically, sometimes wrongly, and occasionally because a
-file they read told them to. So every package returns a structured
-*hand-off*: which files it changed, with a fingerprint of each; which files it
-relied on, with the fingerprint it saw; which commands it ran and their exit
-codes. The receiver re-checks the fingerprints against the workspace. A
-summary that claims a change the files do not contain is rejected. A package
-built on a file that has since changed is stale. A hand-off that says "tests
-pass" while its own evidence shows a failing exit code contradicts itself. A
-search that finds nothing counts as evidence too, provided it states the exit
-code that means "no match", so a broken command still fails. A
-hand-off that carries a credential or an instruction such as "skip the review"
-is rejected outright, because repository text is data, not orders.
-
-## Evidence settles disagreements
-
-Agents will disagree: two designs, a finding the author disputes, a risk one
-reviewer grades higher than another. Orchestration never settles this by vote,
-by which model is "smarter", or by role title. Each position is recorded with
-its evidence and compared on the criteria the relevant engineering question
-already defines: the measured complexity deltas, the placement rules, a test
-re-run on the merged result. If one side has passing evidence and the other
-has none, that side wins. If both have evidence, neither has, the decision is
-high-impact, or it is still open after one exchange, a human decides. Rework
-rounds are bounded, so a disagreement cannot loop forever; reaching the bound
-stops the run and asks. Each correction is added to the plan before anyone
-edits, with an owner and a reviewer, so a renamed task cannot reset its count.
-One round of corrections counts once per piece of work, however many problems
-it fixes. A correction that needs more scope than the approved plan stops the
-run until the human approves a new version of the plan.
-Only a human answer raises the bound; a question left unanswered raises
-nothing. When the same part keeps producing serious problems, patching stops
-and the design is planned again.
-
-## A gate before the pull request
-
-At the end, every acceptance criterion is either verified by evidence that ran
-on the final merged commit, explicitly deferred by a human, or the run fails.
-Blocking review findings must be fixed with evidence, shown to be wrong with
-evidence, or accepted as risk by a human. Only then is a pull request
-prepared, listing what was verified and what was not. Merging stays a human
-decision.
-
-## The honest baseline
-
-Multi-agent execution is a hypothesis, not a virtue. Measure it against the
-single-agent run of the same task: defects found, requirements verified,
-regressions, rework, time, and tokens. Where the second agent found nothing
-the first missed and cost twice as much, use one.
-
-*The operational rules, record formats, and checker live in
-[SKILL.md](../.claude/skills/alchemy-orchestrate/SKILL.md) and its references;
-the routing it builds on is explained in [the alchemy primer](READ-alchemy.md).*
+[Full skill](../.claude/skills/alchemy-orchestrate/SKILL.md)
 
 <!-- skill-revision: 5b6ab48d7f91 -->

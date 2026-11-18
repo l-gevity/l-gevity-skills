@@ -1,178 +1,38 @@
-# Measuring "Simpler": The Four Axes of Complexity
+# Structural simplification: measure what gets simpler
 
-Two engineers review the same refactoring proposal. One says it simplifies
-the codebase — "it removes all that duplication." The other says it
-complicates it — "it adds an abstraction layer." They are both right, both
-sincere, and the discussion goes nowhere, because *simple* is doing two
-different jobs in one conversation.
+This skill evaluates restructuring through four separate complexity measures. Use it before accepting a refactor, consolidation, abstraction, or workflow change described as “simpler.”
 
-The way out is to stop treating complexity as a feeling and start treating
-it as a **measurement** — one that anyone can take, before and after a
-proposed change, and compare. This document explains the model: complexity
-as a vector with four independent axes, and restructuring decisions as
-per-axis before/after comparisons instead of intuition contests.
+## Core concepts
 
-![Structural Simplification](structural_simplification.svg)
+| Axis | What to count | Cost it reveals |
+| --- | --- | --- |
+| Diversity (D) | Distinct kinds, patterns, or concepts | Learning |
+| Coupling (K) | Relationships and their density | Coordinated change |
+| Depth (P) | Longest dependency or forwarding chain | Tracing behavior |
+| Quantity (n) | Subsystems or items in the chosen model | Navigation |
 
-## The four axes
+Measure the same scope before and after. Keep the four deltas separate: one combined score can hide a serious regression. A facade may hide complexity while adding another hop; merging folders may move coupling inside rather than remove it.
 
-Take any structure made of subsystems and relationships — a codebase, a
-deployment, a data model, a workflow, even an org chart. Its complexity has
-four independent axes:
+Cycles in a structure that must be acyclic block acceptance. So does erasing distinctions that callers actually rely on. Required security, behavior, compatibility, and performance still constrain the result.
 
-| Axis | Question it answers | How to measure |
-| ---- | ------------------- | -------------- |
-| **Diversity** (D) | How many *kinds* of things are there? | Count the distinct patterns, shapes, and concepts a reader must learn |
-| **Coupling** (K) | How *connected* is it? | Count the relationships — imports, calls, references — and their density |
-| **Depth** (P) | How *long are the chains*? | Find the longest path from any entry point to any endpoint |
-| **Quantity** (n) | How many *subsystems* are there? | Count them |
+```mermaid
+flowchart LR
+    B["Before: caller"] --> F["Forwarder"] --> R["Repository"]
+    A["After: caller"] --> S["Repository"]
+```
 
-Each axis taxes the reader differently. Diversity taxes *learning*: a
-codebase with twelve ways to fetch data must be learned twelve times.
-Coupling taxes *change*: every edge is a path along which a modification
-here becomes a surprise there. Depth taxes *tracing*: a five-hop chain
-means five files open before you find where anything actually happens.
-Quantity taxes *navigation*: more subsystems, more places to look.
+## Apply it
 
-The crucial rule: **score each axis separately, and never collapse them
-into one number.** A single "complexity score" would let a large
-improvement on one axis launder a serious regression on another — and it's
-precisely the *shape* of the trade that a decision needs to see.
+1. Model the current and proposed structure with a consistent unit of counting. Record each before/after delta.
+2. Check cycles, preserved distinctions, new concepts, new connections, and longer paths.
+3. Accept improvements or justify a mixed trade explicitly. If no axis improves, do not call the result a simplification. Consider a smaller alternative.
 
-## Nothing is free: every operation trades axes
+## Project example
 
-With the vector in hand, the two reviewers' argument dissolves into
-something tractable, because almost every restructuring move improves some
-axes *at the cost of* others:
+A service layer forwards every call to a repository without validation, policy, or isolation. Removing it shortens the chain and removes an item, but exposes callers directly to the repository. Check whether that coupling is acceptable before claiming a win. If the layer owns authorization, deleting it breaks a required guarantee.
 
-**Extracting an abstraction** over three duplicated implementations:
-diversity drops (three variant shapes become one pattern) and coupling
-drops (N scattered dependencies collapse onto one) — but depth rises (every
-reader now traverses an extra level) and quantity rises (the abstraction is
-a new subsystem). Whether that trade wins depends on the numbers: with three or
-more genuine instances, usually yes; done speculatively for one, every
-axis worsens at once — the measurable meaning of "premature abstraction."
+> `$structural-simplification` Compare keeping versus removing this forwarding layer. Show all four deltas and identify any behavior or boundary it protects.
 
-**Adding a facade** in front of a messy subsystem: the interface *looks*
-simpler, but the four-step chain behind it still exists — with the facade
-now in front, chains are one hop *longer*. A facade **hides depth; it does
-not reduce it**, and hidden complexity still bills you: measure the actual
-structure, not the visible one.
-
-**Flattening** — removing a middle layer that merely forwards calls: depth
-and quantity drop; the check is whether the removed layer secretly earned
-its keep (enforcing a boundary, hiding a volatile dependency), because its
-callers now couple directly to what it concealed.
-
-**Merging two subsystems**: quantity and diversity drop, but the coupling that
-ran *between* them doesn't vanish — it moves inside, invisible to any
-dependency graph. Merging two tightly-entangled subsystems is honest bookkeeping;
-merging two unrelated ones creates the many-jobs subsystem that is worse than
-either original.
-
-The pattern generalizes: *"is this simpler?"* is the wrong question. The
-right one is *"which axes improve, which worsen, and is the trade worth
-it here?"* — answerable, in writing, with counts.
-
-## Two structural faults that outrank the arithmetic
-
-Two findings aren't trade-offs at all — they're vetoes.
-
-**Cycles.** In any structure that's supposed to flow one way — imports,
-layering, ownership — a cycle (A depends on B depends on C depends on A)
-isn't "high coupling"; it's a property violation. The three subsystems can no
-longer be understood, tested, or replaced separately; they've fused into
-one subsystem wearing three names. A restructuring that introduces a cycle is
-rejected regardless of how nicely its other axes score. (Structures that
-legitimately contain loops — state machines, retry logic, feedback systems
-— are fine; there, the discipline is naming the loop's semantics and bounds
-explicitly rather than pretending it isn't there.)
-
-**False unification.** Merging lookalikes — two config keys, two roles, two
-statuses collapsed into one — is safe only if every *other* subsystem
-that references them treats all the merged members identically. If
-some access rule bans one but allows the other, the merged item would need
-to be half-banned: the difference you erased was load-bearing. Before
-claiming a diversity win from any merge, enumerate the places that
-reference the things being merged and check they're uniform.
-
-## The decision protocol
-
-The model becomes practice as a short written exercise — minutes, not days
-— for any proposed restructuring:
-
-1. **Model both states.** Sketch the subsystems and relationships before and
-   after; record the four counts for each. The four *deltas* are the
-   proposal's real content.
-2. **Check for cycles** in the after-state. A cycle in a must-be-acyclic
-   projection ends the evaluation.
-3. **Answer four forcing questions in writing**, one line each — they
-   surface exactly the self-deceptions refactoring proposals run on:
-   - *What unique pattern does this introduce that nothing else uses?* And
-     what's the second concrete instance? (No second instance → it's
-     speculation.)
-   - *Which previously-independent subsystems does this connect?*
-   - *How long is the chain a typical change now traverses?* (More than
-     three hops: the depth is itself the problem.)
-   - *If we deleted the new subsystem, what would its dependents do?* (If the
-     answer is "use the thing it wraps, directly" — it's a pass-through
-     that earns nothing.)
-4. **Check the non-structural gates.** A structurally cleaner design that
-   breaks a security, compliance, performance, or migration requirement is
-   not an improvement — structure never outranks required behavior.
-5. **Classify.** Every axis improves or holds → proceed. Mixed → weigh the
-   specific trade, knowing there are legitimate asymmetric cases (below).
-   No axis improves → reject; whatever the change is, it isn't a
-   simplification.
-
-## When losing on an axis is still winning
-
-Three recurring cases where accepting a local worsening is correct — each
-with a condition attached:
-
-- **Conformance.** One subsystem doing things its own way, among ten uniform
-  siblings, inflates diversity out of proportion to its size — every
-  reader must learn the standard pattern *plus* the exception. Rewriting
-  the snowflake to match, even if slightly clumsier locally, deletes a
-  concept from the codebase's vocabulary. *Condition:* the standard
-  pattern must genuinely fit — a real domain difference deserves a name,
-  not forced uniformity.
-- **Deletion.** A special case costs more than its own code: it forces
-  conditional paths, extra tests, and exceptions in every subsystem that
-  touches it. Removing a marginal feature improves all four axes at once —
-  the only move that does. *Condition:* someone has verified the feature's
-  worth is actually negative, and removal respects migration and
-  compatibility promises.
-- **Chosen atomicity.** Making a multi-step operation all-or-nothing
-  demands coordination — coupling and depth rise, unavoidably. Accepting
-  eventual consistency keeps the structure loose but requires documented
-  tolerance of partial states. Either answer can be right; the fault is
-  *not deciding* and letting the structure inherit an accident.
-
-## The habit
-
-The model compresses into a discipline of one sentence: **before accepting
-any "simplification," write down the four deltas.** Kinds of subsystems,
-connections, longest chain, count — before and after. The exercise takes
-minutes and it converts refactoring debates from adjective exchanges into
-comparisons of numbers. Most proposals survive it. The ones that don't were
-the ones that would have quietly cost you for years — and the reviewer who
-asks "what does this do to chain depth?" contributes more than the one who
-says "looks cleaner."
-
----
-
-*Related concepts:
-[architecture guidelines](READ-architecture-guidelines.md) supplies the
-design principles (Rule of Three, separation of concerns) that the axes
-quantify; [worth evaluation](READ-functionality-complexity-tradeoff.md)
-consumes these measurements as the cost side of its ledger;
-[morphogenetic architecture](READ-morphogenetic-architecture.md) decides
-where boundaries belong before this model measures the move. The full
-operational reference — measurement recipes, the trade-off matrix, and the
-decision record — lives in
-[SKILL.md](../.claude/skills/structural-simplification/SKILL.md); the
-operation catalogue used to propose a simpler alternative lives in
-[reduction-operations.md](../.claude/skills/structural-simplification/references/reduction-operations.md).*
+[Full skill](../.claude/skills/structural-simplification/SKILL.md) · [Detailed diagram](structural_simplification.svg)
 
 <!-- skill-revision: fa5dd14549e2 -->
