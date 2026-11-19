@@ -16,6 +16,7 @@ $ErrorActionPreference = 'Stop'
 $Agent            = 'grok'
 $MemFile          = 'GROK.md'
 $PrimarySkillsDir = '.agents/skills'
+$AdapterRuntime   = ''
 # --- end agent profile ---
 
 $Repo           = 'l-gevity/l-gevity-skills'
@@ -42,6 +43,22 @@ function Test-SafeRelPath($Rel) {
     if ($Rel -match '^[\\/]' -or $Rel -match '^[A-Za-z]:' -or $Rel.Contains('\')) { return $false }
     if (('/' + $Rel + '/') -match '/\.\./') { return $false }
     return $true
+}
+
+# Python 3 under any of its usual names, or $null. A stock Windows has a
+# `python` stub that only prints an install hint. Its stderr, redirected under
+# 'Stop', would end the install in Windows PowerShell 5.1, hence the local
+# preference.
+function Find-Python3 {
+    $ErrorActionPreference = 'Continue'
+    foreach ($candidate in @('python3', 'python', 'py')) {
+        if (-not (Get-Command $candidate -ErrorAction SilentlyContinue)) { continue }
+        try {
+            $null = & $candidate -c 'import sys; sys.exit(sys.version_info[0] != 3)' 2>&1
+            if ($LASTEXITCODE -eq 0) { return $candidate }
+        } catch { }
+    }
+    return $null
 }
 
 $Tmp = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString())
@@ -152,11 +169,55 @@ try {
         $MemReport = $MemFile
     }
 
+    # Agent-team adapters. The skill's own installer renders them and never
+    # overwrites a file the project already has. Single-agent runs need none of
+    # them, so a missing interpreter or a refused profile is reported, not fatal.
+    #
+    # Unstoppable Code runs a Claude Code or Codex harness and adds a pipeline
+    # of its own, so its adapter is installed beside the harness's. It is
+    # recognised by the project's .unstoppable-code directory, or by the
+    # variables the app sets in the sessions it starts.
+    $AdapterRuntimes = @()
+    if ($AdapterRuntime) { $AdapterRuntimes += $AdapterRuntime }
+    if ((Test-Path (Join-Path $Target '.unstoppable-code')) -or
+        (Get-ChildItem env: | Where-Object { $_.Name -match '^(UNSTOPPABLE_CODE|CANOPY)_' })) {
+        $AdapterRuntimes += 'unstoppable'
+    }
+
+    $AdapterReport = "none shipped for $Agent; runs stay single-agent"
+    if ($AdapterRuntimes.Count -gt 0) {
+        $Init = "$PrimarySkillsDir/alchemy-orchestrate/scripts/init_workspace.py"
+        $Python = Find-Python3
+        $Installed = @()
+        $Manual = @()
+        foreach ($runtime in $AdapterRuntimes) {
+            if ($Python) {
+                Write-Host "Installing agent-team adapters ($runtime)..."
+                & $Python (Join-Path $Target $Init) --runtime $runtime --root $Target |
+                    ForEach-Object { Write-Host "  $_" }
+                if ($LASTEXITCODE -eq 0) {
+                    $Installed += $runtime
+                    continue
+                }
+            }
+            $Manual += "python $Init --runtime $runtime"
+        }
+        if (-not $Python) {
+            $AdapterReport = "not installed (Python 3 not found); run: $($Manual -join '; ')"
+        } elseif ($Manual.Count -gt 0) {
+            $Prefix = if ($Installed.Count -gt 0) { "$($Installed -join ' '); " } else { '' }
+            $AdapterReport = "${Prefix}not installed (init_workspace.py failed, see above); fix and run: $($Manual -join '; ')"
+        } else {
+            $AdapterReport = $Installed -join ' '
+        }
+    }
+
     Write-Host "Installed $($SrcSkillNames.Count) skills ($($SrcFiles.Count) files) into: $($Dests -join ' ')"
     if ($RemovedTotal -gt 0) {
         Write-Host "Removed $RemovedTotal file(s) dropped upstream."
     }
     Write-Host "Instruction file: $MemReport"
+    Write-Host "Agent-team adapters: $AdapterReport"
     $CommitNote = if ($Commit) { " (commit $($Commit.Substring(0, 7)))" } else { '' }
     Write-Host "Source: $Ref$CommitNote; per-file hashes recorded in $LockName."
 }

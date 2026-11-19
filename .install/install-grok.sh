@@ -17,6 +17,7 @@ set -euo pipefail
 AGENT="grok"
 MEMFILE="GROK.md"
 PRIMARY_SKILLS_DIR=".agents/skills"
+ADAPTER_RUNTIME=""
 # --- end agent profile ---
 
 REPO="l-gevity/l-gevity-skills"
@@ -56,6 +57,18 @@ safe_relpath() {
     */../*) return 1 ;;
   esac
   return 0
+}
+
+# Python 3 under either of its usual names. A bare `python` may be Python 2,
+# and on Windows `python3` may be a stub that only prints an install hint.
+python3_command() {
+  for candidate in python3 python; do
+    if "$candidate" -c 'import sys; sys.exit(sys.version_info[0] != 3)' >/dev/null 2>&1; then
+      printf '%s' "$candidate"
+      return 0
+    fi
+  done
+  return 1
 }
 
 # A Windows-style TMPDIR makes tar read the leading "C:" as a remote host.
@@ -213,9 +226,50 @@ else
   MEM_REPORT="$MEMFILE"
 fi
 
+# Agent-team adapters. The skill's own installer renders them and never
+# overwrites a file the project already has. Single-agent runs need none of
+# them, so a missing interpreter or a refused profile is reported, not fatal.
+#
+# Unstoppable Code runs a Claude Code or Codex harness and adds a pipeline of
+# its own, so its adapter is installed beside the harness's. It is recognised
+# by the project's .unstoppable-code directory, or by the variables the app
+# sets in the sessions it starts. grep -c reads to the end of its input, so
+# pipefail sees no SIGPIPE.
+ADAPTER_RUNTIMES="$ADAPTER_RUNTIME"
+if [ -d "$TARGET/.unstoppable-code" ] ||
+   [ "$(env | grep -cE '^(UNSTOPPABLE_CODE|CANOPY)_' || true)" -gt 0 ]; then
+  ADAPTER_RUNTIMES="${ADAPTER_RUNTIMES:+$ADAPTER_RUNTIMES }unstoppable"
+fi
+
+ADAPTER_REPORT="none shipped for $AGENT; runs stay single-agent"
+if [ -n "$ADAPTER_RUNTIMES" ]; then
+  INIT="$PRIMARY_SKILLS_DIR/alchemy-orchestrate/scripts/init_workspace.py"
+  PYTHON="$(python3_command || true)"
+  INSTALLED=""
+  MANUAL=""
+  for runtime in $ADAPTER_RUNTIMES; do
+    if [ -n "$PYTHON" ]; then
+      echo "Installing agent-team adapters ($runtime)..."
+      if "$PYTHON" "$TARGET/$INIT" --runtime "$runtime" --root "$TARGET" | sed 's/^/  /'; then
+        INSTALLED="${INSTALLED:+$INSTALLED }$runtime"
+        continue
+      fi
+    fi
+    MANUAL="${MANUAL:+$MANUAL; }python $INIT --runtime $runtime"
+  done
+  if [ -z "$PYTHON" ]; then
+    ADAPTER_REPORT="not installed (Python 3 not found); run: $MANUAL"
+  elif [ -n "$MANUAL" ]; then
+    ADAPTER_REPORT="${INSTALLED:+$INSTALLED; }not installed (init_workspace.py failed, see above); fix and run: $MANUAL"
+  else
+    ADAPTER_REPORT="$INSTALLED"
+  fi
+fi
+
 echo "Installed $SKILL_COUNT skills ($FILE_COUNT files) into: $DESTS"
 if [ "$REMOVED_TOTAL" -gt 0 ]; then
   echo "Removed $REMOVED_TOTAL file(s) dropped upstream."
 fi
 echo "Instruction file: $MEM_REPORT"
+echo "Agent-team adapters: $ADAPTER_REPORT"
 echo "Source: $REF${COMMIT:+ (commit ${COMMIT:0:7})}; per-file hashes recorded in $LOCK_NAME."
