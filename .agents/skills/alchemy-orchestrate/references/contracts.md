@@ -144,7 +144,8 @@ failed for that finding passes at head. A cycle that misses one is
 ## Hand-off — `alchemy-handoff/1`
 
 Returned by every package owner, read-only packages included. It links
-artifacts; it never pastes them.
+artifacts; it never pastes them. A delegated agent reads this section and no
+other part of this skill: the lead holds the rest.
 
 ```json
 {
@@ -212,13 +213,24 @@ Kept by the lead from hand-offs, independent verification, and integration.
 | `head_commit` | The integrated head. Every evidence item the gate relies on — for a verified criterion, a finding resolution or rejection, or a dispute decided on evidence — ran at it. |
 | `criteria[].status` | `verified` (evidence IDs that passed at `head_commit`), `failed`, `unverified`, or `deferred` with `deferred_by: human`. Every plan criterion appears once. |
 | `criteria[]` | `verified_by` is required when verified; `reason` when deferred. Only plan criteria, under their own package. When independent review is on or the package's risk is `high`, an `implement` criterion's `verified_by` is the owner of a `verify` package that reviews it. A verified `command` criterion cites evidence whose `command` is the plan's, whitespace-normalized, or that of an `equivalent: {"command", "accepted_by": "human"}` the human accepted in its place. |
-| `evidence[]` | `id`, `command`, `exit_code`, `commit`; optional `produced_by`, `expect_exit` as in the hand-off, and `criterion`, the only criterion the item may verify. Items with the same normalized command, commit, and exit code are the same evidence, whatever their IDs. Profile verification commands pass only on exit 0. |
+| `evidence[]` | `id`, `command`, `exit_code`, `commit`; optional `produced_by`, `expect_exit` as in the hand-off, `criterion`, the only criterion the item may verify, and `log` and `log_sha256`, the output file and its digest. Items with the same normalized command, commit, and exit code are the same evidence, whatever their IDs. Profile verification commands pass only on exit 0. |
 | `findings[]` | Optional convergence links, recorded by the reviewer who raises the finding: `after`, the amendment whose review raised it (absent: the review of the planned work); `related_to`, earlier finding IDs in the same component or of the same class; `introduced_by`, the amendment whose fix caused it; `reopened_after`, the amendments after which it was reopened. Each named amendment and finding exists, and `package` names a plan package. Once the plan has amendments, every blocking or major finding names its `package`, and one with `related_to` or `introduced_by` names `after` (`SCHEMA` otherwise). The gate evaluates them as governance section 2 states (`NOT_CONVERGING`). |
 | `--review` | The last reviewer's own output, a file the reviewing step wrote. Each of its blocking or major findings appears in the ledger under its ID, at no lower severity, for the same package, with every `related_to` link, `introduced_by` when it is a `regression`, and `reopened_after` on the finding it `reopens` (`SILENT_SKIP` otherwise). The gate checks that the ledger keeps what the reviewer recorded; whether a finding is related, a regression, or reopened is the reviewer's judgment, which no check confirms. Without `--review` the gate reads the ledger alone. |
 | `findings[].severity` | `blocking`, `major`, or `minor`. Blocking and major must end `resolved` with `resolution.evidence`, `rejected` with `resolution.evidence` showing the finding is wrong — sharing no evidence, by ID or identity, with the raiser's own `evidence` — or `accepted-risk` with `accepted_by: human`. |
 | `disputes[].resolution.basis` | `evidence` with evidence IDs, only when exactly one position's evidence all exists and exited 0; when both positions or neither have it, the human decides. Or `human` with `decided_by: human`. Majority, seniority, model, and confidence are not a basis. |
 | `rework_cycles` | A claim of correction rounds per package, summed along each origin chain. The gate counts the chain's rework amendments and takes the larger number, so neither a rename nor a new rework package starts at zero; above the bound it escalates. A ledger that records it, even for a plan without amendments, needs `--approved` on the gate (`AMENDMENT_INVALID` otherwise; see the upgrade table below). |
 | `changed_files` | Optional: the paths of the integrated diff from the plan base. With `--root` the gate reads them from git instead, without rename detection, so a moved file counts at its source and its destination. Each lies in an `implement` package's write set, amendments included, or under `state_dir` (`UNOWNED_WRITE`). |
+
+`scripts/record_evidence.py --plan <plan.json> --root <repository>` produces
+these items. It runs only the commands the plan's `command` criteria and the
+profile's `repository.verification` declare, at a committed head that is clean
+outside `state_dir`, and writes per command a log of its combined output and
+one `evidence[]` item with `produced_by: harness`, `log`, and `log_sha256`. The
+ID is the criterion or verification ID, `@`, and the head's short commit. A
+command that leaves the work tree changed fails the run, because its result is
+not the commit's alone. A verifier reads these logs and cites their IDs:
+running the same command on the same commit again yields the same evidence,
+by the identity rule above, and adds nothing.
 
 A plan or gate check that passed without the approved revision before rework
 was anchored fails after the upgrade:

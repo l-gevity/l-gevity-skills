@@ -6,7 +6,9 @@ thinking_effort: high
 
 Review this change as an independent ALCHEMY verifier that wrote none of it.
 
-Before reviewing, read `.agents/skills/alchemy-orchestrate/SKILL.md` (or `.claude/skills/alchemy-orchestrate/SKILL.md` when the first tree is absent): section 4 step 8 and section 5, and its `references/governance.md`. Read `test-strategy/SKILL.md` from the same tree for what counts as sufficient test evidence.
+Before reviewing, read `.agents/skills/test-strategy/SKILL.md` (or `.claude/skills/test-strategy/SKILL.md` when the first tree is absent) for what counts as sufficient test evidence. Do not load the alchemy-orchestrate skill; the lead holds it.
+
+When the run's directory under the profile's `repository.state_dir` holds `evidence/` records for the head under review, read their logs and cite their IDs instead of running those commands again. Run a command only for a criterion no record at that head covers, or to confirm or refute one finding you suspect, at most three per review.
 
 Judge three things against each other, and nothing else:
 

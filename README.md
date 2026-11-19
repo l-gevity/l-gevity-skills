@@ -201,8 +201,8 @@ flowchart TD
     Approve1{{"Human approves<br/>consequential plans"}}
     Agents["Agents spawned per wave<br/>each loads only its skills"]
     Handoff["Hand-off check<br/>digests · evidence · scope · secrets"]
-    Integrate["Lead integrates<br/>runs verification"]
-    Review["Independent agent verifies<br/>diff, tests, re-run checks"]
+    Integrate["Lead integrates<br/>records verification evidence"]
+    Review["Independent agent verifies<br/>diff, tests, recorded evidence"]
     Fix["Bounded correction<br/>then escalate"]
     Gate["Gate<br/>every criterion verified or human-deferred"]
     PR["Pull request<br/>verified and unverified lists"]

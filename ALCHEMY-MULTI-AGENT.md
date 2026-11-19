@@ -119,7 +119,9 @@ Objective
     `validate_skill_contracts` requires an entry per skill and every listed
     decision to appear in that skill.
 12. Each delegated agent MUST load the skills its package names from the
-    library; skill text MUST NOT be pasted into prompts as a substitute.
+    library; skill text MUST NOT be pasted into prompts as a substitute. A
+    delegated agent MUST NOT load `alchemy-orchestrate` beyond the hand-off
+    contract: the lead holds the rest.
     *Check:* end-to-end acceptance Test 4 inspects the delegated agents'
     tool calls.
 13. A package that consumes a contract MUST depend on the package producing
@@ -155,10 +157,14 @@ Objective
     evidence, and escalated to the human when both or neither do, when it is
     high-impact, unsafe, or untestable, or when it is still open after one
     exchange. *Check:* `DISPUTE_OPEN`.
-20. Independent review MUST inspect requirements, the integrated diff, and the
-    tests, and re-run the checks it cites; a hand-off summary is a claim to
-    test. *Check:* `REVIEW_NOT_INDEPENDENT`, `SELF_REVIEW`,
-    `UNREVIEWED_CHANGE`; *judgment* for review depth.
+20. Independent review MUST inspect requirements, the integrated diff, the
+    tests, and the evidence the lead recorded at the integrated head with
+    `record_evidence.py`, and MUST cite those records rather than run the same
+    commands again; it runs a command only for a criterion no record covers or
+    to test a suspected finding, at most three per package. A hand-off summary
+    is a claim to test. *Check:* `REVIEW_NOT_INDEPENDENT`, `SELF_REVIEW`,
+    `UNREVIEWED_CHANGE`; the validator's envelope check; *judgment* for review
+    depth and the run cap.
 21. Rework MUST be bounded by `max_rework_cycles` per origin chain, counted
     from the plan's rework amendments, so a renamed or new rework package does
     not start at zero, and a fix of one chain's files counts against that chain
