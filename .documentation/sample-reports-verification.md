@@ -268,9 +268,9 @@ config; moving it later costs every import that grows around it.
    notifications subsystem, with `mail-adapter` as its only allowed outbound edge.
 2. Run the architecture lint and confirm it passes with the new entry.
 
-**What I did not check.** Runtime calls and change history; placing a new
-subsystem does not need them. The architecture lint did not run; run
-`npm run lint:architecture` to confirm.
+**What I did not check.**
+- Runtime calls and change history: placing a new subsystem does not need them.
+- The architecture lint: run `npm run lint:architecture`.
 
 ```text
 Subject:             notifications/email-sender — new subsystem

@@ -94,10 +94,11 @@ problem, not who caused it. Disagree when warranted; don't soften with qualifier
 
 ## 14. Report
 Lead every decision record with four plain-language blocks, then the record unchanged:
-**What I found** (the subject, the decision in plain words with the record's word once, as in
-"keep it, count who uses it, and decide again in six weeks (the record calls this QUARANTINE)",
-and the fact that decided it), **Why it matters** (the consequence of acting and of not acting,
-no further than the evidence reaches), **Do this first** (one numbered step with its file or
-command, at most two follow-ups), **What I did not check** (each skipped check with the command
-that closes it, or "nothing"). Fill the record first; a block sentence with no record field
-behind it goes. Explain the decision; never talk down.
+**What I found** (two sentences at most: the subject, the decision in plain words with the
+record's word once, as in "keep it, count who uses it, and decide again in six weeks (the record
+calls this QUARANTINE)", and the fact that decided it), **Why it matters** (two sentences at most:
+the consequence of acting and of not acting, no further than the evidence reaches),
+**Do this first** (one numbered step with its file or command, at most two follow-ups),
+**What I did not check** (one line per skipped check with the command that closes it, or
+"nothing"). Fill the record first; a block sentence with no record field behind it goes.
+Explain the decision; never talk down.

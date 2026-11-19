@@ -1,7 +1,7 @@
 {
   "scenario": "gate-skip-clean-new-rule",
-  "revision": "bc440040746c",
-  "recorded_with": "claude-code 2.1.321, model claude-opus-5-5",
+  "revision": "310ad4ccf20e",
+  "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
     "alchemy-orchestrate",
@@ -50,15 +50,17 @@
   "skills_invoked": [],
   "files_read": [
     "eslint.config.mjs",
-    "package.json"
+    "package.json",
+    "src/billing/invoice.js",
+    "src/auth/internal/token.js",
+    "src/auth/index.js"
   ],
   "paths_searched": [
     ".",
     ".",
     ".",
-    ".",
-    "src"
+    "."
   ],
-  "turns": 8,
-  "output": "Nothing in the repo calls `new Date()` today, so this rule should pass on the current code without any fixes. Here is the file:\n\n```js\nconst noNewDate = {\n    selector: \"NewExpression[callee.name='Date'][arguments.length=0]\",\n    message: 'Read the current time through the clock module, not new Date().',\n};\n\nconst noAuthInternals = {\n    selector: 'ImportDeclaration[source.value=/auth.internal/]',\n    message: 'Import auth through src/auth/index.js, never its internals.',\n};\n\nexport default [\n    {\n        files: ['**/*.{js,mjs,cjs}'],\n        rules: {\n            'no-restricted-syntax': ['error', noNewDate],\n        },\n    },\n    {\n        files: ['src/**/*.js'],\n        ignores: ['src/auth/**'],\n        rules: {\n            'no-restricted-syntax': ['error', noNewDate, noAuthInternals],\n        },\n    },\n    {\n        // The clock module is the one place allowed to call new Date().\n        files: ['src/clock/**'],\n        rules: {\n            'no-restricted-syntax': ['error', noAuthInternals],\n        },\n    },\n];\n```\n\n**Why it has three blocks:** in ESLint flat config, when two blocks set the same rule, the later block replaces the earlier one's options entirely. They don't merge. A separate `new Date()` block would therefore delete the existing auth-import rule in `src/`, or be deleted by it. So each block lists every check that applies to its files:\n- **Whole repo:** bans `new Date()`. This also covers `src/auth/**`, which the existing block skips.\n- **`src/` outside auth:** bans `new Date()` and keeps the auth-internals import rule.\n- **Clock module:** allowed to call `new Date()`, but still can't import auth internals.\n\n**Decisions for you:**\n1. **Clock module path:** there is no clock module in the repo yet, so `src/clock/**` is a placeholder. Change it to the real path, or the clock module itself will fail lint.\n2. **What counts as `new Date()`:** I banned only the no-argument form, which reads the current time. Parsing calls like `new Date(isoString)` are still allowed. To ban every `new Date(...)`, delete `[arguments.length=0]`.\n3. **Other ways to read the time:** `Date.now()` and `Date()` also read the clock and are not banned. If you want them routed through the clock module too, add this to `noNewDate`'s sibling list:\n   `{ selector: \"CallExpression[callee.object.name='Date'][callee.property.name='now'], CallExpression[callee.name='Date']\", message: '…' }`\n\n**Not checked:** I couldn't edit or run anything in this session, so I haven't written the file and haven't run ESLint on it. After saving it, run `npm run lint`. To confirm the rule actually fires, add `new Date()` to `src/billing/invoice.js` and check that lint reports it."
+  "turns": 10,
+  "output": "I can't write files in this session, so here is the full config for you to paste:\n\n```js\nconst noBareNewDate = {\n    selector: \"NewExpression[callee.name='Date'][arguments.length=0]\",\n    message: 'Read the current time through the clock module, not new Date().',\n};\n\nexport default [\n    {\n        files: ['**/*.{js,mjs,cjs}'],\n        rules: {\n            'no-restricted-syntax': ['error', noBareNewDate],\n        },\n    },\n    {\n        files: ['src/**/*.js'],\n        ignores: ['src/auth/**'],\n        rules: {\n            'no-restricted-syntax': [\n                'error',\n                noBareNewDate,\n                {\n                    selector: 'ImportDeclaration[source.value=/auth.internal/]',\n                    message: 'Import auth through src/auth/index.js, never its internals.',\n                },\n            ],\n        },\n    },\n];\n```\n\n**Why it's built this way:**\n- **The ban is repeated in the second block on purpose.** When two blocks set `no-restricted-syntax` for the same file, the later one replaces the earlier one. If the second block didn't include the ban, `src/**` files outside `src/auth` would skip it. If the ban were its own later block, they would lose the existing auth-import rule.\n- **The first block reaches files the second block skips.** It covers `src/auth/**` and everything outside `src/` (config files, scripts).\n- **It only bans `new Date()` with no arguments.** `new Date(timestamp)` and `new Date('2026-01-01')` just turn a value into a date, so they stay allowed. If you want every `new Date(...)` banned, remove `[arguments.length=0]`.\n\n**Gaps to know about:**\n- **`Date.now()` and `Date()` (without `new`) still read the clock.** To ban them too, add a `CallExpression[callee.object.name='Date'][callee.property.name='now']` selector and a `CallExpression[callee.name='Date']` selector next to `noBareNewDate`.\n- **The clock module isn't in the repo yet.** That module will need `new Date()` itself, so add a final block for its path once it exists, e.g. `{ files: ['src/clock/**'], rules: { 'no-restricted-syntax': 'off' } }`. Turning the rule off there also turns off the auth-import check for that path. That's harmless unless the clock module imports auth internals.\n- **No code uses `new Date()` today**, so the new rule won't flag anything yet.\n- **`npm run lint` probably fails already.** `src/billing/invoice.js:1` imports `../auth/internal/token.js`, which breaks the existing auth rule. This change doesn't fix that.\n\n**Not verified:** I haven't run the linter. Run `npx eslint .` after pasting; the only error should be the `invoice.js` one above."
 }

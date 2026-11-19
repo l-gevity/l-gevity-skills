@@ -185,7 +185,9 @@ Next:       <one concrete action>
 ```
 
 For `SKIP`, emit this compact output alone with `Core route: None`; do not
-load a core sibling merely to justify the skip.
+load a core sibling merely to justify the skip. When one stage ran, open its
+record with the block's first four lines and omit `Verdict`, `Reason`, and
+`Next`: the record states them once.
 
 Multi-stage runs, non-trivial design/refactor passes, audits, and explicit
 requests for detail emit one combined decision trail in execution order,
@@ -197,8 +199,7 @@ the root instruction file defines, What I found, Why it matters, Do this first,
 and What I did not check, then emit the records unchanged: the trail and scope
 block, then each stage that ran in execution order, with the decision record
 its skill's output contract defines. The trail summarizes stages; it never
-replaces a stage's record. When implementing changes, add the normal coding
-summary after the verdict.
+replaces a stage's record.
 
 ## 4. Discipline
 
