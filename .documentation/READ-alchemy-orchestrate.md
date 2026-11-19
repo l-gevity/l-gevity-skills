@@ -4,7 +4,7 @@ This skill decides whether one agent or several should do the work, then checks 
 
 ## Core concepts
 
-- **One agent is the default.** Add agents for independent work or a useful independent review.
+- **One agent is the default.** Agent teams ship switched off: set `execution.multi_agent` to `auto` in `alchemy-workspace.json` to allow them. Then add agents for independent work or a useful independent review.
 - **Capabilities follow the task.** Architecture, implementation, and verification do not need permanent agent roles.
 - **Contracts precede dependent work.** Packages name their owner, allowed files, prerequisites, and acceptance checks.
 - **Evidence decides.** A hand-off saying “tests pass” needs commands, results, and file fingerprints the receiver can check.
@@ -35,4 +35,4 @@ An export feature needs a backend endpoint and a frontend screen. Agree on the r
 
 [Full skill](../.claude/skills/alchemy-orchestrate/SKILL.md)
 
-<!-- skill-revision: 5b6ab48d7f91 -->
+<!-- skill-revision: 7ccfa96b3a47 -->

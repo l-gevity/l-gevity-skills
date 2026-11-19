@@ -248,7 +248,7 @@ a project file overrides only the keys it states.
 
 | Key | Default | Meaning |
 |:--|:--|:--|
-| `execution.multi_agent` | `auto` | `off` refuses any multi-agent plan (`MODE_MISMATCH`) |
+| `execution.multi_agent` | `off` | `auto` lets a plan use agents; `off` refuses any multi-agent plan (`MODE_MISMATCH`) |
 | `execution.default_mode` | `single-agent` | Mode when no rule selects another |
 | `execution.max_parallel_agents` | `3` | Concurrent agents, lead excluded |
 | `execution.max_agents` | `5` | Distinct owners per run, lead included |

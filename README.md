@@ -37,8 +37,8 @@ $alchemy this auth refactor       # Codex
 ```
 
 Other skills are invoked by name in the same way. There is nothing else to
-set up: Claude Code, Codex, and Unstoppable also get agent teams, with
-[defaults you can change](#configure-a-workspace).
+set up. Claude Code, Codex, and Unstoppable also get agent teams, switched off
+until you [turn them on](#configure-a-workspace).
 
 <details>
 <summary><strong>Installation details</strong></summary>
@@ -50,7 +50,7 @@ does three things:
    `l-gevity-skills.lock.json`. A project that already keeps the other skills
    tree gets that tree updated as well.
 2. Adds the root instruction file.
-3. Sets up agent teams for Claude Code and Codex, and adds the Unstoppable
+3. Sets up agent teams, switched off, for Claude Code and Codex, and adds the Unstoppable
    pipeline when it runs in an Unstoppable session or the project has an
    `.unstoppable-code/` directory. This needs Python 3; without it the skills
    still install and the installer prints the command to run later. Gemini
@@ -171,8 +171,9 @@ available on request:
 
 ## One agent or a team
 
-One agent is the default. `alchemy-orchestrate` adds agents only when
-independent work or a separate review justifies the coordination cost. Each
+One agent is the default. With agent teams turned on, `alchemy-orchestrate`
+adds agents only when independent work or a separate review justifies the
+coordination cost. Each
 package then owns its files, shared contracts are decided before their
 consumers start, hand-offs are checked against evidence, and an agent that
 wrote none of the work reviews the integrated result. The guide has an example:
@@ -225,13 +226,15 @@ rules.
 
 ## Configure a workspace
 
-Agent teams work with the defaults below. To change one, edit
+Agent teams are off by default: each extra agent loads its own skills and
+re-runs its checks, so a team costs far more time and tokens than one agent.
+To change a default, edit
 `alchemy-workspace.json`. Commit it with the rendered agent files so
 developers and runtimes share one configuration.
 
 | Key | Default | Use |
 |:--|:--|:--|
-| `execution.multi_agent` | `auto` | `off` keeps every run single-agent |
+| `execution.multi_agent` | `off` | `auto` lets a run add agents; `off` keeps every run single-agent |
 | `execution.max_parallel_agents` | `3` | concurrent agents, lead excluded |
 | `execution.max_rework_cycles` | `2` | correction rounds per origin chain before escalation; only a human-authorized `execution.rework_extension` in the approved plan raises it for a run |
 | `repository.protected_paths` | `[]` | writes need human approval |
