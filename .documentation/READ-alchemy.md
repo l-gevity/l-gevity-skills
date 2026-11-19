@@ -32,4 +32,4 @@ You want to extract billing logic from checkout. Alchemy checks whether the extr
 
 [Full skill](../.claude/skills/alchemy/SKILL.md) · [Detailed diagram](design_and_refactor.svg)
 
-<!-- skill-revision: f425c60ee1ea -->
+<!-- skill-revision: e8e44202c82d -->

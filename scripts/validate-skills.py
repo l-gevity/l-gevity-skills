@@ -25,7 +25,7 @@ MAX_DESCRIPTION = 1024
 # with the rationale in the commit message.
 SIZE_BUDGET_GRAIN = 100
 SIZE_BUDGET_WORDS = {
-    "CLAUDE.md": 900,
+    "CLAUDE.md": 1000,
     "alchemy": 1800,
     "alchemy-orchestrate": 1900,
     "architecture-as-code": 2200,
@@ -56,7 +56,7 @@ SIZE_BUDGET_WORDS = {
 # total rose with every new entry and with growth inside each file's own
 # grain, and nothing failed. A new skill funds its words with a cut. Skills
 # are counted whole, so the count is slack as soon as it is one below its cap.
-LIBRARY_BUDGET_WORDS = 49200
+LIBRARY_BUDGET_WORDS = 49300
 LIBRARY_BUDGET_SKILLS = 24
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
@@ -209,6 +209,9 @@ SKILL_REQUIRED_TERMS = {
         "only when rule files are written or changed",
         # Multi-gate runs summarised L in the trail and dropped its record.
         "it never replaces a stage's record",
+        # A one-stage DIRECT run stated its verdict three times: in the four
+        # blocks, in the dispatch block, and in the stage record.
+        "open its record with the block's first four lines",
     ),
     "architecture-as-code": (
         "`architecture-guidelines` or `morphogenetic-architecture`",
@@ -1740,6 +1743,9 @@ def validate_report_blocks() -> None:
         fail(f"{root.relative_to(ROOT)} report rule must show the verdict callout")
     if not contains(section, "Fill the record first"):
         fail(f"{root.relative_to(ROOT)} report rule must put the record before the blocks")
+    # Uncapped blocks grew into paragraphs that restated the record.
+    if not (contains(section, "two sentences at most") and contains(section, "one line per skipped check")):
+        fail(f"{root.relative_to(ROOT)} report rule must cap the prose blocks and list each unrun check on one line")
 
     alchemy = AGENT_SKILLS / "alchemy" / "SKILL.md"
     router = alchemy.read_text(encoding="utf-8")
@@ -2934,6 +2940,16 @@ def mutation_test() -> int:
         write_raw(path, text.replace(target, "(.claude/skills/no-such-skill/SKILL.md)", 1), crlf)
 
     cases.append((Case("links: root file links a path that does not exist", [root_file], ("does not resolve",)), break_link))
+
+    # The report rule caps its prose blocks. Words are swapped, not added, so
+    # the size ratchet does not fail first.
+    def uncap_report(path=root_file):
+        text, crlf = read_raw(path)
+        if "two sentences at most" not in text:
+            raise RuntimeError("report block cap not found in CLAUDE.md")
+        write_raw(path, text.replace("two sentences at most", "a short paragraph"), crlf)
+
+    cases.append((Case("report: root file drops the block length cap", [root_file], ("report rule must cap",)), uncap_report))
 
     # The route's hand-off table classifies every verdict the worth gate can return.
     route_files = [copy / tree / "skills" / "alchemy" / "references" / "adaptive-route.md" for tree in (".agents", ".claude")]

@@ -63,6 +63,12 @@
       "criterion": "execution-strategy #1: SKIP and DIRECT never load orchestration",
       "check": "guidance_excludes",
       "skills": ["alchemy-orchestrate"]
+    },
+    {
+      "id": "states-verdict-once",
+      "criterion": "summary-led-report #3: a run where one stage ran states its verdict in that stage's record, not in a separate Verdict line",
+      "check": "field_absent",
+      "field": "Verdict"
     }
   ]
 }

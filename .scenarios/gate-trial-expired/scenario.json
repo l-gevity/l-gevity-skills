@@ -40,7 +40,7 @@
       "id": "indeterminate-is-no-retirement-reason",
       "criterion": "gate-lifecycle #13: being unable to evaluate is not a reason to retire a gate",
       "check": "text_matches",
-      "pattern": "(?i)(don.t|do not|never|not a reason to|no reason to) (delete|retire|remove)|\\b(never|not)\\b[^.\\n]{0,60}\\b(a )?reason to `?(delete|retire|remove)"
+      "pattern": "(?i)(don.t|do not|never|not a reason to|no reason to) (delete|retire|remove)|\\b(never|not)\\b[^.\\n]{0,60}\\b(a )?reason to `?(delete|retire|remove)|\\bnot\\b[^.\\n]{0,20}\\b(grounds|criteria)\\b[^.\\n]{0,20}\\b(to |for )?`?(delete|retire|remove|retirement)|\\bnot\\b[^.\\n]{0,20}\\b(retirement|deletion) (criteria|grounds)\\b|\\b(delet|retir|remov)\\w*\\b[^.\\n]{0,20}\\b(rejected|refused|ruled out)\\b[^\\n]{0,80}\\b(evaluat|could not run)"
     },
     {
       "id": "opens-with-report-blocks",

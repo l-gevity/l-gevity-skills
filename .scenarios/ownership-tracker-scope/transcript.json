@@ -1,7 +1,7 @@
 {
   "scenario": "ownership-tracker-scope",
-  "revision": "34cd3892a5d0",
-  "recorded_with": "claude-code 2.1.321, model claude-opus-5-5",
+  "revision": "7572c5eb9e84",
+  "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
     "alchemy-orchestrate",
@@ -51,9 +51,7 @@
     "zero-copy-requirements"
   ],
   "files_read": [],
-  "paths_searched": [
-    "."
-  ],
-  "turns": 4,
-  "output": "1. **Streaming writer → the commit message of this change.** It changes nothing users see, nothing about privacy and nothing about cost, so it's a technical choice you can undo. Name it in the commit (\"streaming writer instead of buffered; easy to swap\") and don't write a separate decision document.\n2. **Paid-plan gating → the standing questions issue.** It changes what users see and what they pay, so the owner decides. Ask it in plain language with a default that stands if nobody objects, for example \"ships on all plans unless you say otherwise.\" Don't build it until the owner says yes.\n3. **Ugly helper → no artifact.** It works and this change doesn't need it touched, so don't file an issue. Drop it. Refactoring it now would also go beyond the scope of this change.\n4. **Penetration test → the milestone checklist for \"first customer live.\"** It's a check that blocks a named milestone, not current work. It closes when the test has run or when the owner accepts the risk for that milestone.\n5. **Empty-report crash → an issue.** It's a defect, so it gets an issue even though nobody has picked it up. Better still, since the export is your change, fix it now with a test for the empty report and reference the fix in the commit. Then there's nothing to file.\n\nI didn't find a project profile in the repo, so these are generic artifact names. Swap in your tracker's names for the standing questions issue and the milestone checklist."
+  "paths_searched": [],
+  "turns": 3,
+  "output": "**What I found:** All five notes belong somewhere other than a new document. One goes in the commit, one is a question for the owner, one goes on the milestone checklist, one is a bug to fix now, and one gets no artifact at all (the record calls these AUTHORITY placements, plus one Delete).\n\n**Why it matters:** Filing them all as issues would turn the tracker into a memory dump, and a decision kept in two places will eventually disagree with itself. Putting each note in exactly one place keeps the paid-plan question and the pentest from getting lost.\n\n**Do this first:**\n1. Before merging, add a test for exporting an empty report and fix the crash in this change.\n\n**What I did not check:** There's no project profile, so I used generic artifact names. Map them to your tracker, checklist and register names.\n\n---\n\n1. **Streaming writer → the commit message (or PR description) of the export change.** Write it there in one sentence, e.g. \"Use a streaming writer; easy to swap later, no change to what users see.\" No issue and no decision doc, because it's a reversible technical choice.\n2. **Paid plan → the standing questions issue.** Add it as one plain-language owner question with a default that holds unless someone objects: \"Export stays on all plans.\" Only ask it if fewer than three questions are already open. If the answer is \"paid,\" that answer becomes work: build it, and add a requirement that cites the issue.\n3. **Ugly helper → no artifact.** It works and it's outside this change, so drop it. Don't open an issue.\n4. **Pentest → the milestone checklist for \"first customer live.\"** Add it as a check. It closes when the test has run, or when the owner accepts the risk for that milestone.\n5. **Empty-report crash → code and tests, in this change.** Add the failing test and the fix before merging. If it can't be fixed before the merge, open a defect issue now instead, because a known bug belongs in the tracker and nowhere else."
 }
