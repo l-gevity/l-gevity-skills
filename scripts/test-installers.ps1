@@ -17,6 +17,12 @@ param(
 $ErrorActionPreference = 'Stop'
 $LASTEXITCODE = 0
 
+# The installers add the Unstoppable adapter when the session shows the app.
+# Clear its variables, so every run here starts outside it wherever the suite
+# itself is run.
+Get-ChildItem env: | Where-Object { $_.Name -match '^(UNSTOPPABLE_CODE|CANOPY)_' } |
+    ForEach-Object { Remove-Item -LiteralPath "env:$($_.Name)" }
+
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $script:Fails = 0
 $script:Checks = 0
@@ -44,6 +50,52 @@ function MemFile-For($Agent) {
     }
 }
 
+function Adapter-RuntimeFor($Agent) {
+    switch ($Agent) {
+        'claude' { 'claude-code' }
+        'codex'  { 'codex' }
+        default  { '' }
+    }
+}
+
+function Adapter-FileFor($Agent) {
+    switch ($Agent) {
+        'claude' { '.claude/agents/alchemy-analyst.md' }
+        'codex'  { '.codex/agents/alchemy-analyst.toml' }
+    }
+}
+
+# The adapter step needs Python 3, found by the probe the installers use. A
+# host without it still runs every check: the installers must then say so.
+function Test-Python3 {
+    $ErrorActionPreference = 'Continue'
+    foreach ($candidate in @('python3', 'python', 'py')) {
+        if (-not (Get-Command $candidate -ErrorAction SilentlyContinue)) { continue }
+        try {
+            $null = & $candidate -c 'import sys; sys.exit(sys.version_info[0] != 3)' 2>&1
+            if ($LASTEXITCODE -eq 0) { return $true }
+        } catch { }
+    }
+    return $false
+}
+
+# A directory that answers every Python name with a failure, to put first on
+# PATH: the installer then sees a host without Python 3.
+function New-NoPythonDir($WorkDir) {
+    $dir = Join-Path $WorkDir 'no-python'
+    New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    foreach ($name in @('python3', 'python', 'py')) {
+        if ($IsWindows -or $null -eq $IsWindows) {
+            Set-Content -LiteralPath (Join-Path $dir "$name.cmd") -Value '@exit /b 1' -Encoding ascii
+        } else {
+            $file = Join-Path $dir $name
+            [System.IO.File]::WriteAllText($file, "#!/bin/sh`nexit 1`n")
+            & chmod +x $file
+        }
+    }
+    return $dir
+}
+
 function New-SourceArchive($WorkDir) {
     $stage = Join-Path $WorkDir 'l-gevity-skills-test'
     New-Item -ItemType Directory -Path $stage -Force | Out-Null
@@ -55,14 +107,16 @@ function New-SourceArchive($WorkDir) {
     return $zip
 }
 
-function Invoke-Installer($Exe, $Agent, $ConsumerDir, $Archive) {
+function Invoke-Installer($Exe, $Agent, $ConsumerDir, $Archive, $PathPrefix) {
     $installer = Join-Path $RepoRoot ".install/install-$Agent.ps1"
     $argv = @('-NoProfile')
     if ($IsWindows -or $null -eq $IsWindows) { $argv += @('-ExecutionPolicy', 'Bypass') }
     $argv += @('-File', $installer)
 
     $previous = $env:L_GEVITY_SKILLS_ARCHIVE
+    $previousPath = $env:PATH
     $env:L_GEVITY_SKILLS_ARCHIVE = $Archive
+    if ($PathPrefix) { $env:PATH = $PathPrefix + [System.IO.Path]::PathSeparator + $env:PATH }
     Push-Location $ConsumerDir
     try {
         $output = (& $Exe @argv 2>&1 | Out-String)
@@ -70,6 +124,7 @@ function Invoke-Installer($Exe, $Agent, $ConsumerDir, $Archive) {
     } finally {
         Pop-Location
         $env:L_GEVITY_SKILLS_ARCHIVE = $previous
+        $env:PATH = $previousPath
     }
 }
 
@@ -116,6 +171,8 @@ function Invoke-Suite($Exe, $ExeLabel) {
         $expectFiles = (Get-ChildItem -LiteralPath $srcSkills -Recurse -File -Force |
             Where-Object { $_.Extension -notin @('.pyc', '.pyo') }).Count
         Write-Host "Source tree: $expectSkills skills, $expectFiles files"
+        $havePython = Test-Python3
+        Write-Host "Python 3: $(if ($havePython) { 'found' } else { 'not found' })"
 
         # --- Every installer lands in its own agent's tree ---
         foreach ($agent in @('claude', 'codex', 'gemini', 'grok')) {
@@ -145,6 +202,26 @@ function Invoke-Suite($Exe, $ExeLabel) {
             Check "lock version 2" $lock.version 2
             Check "lock names the agent" $lock.agent $agent
             Check "one hash per installed file" (Get-LockHashCount $lockPath) $expectFiles
+
+            $runtime = Adapter-RuntimeFor $agent
+            if (-not $runtime) {
+                Check "says no adapter ships for $agent" `
+                    ($run.Output -match "(?m)^Agent-team adapters: none shipped for $agent") $true
+                Check "no workspace profile written" `
+                    (Test-Path (Join-Path $consumer 'alchemy-workspace.json')) $false
+            } elseif ($havePython) {
+                Check "reports the $runtime adapters" `
+                    ($run.Output -match "(?m)^Agent-team adapters: $runtime\r?$") $true
+                Check "agent definition rendered" `
+                    (Test-Path (Join-Path $consumer (Adapter-FileFor $agent))) $true
+                Check "workspace profile written" `
+                    (Test-Path (Join-Path $consumer 'alchemy-workspace.json')) $true
+                Check "no Unstoppable files outside Unstoppable" `
+                    (Test-Path (Join-Path $consumer '.unstoppable-code')) $false
+            } else {
+                Check "reports the adapters as not installed" `
+                    ($run.Output -match '(?m)^Agent-team adapters: not installed \(Python 3 not found\)') $true
+            }
         }
 
         # --- Recorded hashes describe the installed bytes ---
@@ -198,6 +275,82 @@ function Invoke-Suite($Exe, $ExeLabel) {
         $after = (Get-TreeHashes (Join-Path $both '.claude/skills')) -join "`n"
         Check "second run leaves the tree unchanged" ($before -eq $after) $true
         Check "second run removes nothing" ($again.Output -match 'Removed') $false
+        Check "second run renders no adapter file again" ($again.Output -match ': (created|kept)') $false
+
+        # --- The adapter step never overwrites what the project already has ---
+        Write-Host ""
+        Write-Host "== an existing settings file is kept, the rendered one written beside it =="
+        $consumer = Join-Path $work 'consumer-settings'
+        New-Item -ItemType Directory -Path (Join-Path $consumer '.claude') -Force | Out-Null
+        $settings = Join-Path $consumer '.claude/settings.json'
+        Set-Content -LiteralPath $settings -Value '{"mine": true}'
+        Invoke-Installer $Exe 'claude' $consumer $archive | Out-Null
+        Check "existing settings untouched" (Get-Content -Raw -LiteralPath $settings).Trim() '{"mine": true}'
+        if ($havePython) {
+            Check "rendered settings sidecarred" (Test-Path "$settings.l-gevity") $true
+        }
+
+        # --- Unstoppable Code gets its pipeline beside the harness's adapter ---
+        if ($havePython) {
+            $pipeline = '.unstoppable-code/pipelines/alchemy-multi-agent.yaml'
+
+            Write-Host ""
+            Write-Host "== a project with an .unstoppable-code directory gets the pipeline =="
+            $consumer = Join-Path $work 'consumer-unstoppable-dir'
+            New-Item -ItemType Directory -Path (Join-Path $consumer '.unstoppable-code') -Force | Out-Null
+            $byDir = Invoke-Installer $Exe 'codex' $consumer $archive
+            Check "reports both adapters" `
+                ($byDir.Output -match '(?m)^Agent-team adapters: codex unstoppable\r?$') $true
+            Check "pipeline installed" (Test-Path (Join-Path $consumer $pipeline)) $true
+            Check "harness agent rendered" `
+                (Test-Path (Join-Path $consumer '.codex/agents/alchemy-analyst.toml')) $true
+
+            Write-Host ""
+            Write-Host "== a session started by Unstoppable Code gets the pipeline =="
+            $consumer = Join-Path $work 'consumer-unstoppable-env'
+            New-Item -ItemType Directory -Path $consumer -Force | Out-Null
+            $env:UNSTOPPABLE_CODE_SESSION = '1'
+            try {
+                $byEnv = Invoke-Installer $Exe 'claude' $consumer $archive
+            } finally {
+                Remove-Item -LiteralPath 'env:UNSTOPPABLE_CODE_SESSION'
+            }
+            Check "reports both adapters" `
+                ($byEnv.Output -match '(?m)^Agent-team adapters: claude-code unstoppable\r?$') $true
+            Check "pipeline installed" (Test-Path (Join-Path $consumer $pipeline)) $true
+        }
+
+        $manual = [regex]::Escape('python .claude/skills/alchemy-orchestrate/scripts/init_workspace.py --runtime claude-code')
+
+        # --- A profile the adapter installer refuses is reported; the skills stay ---
+        if ($havePython) {
+            Write-Host ""
+            Write-Host "== a refused workspace profile does not fail the install =="
+            $consumer = Join-Path $work 'consumer-bad-profile'
+            New-Item -ItemType Directory -Path $consumer -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $consumer 'alchemy-workspace.json') `
+                -Value '{"schema": "alchemy-workspace/1", "execution": {"max_parallel_agents": 0}}'
+            $refused = Invoke-Installer $Exe 'claude' $consumer $archive
+            Check "exit status" $refused.ExitCode 0
+            Check "failure reported with the command to rerun" `
+                ($refused.Output -match "(?m)^Agent-team adapters: not installed \(init_workspace\.py failed, see above\); fix and run: $manual\r?$") $true
+            Check "no agent definition rendered" (Test-Path (Join-Path $consumer '.claude/agents')) $false
+            Check "skills installed" `
+                (Test-Path (Join-Path $consumer '.claude/skills/alchemy/SKILL.md')) $true
+        }
+
+        # --- Without Python 3 the skills install and the gap is named ---
+        Write-Host ""
+        Write-Host "== a host without Python 3 still installs the skills =="
+        $consumer = Join-Path $work 'consumer-no-python'
+        New-Item -ItemType Directory -Path $consumer -Force | Out-Null
+        $bare = Invoke-Installer $Exe 'claude' $consumer $archive (New-NoPythonDir $work)
+        Check "exit status" $bare.ExitCode 0
+        Check "gap reported with the command to run" `
+            ($bare.Output -match "(?m)^Agent-team adapters: not installed \(Python 3 not found\); run: $manual\r?$") $true
+        Check "no agent definition rendered" (Test-Path (Join-Path $consumer '.claude/agents')) $false
+        Check "skills installed" `
+            (Test-Path (Join-Path $consumer '.claude/skills/alchemy/SKILL.md')) $true
 
         # --- A file upstream no longer ships is removed and reported ---
         Write-Host ""
