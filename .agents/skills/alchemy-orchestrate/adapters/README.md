@@ -46,7 +46,7 @@ the same state_dir rule.
 | Preconfigured workflow execution | None shipped | None shipped | The `alchemy-multi-agent` pipeline, described below |
 | Unsupported → explicit single-agent fallback | When the Agent tool is unavailable or the alchemy agents are denied (`execution.multi_agent: off`), the lead runs every package and reports that independent review was not performed. | When the spawn tools are unavailable, the same fallback applies. | The `execute` step tells the lead not to carry out another owner's package under that owner's label when its harness cannot launch sub-agents. It returns `BLOCKED` and reports that the plan must be re-planned as `single-agent`, which section 4 step 5 of the skill requires. |
 
-`execution.multi_agent` (`off` by default, or `auto`) is rendered where a runtime has a
+`execution.multi_agent` (`auto` or `off`) is rendered where a runtime has a
 setting for it. For Claude Code, `off` adds `Agent(alchemy-analyst)` and
 `Agent(alchemy-implementer)` to `permissions.deny`. For Codex, `off` adds
 `[features] multi_agent = false`. Codex reads that setting: `codex features

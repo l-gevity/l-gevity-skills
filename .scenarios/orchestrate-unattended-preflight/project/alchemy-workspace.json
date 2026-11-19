@@ -1,8 +1,5 @@
 {
   "schema": "alchemy-workspace/1",
-  "execution": {
-    "multi_agent": "auto"
-  },
   "repository": {
     "verification": [
       {

@@ -6,7 +6,7 @@
     "orchestrator": "alchemy-orchestrate"
   },
   "execution": {
-    "multi_agent": "off",
+    "multi_agent": "auto",
     "default_mode": "single-agent",
     "max_parallel_agents": 3,
     "max_agents": 5,

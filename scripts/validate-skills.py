@@ -3216,19 +3216,6 @@ def mutation_test() -> int:
 
     cases.append((Case("orchestration: route stops naming the multi-agent setting", route_skill, ("Execution missing '`execution.multi_agent`'",)), drop_execution_setting))
 
-    # Agent teams ship switched off; turning the shipped default on must fail.
-    workspace_defaults = both("alchemy-orchestrate/assets/alchemy-workspace.json")
-
-    def default_agent_teams_on(files=workspace_defaults):
-        for path in files:
-            text, crlf = read_raw(path)
-            needle = '"multi_agent": "off"'
-            if needle not in text:
-                raise RuntimeError(f"multi_agent default not found in {path}")
-            write_raw(path, text.replace(needle, '"multi_agent": "auto"', 1), crlf)
-
-    cases.append((Case("orchestration: agent teams on by default", workspace_defaults, ("agent teams stay opt-in",)), default_agent_teams_on))
-
     # The block is the route's one statement of pass order, so each pair of
     # lines whose order the prose used to repeat is swapped in turn.
     for label, companion, early, late in (
@@ -4433,11 +4420,6 @@ def run_adversarial_case(checker, directory: Path) -> tuple[dict, dict]:
     if profile_path is not None and not profile_path.is_file():
         fail(f"{label} names {args['profile']}, which does not exist")
     profile = checker.load_profile(str(profile_path) if profile_path else None)
-    # The cases model a project that turned agent teams on, while the shipped
-    # default is off; a case about the switch states it in its own profile.
-    stated = json.loads(profile_path.read_text(encoding="utf-8")).get("execution", {}) if profile_path else {}
-    if "multi_agent" not in stated:
-        profile["execution"]["multi_agent"] = "auto"
     plan = load("plan")
     root = str(directory / args["root"]) if "root" in args else None
     # The approved plan revision, and a revision an earlier check accepted, are digests, not files.
@@ -4468,16 +4450,6 @@ def adversarial_fact_gaps(case: dict, report: dict) -> list[str]:
         if value != expected:
             gaps.append(f"{key} is {value!r}, not {expected!r}")
     return gaps
-
-
-def validate_multi_agent_default() -> None:
-    """Agent teams are opt-in. With the default on, design and audit tasks
-    split into packages whose agents each reloaded their skills and re-ran
-    their checks, then into review rounds, and short tasks ran for hours."""
-    path = ORCHESTRATE / "assets" / "alchemy-workspace.json"
-    value = json.loads(path.read_text(encoding="utf-8")).get("execution", {}).get("multi_agent")
-    if value != "off":
-        fail(f"{path.relative_to(ROOT)} sets execution.multi_agent to {value!r}; agent teams stay opt-in, so the default is 'off'")
 
 
 def validate_adversarial_cases() -> None:
@@ -4530,7 +4502,7 @@ def gate_repository_report(checker, scratch: Path, unowned: bool, raised: bool, 
         return result.stdout.strip()
 
     git("init", "-q")
-    profile = {"schema": "alchemy-workspace/1", "execution": {"max_rework_cycles": 3, "multi_agent": "auto"}}
+    profile = {"schema": "alchemy-workspace/1", "execution": {"max_rework_cycles": 3}}
     (repo / "alchemy-workspace.json").write_text(json.dumps(profile), encoding="utf-8")
     if renamed:
         (repo / "src" / "billing").mkdir(parents=True)
@@ -4967,7 +4939,6 @@ def main() -> int:
     validate_skill_contracts()
     validate_execution_contract()
     validate_alchemy_companion_order()
-    validate_multi_agent_default()
     validate_adversarial_cases()
     validate_gate_repository_rules()
     validate_unattended_adapter()
