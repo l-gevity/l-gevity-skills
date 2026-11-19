@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #21: a cycle that corrects a serious finding may correct minor ones with it",
+  "description": "A1 corrects the blocking F1 and the minor F2 together; A2 answers F1 again. Each cycle answers a serious finding.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": []
+  }
+}

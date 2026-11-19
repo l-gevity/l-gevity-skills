@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #15: a package budget stays within its envelope's ceiling",
+  "description": "The verify package asks for 200 turns; its analyst envelope stops an agent at 45.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "BUDGET_EXCEEDS"
+    ]
+  }
+}

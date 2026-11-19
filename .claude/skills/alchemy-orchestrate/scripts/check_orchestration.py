@@ -124,6 +124,8 @@ CODES = {
     "AUTHORIZATION_UNPROVEN": "FAIL",
     "UNOWNED_WRITE": "FAIL",
     "NOT_CONVERGING": "ESCALATE",
+    "BUDGET_EXCEEDS": "FAIL",
+    "REWORK_MINOR_ONLY": "FAIL",
 }
 
 # ESCALATE over REJECT/FAIL over STALE over RETRY over a pass: a bound reached
@@ -137,6 +139,8 @@ MODES = {"single-agent", "multi-agent"}
 MULTI_AGENT_SWITCH = {"auto", "off"}
 STRATEGIES = {"sequential", "dependency-aware", "parallel-review"}
 CHECKS = {"command", "review"}
+BUDGET_KEYS = ("max_turns", "max_tool_calls")
+USAGE_KEYS = ("turns", "tool_calls", "duration_ms", "tokens")
 ALLOWED_PERMISSIONS = {"read", "test", "edit", "commit"}
 WRITE_PERMISSIONS = {"edit", "commit"}
 HANDOFF_STATUSES = {"DONE", "PARTIAL", "BLOCKED", "FAILED"}
@@ -468,6 +472,7 @@ def _profile_view(profile: Any, report: Report) -> dict[str, Any]:
         "verification": [],
         "state_dir": None,
         "envelopes": {},
+        "budgets": {},
         "preflight_needs": [],
     }
     where = "profile"
@@ -521,12 +526,36 @@ def _profile_view(profile: Any, report: Report) -> dict[str, Any]:
                 report.add("SCHEMA", f"profile.envelopes.{name}.permissions must be an array of strings")
                 continue
             view["envelopes"][name] = set(permissions)
+            # The ceiling the runtime adapter renders into the agent definition.
+            view["budgets"][name] = _parse_budget(body.get("budget"), report,
+                                                  f"profile.envelopes.{name}.budget", None)
     # Needs every unattended run of this project has, owned by the overlay.
     preflight = _get(profile, "preflight", "dict", report, where, required=False)
     if preflight is not None:
         raw = _get(preflight, "needs", "list", report, f"{where}.preflight", required=False, default=[])
         view["preflight_needs"] = _parse_needs(raw, report, f"{where}.preflight", None)
     return view
+
+
+def _parse_budget(raw: Any, report: Report, label: str, subject: str | None) -> dict[str, int]:
+    """`{"max_turns", "max_tool_calls"}`, each a positive integer when present."""
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        report.add("SCHEMA", f"{label} must be an object", subject)
+        return {}
+    budget = {}
+    for key in BUDGET_KEYS:
+        value = _get(raw, key, "positive", report, label, subject, required=False)
+        if value is not None:
+            budget[key] = value
+    return budget
+
+
+def _effective_budget(pkg: dict[str, Any], view: dict[str, Any]) -> dict[str, int]:
+    """The package's own budget, each missing key taken from its envelope's ceiling."""
+    ceiling = view["budgets"].get(pkg["envelope"], {}) if pkg["envelope"] else {}
+    return {**ceiling, **pkg["budget"]}
 
 
 def _parse_needs(raw: list[Any], report: Report, label: str, subject: str | None) -> list[dict[str, str]]:
@@ -657,7 +686,7 @@ def _parse_package(raw: Any, index: int, profile: dict[str, Any], report: Report
     # Absent or empty names no skill (MISSING_TRACE); a mistyped list is SCHEMA only.
     pkg["skills"] = (_get(raw, "skills", "strs", report, label, pid)
                      if raw.get("skills") is not None else [])
-    _get(raw, "budget", "dict", report, label, pid, required=False)
+    pkg["budget"] = _parse_budget(raw.get("budget"), report, f"{label}.budget", pid)
     pkg["produces"] = _get(raw, "produces", "strs", report, label, pid, required=False, default=[])
     pkg["consumes"] = _get(raw, "consumes", "strs", report, label, pid, required=False, default=[])
     pkg["reviews"] = _get(raw, "reviews", "strs", report, label, pid, required=False, default=[])
@@ -1102,6 +1131,14 @@ def _rule_bounds(parsed: dict[str, Any], owners: list[str], profile: dict[str, A
                 reasons.append(f"{', '.join(sorted(beyond))}, outside its {pkg['envelope']} envelope")
         if reasons:
             report.add("PERMISSION_EXCEEDS", f"{pid} asks for {'; and '.join(reasons)}", pid)
+        # The runtime stops an agent at its envelope's ceiling, so a package
+        # budget above it promises turns the agent will never get.
+        ceiling = profile["budgets"].get(pkg["envelope"], {}) if pkg["envelope"] else {}
+        over = [f"{key} {pkg['budget'][key]} > {ceiling[key]}" for key in BUDGET_KEYS
+                if key in pkg["budget"] and key in ceiling and pkg["budget"][key] > ceiling[key]]
+        if over:
+            report.add("BUDGET_EXCEEDS", f"{pid} budget exceeds its {pkg['envelope']} envelope ceiling: "
+                       f"{', '.join(over)}", pid)
 
 
 def _rule_merge_policy(parsed: dict[str, Any], report: Report) -> None:
@@ -1474,6 +1511,7 @@ def check_plan(plan: Any, profile: Any, root: str | Path | None = None,
     _rule_approved(plan, parsed, approved, report, revision)
     facts = _plan_facts(parsed, shape["graph"], shape["owners"], view)
     facts["unattended"] = parsed["execution"]["unattended"]
+    facts["budgets"] = {pid: _effective_budget(pkg, view) for pid, pkg in parsed["packages"].items()}
     facts["plan_digest"] = plan_digest(plan)
     facts["approved_digest"] = revision_digest(plan, 0)
     facts["amendments"] = [amendment["id"] for amendment in parsed["amendments"]]
@@ -2061,7 +2099,7 @@ def _evidence_gap(cited: list[str], evidence: dict[str, dict[str, Any]], strict:
 def _parse_ledger(ledger: Any, report: Report) -> dict[str, Any]:
     parsed: dict[str, Any] = {
         "head_commit": None, "rework_cycles": {}, "evidence": {}, "criteria": [], "findings": [], "disputes": [],
-        "changed_files": None,
+        "changed_files": None, "usage": {},
     }
     where = "ledger"
     if not isinstance(ledger, dict):
@@ -2080,6 +2118,16 @@ def _parse_ledger(ledger: Any, report: Report) -> dict[str, Any]:
     # The integrated diff's paths, a claim the gate holds to the write sets;
     # with --root the gate reads them from git instead.
     parsed["changed_files"] = _get(ledger, "changed_files", "strs", report, where, required=False)
+    # What each package spent, as the runtime reported it to the lead.
+    for index, item in enumerate(_get(ledger, "usage", "list", report, where, required=False, default=[])):
+        label = f"{where}.usage[{index}]"
+        if not isinstance(item, dict):
+            report.add("SCHEMA", f"{label} must be an object")
+            continue
+        pid = _get(item, "package", "str", report, label)
+        spent = {key: _get(item, key, "count", report, label, pid, required=False) for key in USAGE_KEYS}
+        if pid is not None:
+            parsed["usage"][pid] = {key: value for key, value in spent.items() if value is not None}
 
     for index, item in enumerate(_get(ledger, "criteria", "list", report, where, default=[])):
         label = f"{where}.criteria[{index}]"
@@ -2399,6 +2447,23 @@ def _extension_condition_gaps(amendment: dict[str, Any], previous: str | None, c
     return gaps
 
 
+def _rule_rework_scope(parsed_plan: dict[str, Any], led: dict[str, Any], report: Report) -> None:
+    """A correction cycle is spent on blocking or major findings only. A minor
+    finding stays open and goes to the pull request: the gate allows it, and a
+    cycle spent on minors costs a fix and a re-review, and can introduce a
+    major finding of its own."""
+    severity = {finding["id"]: finding["severity"] for finding in led["findings"] if finding["id"]}
+    for amendment in parsed_plan["amendments"]:
+        pkg = parsed_plan["packages"].get(amendment["package"]) if amendment["package"] else None
+        if pkg is None or pkg["kind"] != "implement":
+            continue
+        known = [severity[fid] for fid in amendment["findings"] if fid in severity]
+        if known and not any(level in SERIOUS for level in known):
+            report.add("REWORK_MINOR_ONLY", f"{amendment['id']} spends a correction cycle on minor findings only "
+                       f"({', '.join(amendment['findings'])}); record them open for the pull request instead",
+                       amendment["id"])
+
+
 def _rule_rework(parsed_plan: dict[str, Any], led: dict[str, Any], view: dict[str, Any], report: Report,
                  root: str | Path | None, approved: str | None,
                  writes: dict[str, list[str]] | None = None) -> dict[str, Any]:
@@ -2715,6 +2780,7 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
                            f"{dispute['decided_by'] or 'nobody named'}", did)
 
     rework = _rule_rework(parsed_plan, led, view, report, root, approved, shape["writes"])
+    _rule_rework_scope(parsed_plan, led, report)
 
     # Non-convergence stops the affected work; work that does not depend on it may continue.
     fired = _convergence(parsed_plan, led)
@@ -2783,8 +2849,25 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
         # Authorizations the checker cannot open: the human reads each reference.
         "authorizations": shape["authorizations"] + rework.pop("authorizations"),
         "extension": _extension_fact(parsed_plan),
+        "usage": _usage_fact(parsed_plan, led, view),
         "plan_digest": plan_digest(plan),
     })
+
+
+def _usage_fact(parsed_plan: dict[str, Any], led: dict[str, Any], view: dict[str, Any]) -> dict[str, Any]:
+    """Totals over the recorded packages and the packages that spent more than
+    their budget. A fact for the report and the scale-down decision, not a
+    verdict: the work is judged by its evidence."""
+    totals = {key: sum(spent.get(key, 0) for spent in led["usage"].values()) for key in USAGE_KEYS}
+    over = []
+    for pid, spent in sorted(led["usage"].items()):
+        pkg = parsed_plan["packages"].get(pid)
+        budget = _effective_budget(pkg, view) if pkg else {}
+        if any(spent.get(used, 0) > budget[key] for key, used in (("max_turns", "turns"),
+                                                                    ("max_tool_calls", "tool_calls"))
+               if key in budget):
+            over.append(pid)
+    return {"recorded": sorted(led["usage"]), "totals": totals, "over_budget": over}
 
 
 # ---------------------------------------------------------------------- cli

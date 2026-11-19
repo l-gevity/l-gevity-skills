@@ -156,6 +156,8 @@ SKILL_REQUIRED_TERMS = {
         "check_orchestration.py gate",
         "A hand-off summary is a claim to test, never evidence",
         "`scripts/record_evidence.py`",
+        "turn and tool-call budget per package",
+        "A cycle answers a blocking or major finding; minor ones stay open",
         "Gate:        PASS | FAIL | ESCALATE | Not run + reason",
         "Merge:       human approval required",
         "it specializes **Increment**",
@@ -698,6 +700,7 @@ REFERENCE_REQUIRED_TERMS = {
             "`--approved <digest>` on the gate: the `approved_digest` the plan check printed",
             "A delegated agent reads this section and no other part of this skill",
             "running the same command on the same commit again yields the same evidence",
+            "because the runtime stops the agent at the ceiling",
         ),
         "references/autonomy-preflight.md": (
             "# Autonomy Preflight — Preparing a Run That Proceeds Unattended",
@@ -3299,6 +3302,17 @@ def mutation_test() -> int:
 
     cases.append((Case("orchestration: an envelope loads alchemy-orchestrate again", workspace_profiles, ("must not tell a delegated agent to load alchemy-orchestrate",)), load_orchestrate_again))
 
+    analyst_agents = both("alchemy-orchestrate/adapters/claude-code/agents/alchemy-analyst.md")
+
+    def drop_turn_cap(files=analyst_agents):
+        for path in files:
+            text, crlf = read_raw(path)
+            if "maxTurns:" not in text:
+                raise RuntimeError("the analyst agent renders no maxTurns")
+            write_raw(path, "".join(line for line in text.splitlines(True) if not line.startswith("maxTurns:")), crlf)
+
+    cases.append((Case("orchestration: the analyst agent loses its turn cap", analyst_agents, ("must render maxTurns",)), drop_turn_cap))
+
     recorders = both("alchemy-orchestrate/scripts/record_evidence.py")
 
     def record_on_dirty_head(files=recorders):
@@ -4680,6 +4694,26 @@ def validate_evidence_recorder() -> None:
         shutil.rmtree(scratch, ignore_errors=True)
 
 
+def validate_package_budgets() -> None:
+    """Every envelope carries a turn and tool-call ceiling (rule 15), its agent
+    is told to stop and escalate at its budget, and the Claude Code adapter
+    renders the turn ceiling as maxTurns, the only runtime cap that exists."""
+    profile_path = ORCHESTRATE / "assets" / "alchemy-workspace.json"
+    label = profile_path.relative_to(ROOT)
+    envelopes = json.loads(profile_path.read_text(encoding="utf-8")).get("envelopes", {})
+    for name in ("analyst", "implementer"):
+        body = envelopes.get(name, {})
+        budget = body.get("budget") or {}
+        for key in ("max_turns", "max_tool_calls"):
+            if not isinstance(budget.get(key), int) or budget[key] < 1:
+                fail(f"{label} envelope {name} needs a positive budget.{key}")
+        if "Stop before you exceed either" not in body.get("instructions", ""):
+            fail(f"{label} envelope {name} must tell its agent to stop at its budget")
+        agent = ORCHESTRATE / "adapters" / "claude-code" / "agents" / f"alchemy-{name}.md"
+        if f"maxTurns: {{{{ envelopes.{name}.budget.max_turns }}}}" not in agent.read_text(encoding="utf-8"):
+            fail(f"{agent.relative_to(ROOT)} must render maxTurns from envelopes.{name}.budget.max_turns")
+
+
 UNSTOPPABLE = ORCHESTRATE / "adapters" / "unstoppable"
 
 
@@ -5053,6 +5087,7 @@ def main() -> int:
     validate_adversarial_cases()
     validate_gate_repository_rules()
     validate_evidence_recorder()
+    validate_package_budgets()
     validate_unattended_adapter()
     validate_correction_loop()
     validate_verdict_classification()

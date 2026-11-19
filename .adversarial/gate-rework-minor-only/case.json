@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #21: a correction cycle is spent on blocking or major findings only",
+  "description": "A1 corrects the blocking F1; A2 spends a second cycle on the minor F2 alone, which should have stayed open for the pull request.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "approved": "dc15ffec470780224429662ac53180c846dd57bd3291f48ed2c63b68bc068fa6"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "REWORK_MINOR_ONLY"
+    ]
+  }
+}

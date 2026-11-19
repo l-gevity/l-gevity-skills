@@ -72,7 +72,12 @@ chain whose approved writes its writes overlap, so a fix of one chain's files
 charged to another origin still counts, and amendments are only appended
 (`--revision`). One correction pass is one cycle per origin chain: it adds
 one amendment per chain that lists every finding it answers, never one per
-finding. And one re-entry per dispute
+finding. A cycle answers at least one blocking or major finding; minor
+findings stay open and go to the pull request (`REWORK_MINOR_ONLY`), because
+a cycle spent on them costs a fix and a re-review and can introduce a major
+finding of its own. The re-review of a cycle covers the change since the head
+last reviewed and the findings the cycle answers, not the whole diff again.
+And one re-entry per dispute
 (judgment: the ledger records it, no check counts it). Reaching a bound
 escalates with both positions and the evidence; it never restarts the loop.
 
@@ -137,7 +142,8 @@ fails the gate (`SILENT_SKIP`) instead of editing a record the reviewer owns.
 
 | Failure | Detected by | Response |
 |:--|:--|:--|
-| Agent crashes, stalls, or exceeds its budget | `status: FAILED`, or no hand-off within the budget | `RETRY`: discard its workspace and re-run once from the base commit; then `ESCALATE` (`RETRY_EXHAUSTED`) |
+| Agent crashes or stalls | `status: FAILED`, or no hand-off | `RETRY`: discard its workspace and re-run once from the base commit; then `ESCALATE` (`RETRY_EXHAUSTED`) |
+| Agent reaches its budget | `status: BLOCKED` with a blocker naming the budget, or output the runtime marks partial | `ESCALATE`: a re-run meets the same bound; the human splits the package or raises its budget |
 | Context lost mid-package | missing or partial hand-off | Resume from plan and ledger; re-run from the base when the workspace state is unknown |
 | Concurrent modification | `WRITE_CONFLICT` at plan; a merge conflict at integration | Serialize: add a dependency edge, re-plan, re-run the later package on the new base |
 | Hand-off misrepresents the work | `CLAIM_CONTRADICTS_WORKSPACE`, `CLAIM_CONTRADICTS_EVIDENCE`, `UNSUPPORTED_CLAIM`, `SCOPE_VIOLATION` | `REJECT`; return to the owner with the failing check; counts as a rework cycle |

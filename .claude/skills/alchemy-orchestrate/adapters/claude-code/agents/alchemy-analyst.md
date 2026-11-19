@@ -2,6 +2,7 @@
 # Rendered by alchemy-orchestrate scripts/init_workspace.py from envelopes.analyst in alchemy-workspace.json.
 name: alchemy-analyst
 description: {{ envelopes.analyst.description | quote }}
+maxTurns: {{ envelopes.analyst.budget.max_turns }}
 tools: Read, Grep, Glob, Bash, Skill
 disallowedTools: Edit, Write, NotebookEdit, Agent
 ---
