@@ -59,7 +59,7 @@ pipeline:
       for implement packages and `alchemy-analyst` for read-only packages; in Codex
       spawn_agent and wait_agent with the custom agents of the same names. The
       assignment names the package ID, owner label, plan path, base commit, write set,
-      read scope, the skills to load, and the acceptance checks, and asks for one
+      read scope, the skills to load, the acceptance checks, and its budget, and asks for one
       alchemy-handoff/1 record. Carry out `lead` packages yourself. When this runtime
       cannot launch sub-agents, do not carry out another owner's package under its
       label: return BLOCKED and report that the plan must be re-planned as single-agent.
@@ -92,7 +92,9 @@ pipeline:
       of that criterion is met. Record every reviewer finding with raised_by set to its
       reviewer; keep it open unless re-running its cited check at head shows it is wrong,
       then mark it rejected with that evidence. Record each disagreement as a dispute per
-      governance section 2. Only the human defers a criterion or accepts a risk. Write the
+      governance section 2. Record in `usage` what each delegated package spent, as the
+      runtime reported it when the agent returned. Only the human defers a criterion or
+      accepts a risk. Write the
       ledger to `<run directory>/ledger.json` and run the gate check on it. Never weaken a
       check, criterion, or test to reach PASS. Do not push, open a pull request, or merge.
     PLAN_SCHEMA: >-
@@ -551,7 +553,7 @@ pipeline:
               - Earlier findings: `${{ needs.plan_check.outputs.run_dir }}/ledger.json`
               - Test commands: every `command` criterion in the plan and `repository.verification` in `alchemy-workspace.json`, recorded in `${{ needs.plan_check.outputs.run_dir }}/evidence/`.
 
-              ${{ env.REVIEW_RULES }} ${{ env.CONVERGENCE_RULES }}
+              Review only the change since the head the earlier findings were raised on, and the findings this pass answers; the earlier review covered the rest. ${{ env.REVIEW_RULES }} ${{ env.CONVERGENCE_RULES }}
         - id: reconsolidate
           uses: builtin/agent-prompt
           with:

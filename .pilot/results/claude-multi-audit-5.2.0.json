@@ -1,0 +1,694 @@
+{
+  "schema": "alchemy-pilot-result/1",
+  "fixture": "server-audit",
+  "arm": "multi",
+  "runtime": "claude",
+  "runtime_version": "claude-code 2.1.325",
+  "model_requested": "claude-opus-5",
+  "model_reported": "claude-opus-5",
+  "objective": {
+    "name": "audit",
+    "prompt": "/alchemy Audit this backend and fix what you find: correctness bugs, security defects, dead code, and architectural simplification. Keep the visible tests passing. Verify your changes, then write a pull request description to PR.md with what changed, the evidence (commands and results), and what you did not verify. Do not push or open a real pull request."
+  },
+  "workspace": {
+    "multi_agent": "auto",
+    "multi_agent_written_by_init": "auto",
+    "init_workspace_created": [
+      ".alchemy/runs/.gitignore",
+      ".claude/agents/alchemy-analyst.md",
+      ".claude/agents/alchemy-implementer.md",
+      ".claude/settings.json",
+      "alchemy-workspace.json"
+    ],
+    "failure_hook": null
+  },
+  "command": [
+    "claude",
+    "-p",
+    "/alchemy Audit this backend and fix what you find: correctness bugs, security defects, dead code, and architectural simplification. Keep the visible tests passing. Verify your changes, then write a pull request description to PR.md with what changed, the evidence (commands and results), and what you did not verify. Do not push or open a real pull request.",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--setting-sources",
+    "project",
+    "--strict-mcp-config",
+    "--no-session-persistence",
+    "--permission-mode",
+    "bypassPermissions",
+    "--forward-subagent-text",
+    "--model",
+    "claude-opus-5"
+  ],
+  "started_at": "2026-11-19T20:28:44+00:00",
+  "finished_at": "2026-11-19T21:28:45+00:00",
+  "wall_clock_seconds": 3600.2,
+  "exit_code": 1,
+  "timed_out": true,
+  "result_event": false,
+  "metrics": {},
+  "tools_available": [
+    "Task",
+    "Bash",
+    "CronCreate",
+    "CronDelete",
+    "CronList",
+    "DesignSync",
+    "Edit",
+    "EnterWorktree",
+    "ExitWorktree",
+    "Glob",
+    "Grep",
+    "ListAgents",
+    "Monitor",
+    "NotebookEdit",
+    "PushNotification",
+    "Read",
+    "RemoteTrigger",
+    "ReportFindings",
+    "ScheduleWakeup",
+    "SendMessage",
+    "Skill",
+    "TaskStop",
+    "ToolSearch",
+    "WebSearch",
+    "Workflow",
+    "Write"
+  ],
+  "skills_available": [
+    "alchemy",
+    "alchemy-orchestrate",
+    "architecture-as-code",
+    "architecture-guidelines",
+    "bring-down",
+    "ci-cd-reliability-architecture",
+    "continuous-improvement",
+    "defect-shift-left",
+    "dependency-lifecycle",
+    "evolutionary-database-design",
+    "functionality-complexity-tradeoff",
+    "gate-lifecycle",
+    "implementation-readiness",
+    "infrastructure-fit",
+    "morphogenetic-architecture",
+    "observability-design",
+    "push-out",
+    "requirements-grounding",
+    "requirements-topology",
+    "requirements-traceability",
+    "structural-simplification",
+    "system-optimization",
+    "test-strategy",
+    "zero-copy-requirements",
+    "deep-research",
+    "design",
+    "design-sync",
+    "dataviz",
+    "update-config",
+    "verify",
+    "debug",
+    "code-review",
+    "simplify",
+    "batch",
+    "fewer-permission-prompts",
+    "doctor",
+    "loop",
+    "schedule",
+    "claude-api",
+    "workflow-authoring",
+    "run",
+    "run-skill-generator",
+    "plugin-authoring"
+  ],
+  "tool_calls": {
+    "lead": {
+      "Bash": 82,
+      "Agent": 3,
+      "Write": 2,
+      "ToolSearch": 1,
+      "SendMessage": 2,
+      "ListAgents": 1
+    },
+    "subagents": {
+      "Skill": 9,
+      "Read": 64,
+      "Bash": 29,
+      "Grep": 3
+    }
+  },
+  "acceptance": {
+    "agent_launches": [
+      {
+        "tool_use_id": "toolu_01LHhAvXqY84w4pnvK2TsbdS",
+        "order": 0,
+        "subagent_type": "alchemy-analyst",
+        "role": "analyst",
+        "description": "Independent verification of P1",
+        "launched_by": "lead",
+        "background": false,
+        "blocked": false,
+        "is_error": false,
+        "launch_index": 439,
+        "finish_index": 589,
+        "launched_at": 743.235,
+        "finished_at": 1299.25,
+        "subagent_events": 146
+      },
+      {
+        "tool_use_id": "toolu_01FMHdWyJCTqAFj3Mc26KWPB",
+        "order": 1,
+        "subagent_type": "alchemy-analyst",
+        "role": "analyst",
+        "description": "Verify rework head 8a96e1f",
+        "launched_by": "lead",
+        "background": false,
+        "blocked": false,
+        "is_error": false,
+        "launch_index": 802,
+        "finish_index": 947,
+        "launched_at": 1819.532,
+        "finished_at": 2275.235,
+        "subagent_events": 141
+      },
+      {
+        "tool_use_id": "toolu_01VDabY1suxyftfAFrpbRW1T",
+        "order": 2,
+        "subagent_type": "alchemy-analyst",
+        "role": "analyst",
+        "description": "Verify final head f1ead20",
+        "launched_by": "lead",
+        "background": false,
+        "blocked": false,
+        "is_error": false,
+        "launch_index": 1066,
+        "finish_index": 1236,
+        "launched_at": 2617.391,
+        "finished_at": 3276.157,
+        "subagent_events": 168
+      }
+    ],
+    "agent_launch_count": 3,
+    "parallel_overlap": false,
+    "review_after_implementation": false,
+    "review_launches": [],
+    "correction_after_review": false,
+    "correction_launches": [],
+    "skills_loaded_by_lead": [
+      "alchemy-orchestrate",
+      "architecture-guidelines",
+      "defect-shift-left",
+      "functionality-complexity-tradeoff",
+      "morphogenetic-architecture",
+      "structural-simplification",
+      "test-strategy"
+    ],
+    "skills_loaded_by_subagents": {
+      "toolu_01FMHdWyJCTqAFj3Mc26KWPB": [
+        "defect-shift-left",
+        "functionality-complexity-tradeoff",
+        "test-strategy"
+      ],
+      "toolu_01LHhAvXqY84w4pnvK2TsbdS": [
+        "defect-shift-left",
+        "functionality-complexity-tradeoff",
+        "test-strategy"
+      ],
+      "toolu_01VDabY1suxyftfAFrpbRW1T": [
+        "defect-shift-left",
+        "gate-lifecycle",
+        "test-strategy"
+      ]
+    },
+    "subagent_events_observed": 455,
+    "execution_line": "to be decided after C\u2080",
+    "execution_lines": [
+      "to be decided after C\u2080"
+    ],
+    "execution_mode": null,
+    "dispatch": "ADAPTIVE",
+    "orchestration_checks": [
+      {
+        "kind": "plan",
+        "command": "mkdir -p .alchemy/runs/2026-11-19-audit && cat > .alchemy/runs/2026-11-19-audit/plan.json <<'EOF'\n{\n  \"schema\": \"alchemy-plan/1\",\n  \"objective\": \"Remediate audit findings in orders-service: ownership authorization, report path traversal, cent-exact money, pagination totalPages, order lifecycle, dead code and duplicated mechanism\",\n  \"requirements\": [\n    \"README:auth-ownership\",\n    \"README:order-lifecycle\",\n    \"README:money-exactness\",\n    \"README:pagination-totalpages\",\n    \"README:reports-dir\"\n  ],\n  \"conflicts\": [],\n  \"base\": {\"commit\": \"23258509fe854760749b87795c04da02ab3c273d\"},\n  \"contracts_existing\": [],\n  \"execution\": {\n    \"mode\": \"multi-agent\",\n    \"strategy\": \"sequential\",\n    \"max_parallel_agents\": 1,\n    \"integration_owner\": \"lead\",\n    \"independent_review\": true,\n    \"merge_policy\": \"human-approval\"\n  },\n  \"packages\": [\n    {\n      \"id\": \"P1\",\n      \"kind\": \"implement\",\n      \"capabilities\": [\"engineering\"],\n      \"skills\": [\"functionality-complexity-tradeoff\", \"architecture-guidelines\", \"structural-simplification\", \"test-strategy\", \"defect-shift-left\"],\n      \"owner\": \"lead\",\n      \"envelope\": \"implementer\",\n      \"risk\": \"high\",\n      \"requirements\": [\n        \"README:auth-ownership\",\n        \"README:order-lifecycle\",\n        \"README:money-exactness\",\n        \"README:pagination-totalpages\",\n        \"README:reports-dir\"\n      ],\n      \"writes\": [\"src/\", \"test/\", \"PR.md\"],\n      \"reads\": [\"src/\", \"test/\", \"README.md\", \"package.json\"],\n      \"depends_on\": [],\n      \"produces\": [\"contract:order-service-interface\", \"contract:money-cents\"],\n      \"consumes\": [],\n      \"acceptance\": [\n        {\"id\": \"AC1-suite\", \"check\": \"command\", \"command\": \"npm test\"},\n        {\"id\": \"AC2-ownership\", \"check\": \"command\", \"command\": \"node --test test/orders.test.js\"},\n        {\"id\": \"AC3-reports\", \"check\": \"command\", \"command\": \"node --test test/reports.test.js\"},\n        {\"id\": \"AC4-money\", \"check\": \"command\", \"command\": \"node --test test/money.test.js test/pagination.test.js\"},\n        {\"id\": \"AC5-architecture\", \"check\": \"command\", \"command\": \"node --test test/architecture.test.js\"}\n      ],\n      \"permissions\": [\"read\", \"edit\", \"test\", \"commit\"],\n      \"budget\": {\"max_turns\": 60}\n    },\n    {\n      \"id\": \"P2\",\n      \"kind\": \"verify\",\n      \"capabilities\": [\"verification\", \"security\"],\n      \"skills\": [\"test-strategy\", \"defect-shift-left\", \"functionality-complexity-tradeoff\"],\n      \"owner\": \"agent-verifier\",\n      \"envelope\": \"analyst\",\n      \"risk\": \"low\",\n      \"requirements\": [\n        \"README:auth-ownership\",\n        \"README:order-lifecycle\",\n        \"README:money-exactness\",\n        \"README:pagination-totalpages\",\n        \"README:reports-dir\"\n      ],\n      \"writes\": [],\n      \"reads\": [\"src/\", \"test/\", \"README.md\", \"PR.md\"],\n      \"depends_on\": [\"P1\"],\n      \"reviews\": [\"P1\"],\n      \"acceptance\": [\n        {\"id\": \"AC6-review-security\", \"check\": \"review\", \"question\": \"Does every authenticated read and write path for orders, payments and reports enforce ownership or role per README Rules, with no reachable unguarded path, and is the report name validation free of traversal bypasses?\"},\n        {\"id\": \"AC7-review-regressions\", \"check\": \"review\", \"question\": \"Do the new tests fail against the pre-fix code for each claimed defect, and does any removed code have a remaining caller?\"}\n      ],\n      \"permissions\": [\"read\", \"test\"]\n    }\n  ]\n}\nEOF\npython .claude/skills/alchemy-orchestrate/scripts/check_orchestration.py plan .alchemy/runs/2026-11-19-audit/plan.json --profile alchemy-workspace.json --root . 2>&1 | head -40",
+        "run_by": "lead",
+        "exit_status": 0,
+        "verdict": "FAIL",
+        "at": 369.625
+      },
+      {
+        "kind": "plan",
+        "command": "rm -rf .claude/skills/alchemy-orchestrate/scripts/__pycache__ && git status --porcelain && echo \"--- re-check ---\" && PYTHONDONTWRITEBYTECODE=1 python -B .claude/skills/alchemy-orchestrate/scripts/check_orchestration.py plan .alchemy/runs/2026-11-19-audit/plan.json --profile alchemy-workspace.json --root . 2>&1 | head -25 && git status --porcelain",
+        "run_by": "lead",
+        "exit_status": 0,
+        "verdict": "PASS",
+        "at": 377.047
+      },
+      {
+        "kind": "plan",
+        "command": "python - <<'PY'\nimport json, io\np='.alchemy/runs/2026-11-19-audit/plan.json'\nplan=json.load(io.open(p,encoding='utf-8'))\nplan['amendments']=[{\n  \"id\":\"A1\",\n  \"origin\":\"P1\",\n  \"supersedes\":\"95ca8f11b6435d216754792d942c2863f70bf24baf2e5a4399ac5b72e02d8239\",\n  \"base\":\"65c7d4cdf70c573ea3827b76f702877511f5aec6\",\n  \"reason\":\"corrects F1-F7 from P2 independent review: overstated regression claim, unbounded amount domain, provider validation lost with the registry, bypassable architecture scan, weak money assertions\",\n  \"findings\":[\"F1\",\"F2\",\"F3\",\"F4\",\"F5\",\"F6\",\"F7\"],\n  \"reviewer\":\"agent-verifier\",\n  \"package\":{\n    \"id\":\"P1-R1\",\n    \"kind\":\"implement\",\n    \"capabilities\":[\"engineering\"],\n    \"skills\":[\"functionality-complexity-tradeoff\",\"architecture-guidelines\",\"test-strategy\",\"defect-shift-left\"],\n    \"owner\":\"lead\",\n    \"envelope\":\"implementer\",\n    \"risk\":\"high\",\n    \"requirements\":[\"README:money-exactness\",\"README:auth-ownership\"],\n    \"writes\":[\"src/\",\"test/\",\"PR.md\"],\n    \"reads\":[\"src/\",\"test/\",\"README.md\",\"PR.md\"],\n    \"depends_on\":[\"P1\"],\n    \"produces\":[],\n    \"consumes\":[],\n    \"acceptance\":[\n      {\"id\":\"AC8-suite\",\"check\":\"command\",\"command\":\"npm test\"},\n      {\"id\":\"AC9-money-bounds\",\"check\":\"command\",\"command\":\"node --test test/money.test.js\"},\n      {\"id\":\"AC10-architecture\",\"check\":\"command\",\"command\":\"node --test test/architecture.test.js\"},\n      {\"id\":\"AC11-tokens\",\"check\":\"command\",\"command\":\"node --test test/users.test.js\"}\n    ],\n    \"permissions\":[\"read\",\"edit\",\"test\",\"commit\"],\n    \"budget\":{\"max_turns\":30}\n  }\n}]\nio.open(p,'w',encoding='utf-8',newline='\\n').write(json.dumps(plan,indent=2)+\"\\n\")\nprint('amendment A1 written')\nPY\nPYTHONDONTWRITEBYTECODE=1 python -B .claude/skills/alchemy-orchestrate/scripts/check_orchestration.py plan .alchemy/runs/2026-11-19-audit/plan.json --profile alchemy-workspace.json --root . --approved 95ca8f11b6435d216754792d942c2863f70bf24baf2e5a4399ac5b72e02d8239 2>&1 | head -30; rm -rf .claude/skills/alchemy-orchestrate/scripts/__pycache__",
+        "run_by": "lead",
+        "exit_status": 0,
+        "verdict": "FAIL",
+        "at": 1404.969
+      },
+      {
+        "kind": "plan",
+        "command": "python - <<'PY'\nimport json, io\np='.alchemy/runs/2026-11-19-audit/plan.json'\nplan=json.load(io.open(p,encoding='utf-8'))\nplan['base']['integrated']=[\"65c7d4cdf70c573ea3827b76f702877511f5aec6\"]\nio.open(p,'w',encoding='utf-8',newline='\\n').write(json.dumps(plan,indent=2)+\"\\n\")\nprint('base.integrated recorded')\nPY\nPYTHONDONTWRITEBYTECODE=1 python -B .claude/skills/alchemy-orchestrate/scripts/check_orchestration.py plan .alchemy/runs/2026-11-19-audit/plan.json --profile alchemy-workspace.json --root . --approved 95ca8f11b6435d216754792d942c2863f70bf24baf2e5a4399ac5b72e02d8239 2>&1 | python -c \"import json,sys; d=json.load(sys.stdin); print('verdict:',d['verdict']); print('errors:',d['errors']); print('waves:',d['waves']); print('approved_digest:',d['approved_digest']); print('plan_digest:',d['plan_digest'])\"; rm -rf .claude/skills/alchemy-orchestrate/scripts/__pycache__",
+        "run_by": "lead",
+        "exit_status": 0,
+        "verdict": "PASS",
+        "at": 1416.828
+      },
+      {
+        "kind": "plan",
+        "command": "python - <<'PY'\nimport io, json\n# amendment A2 for the last allowed rework cycle\np='.alchemy/runs/2026-11-19-audit/plan.json'\nplan=json.load(io.open(p,encoding='utf-8'))\nplan['amendments'].append({\n  \"id\":\"A2\",\n  \"origin\":\"P1\",\n  \"supersedes\":\"50d484b39659e3479d1967bf1af3839f1bdec5f353915a2bac220bd0dae0c0cd\",\n  \"base\":\"8a96e1f02339c01f8545fe5fc582d7c38f76b61f\",\n  \"reason\":\"corrects F9-F13 from P2 attempt 2: magnitude-dependent exactness tolerance rejecting legal amounts, architecture gate failing on correct code, two overstated claims in PR.md, and no detection for a revert of the constant-time compare\",\n  \"findings\":[\"F9\",\"F10\",\"F11\",\"F12\",\"F13\"],\n  \"reviewer\":\"agent-verifier\",\n  \"package\":{\n    \"id\":\"P1-R2\",\n    \"kind\":\"implement\",\n    \"capabilities\":[\"engineering\"],\n    \"skills\":[\"functionality-complexity-tradeoff\",\"test-strategy\",\"defect-shift-left\",\"gate-lifecycle\"],\n    \"owner\":\"lead\",\n    \"envelope\":\"implementer\",\n    \"risk\":\"high\",\n    \"requirements\":[\"README:money-exactness\"],\n    \"writes\":[\"src/\",\"test/\",\"PR.md\"],\n    \"reads\":[\"src/\",\"test/\",\"README.md\",\"PR.md\"],\n    \"depends_on\":[\"P1-R1\"],\n    \"produces\":[],\n    \"consumes\":[],\n    \"acceptance\":[\n      {\"id\":\"AC12-suite\",\"check\":\"command\",\"command\":\"npm test\"},\n      {\"id\":\"AC13-money-domain\",\"check\":\"command\",\"command\":\"node --test test/money.test.js\"},\n      {\"id\":\"AC14-architecture\",\"check\":\"command\",\"command\":\"node --test test/architecture.test.js\"}\n    ],\n    \"permissions\":[\"read\",\"edit\",\"test\",\"commit\"],\n    \"budget\":{\"max_turns\":30}\n  }\n})\nio.open(p,'w',encoding='utf-8',newline='\\n').write(json.dumps(plan,indent=2)+\"\\n\")\nprint('amendment A2 written')\nPY\nPYTHONDONTWRITEBYTECODE=1 python -B .claude/skills/alchemy-orchestrate/scripts/check_orchestration.py plan .alchemy/runs/2026-11-19-audit/plan.json --profile alchemy-workspace.json --root . --approved 95ca8f11b6435d216754792d942c2863f70bf24baf2e5a4399ac5b72e02d8239 2>&1 | python -c \"import json,sys; d=json.load(sys.stdin); print('verdict:',d['verdict']); print('errors:',d['errors']); print('waves:',d['waves']); print('plan_digest:',d['plan_digest'])\"; rm -rf .claude/skills/alchemy-orchestrate/scripts/__pycache__",
+        "run_by": "lead",
+        "exit_status": 0,
+        "verdict": "PASS",
+        "at": 2375.313
+      },
+      {
+        "kind": "gate",
+        "command": "python - <<'PY'\nimport json, io\nHEAD=\"fc95be4f87cf487f67ab24fa0120fdde91267503\"\ncmds={\n \"AC1-suite\":\"npm test\",\"AC2-ownership\":\"node --test test/orders.test.js\",\n \"AC3-reports\":\"node --test test/reports.test.js\",\n \"AC4-money\":\"node --test test/money.test.js test/pagination.test.js\",\n \"AC5-architecture\":\"node --test test/architecture.test.js\",\n \"AC8-suite\":\"npm test\",\"AC9-money-bounds\":\"node --test test/money.test.js\",\n \"AC10-architecture\":\"node --test test/architecture.test.js\",\n \"AC11-tokens\":\"node --test test/users.test.js\",\n \"AC12-suite\":\"npm test\",\"AC13-money-domain\":\"node --test test/money.test.js\",\n \"AC14-architecture\":\"node --test test/architecture.test.js\"}\npkg={\"AC1-suite\":\"P1\",\"AC2-ownership\":\"P1\",\"AC3-reports\":\"P1\",\"AC4-money\":\"P1\",\"AC5-architecture\":\"P1\",\n \"AC8-suite\":\"P1-R1\",\"AC9-money-bounds\":\"P1-R1\",\"AC10-architecture\":\"P1-R1\",\"AC11-tokens\":\"P1-R1\",\n \"AC12-suite\":\"P1-R2\",\"AC13-money-domain\":\"P1-R2\",\"AC14-architecture\":\"P1-R2\"}\nevidence=[{\"id\":f\"{c}@fc95be4\",\"command\":cmd,\"exit_code\":0,\"commit\":HEAD,\"produced_by\":\"harness\",\"criterion\":c,\n           \"log\":f\".alchemy/runs/2026-11-19-audit/evidence/{c}@fc95be4.log\"} for c,cmd in cmds.items()]\ncriteria=[{\"id\":c,\"package\":pkg[c],\"status\":\"verified\",\"evidence\":[f\"{c}@fc95be4\"],\"verified_by\":\"agent-verifier\"} for c in cmds]\ncriteria+=[\n {\"id\":\"AC6-review-security\",\"package\":\"P2\",\"status\":\"verified\",\"evidence\":[\"AC2-ownership@fc95be4\",\"AC3-reports@fc95be4\"],\"verified_by\":\"agent-verifier\"},\n {\"id\":\"AC7-review-regressions\",\"package\":\"P2\",\"status\":\"verified\",\"evidence\":[\"AC1-suite@fc95be4\"],\"verified_by\":\"agent-verifier\"},\n]\ndef f(i,sev,status,summary,after=None,extra=None):\n    d={\"id\":i,\"package\":\"P1\",\"severity\":sev,\"status\":status,\"raised_by\":\"agent-verifier\",\"summary\":summary,\n       \"evidence\":[f\"AC1-suite@fc95be4\"]}\n    if after: d[\"after\"]=after\n    if status==\"resolved\": d[\"resolution\"]={\"by\":\"lead\",\"evidence\":[\"AC1-suite@fc95be4\",\"AC12-suite@fc95be4\"]}\n    if extra: d.update(extra)\n    return d\nfindings=[\n f(\"F1\",\"major\",\"resolved\",\"Defect 3 had no regression test while PR.md claimed every defect had one; PR.md now states it and a mechanism assertion was added\"),\n f(\"F2\",\"minor\",\"resolved\",\"PR.md misattributed the float-total pre-fix failure to two unit tests of a new API\"),\n f(\"F3\",\"minor\",\"resolved\",\"The architecture scan matched only single-quoted requires\"),\n f(\"F4\",\"minor\",\"resolved\",\"The provider registry's construction-time charge() check was deleted with the registry\"),\n f(\"F5\",\"minor\",\"resolved\",\"isAmount admitted sub-cent dust, so an order could be settled for nothing\"),\n f(\"F6\",\"minor\",\"resolved\",\"isAmount had no upper bound, so the CSV printed 1e+21 and sums above 2^53 cents lost a cent\"),\n f(\"F7\",\"minor\",\"resolved\",\"A money assertion restated the implementation and the negative partition omitted the wrong boundaries\"),\n f(\"F8\",\"minor\",\"open\",\"Router returns 405 and the malformed-path 400 before authentication, where README's error list implies 401; README specifies no 405. Recorded in PR.md for a human decision\"),\n f(\"F9\",\"minor\",\"resolved\",\"The replacement money oracle still reused the implementation's own cent conversion\",after=\"A1\"),\n f(\"F10\",\"minor\",\"open\",\"The tightened scan failed on correct code. The comment case is fixed; a string literal containing require(name) or import( still fails it. Recorded in PR.md as N2\",after=\"A1\",extra={\"related_to\":[\"F3\"]}),\n f(\"F11\",\"minor\",\"resolved\",\"PR.md claimed four malformed-signature cases exercise the length guard; the empty signature returns earlier\",after=\"A1\"),\n f(\"F12\",\"minor\",\"resolved\",\"The 1e-6 tolerance on value*100 rejected legal amounts above about 7e10 and accepted 0.1+0.2\",after=\"A1\"),\n f(\"F13\",\"minor\",\"resolved\",\"Nothing detected a revert of the constant-time comparison\",after=\"A1\"),\n f(\"N1\",\"major\",\"open\",\"The comment stripping added for F10 does not model string literals, so the architecture gate misses a real forbidden require when a string holding /* and */ brackets it or a string containing // precedes it. Reproduced on a copy of the head tree; control red. Rework budget spent: escalated to the human with the one-line fix in PR.md\",after=\"A2\",extra={\"introduced_by\":\"A2\",\"related_to\":[\"F3\",\"F10\"]}),\n f(\"N2\",\"minor\",\"resolved\",\"Three PR.md claims outran the code: the gate's string-literal case, the rejection boundary, and the client-visible float-addition change\",after=\"A2\",extra={\"related_to\":[\"F1\",\"F2\",\"F11\"]}),\n f(\"N3\",\"minor\",\"open\",\"Route modules are selected by filename, so a differently named route module taking the store would pass\",after=\"A2\",extra={\"related_to\":[\"F3\"]}),\n f(\"N4\",\"minor\",\"open\",\"Legal two-decimal amounts are rejected from about 3.5e13, not the declared 9.007e13; 248 of 700 sampled values, 0 of 200000 in 0.01-2000.00\",after=\"A2\",extra={\"related_to\":[\"F12\"]}),\n f(\"N5\",\"minor\",\"open\",\"An order can still be created whose stated total can never be paid, above about 3.5e13; the safe-integer guard does not fire\",after=\"A2\",extra={\"related_to\":[\"F6\",\"F12\"]}),\n]\nledger={\"schema\":\"alchemy-ledger/1\",\"head_commit\":HEAD,\"rework_cycles\":{\"P1\":2},\n        \"evidence\":evidence,\"criteria\":criteria,\"findings\":findings,\"disputes\":[]}\nio.open('.alchemy/runs/2026-11-19-audit/ledger.json','w',encoding='utf-8',newline='\\n').write(json.dumps(ledger,indent=2)+\"\\n\")\nprint('ledger written:',len(criteria),'criteria,',len(findings),'findings')\nPY\nPYTHONDONTWRITEBYTECODE=1 python -B .claude/skills/alchemy-orchestrate/scripts/check_orchestration.py gate .alchemy/runs/2026-11-19-audit/ledger.json --plan .alchemy/runs/2026-11-19-audit/plan.json --approved 95ca8f11b6435d216754792d942c2863f70bf24baf2e5a4399ac5b72e02d8239 --profile alchemy-workspace.json --root . 2>&1 | head -40; rm -rf .claude/skills/alchemy-orchestrate/scripts/__pycache__",
+        "run_by": "lead",
+        "exit_status": 0,
+        "verdict": "FAIL",
+        "at": 3450.844
+      },
+      {
+        "kind": "gate",
+        "command": "echo \"=== files changed between the reviewed head f1ead20 and current head fc95be4 ===\" && git diff f1ead20 fc95be4 --name-only && python - <<'PY'\nimport json, io\np='.alchemy/runs/2026-11-19-audit/ledger.json'\nl=json.load(io.open(p,encoding='utf-8'))\nfor c in l['criteria']:\n    if c['id'].startswith('AC6') or c['id'].startswith('AC7'):\n        c['status']='unverified'\n        c.pop('evidence',None); c.pop('verified_by',None)\n        c['reason']=('reviewed by agent-verifier at f1ead20, not at head fc95be4; '\n                     'git diff f1ead20 fc95be4 touches PR.md only, so src/ and test/ are identical, '\n                     'but no review ran at this commit')\nio.open(p,'w',encoding='utf-8',newline='\\n').write(json.dumps(l,indent=2)+\"\\n\")\nprint('AC6/AC7 recorded unverified at head')\nPY\nPYTHONDONTWRITEBYTECODE=1 python -B .claude/skills/alchemy-orchestrate/scripts/check_orchestration.py gate .alchemy/runs/2026-11-19-audit/ledger.json --plan .alchemy/runs/2026-11-19-audit/plan.json --approved 95ca8f11b6435d216754792d942c2863f70bf24baf2e5a4399ac5b72e02d8239 --profile alchemy-workspace.json --root . 2>&1 | python -c \"\nimport json,sys\nd=json.load(sys.stdin)\nprint('verdict:',d['verdict'])\nprint('errors:',json.dumps(d['errors'],indent=2))\nprint('verified:',len(d['verified']),'criteria')\nprint('unverified:',d['unverified'])\nprint('open:',d['open'])\nfor k in ('convergence','merge','head','rework_cycles'):\n    if k in d: print(k+':',d[k])\n\"; rm -rf .claude/skills/alchemy-orchestrate/scripts/__pycache__",
+        "run_by": "lead",
+        "exit_status": 0,
+        "verdict": "FAIL",
+        "at": 3479.125
+      }
+    ],
+    "injected_failure": {
+      "blocked_launches": 0,
+      "retried": false,
+      "retry_same_subagent_type": false,
+      "retry_tool_use_id": null
+    }
+  },
+  "injection": null,
+  "score": {
+    "schema": "alchemy-pilot-score/1",
+    "fixture": "server-audit",
+    "node": "v24.19.0",
+    "visible_tests_pass": true,
+    "visible_tests": {
+      "pass": true,
+      "exit": 0,
+      "timed_out": false,
+      "counts": {
+        "tests": 19,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failing": []
+    },
+    "project_tests_pass": true,
+    "project_tests": {
+      "pass": true,
+      "exit": 0,
+      "timed_out": false,
+      "counts": {
+        "tests": 41,
+        "pass": 41,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failing": []
+    },
+    "defects": [
+      {
+        "id": "D01",
+        "category": "correctness",
+        "file": "src/lib/pagination.js",
+        "method": "hidden-test",
+        "fixed": true,
+        "evidence": "D01.test.js: exit 0"
+      },
+      {
+        "id": "D02",
+        "category": "correctness",
+        "file": "src/lib/money.js",
+        "method": "hidden-test",
+        "fixed": true,
+        "evidence": "D02.test.js: exit 0"
+      },
+      {
+        "id": "D03",
+        "category": "correctness",
+        "file": "src/orders/service.js",
+        "method": "hidden-test",
+        "fixed": true,
+        "evidence": "D03.test.js: exit 0"
+      },
+      {
+        "id": "D04",
+        "category": "security",
+        "file": "src/orders/routes.js",
+        "method": "hidden-test",
+        "fixed": true,
+        "evidence": "D04.test.js: exit 0"
+      },
+      {
+        "id": "D05",
+        "category": "security",
+        "file": "src/auth/tokens.js",
+        "method": "static",
+        "fixed": true,
+        "evidence": "all of ['src/auth/tokens.js'] also match 'timingSafeEqual'"
+      },
+      {
+        "id": "D06",
+        "category": "security",
+        "file": "src/reports/routes.js",
+        "method": "hidden-test",
+        "fixed": true,
+        "evidence": "D06.test.js: exit 0"
+      },
+      {
+        "id": "D07",
+        "category": "dead-code",
+        "file": "src/http/respond.js",
+        "method": "static",
+        "fixed": true,
+        "evidence": "no match in 17 source files"
+      },
+      {
+        "id": "D08",
+        "category": "dead-code",
+        "file": "src/payments/providers.js",
+        "method": "static",
+        "fixed": true,
+        "evidence": "no match in 17 source files"
+      },
+      {
+        "id": "D09",
+        "category": "architecture",
+        "file": "src/users/routes.js",
+        "method": "static",
+        "fixed": true,
+        "evidence": "no match in 5 files whose path matches '(?i)route'"
+      },
+      {
+        "id": "D10",
+        "category": "duplication",
+        "file": "src/payments/service.js",
+        "method": "static",
+        "fixed": true,
+        "evidence": "no match in 3 files whose path matches '(?i)payment'"
+      }
+    ],
+    "by_category": {
+      "correctness": {
+        "fixed": 3,
+        "total": 3
+      },
+      "security": {
+        "fixed": 3,
+        "total": 3
+      },
+      "dead-code": {
+        "fixed": 2,
+        "total": 2
+      },
+      "architecture": {
+        "fixed": 1,
+        "total": 1
+      },
+      "duplication": {
+        "fixed": 1,
+        "total": 1
+      }
+    },
+    "defects_fixed": 10,
+    "defects_total": 10,
+    "result_unmodified": true
+  },
+  "objective_checks": [],
+  "git": {
+    "fixture_commit": "d00a438d61c21b5b96befa637c78c937093252ef",
+    "base_commit": "23258509fe854760749b87795c04da02ab3c273d",
+    "agent_commits": 4,
+    "files_changed": [
+      {
+        "path": "PR.md",
+        "added": "211",
+        "deleted": "0",
+        "status": "tracked"
+      },
+      {
+        "path": "src/app.js",
+        "added": "1",
+        "deleted": "1",
+        "status": "tracked"
+      },
+      {
+        "path": "src/auth/tokens.js",
+        "added": "7",
+        "deleted": "1",
+        "status": "tracked"
+      },
+      {
+        "path": "src/http/respond.js",
+        "added": "1",
+        "deleted": "11",
+        "status": "tracked"
+      },
+      {
+        "path": "src/lib/money.js",
+        "added": "22",
+        "deleted": "10",
+        "status": "tracked"
+      },
+      {
+        "path": "src/lib/pagination.js",
+        "added": "1",
+        "deleted": "1",
+        "status": "tracked"
+      },
+      {
+        "path": "src/orders/routes.js",
+        "added": "2",
+        "deleted": "2",
+        "status": "tracked"
+      },
+      {
+        "path": "src/orders/service.js",
+        "added": "11",
+        "deleted": "4",
+        "status": "tracked"
+      },
+      {
+        "path": "src/payments/providers.js",
+        "added": "6",
+        "deleted": "18",
+        "status": "tracked"
+      },
+      {
+        "path": "src/payments/service.js",
+        "added": "7",
+        "deleted": "11",
+        "status": "tracked"
+      },
+      {
+        "path": "src/reports/routes.js",
+        "added": "11",
+        "deleted": "1",
+        "status": "tracked"
+      },
+      {
+        "path": "src/users/routes.js",
+        "added": "2",
+        "deleted": "3",
+        "status": "tracked"
+      },
+      {
+        "path": "src/users/service.js",
+        "added": "6",
+        "deleted": "1",
+        "status": "tracked"
+      },
+      {
+        "path": "test/architecture.test.js",
+        "added": "120",
+        "deleted": "0",
+        "status": "tracked"
+      },
+      {
+        "path": "test/money.test.js",
+        "added": "63",
+        "deleted": "0",
+        "status": "tracked"
+      },
+      {
+        "path": "test/orders.test.js",
+        "added": "73",
+        "deleted": "0",
+        "status": "tracked"
+      },
+      {
+        "path": "test/pagination.test.js",
+        "added": "36",
+        "deleted": "0",
+        "status": "tracked"
+      },
+      {
+        "path": "test/reports.test.js",
+        "added": "31",
+        "deleted": "0",
+        "status": "tracked"
+      },
+      {
+        "path": "test/users.test.js",
+        "added": "17",
+        "deleted": "2",
+        "status": "tracked"
+      }
+    ],
+    "fixture_files_changed": [
+      "src/app.js",
+      "src/auth/tokens.js",
+      "src/http/respond.js",
+      "src/lib/money.js",
+      "src/lib/pagination.js",
+      "src/orders/routes.js",
+      "src/orders/service.js",
+      "src/payments/providers.js",
+      "src/payments/service.js",
+      "src/reports/routes.js",
+      "src/users/routes.js",
+      "src/users/service.js",
+      "test/architecture.test.js",
+      "test/money.test.js",
+      "test/orders.test.js",
+      "test/pagination.test.js",
+      "test/reports.test.js",
+      "test/users.test.js"
+    ],
+    "fixture_files_changed_count": 18
+  },
+  "pr_md": {
+    "exists": true,
+    "bytes": 16909,
+    "mentions_test_command": true,
+    "mentions_results": true,
+    "mentions_unverified": true,
+    "text": "# Audit remediation: ownership, report path, cent-exact money, dead code\n\nAudit of `orders-service` against `README.md` (\"Rules\" and the API table are the\nauthoritative statement of intent) plus a structural pass over `src/`. Nine\ndefects fixed, four simplifications, one new executable architecture rule. No new\ndependency; no behaviour added that the README does not already promise.\n\nAn independent read-only reviewer checked this branch twice and raised thirteen\nfindings; twelve are fixed here. The review and the one finding left open are at\nthe end.\n\n## What changed\n\n### Security\n\n| | Defect | Fix |\n|:--|:--|:--|\n| 1 | `GET /orders/:id` returned any order to any authenticated customer: the handler called the unguarded `orders.get(id)` instead of the ownership-checked `orders.getOwned(user, id)`. README: \"Customers read and change only their own orders\". | `src/orders/routes.js` passes the caller; `src/orders/service.js` no longer exports `get` at all, so an unguarded single-order read is unreachable from any route. The remaining `get` callers are the admin-gated lifecycle operations inside the service. |\n| 2 | `GET /reports/:name` joined the caller's decoded name onto `REPORT_DIR`, so `..%2F` sequences read any file the process could read. | `src/reports/routes.js` accepts only names of the shape it mints (`/^orders-\\d+-[0-9a-f]{6}\\.csv$/`) and 404s otherwise; the name reaches `path.join` only after it matches. One regex is both the mint rule and the accept rule. |\n| 3 | `tokens.verify` compared the HMAC with `!==`, which short-circuits on the first differing byte. | `src/auth/tokens.js` compares with `crypto.timingSafeEqual` after a length check. No behavioural test can see this property, so `test/users.test.js` asserts the mechanism instead - see Evidence. |\n\n### Correctness\n\n| | Defect | Fix |\n|:--|:--|:--|\n| 4 | Order totals were summed in binary floating point: 0.1 x 3 + 19.99 x 3 stored `60.269999999999996`, contradicting README \"An order total is exact to the cent\". Because the payment check *was* cent-exact, such an order could never be paid at its own stated total. | `src/lib/money.js` owns the currency rule and works in integer cents (`toCents`, `totalCents`, `fromCents`). Orders and payments both use it; `payments/service.js` lost its private copy of the cent math. |\n| 5 | `paginate` computed `totalPages` with `Math.floor`, so 25 items at 20 per page reported 1 page and page 2 was unreachable to a client that trusts the field. README: \"the number of pages needed to show every item, at least 1\". | `Math.ceil` in `src/lib/pagination.js`. |\n| 6 | The state table allowed `shipped -> cancelled`, contradicting README \"a shipped or delivered order can no longer be cancelled\". | `shipped: ['delivered']` in `src/orders/service.js`. `paid -> cancelled` stays allowed, as the README requires. |\n| 7 | `isAmount` accepted sub-cent dust: an order of `unitPrice: 1e-9` got `total: 0`, and a payment of `1e-9` settled it. An item was charged as nothing. | At least one whole cent is required. |\n| 8 | No upper bound: `unitPrice: 1e21` printed `1e+21` in the CSV total column, and above 2^53 cents the integer sum silently dropped a cent, so exactness failed at the top of the range. | `isAmount` rejects amounts above `Number.MAX_SAFE_INTEGER` cents, and `src/orders/service.js` rejects a *summed* total that is no longer an exact cent count (a large `quantity` could otherwise overflow where each line is fine). |\n| 9 | Two-decimal exactness was judged by a fixed `1e-6` tolerance on `value * 100`. Above about 7e10 a double's spacing exceeds that tolerance, so legal amounts were rejected (`70000000000.01` returned 400) while a 1,286x larger price was accepted; at the other end `0.1 + 0.2` was accepted as a two-decimal amount. | The rule is now the cent round trip itself - `fromCents(toCents(v)) === v` - which needs no tolerance and holds at every magnitude. |\n\nDefects 7, 8 and 9 are pre-existing and were found while consolidating the money\nrule; they are fixed here because they defeat the same README guarantee as\ndefect 4.\n\n### Dead code and simplification\n\n- **`parseCookies` deleted** (`src/http/respond.js`): zero callers, and the\n  service authenticates only with `Authorization: Bearer`.\n- **Payment provider registry collapsed** (`src/payments/providers.js`): a\n  module-level mutable `Map`, `registerProvider`, `getProvider` and a\n  provider-*name* string existed for exactly one provider that no caller ever\n  selected. `createPaymentService` now takes the gateway object itself,\n  defaulting to `manualProvider`. The seam a second gateway needs is preserved;\n  the registry around it is gone. The registry's construction-time `charge()`\n  check is kept, so a bad gateway still fails at boot rather than on the first\n  payment.\n- **Layer skip removed** (`src/users/*`, `src/app.js`): `registerUserRoutes`\n  received the raw `store` and composed `store.list('users').map(users.toPublic)`\n  in the HTTP layer. `GET /users` now calls `users.list(query)`; the service owns\n  its listing and no longer publishes its row mapper, and no route module\n  receives the store.\n- **`test/architecture.test.js` added**: the dependency rules of `src/` as an\n  executable table - allowed per-subsystem edges, store reachable only from the\n  composition root, no route taking the store, acyclic require graph, and every\n  require literal enough for the scan to see it. Comments are stripped before\n  the scan and `.cjs`/`.mjs` count as modules. The service has no linter and no\n  third-party dependencies, so the test runner is the earliest stage that can\n  enforce this. **The comment stripping has a known hole - see Open findings.**\n\n## Evidence\n\nAll commands run from the repository root on Windows, Node v24.19.0.\n\n| Command | Result |\n|:--|:--|\n| `npm test` at base `2325850`, before any change | `tests 20 / pass 20 / fail 0` - baseline |\n| `npm test` at head | `tests 41 / pass 41 / fail 0` |\n| `node --test test/orders.test.js` | `tests 12 / pass 12` |\n| `node --test test/reports.test.js` | `tests 5 / pass 5` |\n| `node --test test/users.test.js` | `tests 7 / pass 7` |\n| `node --test test/money.test.js test/pagination.test.js` | `tests 7 / pass 7` |\n| `node --test test/architecture.test.js` | `tests 5 / pass 5` |\n\n**The new tests were run against the unfixed code.** In a throwaway worktree at\n`2325850` with the new test files copied in - `git worktree add <dir> 2325850`,\ncopy `test/*.js`, then `npm test` from the worktree root - the result was\n`tests 40 / pass 27 / fail 13` at the first rework head, and every one of those\nfailures is a defect above:\n\n| Pre-fix failure | Observed without the fix |\n|:--|:--|\n| `a customer cannot read another customer order` | `200 !== 404` - Bob read Alice's order |\n| `a report name that is not an export name is never resolved on disk` | `200 !== 404` for `..%2Forders-secret.txt` - a file outside `REPORT_DIR` was served |\n| `a shipped or delivered order can no longer be cancelled` | `200 !== 409` - a shipped order was cancelled |\n| `an order total is exact over prices that do not sum cleanly in binary` | `60.269999999999996` instead of `60.27` (defect 4, through HTTP) |\n| `totalPages counts every page needed to show every item`, `every item is reachable through the reported pages`, `a page of orders reports every page it needs` | 25 items at 20 per page reported 1 page |\n| `an amount outside the exact cent range is rejected`, `isAmount accepts only positive amounts with at most two decimals`, `an amount outside the exact cent range never reaches a total` | `1e-9` accepted, order total `0`, settled by a `1e-9` payment |\n| `only the composition root reaches the store` | `src/users/routes.js` received the store |\n| `an order total is exact to the cent`, `a total always has at most two decimals` | these two fail pre-fix only because `totalCents` and `fromCents` did not exist yet (`TypeError`). They are unit tests of the new rule, not proof of the old bug; the HTTP row above is defect 4's regression test. |\n\n**Every new gate was checked against a planted violation**, because a gate that\nhas never failed is not known to work:\n\n| Planted into the working tree | `node --test` result |\n|:--|:--|\n| `require(\"../store/memoryStore\")` (double-quoted) in `src/users/routes.js` | `architecture` 3/5 pass - `forbidden dependency: src/users/routes.js -> src/store/memoryStore.js` |\n| a comment reading `// \u2026 called require(moduleName) and import(x) at runtime.` in `src/lib/money.js` | `architecture` 5/5 pass - correct code stays green |\n| `src/auth/tokens.js` reverted to `signature !== sign(payload)` | `users` 6/7 pass - the constant-time assertion fails |\n\nEach planted change was reverted and the suite is green at head.\n\n**Defect 3 has no behavioural test, by nature.** A timing property has no\nnon-flaky oracle here, and `!==` rejects exactly the signatures\n`timingSafeEqual` rejects. Two things stand in for it: the malformed-signature\ncases in `test/users.test.js` (truncated, lengthened, empty, one character) must\nreturn 401 rather than the 500 `timingSafeEqual` would raise without the length\ncheck - three of the four reach that check, the empty one returns earlier - and\na source-level assertion that `src/auth/tokens.js` uses `timingSafeEqual` and no\nshort-circuiting comparison, which is what fails on the planted revert above.\nThat is a mechanism check, not evidence of constant time. Replacing\n`timingSafeEqual` with another constant-time primitive means updating that\nassertion.\n\n## Independent review\n\nA read-only reviewer with no write access reviewed the branch twice - once after\nthe first commit, once after the first rework - and raised thirteen findings.\nTwelve are fixed here:\n\n- the overstated regression claim for defect 3 and a misattributed money\n  citation (both corrected above, twice: the second round caught that the empty\n  signature never reaches the length check);\n- the provider validation lost with the registry (restored at construction);\n- sub-cent dust and the missing upper bound (defects 7 and 8);\n- the magnitude-dependent exactness tolerance (defect 9);\n- a quote-style bypass of the architecture scan, and then the reverse problem -\n  the tightened scan failed on correct code, because a comment mentioning\n  `require(x)` tripped it (the *comment* case is fixed; a **string** containing\n  `require(name)` or `import(` still fails it - see Open findings);\n- `.cjs`/`.mjs` files escaping the scan;\n- two weak test oracles in `test/money.test.js`: an assertion that restated the\n  implementation, now replaced by cents read off the decimal text, and a\n  negative partition that omitted the boundaries the code actually got wrong;\n- no detection for a silent revert of the constant-time compare.\n\n**One finding is recorded and not fixed**: the router produces 405, and the\nmalformed-path 400, before authentication (`src/http/router.js:51,59`), so an\nanonymous caller sees 405 where the README's error list implies 401. The README\ndoes not specify 405 at all, the response is identical for existing and\nnon-existing resources, and authenticating before method matching would mean\nrestructuring `src/http/router.js`, which this diff otherwise does not touch.\nIt needs a human decision, not a silent fix.\n\n## Open findings\n\nA third review of the final head raised five findings. The two correction cycles\nthis change budgeted are spent, so these are recorded for a human decision\nrather than patched in a third round. None is a regression in the service's\nbehaviour; N1 is a regression in the new gate.\n\n| | Severity | Finding | Fix if approved |\n|:--|:--|:--|:--|\n| N1 | **major** | The comment stripping added in the previous round does not model string literals, so the architecture gate can miss a real forbidden dependency. A `require('../store/memoryStore')` in `src/users/routes.js` is invisible when bracketed by string literals holding `/*` and `*/`, or placed after a string containing `//`; the identical require without them is caught. Reproduced on a copy of the head tree: green in both planted cases, red for the control. Ordinary code can trigger it - a glob such as `'orders/*'`, a protocol-relative URL. At head nothing does: no `/*` appears in `src/`, and the one `'http://localhost'` is protected by the `[^:]` guard. | Blank quoted literals before stripping comments in `test/architecture.test.js`. Closes N2 as well. |\n| N2 | minor | Three claims in this file outran the code. Corrected above: the string-literal case of the gate, the rejection boundary, and the client-visible float-addition change. | Already corrected here. |\n| N3 | minor | Route modules are selected by filename (`basename` starting with `routes.`) with a hardcoded `>= 4` floor, so a new `src/orders/extraRoutes.js` taking the store would pass. | Select by the `register*Routes` declaration and drop the floor. |\n| N4 | minor | Legal two-decimal amounts are rejected from about 3.5e13, not from the declared 9.007e13 ceiling. Recorded in the limitations below. | Bound the domain at 2^51 cents, where the cent round trip is provably injective. |\n| N5 | minor | At the top of the range an order can still be created that can never be paid: `unitPrice: 35184372088832.05, quantity: 2` sums to 7036874417766410 cents - a safe integer, so the new guard does not fire - stores `total: 70368744177664.1`, and a payment of exactly that total computes 7036874417766409. Defect 4's symptom survives above about 3.5e13. Exposure is a unit price of some 35 trillion currency units. | `if (toCents(fromCents(cents)) !== cents) throw invalid(...)` in `src/orders/service.js`, or N4's 2^51 bound. |\n\nTwo further observations from that review, neither introduced here and both\npresent at the base commit: an admin can cancel any order, because\n`orders.cancel` goes through `getOwned` and its admin exemption applies, while\nthe README names the cancel caller \"customer\"; and the pre-authentication 405\nabove. Both want their own issue, not a change in this diff.\n\n## What I did not verify\n\n- **No CI and no linter exist** (no `.github/`, no ESLint config), so nothing runs\n  these tests on push: every check above is developer-invoked. Adding a workflow\n  that runs `npm test` on pull requests is the largest remaining detection gap\n  and is out of scope here.\n- **The architecture rule is bypassable by renaming or aliasing.** It reads the\n  route registration's destructuring list, so passing the store under another key\n  (`registerReportRoutes(router, { ..., db: store })`) passes, and\n  `const r = require; r('./x')` contains no `require(` token, so that edge is\n  invisible to it. Closing either needs real data-flow analysis, which the\n  no-dependency constraint rules out.\n- **Login timing still distinguishes a known from an unknown email**: an unknown\n  email returns before `scryptSync` runs. Not fixed, not measured.\n- **No timing measurement** of the signature comparison. The fix is reasoned and\n  its mechanism is asserted; nobody measured it.\n- **No load, concurrency or multi-process testing.** The store is an in-process\n  `Map`, so a second instance shares no state, and `payments.capture` writes the\n  payment and then transitions the order in two steps with no atomicity\n  boundary. Unchanged here, untested here.\n- **`REPORT_DIR` contents are not reconciled.** Exports accumulate, nothing prunes\n  them, and a symlink planted inside `REPORT_DIR` by another process is still\n  followed.\n- **Report names remain guessable** (`Date.now()` plus 3 random bytes); the admin\n  role is the only control on download. Unchanged, not strengthened.\n- **The `provider` seam has one implementation**, and nothing asserts its\n  construction-time `TypeError`. It was kept as a parameter on the stated\n  expectation that a real gateway follows. If that does not happen, it is the\n  next thing to inline.\n- **Large amounts are rejected, and the boundary is ragged.** Above\n  `Number.MAX_SAFE_INTEGER` cents (about 9.007e13 currency units) rejection is\n  intended - that is defect 8. Measured, rejection in fact starts near 3.5e13:\n  248 of 700 sampled legal two-decimal values in [3.5e13, 1e14] are refused,\n  because a double's spacing there exceeds a cent. Nothing in the plausible\n  range is affected: 0 of 200,000 cent values from 0.01 to 2000.00 are rejected.\n  Whether the service should carry a business maximum instead is a product\n  question nobody here was authorised to answer.\n- **A client that computes an amount by float addition now gets 400** where it\n  previously got a silent round (`0.1 + 0.1 + 0.1` is not a two-decimal amount).\n  Failing loud is the intent; it is still a client-visible change.\n- **Performance was not measured** before or after. Optimization was deliberately\n  not attempted: it belongs on a stable measured baseline, which is the iteration\n  after this one.\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)\n"
+  },
+  "orchestration_artifacts": [
+    ".alchemy/runs/2026-11-19-audit/evidence/AC1-suite@65c7d4c.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC1-suite@65c7d4c.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC1-suite@8a96e1f.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC1-suite@8a96e1f.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC1-suite@f1ead20.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC1-suite@f1ead20.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC1-suite@fc95be4.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC1-suite@fc95be4.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC10-architecture@8a96e1f.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC10-architecture@8a96e1f.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC10-architecture@f1ead20.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC10-architecture@f1ead20.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC10-architecture@fc95be4.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC10-architecture@fc95be4.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC11-tokens@8a96e1f.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC11-tokens@8a96e1f.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC11-tokens@f1ead20.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC11-tokens@f1ead20.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC11-tokens@fc95be4.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC11-tokens@fc95be4.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC12-suite@f1ead20.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC12-suite@f1ead20.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC12-suite@fc95be4.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC12-suite@fc95be4.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC13-money-domain@f1ead20.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC13-money-domain@f1ead20.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC13-money-domain@fc95be4.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC13-money-domain@fc95be4.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC14-architecture@f1ead20.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC14-architecture@f1ead20.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC14-architecture@fc95be4.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC14-architecture@fc95be4.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC2-ownership@65c7d4c.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC2-ownership@65c7d4c.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC2-ownership@8a96e1f.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC2-ownership@8a96e1f.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC2-ownership@f1ead20.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC2-ownership@f1ead20.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC2-ownership@fc95be4.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC2-ownership@fc95be4.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC3-reports@65c7d4c.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC3-reports@65c7d4c.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC3-reports@8a96e1f.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC3-reports@8a96e1f.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC3-reports@f1ead20.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC3-reports@f1ead20.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC3-reports@fc95be4.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC3-reports@fc95be4.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC4-money@65c7d4c.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC4-money@65c7d4c.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC4-money@8a96e1f.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC4-money@8a96e1f.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC4-money@f1ead20.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC4-money@f1ead20.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC4-money@fc95be4.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC4-money@fc95be4.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC5-architecture@65c7d4c.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC5-architecture@65c7d4c.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC5-architecture@8a96e1f.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC5-architecture@8a96e1f.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC5-architecture@f1ead20.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC5-architecture@f1ead20.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC5-architecture@fc95be4.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC5-architecture@fc95be4.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC8-suite@8a96e1f.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC8-suite@8a96e1f.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC8-suite@f1ead20.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC8-suite@f1ead20.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC8-suite@fc95be4.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC8-suite@fc95be4.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC9-money-bounds@8a96e1f.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC9-money-bounds@8a96e1f.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC9-money-bounds@f1ead20.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC9-money-bounds@f1ead20.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC9-money-bounds@fc95be4.json",
+    ".alchemy/runs/2026-11-19-audit/evidence/AC9-money-bounds@fc95be4.log",
+    ".alchemy/runs/2026-11-19-audit/evidence/prefix-suite@2325850.log",
+    ".alchemy/runs/2026-11-19-audit/ledger.json",
+    ".alchemy/runs/2026-11-19-audit/plan.json"
+  ],
+  "isolation": {
+    "forbidden_paths": [],
+    "answer_markers": [],
+    "clean": true
+  },
+  "stream": {
+    "file": "claude-multi-audit-5.2.0.stream.jsonl",
+    "events": 1366,
+    "non_json_lines": 0,
+    "census": {
+      "assistant": 359,
+      "rate_limit_event": 2,
+      "system/init": 1,
+      "system/session_state_changed": 1,
+      "system/task_notification": 21,
+      "system/task_progress": 105,
+      "system/task_started": 21,
+      "system/task_updated": 3,
+      "system/thinking_tokens": 591,
+      "tool_progress": 54,
+      "user": 208
+    },
+    "collab_item_keys": null
+  },
+  "stderr_tail": "Ignoring 4 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects[\"<run-project>\"].hasTrustDialogAccepted: true in ~\\.claude.json.\n",
+  "warnings": []
+}

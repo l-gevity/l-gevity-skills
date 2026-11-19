@@ -1,0 +1,22 @@
+{
+  "criterion": "multi-agent-governance #15: a package budget below the ceiling passes and keeps the ceiling for keys it omits",
+  "description": "The verify package lowers its turns to 20 and states no tool-call budget; the plan check reports 20 turns and the analyst ceiling of 50 tool calls.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": [],
+    "facts": {
+      "budgets.P3": {
+        "max_turns": 20,
+        "max_tool_calls": 50
+      },
+      "budgets.P1": {
+        "max_turns": 60,
+        "max_tool_calls": 70
+      }
+    }
+  }
+}

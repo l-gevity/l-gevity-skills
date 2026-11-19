@@ -501,15 +501,15 @@ is checked when its measurement window closes.
 maps skills to capabilities, inputs, outputs, parallelism, exclusive file
 ownership, and verification.
 
-`check_orchestration.py` enforces deterministic rules. All 67 check codes have
-coverage among 223 [adversarial cases](./.adversarial/).
+`check_orchestration.py` enforces deterministic rules. All 69 check codes have
+coverage among 228 [adversarial cases](./.adversarial/).
 
 | Check | Rejects, among others |
 |:--|:--|
-| `plan` | overlapping writes between concurrent packages, a consumer ahead of its contract, cycles, self-review, unreviewed high-risk changes, nested delegation, caps above the profile, merge or deploy permissions, unapproved protected paths, rework that broadens what the human approved |
+| `plan` | overlapping writes between concurrent packages, a consumer ahead of its contract, cycles, self-review, unreviewed high-risk changes, nested delegation, caps above the profile, package budgets above their envelope's ceiling, merge or deploy permissions, unapproved protected paths, rework that broadens what the human approved |
 | `preflight` | an unattended run that would stop for a person: an uncovered need, a failing access probe, an expiring credential, a shared test account, a red baseline, no stop rule or escalation channel |
 | `handoff` | a summary that contradicts its evidence or the workspace digests, changes outside the write set, a stale base, credentials, embedded instructions, retries beyond budget |
-| `gate` | a missing or stale preflight, skipped criteria, verdicts without passing evidence on the final commit, self-verification, open blocking findings, risk accepted by an agent, disputes settled by vote, rework beyond its bound, patching that does not converge |
+| `gate` | a missing or stale preflight, skipped criteria, verdicts without passing evidence on the final commit, self-verification, open blocking findings, risk accepted by an agent, disputes settled by vote, rework beyond its bound or spent on minor findings only, patching that does not converge |
 
 [contracts.md](./.agents/skills/alchemy-orchestrate/references/contracts.md)
 defines every rule; the

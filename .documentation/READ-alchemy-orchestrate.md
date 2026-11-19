@@ -9,7 +9,7 @@ This skill decides whether one agent or several should do the work, then checks 
 - **Contracts precede dependent work.** Packages name their owner, allowed files, prerequisites, and acceptance checks.
 - **Evidence decides.** A hand-off saying “tests pass” needs commands, results, and file fingerprints the receiver can check.
 
-Parallel packages must not write the same files. Reviewers do not review their own work. Delegation, retries, and corrections have explicit bounds.
+Parallel packages must not write the same files. Reviewers do not review their own work. Delegation, retries, and corrections have explicit bounds, and each agent stops at its own budget of turns and tool calls.
 
 ```mermaid
 flowchart LR
@@ -25,7 +25,7 @@ flowchart LR
 2. Have the lead define and mechanically check the execution plan. For an unattended run, prove required tools, accounts, data, and escalation paths work before starting.
 3. Check hand-offs against the actual files, integrate the work, and verify acceptance criteria on the final combined revision. The lead runs each check once there and keeps its output; reviewers read that output instead of running the same checks again.
 
-Blocking findings need evidence of resolution or explicit human risk acceptance. The skill's workflow requires human approval before merging.
+Blocking findings need evidence of resolution or explicit human risk acceptance. Minor findings stay open for the pull request instead of costing another correction round. The skill's workflow requires human approval before merging.
 
 ## Project example
 
@@ -35,4 +35,4 @@ An export feature needs a backend endpoint and a frontend screen. Agree on the r
 
 [Full skill](../.claude/skills/alchemy-orchestrate/SKILL.md)
 
-<!-- skill-revision: d7926dc57698 -->
+<!-- skill-revision: 074fe10a9fbe -->

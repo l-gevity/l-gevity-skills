@@ -2,6 +2,7 @@
 # Rendered by alchemy-orchestrate scripts/init_workspace.py from envelopes.implementer in alchemy-workspace.json.
 name: alchemy-implementer
 description: {{ envelopes.implementer.description | quote }}
+maxTurns: {{ envelopes.implementer.budget.max_turns }}
 tools: Read, Grep, Glob, Edit, Write, Bash, Skill
 disallowedTools: Agent
 isolation: worktree

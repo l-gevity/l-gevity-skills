@@ -134,7 +134,11 @@ Objective
 14. Delegation depth MUST be 1; a delegated agent MUST NOT delegate.
     *Check:* `DELEGATION`; runtime knobs where they exist (adapters).
 15. Concurrency MUST NOT exceed the profile cap and distinct agents MUST NOT
-    exceed the profile budget. *Check:* `CAP_EXCEEDED`.
+    exceed the profile budget. *Check:* `CAP_EXCEEDED`. Each package MUST run
+    within a turn and tool-call budget no larger than its envelope's ceiling,
+    and an agent that reaches it MUST stop and escalate rather than continue.
+    *Check:* `BUDGET_EXCEEDS`; the Claude Code adapter's `maxTurns`; *judgment*
+    for tool calls, which no runtime caps.
 16. Packages MUST receive the smallest permission envelope: `analyst` (read,
     test) or `implementer` (read, edit, test, commit on its own branch). Push
     and pull-request creation belong to the lead after human approval; merge
@@ -169,7 +173,11 @@ Objective
     from the plan's rework amendments, so a renamed or new rework package does
     not start at zero, and a fix of one chain's files counts against that chain
     whatever origin it names; reaching the bound MUST escalate rather than restart the
-    loop. *Check:* `REWORK_LIMIT` (an `ESCALATE` verdict outranks `FAIL`).
+    loop. *Check:* `REWORK_LIMIT` (an `ESCALATE` verdict outranks `FAIL`). Each
+    cycle MUST answer a blocking or major finding; minor findings stay open for
+    the pull request. *Check:* `REWORK_MINOR_ONLY`. The re-review of a cycle
+    SHOULD cover only the change since the head last reviewed and the findings
+    it answers. *Judgment.*
 
 ## 7. Shared State and Provenance
 

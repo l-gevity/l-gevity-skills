@@ -31,7 +31,8 @@ dispatch: `SKIP`, `DIRECT`, `ADAPTIVE`, and `FULL` mean what they meant.
 > 4. **Contracts precede dependents.** Architecture decisions and interface
 >    contracts are accepted before the work that consumes them starts.
 > 5. **Every bound is explicit.** Delegation depth 1, a concurrency cap, a
->    retry budget, and a rework budget; reaching a bound escalates.
+>    turn and tool-call budget per package, a retry budget, and a rework
+>    budget; reaching a bound escalates.
 > 6. **Humans own irreversible and outward actions.** Merge, deploy,
 >    destructive commands, protected paths, and accepted risk need a human.
 
@@ -142,8 +143,8 @@ the runtime transcript).
    delegate: spawn one sub-agent per package through the runtime's agent tool,
    using the agent definition named after its plan envelope
    (`alchemy-analyst` or `alchemy-implementer`), and pass the package record,
-   its skill names, the hand-off format, and, to a verifier, the evidence
-   records at its head. Spawn a wave's packages together
+   its skill names, its budget, the hand-off format, and, to a verifier, the
+   evidence records at its head. Spawn a wave's packages together
    and wait for all of them before ending your turn; contract packages go
    first. Each writer starts
    from the plan's base or an integrated head, works in an isolated workspace
@@ -169,11 +170,14 @@ the runtime transcript).
    finding. A hand-off summary is a claim to test, never evidence.
 9. **Correct, bounded.** Before anybody edits, add a plan amendment (yours
    too) and re-run the plan check with `--approved`.
+   A cycle answers a blocking or major finding; minor ones stay open. Its
+   re-review covers only the change since the last reviewed head.
    At most `max_rework_cycles` per origin chain; then escalate. Never raise a
    bound yourself: an unanswered question is no
    answer. On `NOT_CONVERGING`, stop patching that work and propose a
    replanning package; independent work continues.
-10. **Gate.** Record criteria, evidence, findings, and disputes in the ledger;
+10. **Gate.** Record criteria, evidence, findings, disputes, and each
+    package's usage as the runtime reported it in the ledger;
     run `check_orchestration.py gate <ledger.json> --plan <plan.json>
     --approved <digest> --profile alchemy-workspace.json --root .`, plus `--preflight
     <preflight.json>` for an unattended plan, which confirms the
