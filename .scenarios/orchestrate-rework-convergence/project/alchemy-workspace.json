@@ -9,6 +9,7 @@
     ]
   },
   "execution": {
-    "max_rework_cycles": 2
+    "max_rework_cycles": 2,
+    "multi_agent": "auto"
   }
 }

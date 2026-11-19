@@ -264,6 +264,14 @@ def build_project(project: Path, fixture_dir: Path, arm: str, runtime: str, inje
     shutil.copyfile(REPO / "CLAUDE.md", project / "CLAUDE.md")
     shutil.copyfile(REPO / "CLAUDE.md", project / "AGENTS.md")
 
+    if arm == "multi":
+        # The shipped default is "off"; the multi arm states "auto" before
+        # init so the rendered settings carry no deny rule for the agents.
+        (project / "alchemy-workspace.json").write_text(
+            json.dumps({"schema": "alchemy-workspace/1", "execution": {"multi_agent": "auto"}}, indent=2) + "
+",
+            encoding="utf-8",
+        )
     before = file_set(project)
     init = subprocess.run(
         [sys.executable, str(INIT_SCRIPT), "--runtime", INIT_RUNTIME[runtime], "--root", str(project)],
