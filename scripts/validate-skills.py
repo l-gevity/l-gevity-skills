@@ -27,7 +27,7 @@ SIZE_BUDGET_GRAIN = 100
 SIZE_BUDGET_WORDS = {
     "CLAUDE.md": 1000,
     "alchemy": 1800,
-    "alchemy-orchestrate": 1900,
+    "alchemy-orchestrate": 2000,
     "architecture-as-code": 2200,
     "architecture-guidelines": 1800,
     "bring-down": 2400,
@@ -155,6 +155,7 @@ SKILL_REQUIRED_TERMS = {
         "check_orchestration.py handoff",
         "check_orchestration.py gate",
         "A hand-off summary is a claim to test, never evidence",
+        "`scripts/record_evidence.py`",
         "Gate:        PASS | FAIL | ESCALATE | Not run + reason",
         "Merge:       human approval required",
         "it specializes **Increment**",
@@ -695,6 +696,8 @@ REFERENCE_REQUIRED_TERMS = {
             "without rename detection, so a moved file counts at its source and its destination",
             "this holds for a plan without amendments too, which used to pass",
             "`--approved <digest>` on the gate: the `approved_digest` the plan check printed",
+            "A delegated agent reads this section and no other part of this skill",
+            "running the same command on the same commit again yields the same evidence",
         ),
         "references/autonomy-preflight.md": (
             "# Autonomy Preflight — Preparing a Run That Proceeds Unattended",
@@ -3282,6 +3285,31 @@ def mutation_test() -> int:
 
     cases.append((Case("orchestration: a check code no adversarial case exercises", checkers, ("MUTATION_UNTESTED",)), declare_untested_code))
 
+    # Thin delegated agents and recorded evidence (rules 12 and 20).
+    workspace_profiles = both("alchemy-orchestrate/assets/alchemy-workspace.json")
+
+    def load_orchestrate_again(files=workspace_profiles):
+        for path in files:
+            text, crlf = read_raw(path)
+            new = text.replace("Load every skill your assignment names",
+                               "Load the alchemy-orchestrate skill and every skill your assignment names")
+            if new == text:
+                raise RuntimeError("no envelope loads its assigned skills")
+            write_raw(path, new, crlf)
+
+    cases.append((Case("orchestration: an envelope loads alchemy-orchestrate again", workspace_profiles, ("must not tell a delegated agent to load alchemy-orchestrate",)), load_orchestrate_again))
+
+    recorders = both("alchemy-orchestrate/scripts/record_evidence.py")
+
+    def record_on_dirty_head(files=recorders):
+        for path in files:
+            text, crlf = read_raw(path)
+            if "if problems or not ran:" not in text:
+                raise RuntimeError("the recorder has no clean-head refusal")
+            write_raw(path, text.replace("if problems or not ran:", "if not ran:", 1), crlf)
+
+    cases.append((Case("orchestration: the evidence recorder accepts a dirty head", recorders, ("records evidence on a dirty work tree",)), record_on_dirty_head))
+
     # The workflow adapter's preflight wiring, each link broken on its own.
     pipelines = both("alchemy-orchestrate/adapters/unstoppable/pipelines/alchemy-multi-agent.yaml")
     actions = both("alchemy-orchestrate/adapters/unstoppable/actions/alchemy-check/check.py")
@@ -4569,6 +4597,89 @@ def validate_gate_repository_rules() -> None:
                  f"expected {verdict} {codes}, got {report['verdict']} {got}")
 
 
+def validate_evidence_recorder() -> None:
+    """Delegated agents stay thin and verifiers cite recorded evidence (rules 12
+    and 20). Pilot sub-agents loaded alchemy-orchestrate and its contracts
+    before any work and re-ran the checks the lead had run on the same commit.
+    The envelopes must not send them there, and record_evidence.py must record
+    each declared command once, refuse a dirty head, and fail a command that
+    changes the work tree, so a verifier can cite its records."""
+    profile_path = ORCHESTRATE / "assets" / "alchemy-workspace.json"
+    label = profile_path.relative_to(ROOT)
+    envelopes = json.loads(profile_path.read_text(encoding="utf-8")).get("envelopes", {})
+    for name in ("analyst", "implementer"):
+        text = envelopes.get(name, {}).get("instructions", "")
+        if re.search(r"(?<!Do not )\bload the alchemy-orchestrate skill", text, re.I):
+            fail(f"{label} envelope {name} must not tell a delegated agent to load alchemy-orchestrate")
+        if "Hand-off section" not in text:
+            fail(f"{label} envelope {name} must point at the Hand-off section of contracts.md")
+    analyst = envelopes.get("analyst", {}).get("instructions", "")
+    for term in ("record_evidence.py", "instead of running those commands again", "at most three per package"):
+        if term not in analyst:
+            fail(f"{label} envelope analyst must say '{term}'")
+
+    import importlib.util
+
+    path = ORCHESTRATE / "scripts" / "record_evidence.py"
+    spec = importlib.util.spec_from_file_location("record_evidence", path)
+    recorder = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(recorder)
+    checker = recorder.checker
+    scratch = Path(tempfile.mkdtemp(prefix="l-gevity-evidence-"))
+    try:
+        repo = scratch / "repo"
+        repo.mkdir()
+
+        def git(*args: str) -> str:
+            result = subprocess.run(["git", "-c", "user.name=validator", "-c", "user.email=validator@example.invalid",
+                                     "-c", "commit.gpgsign=false", *args], cwd=repo, capture_output=True, text=True)
+            if result.returncode != 0:
+                fail(f"evidence recorder fixture: git {args[0]} failed: {result.stderr.strip()}")
+            return result.stdout.strip()
+
+        git("init", "-q")
+        (repo / "ok.txt").write_text("ok\n", encoding="utf-8")
+        git("add", "-A")
+        git("commit", "-q", "-m", "head")
+        head = git("rev-parse", "HEAD")
+        run_dir = repo / ".alchemy" / "runs" / "r1"
+        run_dir.mkdir(parents=True)
+        python = f'"{sys.executable}"'
+        plan = {"schema": "alchemy-plan/1", "packages": [{"id": "P1", "acceptance": [
+            {"id": "AC1", "check": "command", "command": f"{python} -c \"print('fine')\""},
+            {"id": "AC2", "check": "command", "command": f"{python} -c \"raise SystemExit(3)\""},
+            {"id": "AC3", "check": "review", "question": "Is it right?"}]}]}
+        (run_dir / "plan.json").write_text(json.dumps(plan), encoding="utf-8")
+        profile = checker.load_profile(None)
+        profile["repository"]["verification"] = [{"id": "suite", "command": f"{python} -c \"pass\""}]
+        result = recorder.record(run_dir / "plan.json", repo, profile, [], False, None, 60)
+        got = {item["id"]: item["exit_code"] for item in result["evidence"]}
+        short = head[:7]
+        if got != {f"AC1@{short}": 0, f"AC2@{short}": 3, f"suite@{short}": 0} or result["verdict"] != "FAIL":
+            fail(f"record_evidence.py recorded {got} with verdict {result['verdict']}; expected AC1 0, AC2 3, "
+                 "suite 0, verdict FAIL, and no review criterion")
+        for item in result["evidence"]:
+            log = repo / item["log"]
+            if item["commit"] != head or item["produced_by"] != "harness" or not log.is_file() or \
+                    hashlib.sha256(log.read_bytes()).hexdigest() != item["log_sha256"]:
+                fail(f"record_evidence.py record {item['id']} does not match its log, head, or producer")
+        (repo / "stray.txt").write_text("uncommitted\n", encoding="utf-8")
+        try:
+            recorder.record(run_dir / "plan.json", repo, profile, ["AC1"], False, None, 60)
+            fail("record_evidence.py records evidence on a dirty work tree")
+        except checker.InputError:
+            pass
+        (repo / "stray.txt").unlink()
+        plan["packages"][0]["acceptance"] = [
+            {"id": "W1", "check": "command", "command": f"{python} -c \"open('made.txt','w').write('x')\""}]
+        (run_dir / "plan.json").write_text(json.dumps(plan), encoding="utf-8")
+        writes = recorder.record(run_dir / "plan.json", repo, profile, ["W1"], False, None, 60)
+        if writes["verdict"] != "FAIL" or not writes["workspace_after"]:
+            fail("record_evidence.py passes a command that changed the work tree")
+    finally:
+        shutil.rmtree(scratch, ignore_errors=True)
+
+
 UNSTOPPABLE = ORCHESTRATE / "adapters" / "unstoppable"
 
 
@@ -4941,6 +5052,7 @@ def main() -> int:
     validate_alchemy_companion_order()
     validate_adversarial_cases()
     validate_gate_repository_rules()
+    validate_evidence_recorder()
     validate_unattended_adapter()
     validate_correction_loop()
     validate_verdict_classification()

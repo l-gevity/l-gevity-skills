@@ -23,7 +23,7 @@ flowchart LR
 
 1. Describe the change and identify work that can proceed independently. Keep shared contracts ahead of their consumers.
 2. Have the lead define and mechanically check the execution plan. For an unattended run, prove required tools, accounts, data, and escalation paths work before starting.
-3. Check hand-offs against the actual files, integrate the work, and verify acceptance criteria on the final combined revision.
+3. Check hand-offs against the actual files, integrate the work, and verify acceptance criteria on the final combined revision. The lead runs each check once there and keeps its output; reviewers read that output instead of running the same checks again.
 
 Blocking findings need evidence of resolution or explicit human risk acceptance. The skill's workflow requires human approval before merging.
 
@@ -35,4 +35,4 @@ An export feature needs a backend endpoint and a frontend screen. Agree on the r
 
 [Full skill](../.claude/skills/alchemy-orchestrate/SKILL.md)
 
-<!-- skill-revision: 5b6ab48d7f91 -->
+<!-- skill-revision: d7926dc57698 -->

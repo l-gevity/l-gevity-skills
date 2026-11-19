@@ -120,8 +120,10 @@ Dispatch it with an `objective`. The `lead`, `reviewer_claude`, and
    earlier hand-offs relied on or changed. Each correction pass repeats this
    check, adding that pass's heads and the run plan's amendments.
 8. `review` runs two read-only reviewers on different providers, in parallel.
-   They see the plan, the diff, and the test commands, not the hand-offs.
-9. `consolidate` has the lead re-run the checks and build `ledger.json`.
+   They see the plan, the diff, the test commands, and the evidence logs at
+   head, not the hand-offs; they cite the logs instead of re-running them.
+9. `consolidate` has the lead build `ledger.json` from the evidence records
+   `execute` wrote with `record_evidence.py`.
 10. `gate` runs the ledger through the gate check, with the run's
     `preflight.json` when it exists, so unattended work without a passing
     preflight bound to the plan cannot pass (`PREFLIGHT_REQUIRED`). It is

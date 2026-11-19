@@ -92,7 +92,7 @@ busy to justify them.
 | Lead | Plan, schedule, integration, gate, report; always exactly one | Integration merges, plan and ledger state | `alchemy`, this skill, `requirements-traceability` |
 | Architecture | Design, placement, complexity, enforcement decisions; interface contracts | Nothing; returns decisions | A, L, C, E skills |
 | Engineering | Implementation of one package inside its write set | Its write set only | stack skills, `test-strategy` |
-| Verification | Independent review of diffs, tests, and evidence; re-runs checks | Nothing | `test-strategy`, `defect-shift-left`, review lenses |
+| Verification | Independent review of diffs, tests, and recorded evidence | Nothing | `test-strategy`, `defect-shift-left`, review lenses |
 | Optimization | Flow and constraint analysis on a measured baseline | Nothing | `system-optimization` |
 | Security | Threat and secret review of a package; a verification lens | Nothing | project security skills |
 | Scientific validation | Statistical or numerical logic and its evidence; a verification lens | Nothing | project domain skills |
@@ -142,7 +142,8 @@ the runtime transcript).
    delegate: spawn one sub-agent per package through the runtime's agent tool,
    using the agent definition named after its plan envelope
    (`alchemy-analyst` or `alchemy-implementer`), and pass the package record,
-   its skill names, and the hand-off format. Spawn a wave's packages together
+   its skill names, the hand-off format, and, to a verifier, the evidence
+   records at its head. Spawn a wave's packages together
    and wait for all of them before ending your turn; contract packages go
    first. Each writer starts
    from the plan's base or an integrated head, works in an isolated workspace
@@ -153,16 +154,19 @@ the runtime transcript).
 6. **Receive hand-offs.** Each package ends its reply with its hand-off as
    one JSON block. Save it unedited under `state_dir` and, before anyone
    changes the workspace, run `check_orchestration.py handoff <handoff.json>
-   --plan <plan.json> --root <workspace>`. `ACCEPT` continues; `REJECT`,
-   `STALE`, `RETRY`, and `ESCALATE` follow
+   --plan <plan.json> --root <workspace>`, and read each changed file against
+   the claims: the check proves digests, not meaning. `ACCEPT` continues;
+   `REJECT`, `STALE`, `RETRY`, and `ESCALATE` follow
    [references/governance.md](references/governance.md) §4.
 7. **Integrate.** The lead merges accepted packages in wave order, resolves
-   conflicts by serializing, runs the profile's verification commands on the
-   integrated head, and records that head in the plan's `base.integrated` so
-   the next wave may start from it.
+   conflicts by serializing, records the plan's command criteria and the
+   profile's verification commands once on the integrated head with
+   `scripts/record_evidence.py`, and records that head in the plan's
+   `base.integrated` so the next wave may start from it.
 8. **Verify independently.** Verifiers read the requirements, the integrated
-   diff, and the tests, and re-run checks. A hand-off summary is a claim to
-   test, never evidence.
+   diff, the tests, and those evidence logs, and cite the records; they run a
+   command only where no record covers a criterion or to test a suspected
+   finding. A hand-off summary is a claim to test, never evidence.
 9. **Correct, bounded.** Before anybody edits, add a plan amendment (yours
    too) and re-run the plan check with `--approved`.
    At most `max_rework_cycles` per origin chain; then escalate. Never raise a
