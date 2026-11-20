@@ -172,5 +172,64 @@ class ReviewDelta(unittest.TestCase):
                 snapshot.review_base(root, "", str(ledger))
 
 
+class PipelineRouting(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.adapter = load("pipeline_check", ROOT / ".agents/skills/alchemy-orchestrate/adapters/unstoppable/actions/alchemy-check/check.py")
+
+    def payload(self, dispatch="ADAPTIVE", spawn=True, wait=True, plan=None):
+        if plan is None:
+            plan = {"execution": {"mode": "single-agent"}, "packages": [{"owner": "lead"}]}
+        return {"dispatch": dispatch, "proceed": True, "capabilities": {
+            "spawn": spawn, "wait": wait, "isolated": False,
+            "evidence": "Current lead tool roster inspected"}, "plan": json.dumps(plan)}
+
+    def test_cheap_dispatch_never_accepts_orchestration(self):
+        for dispatch in ("SKIP", "DIRECT"):
+            data = self.payload(dispatch)
+            with self.assertRaises(self.adapter.InputError):
+                self.adapter.route(data)
+            data["plan"] = ""
+            self.assertEqual(self.adapter.route(data)["path"], "local")
+
+    def test_missing_runtime_capabilities_reject_delegated_plan(self):
+        plan = {"execution": {"mode": "multi-agent"}, "packages": [{"owner": "agent-a"}]}
+        for spawn, wait in ((False, True), (True, False), (False, False)):
+            with self.assertRaises(self.adapter.InputError):
+                self.adapter.route(self.payload(spawn=spawn, wait=wait, plan=plan))
+        self.assertEqual(self.adapter.route(self.payload(spawn=False, wait=False))["path"], "planned")
+
+    def test_fail_closed_on_missing_or_malformed_route(self):
+        for field in ("dispatch", "proceed", "capabilities", "plan"):
+            data = self.payload()
+            del data[field]
+            with self.assertRaises(self.adapter.InputError):
+                self.adapter.route(data)
+        data = self.payload()
+        data["capabilities"]["spawn"] = "false"
+        with self.assertRaises(self.adapter.InputError):
+            self.adapter.route(data)
+
+    def test_pipeline_branches_on_checked_route(self):
+        pipeline = (ROOT / ".agents/skills/alchemy-orchestrate/adapters/unstoppable/pipelines/alchemy-multi-agent.yaml").read_text()
+        jobs = pipeline.split("\n  jobs:\n", 1)[1]
+        def job(name):
+            return jobs.split(f"\n    {name}:\n", 1)[1].split("\n\n    ", 1)[0]
+        self.assertIn("mode: route", job("route_check"))
+        self.assertIn("if: needs.route_check.outputs.path == 'local'", job("local"))
+        self.assertNotIn("alchemy-orchestrate/SKILL.md", job("local").replace("Do not load alchemy-orchestrate", ""))
+        self.assertIn("- route_check", job("plan_check"))
+        self.assertIn("if: needs.route_check.outputs.path == 'planned'", job("plan_check"))
+        self.assertIn("if: matrix.reviewer == 'reviewer_codex' || inputs.additional_review != ''", job("review"))
+
+    def test_blocked_route_cannot_release_work(self):
+        data = self.payload()
+        data.update(proceed=False, plan="")
+        self.assertEqual(self.adapter.route(data)["path"], "stop")
+        data["plan"] = "{}"
+        with self.assertRaises(self.adapter.InputError):
+            self.adapter.route(data)
+
+
 if __name__ == "__main__":
     unittest.main()

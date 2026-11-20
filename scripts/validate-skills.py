@@ -3357,7 +3357,7 @@ def mutation_test(match: str | None = None) -> int:
          "            preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json\n", "",
          "without the run's preflight record"),
         ("the check action drops preflight mode", actions,
-         'MODES = ("plan", "preflight", "handoff", "gate")', 'MODES = ("plan", "handoff", "gate")',
+         'MODES = ("route", "plan", "preflight", "handoff", "gate")', 'MODES = ("route", "plan", "handoff", "gate")',
          "MODES must include preflight"),
         # The correction loop's bound and order, each link broken on its own.
         ("the correction loop ignores the gate's bound", pipelines,
@@ -3653,6 +3653,28 @@ def mutation_test(match: str | None = None) -> int:
     cases.append((Case("flow: correction receives full original diff",
                        both("alchemy-orchestrate/adapters/unstoppable/pipelines/alchemy-multi-agent.yaml"),
                        ("flow controls:",)), full_correction_diff))
+
+    route_adapter = "alchemy-orchestrate/adapters/unstoppable/actions/alchemy-check/check.py"
+    multi_pipeline = "alchemy-orchestrate/adapters/unstoppable/pipelines/alchemy-multi-agent.yaml"
+
+    def mutate_both(relative: str, old: str, new: str):
+        def apply() -> None:
+            for path in both(relative):
+                text, crlf = read_raw(path)
+                write_raw(path, text.replace(old, new, 1), crlf)
+        return apply
+
+    for label, relative, old, new in (
+        ("flow: cheap dispatch carries an orchestration plan", route_adapter,
+         'if not data["proceed"] or data["dispatch"] in ("SKIP", "DIRECT"):', 'if not data["proceed"]:'),
+        ("flow: delegated plan accepted without spawn tools", route_adapter,
+         'if not (capabilities["spawn"] and capabilities["wait"]):', "if False:"),
+        ("flow: plan check ignores the checked route", multi_pipeline,
+         "      if: needs.route_check.outputs.path == 'planned'\n", ""),
+        ("flow: second provider review always runs", multi_pipeline,
+         "          if: matrix.reviewer == 'reviewer_codex' || inputs.additional_review != ''\n", ""),
+    ):
+        cases.append((Case(label, both(relative), ("flow controls:",)), mutate_both(relative, old, new)))
 
     def serialize_repository_fixtures() -> None:
         text, crlf = read_raw(validator)

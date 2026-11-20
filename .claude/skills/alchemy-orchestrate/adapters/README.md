@@ -66,7 +66,7 @@ and the plan check fails a multi-agent plan under `off` with `MODE_MISMATCH`.
 | Concurrency cap | `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` = `execution.max_parallel_agents`. | `[agents] max_concurrent_threads_per_session` = `execution.max_parallel_agents`. Verified in a trusted project: a value of n gives n+1 slots including the lead, matching the profile's "lead excluded". | The review matrix uses `max_parallel: 2`. Inside a step, the harness's column applies. |
 | Package budget | `maxTurns` in each agent's frontmatter = `envelopes.<name>.budget.max_turns`; the runtime returns the agent's output marked partial at the limit. No tool-call cap exists, so `max_tool_calls` is instruction-level. | Instruction-level only: no custom-agent key caps turns, tool calls, or runtime. The plan check's `BUDGET_EXCEEDS` keeps package budgets within the ceiling. | Inside a step, the harness's column applies. |
 | Workspace isolation | `alchemy-implementer` sets `isolation: worktree`. `worktree.baseRef: head` makes that worktree branch from the lead's current HEAD instead of the default branch. Committed state only. | None (limitation: Codex's prompt states that all agents share one working directory, and edits are visible at once). Disjoint write sets from the plan check are the only guard. | The pipeline runs in the worktree or directory it is dispatched in (`scope: [directory, worktree]`); dispatch it from an Unstoppable worktree for isolation. Sub-agents follow the harness's column. |
-| Cross-provider review | Not native | Not native | The pipeline's `review` matrix runs `reviewer_claude` and `reviewer_codex`. The review track `alchemy-independent-review.md` adds `claude-opus-5` and `gpt-6.1-sol` to the bundled Code Review (Multi-Provider) pipeline. Verified: its `discover-review-tracks` action emits two reviewers from the track. |
+| Cross-provider review | Not native | Not native | The pipeline's `review` matrix runs `reviewer_codex`; `reviewer_claude` runs only when the `additional_review` input names a distinct risk. The review track `alchemy-independent-review.md` adds `claude-opus-5` and `gpt-6.1-sol` to the bundled Code Review (Multi-Provider) pipeline. Verified: its `discover-review-tracks` action emits two reviewers from the track. |
 | Human approval checkpoints | `permissions.ask` covers `git push`, `gh pr create`, and `git clean`. `permissions.deny` covers merge, force-push, `reset --hard`, and `branch -D`. | Instruction-level only (limitation: no per-command rule is rendered; the session's approval policy applies). | `builtin/request-input` at `approve_plan`, `approve_pr`, and `escalate` |
 | PR creation | `gh pr create` asks first; `gh pr merge` is denied. | Instruction-level only: the implementer envelope forbids push and pull requests. | `builtin/github-create-pr`, only after `approve_pr`. It pushes the branch itself and refuses uncommitted changes (read from the bundled action). Nothing merges. |
 
@@ -81,19 +81,26 @@ and the plan check fails a multi-agent plan under `off` with `MODE_MISMATCH`.
 | `.claude/settings.json` | Depth 1, the concurrency cap, `worktree.baseRef: head`, and the ask, deny, and allow rules |
 | `.codex/agents/alchemy-analyst.toml`, `alchemy-implementer.toml` | The same two envelopes as Codex custom agents |
 | `.codex/config.toml` | The concurrency cap, plus `[features] multi_agent = false` under `off` |
-| `.unstoppable-code/actions/alchemy-check/` | Runs `check_orchestration.py` from the skills tree in `plan`, `preflight`, `handoff` (one file or a directory), or `gate` mode. Keeps the JSON report and outputs `verdict`, `summary`, and `report_file`. Fails unless the verdict is PASS or ACCEPT; `enforce: 'false'` only reports. It can extract the plan from a structured-output file (`plan_field`). `integrated` adds wave heads to the checked copy's `base.integrated`. `digests: 'false'` checks hand-offs structurally, without `--root`. In plan mode it can also require the plan's base (`expect_base`) and its `execution.unattended` (`expect_unattended`), and publish the plan to `<state_dir>/<run id>/plan.json` (`publish`), and it outputs `unattended` and the `plan_digest` a preflight record binds to. Preflight mode checks the record with `--root` at the repository root, so the repository must still be at the plan base. In gate mode, `preflight` names the preflight record, passed when the file exists; a gate on an unattended plan without a passing one fails. `approved`, the approved digest, passes `--approved`; a plan with amendments, and a gate with an extension or recorded rework, fail without it. `revision`, a `plan_digest` an earlier check output, and in gate mode `review`, the reviewer's own output, pass `--revision` and `--review`. Commit prefixes match only when both sides have at least 7 hex characters. |
+| `.unstoppable-code/actions/alchemy-check/` | In `route` mode, validates the planning result before anything is published: a `SKIP` or `DIRECT` dispatch, or a stopped route, must carry no plan, and a plan whose lead reported no native spawn and completion tools must be `single-agent` with every package owned by `lead`; it outputs `path` (`local`, `planned`, or `stop`) and `dispatch`. Otherwise runs `check_orchestration.py` from the skills tree in `plan`, `preflight`, `handoff` (one file or a directory), or `gate` mode. Keeps the JSON report and outputs `verdict`, `summary`, and `report_file`. Fails unless the verdict is PASS or ACCEPT; `enforce: 'false'` only reports. It can extract the plan from a structured-output file (`plan_field`). `integrated` adds wave heads to the checked copy's `base.integrated`. `digests: 'false'` checks hand-offs structurally, without `--root`. In plan mode it can also require the plan's base (`expect_base`) and its `execution.unattended` (`expect_unattended`), and publish the plan to `<state_dir>/<run id>/plan.json` (`publish`), and it outputs `unattended` and the `plan_digest` a preflight record binds to. Preflight mode checks the record with `--root` at the repository root, so the repository must still be at the plan base. In gate mode, `preflight` names the preflight record, passed when the file exists; a gate on an unattended plan without a passing one fails. `approved`, the approved digest, passes `--approved`; a plan with amendments, and a gate with an extension or recorded rework, fail without it. `revision`, a `plan_digest` an earlier check output, and in gate mode `review`, the reviewer's own output, pass `--revision` and `--review`. Commit prefixes match only when both sides have at least 7 hex characters. |
 | `.unstoppable-code/actions/alchemy-snapshot/` | Outputs the head commit. Given a base, it writes the diff from that base to the working tree for reviewers that cannot run git. `require_clean` fails on uncommitted changes. |
 | `.unstoppable-code/pipelines/alchemy-multi-agent.yaml` | The preconfigured workflow below |
 | `.unstoppable-code/review-tracks/alchemy-independent-review.md` | Cross-provider review track for the bundled multi-provider review pipeline |
 
 ## The pipeline
 
-Dispatch it with an `objective`. The `lead`, `reviewer_claude`, and
+Dispatch it with an `objective`, and optionally `additional_review`, a
+distinct risk that justifies a second provider's review. The `lead`, `reviewer_claude`, and
 `reviewer_codex` model aliases can be retargeted. The jobs run in this order:
 
 1. `start` records the head.
-2. `plan` runs read-only. It routes with the `alchemy` skill and writes an
-   `alchemy-plan/1` record as structured output.
+2. `plan` runs read-only. It routes with the `alchemy` skill and reports
+   the dispatch and the lead's observed native spawn, completion, and
+   isolation tools. Only `ADAPTIVE` and `FULL` load orchestration and write an
+   `alchemy-plan/1` record; without spawn and completion tools the plan is
+   `single-agent` before anyone approves it.
+   `route_check` validates that result and selects a path: `local` runs the
+   `SKIP` or `DIRECT` route in one agent and stops without a pull request,
+   `stop` ends the run, and `planned` continues below.
 3. `plan_check` extracts and checks the plan, requires its base to be the
    recorded head, and publishes it to the run directory.
 4. `approve_plan` asks the human: `continue-attended` (the human watches
@@ -120,8 +127,10 @@ Dispatch it with an `objective`. The `lead`, `reviewer_claude`, and
    not check digests, because later waves legitimately change files that
    earlier hand-offs relied on or changed. Each correction pass repeats this
    check, adding that pass's heads and the run plan's amendments.
-8. `review` runs two read-only reviewers on different providers, in parallel.
-   They see the plan, the diff, the test commands, and the evidence logs at
+8. `review` runs one read-only integration reviewer, and a second provider in
+   parallel only when `additional_review` names a distinct risk. It covers
+   integration and criteria no package review covered, and never replaces a
+   required package review. Reviewers see the plan, the diff, the test commands, and the evidence logs at
    head, not the hand-offs; they cite the logs instead of re-running them.
 9. `consolidate` has the lead build `ledger.json` from the evidence records
    `execute` wrote with `record_evidence.py`.

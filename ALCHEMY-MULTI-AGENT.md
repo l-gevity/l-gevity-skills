@@ -91,7 +91,10 @@ Objective
 6. `SKIP` and `DIRECT` MUST execute `single-agent` and MUST NOT load
    orchestration. *Check:* scenarios `dispatch-routine-skip`,
    `dispatch-housekeeping-skip`, `dispatch-direct-worth-question`,
-   `execution-single-agent-rename`.
+   `execution-single-agent-rename`; in the Unstoppable pipeline, the
+   `alchemy-check` `route` mode refuses a plan on a `SKIP` or `DIRECT`
+   dispatch, and a delegated plan when the lead reported no native spawn and
+   completion tools (`scripts/test-skill-performance.py` `PipelineRouting`).
 7. `multi-agent` MUST be selected only when the work changes or audits code and
    (a) at least two parts are independent — no dependency path, disjoint write
    sets — or (b) a high-risk change needs a reviewer that did not write it. The

@@ -22,10 +22,10 @@ flowchart LR
 ## Apply it
 
 1. Describe the change and identify work that can proceed independently. Keep shared contracts ahead of their consumers.
-2. Have the lead define and mechanically check the execution plan. For an unattended run, prove required tools, accounts, data, and escalation paths work before starting.
+2. Have the lead check its own spawn and completion tools first: without them the plan is single-agent before anyone approves it, and a `SKIP` or `DIRECT` route never plans orchestration. Then define and mechanically check the execution plan. For an unattended run, prove required tools, accounts, data, and escalation paths work before starting.
 3. Start dependency-ready packages after their prerequisites are accepted and integrated; keep wave barriers when the runtime cannot safely stream completions or inputs are shared. Check hand-offs against actual files and verify acceptance criteria on the final combined revision. The lead runs each check once there and keeps its output; reviewers read that output instead of running the same checks again.
 
-Correction reviewers receive a diff from the last reviewed head, the findings it answers, and current check evidence. Opt-in command reuse shares an execution only within one recorder invocation for repeat-safe checks with stable inputs; each criterion retains its own record.
+One integration reviewer covers what package reviews did not; a second provider is added only for a named, distinct risk. Correction reviewers receive a diff from the last reviewed head, the findings it answers, and current check evidence. Opt-in command reuse shares an execution only within one recorder invocation for repeat-safe checks with stable inputs; each criterion retains its own record.
 
 Blocking findings need evidence of resolution or explicit human risk acceptance. Minor findings stay open for the pull request instead of costing another correction round. The skill's workflow requires human approval before merging.
 
@@ -37,4 +37,4 @@ An export feature needs a backend endpoint and a frontend screen. Agree on the r
 
 [Full skill](../.claude/skills/alchemy-orchestrate/SKILL.md)
 
-<!-- skill-revision: bfdebae0ce3c -->
+<!-- skill-revision: b75d6543ff33 -->

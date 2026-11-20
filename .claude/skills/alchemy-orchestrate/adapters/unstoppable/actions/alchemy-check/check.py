@@ -27,7 +27,7 @@ from typing import Any
 SKILL = "alchemy-orchestrate"
 SKILL_ROOTS = (".agents/skills", ".claude/skills")
 PROFILE_NAME = "alchemy-workspace.json"
-MODES = ("plan", "preflight", "handoff", "gate")
+MODES = ("route", "plan", "preflight", "handoff", "gate")
 PASSING = ("PASS", "ACCEPT")
 # Verdict precedence from references/contracts.md: ESCALATE over REJECT/FAIL
 # over STALE over RETRY over a pass.
@@ -405,6 +405,44 @@ def emit(outputs: dict[str, str]) -> None:
         print(line)
 
 
+def route(data: Any) -> dict[str, str]:
+    """Check routing before publishing a plan or asking for execution approval.
+
+    Capability observations come from the lead's tool roster, not its model
+    name. This validates their consistency, not the truth of that observation.
+    The execution lead must recheck availability before spawning.
+    """
+    if not isinstance(data, dict) or data.get("dispatch") not in ("SKIP", "DIRECT", "ADAPTIVE", "FULL"):
+        raise InputError("route needs a valid dispatch")
+    if type(data.get("proceed")) is not bool or not isinstance(data.get("plan"), str):
+        raise InputError("route needs boolean proceed and a plan string")
+    capabilities = data.get("capabilities")
+    if (not isinstance(capabilities, dict)
+            or any(type(capabilities.get(key)) is not bool for key in ("spawn", "wait", "isolated"))
+            or not isinstance(capabilities.get("evidence"), str) or not capabilities["evidence"].strip()):
+        raise InputError("route needs explicit capability observations and their evidence")
+    raw = data["plan"].strip()
+    if not data["proceed"] or data["dispatch"] in ("SKIP", "DIRECT"):
+        if raw:
+            raise InputError("stopped and cheap routes must not create an orchestration plan")
+        return {"path": "local" if data["proceed"] else "stop", "dispatch": data["dispatch"]}
+    try:
+        plan = json.loads(raw)
+    except ValueError as exc:
+        raise InputError(f"planned route needs a JSON plan: {exc}") from exc
+    if not isinstance(plan, dict) or not isinstance(plan.get("execution"), dict):
+        raise InputError("planned route needs plan.execution")
+    packages = plan.get("packages")
+    if not isinstance(packages, list) or not packages or any(
+            not isinstance(pkg, dict) or not isinstance(pkg.get("owner"), str) for pkg in packages):
+        raise InputError("planned route needs packages with owners")
+    if not (capabilities["spawn"] and capabilities["wait"]):
+        if plan["execution"].get("mode") != "single-agent" or any(
+                pkg["owner"].strip().casefold() != "lead" for pkg in packages):
+            raise InputError("native spawn/wait unavailable: re-plan as single-agent with lead-owned packages")
+    return {"path": "planned", "dispatch": data["dispatch"]}
+
+
 def main() -> int:
     try:
         mode = option("mode").lower()
@@ -414,6 +452,10 @@ def main() -> int:
             raise InputError("input plan is required")
         enforce = flag("enforce", "true")
         root = repo_root()
+        if mode == "route":
+            outputs = route(read_json(resolve(option("plan"), root)))
+            emit(outputs)
+            return 0
         skill = skill_dir(root)
         checker = skill / "scripts" / "check_orchestration.py"
         raw_profile = option("profile")
