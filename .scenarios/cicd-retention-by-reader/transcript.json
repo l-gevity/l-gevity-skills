@@ -51,7 +51,82 @@
     "ci-cd-reliability-architecture"
   ],
   "files_read": [],
-  "paths_searched": [],
-  "turns": 3,
-  "output": "**What I found:** The step keeps every deployment candidate for 90 days, but the only thing that reads a candidate is the deploy job, which does so within 20 minutes. Releases record no rollback window, so cut retention to the 1-day platform minimum (the record calls this Set retention).\n\n**Why it matters:** At 40 × 75 MB per day, 90 days holds about 270 GB of candidates that nothing reads, mostly from pull requests. One day holds about 3 GB. Shorter retention breaks nothing, because a redeploy of an expired commit already reruns CI and builds a new candidate.\n\n**Do this first:**\n1. In the workflow step, change `retention-days: 90` to `retention-days: 1`. GitHub won't accept anything below 1 day.\n2. Add `id: candidate` to the step so `steps.candidate.outputs.artifact-digest` can go into the release record.\n3. Once a rollback window is recorded, keep promoted artifacts for that window. Leave pull-request candidates at 1 day.\n\n**What I did not check:**\n- The workflow file itself. No workflow is in the working directory, so I only reviewed the step you pasted.\n- The repository's artifact retention limits (Settings → Actions → General → Artifact and log retention).\n- That deploy really downloads within 20 minutes. Compare the times in `gh run view <run-id> --json createdAt,jobs` across recent runs.\n- That deploy downloads `candidate-${{ github.sha }}-${{ github.run_attempt }}` from the same run attempt. A re-run attempt uploads under a new name.\n\n```\nScope:          CI workflow, step \"Retain immutable candidate\" (actions/upload-artifact@v4), all PR and default-branch runs\nDecision:       Set retention\nRisk:           retention\nArtifact:       name candidate-<sha>-<run_attempt>, unique per commit and attempt; if-no-files-found: error is correct; digest not captured (step has no id); retention 90 days explicit, but its only reader is the deploy job (≤20 min), and there is no rollback reader\nRelease state:  BUILD-VERIFIED (scope of this step only)\nTest evidence:  Not assessed; outside this step\nPreflight:      Not assessed; outside this step\nStrategy:       Not stated\nRepresentativeness: unmeasured\nRollout:        Not stated\nZero-downtime:  Not assessed; outside this step\nRollback:       No rollback window recorded, so no rollback retention; redeploying an expired commit rebuilds through CI\nOwner handoff:  missing; no production users yet\nEvidence:       Pasted step YAML; stated reader timing (deploy ≤20 min); stated redeploy behavior (CI rerun on expiry); stated volume (~40 × 75 MB/day)\nVerification:   Not run: no workflow file or run history available in this workspace\nNext action:    Set retention-days: 1; add id to the step and record artifact-digest; when a rollback window is set, give promoted candidates their own retention matching that window\n```"
+  "paths_searched": [
+    "."
+  ],
+  "turns": 4,
+  "metrics": {
+    "duration_ms": 22408,
+    "duration_api_ms": 22242,
+    "total_cost_usd": 0.22600750000000003,
+    "usage": {
+      "input_tokens": 8,
+      "cache_creation_input_tokens": 21980,
+      "cache_read_input_tokens": 45706,
+      "output_tokens": 2042,
+      "output_tokens_details": {
+        "thinking_tokens": 631
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 21980,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1132,
+          "cache_read_input_tokens": 25162,
+          "cache_creation_input_tokens": 662,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 662
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "modelUsage": {
+      "claude-haiku-5-5": {
+        "inputTokens": 1408,
+        "outputTokens": 27,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.0001543,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 0,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 0,
+        "canonicalModel": "claude-haiku-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-opus-5-5": {
+        "inputTokens": 8,
+        "outputTokens": 2042,
+        "cacheReadInputTokens": 45706,
+        "cacheCreationInputTokens": 21980,
+        "webSearchRequests": 0,
+        "costUSD": 0.22585320000000003,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 631,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 21980,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    }
+  },
+  "output": "**What I found:** This step keeps every 75 MB candidate for 90 days, but the only thing that ever reads a candidate is the deploy job, and it does so within 20 minutes. Change retention from 90 days to 1 day, the shortest GitHub allows (the record calls this Set retention). No rollback window is recorded and an expired candidate is rebuilt by rerunning CI, so nothing needs a candidate after its deploy has read it.\n\n**Why it matters:** At 40 candidates a day, 90-day retention settles at about 270 GB of stored artifacts that nothing reads. With 1-day retention it stays around 3 GB. Leaving it unchanged costs storage and money, and the 90 days looks like a rollback window that no release record actually backs.\n\n**Do this first:**\n1. In the workflow file that contains this step, change `retention-days: 90` to `retention-days: 1`.\n2. When releases start recording a rollback window (once there are production users), publish *promoted* default-branch artifacts by digest to a registry and keep them for that window. Keep PR candidates at 1 day.\n\n**What I did not check:**\n- The workflow file itself. No `.github/workflows/*.yml` exists in this directory, so the audit uses only the step and facts you gave. Close it with: `rg -n \"retention-days|download-artifact\" .github/workflows`\n- Whether the deploy job always reads the candidate within 20 minutes. An approval wait longer than 1 day would break it. Close it with: `gh run list --workflow <deploy>.yml --json createdAt,updatedAt`\n- The org or repo retention limit, which may already cap the 90 days. Close it with: `gh api repos/{owner}/{repo}/actions/permissions/artifact-and-log-retention`\n\n```\nScope:          CI workflow, step \"Retain immutable candidate\" (actions/upload-artifact@v4)\nDecision:       Set retention\nRisk:           retention\nArtifact:       candidate-${sha}-${run_attempt}; ~75 MB; ~40/day. Name is unique per commit and attempt, empty output fails the step (if-no-files-found: error), retention is set explicitly. Longest reader: the deploy job, which downloads within 20 min. Rollback reader: none (no rollback window recorded). Expired candidates are rebuilt by rerunning CI → retention-days: 1\nRelease state:  n/a (build-side step)\nTest evidence:  Not run. Only the step definition was checked\nPreflight:      n/a\nStrategy:       unrecorded\nRepresentativeness: unmeasured\nRollout:        unrecorded. Rollback path is to rerun CI on the old commit, which is a rebuild and not a re-promotion of a verified digest\nZero-downtime:  not assessed\nRollback:       no known-good artifact is retained. Acceptable while there are no production users and no rollback window; it stops being acceptable once a window is recorded (§3: rollback must redeploy a known-good artifact, not a rebuild)\nOwner handoff:  missing\nEvidence:       step text and stated facts; no workflow file in the working directory\nVerification:   Not run (no workflow file or run history available)\nNext action:    change retention-days: 90 to retention-days: 1. When a rollback window is recorded, retain promoted default-branch artifacts by digest for that window\n```"
 }

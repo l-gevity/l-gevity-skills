@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -2441,6 +2442,8 @@ def scenario_transcript(directory: Path, scenario: dict, stream: str, project: P
         "files_read": read,
         "paths_searched": searched,
         "turns": result.get("num_turns"),
+        "metrics": {key: result[key] for key in
+                    ("duration_ms", "duration_api_ms", "total_cost_usd", "usage", "modelUsage") if key in result},
         "output": output,
     }, ""
 
@@ -2537,7 +2540,7 @@ def validate_asset_references() -> None:
         )
 
 
-def mutation_test() -> int:
+def mutation_test(match: str | None = None) -> int:
     """Prove the checks bite. In a scratch copy of the repository, break one
     thing per rule family and require the validator to fail on it. A check
     never observed failing is a hypothesis, not a safeguard."""
@@ -2550,6 +2553,7 @@ def mutation_test() -> int:
         result = subprocess.run(
             [sys.executable, str(validator)],
             cwd=copy,
+            env={**os.environ, "PYTHONIOENCODING": "utf-8"},
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -3615,6 +3619,49 @@ def mutation_test() -> int:
                 )
             )
 
+    # Flow controls must reject regressions independently of prose pins.
+    def stop_ready_work() -> None:
+        for path in both("alchemy-orchestrate/scripts/check_orchestration.py"):
+            text, crlf = read_raw(path)
+            write_raw(path, text.replace("    done, active = set(completed), set(running)",
+                                        "    return []\n    done, active = set(completed), set(running)", 1), crlf)
+
+    cases.append((Case("flow: ready work never released", both("alchemy-orchestrate/scripts/check_orchestration.py"),
+                       ("flow controls:",)), stop_ready_work))
+
+    def disable_reuse() -> None:
+        for path in both("alchemy-orchestrate/scripts/record_evidence.py"):
+            text, crlf = read_raw(path)
+            write_raw(path, text.replace("if reuse_identical else None", "if False else None"), crlf)
+
+    cases.append((Case("flow: opted-in command still runs repeatedly", both("alchemy-orchestrate/scripts/record_evidence.py"),
+                       ("flow controls:",)), disable_reuse))
+
+    def drop_measurements() -> None:
+        text, crlf = read_raw(validator)
+        write_raw(validator, text.replace('"metrics": {key: result[key]', '"discarded_metrics": {key: result[key]', 1), crlf)
+
+    cases.append((Case("flow: scenario discards runtime measurements", [validator],
+                       ("flow controls:",)), drop_measurements))
+
+    def full_correction_diff() -> None:
+        for path in both("alchemy-orchestrate/adapters/unstoppable/pipelines/alchemy-multi-agent.yaml"):
+            text, crlf = read_raw(path)
+            write_raw(path, text.replace("base_ledger: ${{ needs.plan_check.outputs.run_dir }}/ledger.json",
+                                        "base: ${{ needs.plan_check.outputs.base_commit }}", 1), crlf)
+
+    cases.append((Case("flow: correction receives full original diff",
+                       both("alchemy-orchestrate/adapters/unstoppable/pipelines/alchemy-multi-agent.yaml"),
+                       ("flow controls:",)), full_correction_diff))
+
+    def serialize_repository_fixtures() -> None:
+        text, crlf = read_raw(validator)
+        write_raw(validator, text.replace("    with ThreadPoolExecutor(max_workers=3) as executor:\n",
+                                        "    with ThreadPoolExecutor(max_workers=1) as executor:\n", 1), crlf)
+
+    cases.append((Case("flow: repository fixtures serialized", [validator],
+                       ("flow controls:",)), serialize_repository_fixtures))
+
     # A mutation that adds or removes words also moves a size count, and the
     # size checks run before most others: without this, a case would be judged
     # on whether a count sat near its budget, not on the check it targets. So
@@ -3637,6 +3684,15 @@ def mutation_test() -> int:
         for key, value in caps.items():
             text = re.sub(rf"(?m)^{key} = \d+$", f"{key} = {value}", text)
         write_raw(validator, text, crlf)
+
+    total = len(cases)
+    if match is not None:
+        cases = [(case, mutate) for case, mutate in cases if match in case.label]
+        if not cases:
+            shutil.rmtree(scratch, ignore_errors=True)
+            print(f"ERROR: no mutation label contains {match!r}")
+            return 1
+        print(f"Selected {len(cases)} of {total} mutations matching {match!r}")
 
     try:
         code, output = run()
@@ -3663,7 +3719,9 @@ def mutation_test() -> int:
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
     for line in failures:
-        print(f"ERROR: {line}")
+        # A broken check must remain readable even on a legacy Windows console.
+        print((f"ERROR: {line}").encode(sys.stdout.encoding or "utf-8", "backslashreplace").decode(
+            sys.stdout.encoding or "utf-8"))
     if failures:
         return 1
     print(f"{len(cases)} deliberate violations, all caught")
@@ -4598,7 +4656,8 @@ def validate_gate_repository_rules() -> None:
     applies (AUTHORIZATION_UNPROVEN). Each defect is replayed alone, next to
     the same repository without it."""
     checker = orchestration_checker()
-    for (unowned, raised, cycles, renamed), (verdict, codes) in GATE_REPOSITORY_CASES.items():
+    def run_case(case):
+        (unowned, raised, cycles, renamed), (verdict, codes) = case
         scratch = Path(tempfile.mkdtemp(prefix="l-gevity-gate-repo-"))
         try:
             report = gate_repository_report(checker, scratch, unowned, raised, cycles, renamed)
@@ -4606,9 +4665,25 @@ def validate_gate_repository_rules() -> None:
             shutil.rmtree(scratch, ignore_errors=True)
         got = sorted({error["code"] for error in report["errors"]})
         if report["verdict"] != verdict or got != codes:
-            fail(f"gate repository rules (unowned write {unowned}, bound raised {raised}, {cycles} cycles, "
-                 f"unowned file moved into an owned directory {renamed}) "
-                 f"expected {verdict} {codes}, got {report['verdict']} {got}")
+            return (f"gate repository rules (unowned write {unowned}, bound raised {raised}, {cycles} cycles, "
+                    f"unowned file moved into an owned directory {renamed}) "
+                    f"expected {verdict} {codes}, got {report['verdict']} {got}")
+        return None
+
+    # Every case owns its temporary repository; collect in fixture order so
+    # diagnostics remain deterministic even when workers finish out of order.
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        problems = list(executor.map(run_case, GATE_REPOSITORY_CASES.items()))
+    for problem in problems:
+        if problem:
+            fail(problem)
+
+
+def validate_flow_controls() -> None:
+    run = subprocess.run([sys.executable, str(ROOT / "scripts/test-skill-performance.py")],
+                         capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if run.returncode:
+        fail("flow controls: " + run.stdout + run.stderr)
 
 
 def validate_evidence_recorder() -> None:
@@ -5065,6 +5140,12 @@ def main() -> int:
     if "--stamp-primers" in sys.argv[1:]:
         return stamp_primers()
     if "--mutation-test" in sys.argv[1:]:
+        if "--mutation-match" in sys.argv[1:]:
+            index = sys.argv.index("--mutation-match")
+            if index + 1 == len(sys.argv):
+                print("ERROR: --mutation-match needs a label substring")
+                return 1
+            return mutation_test(sys.argv[index + 1])
         return mutation_test()
     if "--record-scenario" in sys.argv[1:]:
         return record_scenarios(sys.argv[sys.argv.index("--record-scenario") + 1 :])
@@ -5084,9 +5165,8 @@ def main() -> int:
     validate_skill_contracts()
     validate_execution_contract()
     validate_alchemy_companion_order()
+    validate_flow_controls()
     validate_adversarial_cases()
-    validate_gate_repository_rules()
-    validate_evidence_recorder()
     validate_package_budgets()
     validate_unattended_adapter()
     validate_correction_loop()
@@ -5101,7 +5181,6 @@ def main() -> int:
     validate_report_blocks()
     validate_morphogenetic_public_vocabulary()
     validate_primers()
-    validate_primer_revisions()
     validate_asset_references()
     validate_readme_index()
     validate_overview_skill_count()
@@ -5120,6 +5199,12 @@ def main() -> int:
     validate_design_and_release_contracts()
     validate_contribution_contract()
     validate_markdown_links()
+    # Cheap structural diagnostics precede process-heavy repository fixtures.
+    # Freshness stays after behavioral checks so a deliberate code defect is
+    # caught by its owning check rather than hidden by a revision mismatch.
+    validate_gate_repository_rules()
+    validate_evidence_recorder()
+    validate_primer_revisions()
     validate_scenarios()
     print("Skills validated")
     return 0

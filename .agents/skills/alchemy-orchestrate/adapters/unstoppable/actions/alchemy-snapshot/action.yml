@@ -11,7 +11,13 @@ inputs:
     description: '"true" fails the step when changes outside ignored paths are not committed.'
     required: false
     default: 'false'
+  base_ledger:
+    description: Previous reviewed alchemy-ledger/1 file; diff from its head_commit. Mutually exclusive with base.
+    required: false
+    default: ''
 outputs:
+  base_commit:
+    description: Resolved base commit used for the diff.
   head_commit:
     description: The commit HEAD points at.
   branch:

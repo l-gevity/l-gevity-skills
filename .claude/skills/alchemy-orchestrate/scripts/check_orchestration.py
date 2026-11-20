@@ -1492,8 +1492,40 @@ def _extension_fact(parsed: dict[str, Any]) -> dict[str, Any] | None:
     return {"ceiling": extension["ceiling"], "conditions": sorted(extension["conditions"]), "ref": auth.get("ref")}
 
 
+def ready_packages(packages: dict[str, Any], completed: list[str], running: list[str],
+                   cap: int, lead: str) -> list[str]:
+    """Release dependency-ready work within the agent and owner limits.
+
+    completed means accepted and integrated, not merely finished. The caller
+    owns those runtime facts; this function checks their internal consistency.
+    """
+    done, active = set(completed), set(running)
+    if (done | active) - packages.keys() or done & active:
+        raise InputError("completed/running packages must exist and must not overlap")
+    if any(set(packages[pid]["depends_on"]) - done for pid in done | active):
+        raise InputError("completed/running packages need accepted, integrated dependencies")
+    owners = [_label(packages[pid]["owner"]) for pid in active]
+    if len(owners) != len(set(owners)):
+        raise InputError("an owner cannot run two packages at once")
+    lead = _label(lead)
+    occupied = set(owners)
+    if len(occupied - {lead}) > cap:
+        raise InputError("running agents exceed the concurrency cap")
+    ready = []
+    for pid, pkg in sorted(packages.items()):
+        owner = _label(pkg["owner"])
+        if pid in done | active or set(pkg["depends_on"]) - done or owner in occupied:
+            continue
+        if owner != lead and len(occupied - {lead}) >= cap:
+            continue
+        ready.append(pid)
+        occupied.add(owner)
+    return ready
+
+
 def check_plan(plan: Any, profile: Any, root: str | Path | None = None,
-               approved: str | None = None, revision: str | None = None) -> dict[str, Any]:
+               approved: str | None = None, revision: str | None = None,
+               completed: list[str] = (), running: list[str] = ()) -> dict[str, Any]:
     """Decide whether a plan may run; report waves and the derived execution mode.
 
     With `root`, the repository there must be at the plan's base or an
@@ -1524,6 +1556,11 @@ def check_plan(plan: Any, profile: Any, root: str | Path | None = None,
                                                               "the plan base or an integrated head")
         for problem in problems:
             report.add("WORKSPACE_MISMATCH", problem)
+    facts["ready"] = []
+    if not report.errors:
+        cap = min(parsed["execution"]["max_parallel_agents"], view["max_parallel_agents"])
+        facts["ready"] = ready_packages(parsed["packages"], completed, running, cap,
+                                         parsed["execution"]["integration_owner"])
     return _result(report, facts)
 
 
@@ -2880,6 +2917,9 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     plan = commands.add_parser("plan", help="check a plan before any delegation")
     plan.add_argument("plan", type=Path, help="alchemy-plan/1 JSON file")
     plan.add_argument("--root", type=Path, help="repository that must be clean at the plan's base")
+    plan.add_argument("--completed", action="append", default=[],
+                      help="accepted and integrated package ID; repeatable, never merely finished")
+    plan.add_argument("--running", action="append", default=[], help="running package ID; repeatable")
     preflight = commands.add_parser("preflight", help="check that a run can proceed unattended")
     preflight.add_argument("preflight", type=Path, help="alchemy-preflight/1 JSON file")
     preflight.add_argument("--root", type=Path, help="repository that must be clean at the plan's base")
@@ -2918,7 +2958,8 @@ def main(argv: list[str] | None = None) -> int:
         if root is not None and not root.is_dir():
             raise InputError(f"{root}: --root is not a directory")
         if args.command == "plan":
-            result = check_plan(_read_json(args.plan), profile, root, args.approved, args.revision)
+            result = check_plan(_read_json(args.plan), profile, root, args.approved, args.revision,
+                                args.completed, args.running)
         elif args.command == "preflight":
             result = check_preflight(_read_json(args.preflight), _read_json(args.plan), profile, root)
         elif args.command == "handoff":

@@ -51,9 +51,80 @@
     "infrastructure-fit"
   ],
   "files_read": [],
-  "paths_searched": [
-    "."
-  ],
-  "turns": 4,
-  "output": "**What I found:** The document store doesn't fit any more. Switch it to one relational database now, before the first customers (the record calls this MIGRATE). The deciding facts are that your workarounds are the textbook signs of a relational domain on a document store, and that production holds no real data, so you only rewrite code and move no data.\n\n**Why it matters:** If you switch now, you pay once to rewrite the store layer, and you can delete the uniqueness checks, conflict retries, app-side joins and old-shape readers instead of porting them. If you wait, the roughly one-in-eight-commits tax continues, and every customer row adds a data migration with an expand/contract rollout and a reversal plan.\n\n**Do this first:**\n1. Record the store decision, then build a walking skeleton on the relational store: the hardest employer×employee×assessment report, one uniqueness constraint, backup and restore, and erasure of one employee. Run it from the serverless runtime, which tests the connection-pooling risk below.\n2. Put the store behind an owned port, and run its contract tests against the real database, not a fake.\n3. Hand the cutover plan to `evolutionary-database-design`. With no data to keep, it can be a straight cutover. Treat the old-shape readers as delete candidates, not things to port.\n\n**What I did not check:**\n- The workspace holds no product code. Every signal and the one-in-eight figure come from your description, not from counting. Close it with `git log --since=6.months --name-only` and count commits touching the store paths against the total.\n- The identity and compute profile dimensions (federation, erasure, cold-start tolerance, cost envelope) were not supplied.\n- No skeleton paths were run.\n\n```text\nMode:            Review (before first real data; tripwires fired)\nComponent:       Data store (document database)\nDoor:            ONE-WAY\nStatus:          INHERITED (template default; no recorded reason)\nForcing need:    none found\nProfile:         Domain shape: employers, employees, roles, assessments, reports;\n                 cross-entity uniqueness, referential integrity, joined reports -> relational.\n                 Scale: tens of small tenants, single node is plenty.\n                 Access patterns: join-heavy reports. Data lifecycle, residency: GAP\nEvidence:        Reported, NOT VERIFIED: hand-written uniqueness checks, write-conflict\n                 retries, app-side joins, readers for old document shapes; ~1/8 commits\n                 touch the store. Production holds no real customer data.\nVerdict:         MIGRATE (default: one relational database)\nTripwires:       After migration: share of commits touching the store layer > 10% per\n                 quarter; owner: unassigned (name one); evaluated at the quarterly review\nReversal cost:   Now: code rewrite of the store layer only. Rises with every real\n                 customer row (data migration, dual-shape rollout).\nHandoff:         evolutionary-database-design (cutover plan); test-strategy (port contract tests)\nNext action:     Write the decision record and run the skeleton against a relational DB\n```\n\n```text\nMode:            Review (before first real data)\nComponent:       Compute (serverless backend)\nDoor:            ONE-WAY\nStatus:          INHERITED\nForcing need:    none found\nProfile:         Scale: tens of tenants, likely idle-heavy, which favours scale-to-zero.\n                 Workload shape, latency tolerance, cost envelope: GAP\nEvidence:        NOT VERIFIED. Known risk: serverless with a relational store needs\n                 pooled or serverless-compatible connections.\nVerdict:         DEFER (missing: cold-start tolerance, workload shape, cost envelope)\nTripwires:       p95 cold-start latency or connection exhaustion in the skeleton;\n                 owner: unassigned; evaluated at the skeleton run, then each release\nReversal cost:   Low-moderate while the backend is small; rises with platform-specific triggers\nHandoff:         requirements-grounding (fill the dimensions)\nNext action:     Include connection behaviour under concurrent cold starts in the skeleton\n```\n\n```text\nMode:            Review (before first real data)\nComponent:       Identity (platform-managed sign-in)\nDoor:            ONE-WAY\nStatus:          INHERITED\nForcing need:    none found\nProfile:         Identity (employer admins vs employees, federation/SSO, account\n                 lifecycle), erasure: GAP\nEvidence:        NOT VERIFIED. Unknown whether user records live in the document store.\nVerdict:         DEFER (missing: identity dimension; erasure path across the provider and the new DB)\nTripwires:       A customer asks for SSO or federation the provider can't meet, or erasure\n                 can't complete in the skeleton; owner: unassigned; evaluated at the skeleton run\nReversal cost:   Rises sharply once real users hold accounts; cheapest before first customers\nHandoff:         requirements-grounding\nNext action:     Confirm the provider is standards-based (OIDC) and that authorization\n                 (roles) lives in your relational schema, not in provider metadata\n```"
+  "paths_searched": [],
+  "turns": 3,
+  "metrics": {
+    "duration_ms": 27209,
+    "duration_api_ms": 28594,
+    "total_cost_usd": 0.19046090000000002,
+    "usage": {
+      "input_tokens": 6,
+      "cache_creation_input_tokens": 16948,
+      "cache_read_input_tokens": 20502,
+      "output_tokens": 2525,
+      "output_tokens_details": {
+        "thinking_tokens": 717
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 16948,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 4,
+          "output_tokens": 2444,
+          "cache_read_input_tokens": 16658,
+          "cache_creation_input_tokens": 4134,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4134
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "modelUsage": {
+      "claude-haiku-5-5": {
+        "inputTokens": 1360,
+        "outputTokens": 233,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.0002525,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 215,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 0,
+        "canonicalModel": "claude-haiku-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-opus-5-5": {
+        "inputTokens": 6,
+        "outputTokens": 2525,
+        "cacheReadInputTokens": 20502,
+        "cacheCreationInputTokens": 16948,
+        "webSearchRequests": 0,
+        "costUSD": 0.1902084,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 717,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 16948,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    }
+  },
+  "output": "**What I found:** The document database doesn't fit your domain. Switch to one relational database now, before the first customer, and don't wait (the record calls this MIGRATE). The deciding fact is that your code already contains every workaround that points to a relational domain on a document store, and production holds no real customer data yet, so the switch will never be cheaper than it is today.\n\n**Why it matters:** If you switch now, you rewrite the persistence layer and delete the hand-written uniqueness checks, conflict retries, application-side joins and old-shape readers, with no live data to move. If you wait, every customer's data adds a staged migration, keeps the readers alive, and the store keeps taking about one commit in eight.\n\n**Do this first:**\n1. Check that every environment, including production, holds only test or seed data. Then write the store decision record (forcing need: the invariants that span entities and the reporting joins) wherever your project keeps decisions.\n2. Build the relational store behind a port your team owns. Run the walking skeleton on it: sign-in, deploy and rollback, a restore drill, erasure of one person's data, a cross-tenant read that gets refused, and your hardest report.\n3. Then decide on compute and sign-in. Both depend on the new store (records below).\n\n**What I did not check:**\n- This folder isn't a git repository and has no application code, so I couldn't count commits. Run `git log --since=6.months --name-only --format= | grep -c <store-path>` against `git rev-list --count --since=6.months HEAD` in the product repo.\n- I didn't search for the workaround patterns in the code. Grep for retry-on-conflict, uniqueness lookups and shape-version readers.\n- I didn't confirm that production holds no real data. Run a row or document count per collection in each environment.\n- I didn't check whether the sign-in service issues standard OIDC tokens or is tied to the document platform. Read the backend's auth configuration.\n\n```text\nMode:            Review (workarounds accumulating; first real data not yet entered)\nComponent:       Document database\nDoor:            ONE-WAY\nStatus:          INHERITED (starter template default; no decision recorded)\nForcing need:    none found\nProfile:         Domain shape: employers, employees, roles, assessments, reports; uniqueness,\n                 referential integrity, cross-entity joins -> relational.\n                 Access: reports joining all entities. Scale: tens of small tenants -> one node.\n                 Data lifecycle, residency, cost: GAP\nEvidence:        As reported by you, NOT VERIFIED: hand-written uniqueness checks, write-conflict\n                 retries, joins in application code, readers for old document shapes,\n                 ~1 in 8 commits touching the store\nVerdict:         MIGRATE\nTripwires:       n/a for the old store; for the new one: store-touching commit share > 10% per\n                 quarter, owner = tech lead, checked at the quarterly fit review\nReversal cost:   Low now (persistence rewrite, seed data only); rises with every tenant's real rows\nHandoff:         evolutionary-database-design (only if any environment holds data worth keeping)\nNext action:     Confirm no real data, then define the relational schema with uniqueness and\n                 foreign-key constraints in the database\n```\n\n```text\nMode:            Review (store change alters compute fit)\nComponent:       Serverless backend\nDoor:            ONE-WAY\nStatus:          INHERITED\nForcing need:    none found\nProfile:         Scale: tens of small tenants, likely idle most of the time (scale-to-zero may\n                 pay). Workload shape, cost envelope, operability: GAP\nEvidence:        NOT VERIFIED. Serverless plus relational brings a connection-limit and\n                 cold-start risk\nVerdict:         DEFER (missing: workload shape, cost envelope, a relational skeleton run)\nTripwires:       DB connection exhaustion or p95 cold start above the agreed budget during the\n                 skeleton run, owner = tech lead\nReversal cost:   Moderate; lower if handlers stay thin behind the store port\nHandoff:         requirements-grounding (fill the workload and cost dimensions)\nNext action:     Run the skeleton's hardest report from a serverless function against the new\n                 database, through a pooler or HTTP driver\n```\n\n```text\nMode:            Review (store change may drag identity with it)\nComponent:       Platform-managed sign-in\nDoor:            ONE-WAY\nStatus:          INHERITED\nForcing need:    none found\nProfile:         Identity: employer admins and employees; federation needs: GAP.\n                 Erasure across store and identity provider: GAP\nEvidence:        NOT VERIFIED\nVerdict:         DEFER (missing: token standard, where the user store lives, where roles are\n                 enforced)\nTripwires:       Authorization logic found in platform rules rather than the app, or erasure\n                 that cannot reach the identity provider, owner = tech lead, checked in the\n                 skeleton erasure path\nReversal cost:   Rises sharply once real users exist (password and credential migration)\nHandoff:         none until the skeleton runs\nNext action:     Confirm the provider issues standard OIDC tokens and that roles live in the\n                 new relational schema, not in the platform\n```"
 }

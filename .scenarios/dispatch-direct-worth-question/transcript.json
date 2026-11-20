@@ -57,5 +57,78 @@
   ],
   "paths_searched": [],
   "turns": 6,
-  "output": "**What I found:** You'd be building a plugin system for output formats when there's only one format (JSON) and nobody has asked for a second. Don't build it, and say why in writing so it isn't proposed again without new evidence (the record calls this DROP). It fails on need, so cost doesn't come into it: a plugin interface with one implementation is generality nobody is using.\n\n**Why it matters:** Once outside code depends on a plugin interface, you're stuck supporting it, and every future change to output has to work around it. Skipping it costs nothing today, and adding a second format later is a small change if output is written from one place.\n\n**Do this first:**\n1. Check that all output goes through one function (for example `render(result) -> str`). If JSON is written from several places, merge them into one. That is the only preparation worth doing now.\n\n**What I did not check:**\n- The CLI source. I didn't confirm output goes through one function. To close it, search the code for where JSON is written, e.g. `json.dumps` / `JSON.stringify`.\n- Whether there's demand nobody has filed. To close it, look in the issue tracker and support channels for pipes into `jq`, `yq`, CSV converters or similar workarounds.\n\n```\nDispatch:   DIRECT\nCore route: M\nCompanions: None\nExecution:  single-agent — one gate, no independent work packages\n```\n\n```\nSubject:        Plugin system for pluggable CLI output formats\nMode:           Prospective\nNecessity:      Fail\nNecessity note: Generality without instantiation (§1a). The pattern requires\n                multiple implementations; there is one (JSON), and nobody has\n                asked for a second. Optionality premium (§8a) fails: no named,\n                probable next format. Irreversibility tax (§8b) would apply on\n                top: a plugin API is a public contract once third parties\n                build against it.\nOutcome evidence: none\nDecision:       DROP\nRationale:      The abstraction would defend against variation that doesn't\n                exist. Building it now ships an interface with one\n                implementation on day one. If a second format appears, a\n                `--format` flag with a switch over two built-in renderers\n                covers it without a plugin loader, discovery, versioning or a\n                public API.\nNext action:    Keep output behind one internal render function. Build nothing\n                else.\nVerification:   Not run: CLI source not inspected. Search for JSON\n                serialization calls and confirm there is one call site.\nMinimal alt:    When asked for a second format: add `--format {json,<new>}`\n                and a second built-in renderer. Consider plugins only if\n                outside parties need to add formats you won't maintain\n                yourselves.\nRevisit when:   The first concrete user request for a second format, or a\n                named second format going on the roadmap. Requests for\n                formats from outside the team reopen the plugin question\n                specifically.\n```"
+  "metrics": {
+    "duration_ms": 20263,
+    "duration_api_ms": 21336,
+    "total_cost_usd": 0.29281830000000003,
+    "usage": {
+      "input_tokens": 10,
+      "cache_creation_input_tokens": 30245,
+      "cache_read_input_tokens": 72668,
+      "output_tokens": 1803,
+      "output_tokens_details": {
+        "thinking_tokens": 457
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 30245,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1213,
+          "cache_read_input_tokens": 31389,
+          "cache_creation_input_tokens": 2700,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 2700
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "modelUsage": {
+      "claude-haiku-5-5": {
+        "inputTokens": 1232,
+        "outputTokens": 203,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.00022470000000000001,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 187,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 0,
+        "canonicalModel": "claude-haiku-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-opus-5-5": {
+        "inputTokens": 10,
+        "outputTokens": 1803,
+        "cacheReadInputTokens": 72668,
+        "cacheCreationInputTokens": 30245,
+        "webSearchRequests": 0,
+        "costUSD": 0.2925936,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 457,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 30245,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    }
+  },
+  "output": "**What I found:** You're proposing a plugin system for output formats when the tool has one format (JSON) and nobody has asked for another. Don't build it (the record calls this DROP): the flexibility it adds only pays off once a second format exists, and none does.\n\n**Why it matters:** If you build it now, you add a loader, a plugin interface and its tests, and once other people write plugins against that interface you can't easily change it. If you don't, nothing breaks today, and when someone asks for a second format you add it directly for a small one-time cost.\n\n**Do this first:**\n1. Keep JSON output in one function, if it isn't already, so the rest of the tool doesn't depend on it.\n2. When someone asks for a second format, add a `--format` flag that picks between the two built-in formats. Only design a plugin interface once people outside your team need to ship their own formats.\n\n**What I did not check:**\n- The CLI's code, since this folder only holds the skill library. Find where JSON is written with `rg -n \"json.dump|JSON.stringify|json.Marshal\"` in the tool's repo. If those calls are spread across many files, putting them in one function is worth doing now.\n- Whether a user or customer has a format request waiting. Search your issue tracker for \"format\", \"csv\" and \"yaml\".\n\n```\nDispatch:   DIRECT\nCore route: M\nCompanions: None\nExecution:  single-agent — one gate, one question\n```\n\n```\nSubject:        Plugin system for CLI output formats\nMode:           Prospective\nNecessity:      Fail\nNecessity note: §1a generality without instantiation — plugin interface with one implementation (JSON);\n                no second format exists or has been requested. §8a optionality test fails: the next\n                format is neither named nor probable. §8b irreversibility tax applies on top: a plugin\n                API is a public contract once third parties build against it.\nOutcome evidence: none\nDecision:       DROP\nRationale:      Nothing has a second format to plug in, so the system would be dead generality on\n                day one. Its cost (loader, discovery, interface versioning, tests, docs) recurs on\n                every change, while its value depends on demand that hasn't appeared.\nNext action:    stop; optionally keep JSON serialization behind a single function\nVerification:   Not run — decision based on the stated facts (one format, zero requests); the CLI codebase was not inspected\nMinimal alt:    On the first real request, add a built-in `--format` option choosing between two formats; extract an interface on the third format or the first out-of-tree requirement\nRevisit when:   a named user or customer requests a second output format, or a third party needs to ship formats without changing the tool\n```"
 }

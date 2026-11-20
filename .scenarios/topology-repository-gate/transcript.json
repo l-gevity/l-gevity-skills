@@ -62,5 +62,78 @@
     "."
   ],
   "turns": 10,
-  "output": "**What I found:** The invoicing self-service graph is not ready to hand over. It needs one edge added and the hand-set flags taken out before implementation planning (the record calls this NEEDS-REFACTOR). The deciding fact is that `owner-only-access` holds across `invoices` and `statements`, but `edges.yaml` only has a `constrains` edge to `invoice-download`. `statement-download` exists and nothing constrains it.\n\n**Why it matters:** If you hand it over now, planning will read statement download as having no owner-only access rule. That rule comes from the customer contract (clause 9). The fix is one edge, so holding the handoff costs little.\n\n**Do this first:**\n1. Add `owner-only-access constrains statement-download` to `requirements/edges.yaml`, with evidence `\"grounding.md#owner-only-access: Holds across: invoices, statements\"` and `inferred: false`.\n2. Remove `implemented` and `verified` from `requirements/records.yaml` and `requirements/records.schema.json`. Record that state as trace links to code and to test results that actually ran.\n3. Add a semantic check to CI (aspect coverage, reference resolution, cycles) so this kind of gap fails the build. The current schema check passed it.\n\n**What I did not check:**\n- I did not run the CI schema check myself; I'm relying on your report that it's green (`npx --yes ajv-cli@5.0.0 validate -s requirements/records.schema.json -d requirements/records.yaml`).\n- I did not look for evidence behind the `verified: true` flags. No test or evidence links exist in the repository to check.\n\n```text\nSubject:           invoicing self-service (invoices, statements, document-store)\nMode:              analysis\nDecision:          NEEDS-REFACTOR\nCanonical source:  requirements/grounding.md, version 3, accepted 2026-10-02\nGraph size:        4 nodes / 3 typed edges\nCycle:             Pass (depends_on: invoice-download → document-archive, statement-download → document-archive)\nAspect coverage:   Fail: owner-only-access → statements (statement-download has no constrains edge)\nBlocking issues:   aspect coverage (owner-only-access → statement-download missing);\n                   records carry implemented/verified as hand-set status, not executed evidence\nRetired:           none\nInferred edges:    0; all 3 cite grounding sections\nRepository gate:   phases expected: validation (schema + semantics), generation, generated-drift\n                   check, traceability, run together by one requirements check at the earliest\n                   local stage and again as a CI backstop. Present: schema validation only, CI only\n                   (.github/workflows/ci.yml:16-17). Not configured: semantic validation,\n                   generation, drift check, traceability, local/pre-commit stage.\nNext action:       add the missing constrains edge, remove the flags, add semantic validation; then run implementation-readiness\nVerification:      compared records and edges against grounding by hand: IDs, complete-when refs\n                   (all 4 resolve), depends_on projection, holds_across vs constrains edges,\n                   source_refs. Nothing executed.\n```\n\n**Flags:** No, they don't belong in the records.\n- **Mixed facts:** The records should hold only requirement meaning and status. Implementation and verification are separate facts that change at a different pace and have a different owner.\n- **No evidence behind them:** A hand-set `verified: true` proves nothing. `invoice-download` and `owner-only-access` are marked verified, but nothing links to the tests or evidence that ran.\n- **Gaps already showing:** `owner-only-access` is `verified: true` overall, yet nothing in the graph constrains `statement-download`. The flags and the graph already disagree.\n\nFlags owner: requirements-traceability\n\n**Minor issues:** none of these block the handoff.\n- **Unsourced scope:** `owner-only-access` has `requirement_scope: document-store` in `requirements/records.yaml:57`. The grounding file gives it no scope, and it has no edge to `document-archive`. Someone should decide which scope owns it.\n- **Source references:** `source_refs` don't quite match the grounding file. `support tickets third-quarter count` (`records.yaml:30`, `:46`) and `customer contract clause 9` (`:62`) drop the comma, so they merge two references into one string. `document-archive` keeps them split."
+  "metrics": {
+    "duration_ms": 27743,
+    "duration_api_ms": 28289,
+    "total_cost_usd": 0.2549215,
+    "usage": {
+      "input_tokens": 8,
+      "cache_creation_input_tokens": 23878,
+      "cache_read_input_tokens": 43491,
+      "output_tokens": 2751,
+      "output_tokens_details": {
+        "thinking_tokens": 789
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 23878,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 2074,
+          "cache_read_input_tokens": 22978,
+          "cache_creation_input_tokens": 4744,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4744
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "modelUsage": {
+      "claude-haiku-5-5": {
+        "inputTokens": 1368,
+        "outputTokens": 21,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.00014730000000000003,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 0,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 0,
+        "canonicalModel": "claude-haiku-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-opus-5-5": {
+        "inputTokens": 8,
+        "outputTokens": 2751,
+        "cacheReadInputTokens": 43491,
+        "cacheCreationInputTokens": 23878,
+        "webSearchRequests": 0,
+        "costUSD": 0.2547742,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 789,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 23878,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    }
+  },
+  "output": "**What I found:** The invoicing graph is not ready for implementation planning (the record calls this NEEDS-REFACTOR). `owner-only-access` must hold for both invoices and statements, but `edges.yaml` only links it to `invoice-download`, so statements are left unprotected in the graph.\n\n**Why it matters:** If planning gets the graph as it is, it will derive `statement-download` with no access constraint, and the customer contract's owner-only rule will be missing from that work. The CI schema check can't catch this: it checks the shape of `records.yaml` and nothing else. It never reads `edges.yaml` or compares records against edges.\n\n**Do this first:**\n1. Add an edge to `requirements/edges.yaml`: `from: owner-only-access`, `type: constrains`, `to: statement-download`, `evidence: \"grounding.md#owner-only-access: Holds across: invoices, statements\"`, `inferred: false`.\n2. Remove `implemented` and `verified` from `requirements/records.yaml` and `records.schema.json`, and record that state as traceability evidence instead.\n3. Add a semantic check to CI that compares each record's `holds_across` scopes against its `constrains` edges, checks for `depends_on` cycles, and checks that every edge points to an existing record.\n\n**What I did not check:**\n- I didn't run the schema check locally: `npx --yes ajv-cli@5.0.0 validate -s requirements/records.schema.json -d requirements/records.yaml`.\n- I didn't check whether FP-12 or contract clause 9 have changed since grounding v3. That needs a manual review of those sources.\n- I didn't check any code or tests behind the `implemented`/`verified: true` claims. This repository contains none.\n\n```text\nSubject:           invoicing self-service (invoices, statements, document-store)\nMode:              analysis\nDecision:          NEEDS-REFACTOR\nCanonical source:  requirements/grounding.md, version 3 (accepted 2026-10-02)\nGraph size:        4 nodes / 3 typed edges\nCycle:             Pass — depends_on projection: invoice-download → document-archive,\n                   statement-download → document-archive; acyclic\nAspect coverage:   Fail: owner-only-access → statements (holds_across names it; no\n                   constrains edge into statement-download)\nBlocking issues:   aspect coverage (above). IDs unique and readable; no compound\n                   nodes, orphans, duplicates, conflicts, or lineage changes; every\n                   complete_when_ref resolves to a grounding section with conditions.\nRetired:           none\nInferred edges:    0; all 3 edges cite grounding text\nRepository gate:   should run validation (schema + semantics), generation,\n                   generated-drift checking, traceability. Present: schema only,\n                   records.yaml only, in CI only (no earlier local run). Absent:\n                   semantic validation, any check of edges.yaml, generation,\n                   drift checking, traceability.\nNext action:       add owner-only-access constrains statement-download, then\n                   re-run topology checks, then implementation-readiness\nVerification:      manual graph checks against grounding.md v3 (IDs, splits,\n                   orphans, cycle, aspect coverage, references, sources);\n                   no tooling run\n```\n\nWatch item: `owner-only-access` is assigned `requirement_scope: document-store`, but the grounding doesn't name a scope for it. That assignment was added in the records and should be confirmed with the product owner.\n\n**Do the flags belong in the records?** No. Grounding says the records \"add no meaning\", and implementation and verification are facts separate from requirement status. Flipping a boolean by hand records a claim, not executed evidence. For example, `owner-only-access` is marked `verified: true` even though the graph never applies it to statements.\n\nFlags owner: requirements-traceability"
 }

@@ -55,5 +55,78 @@
   ],
   "paths_searched": [],
   "turns": 4,
-  "output": "**What I found:** The line-limit gate looks green, but it no longer checks anything. Each time it goes red, a script rewrites the baseline to match the current tree, so the exception list grew from 41 to 58 modules in 12 days without anyone deciding to add an entry. The fix is to let the baseline shrink on its own and grow only when a change names the new entry (the record calls this RATCHET). What decided it: 34 rewrites, 17 new entries, and no commit message that mentions any of them.\n\n**Why it matters:** As things stand, any module can go over the limit without anyone deciding it should, and the green check hides that. Turning the ratchet on will turn the gate red on in-flight PRs until someone either fixes or names each of the 17 new entries.\n\n**Do this first:**\n1. Replace the regenerate script with a reconcile step (algorithm in `.claude/skills/gate-lifecycle/references/ratchet.md`). It compares the baseline with the current tree. A new or grown entry fails the gate unless the change names it, e.g. `--accept-growth <path>` with a reason in the commit. Shrunk or stale entries are removed automatically. A red run writes nothing. Commit a unit test for the \"refused\" case and run it in CI. That test is the gate's negative control.\n2. Rebuild the baseline from the 41-entry version from 12 days ago. Bring back each of the 17 additions in one change that names it with a reason, or fix the module instead. Drop any of the original 41 that are now under the limit.\n3. Name an owner for the exception list. I don't know who that should be. You decide.\n\n**What I did not check:**\n- This workspace holds no repository, gate config, script or baseline, so none of this was run against real files.\n- I don't know whether the baseline stores line counts per module or only names. If it stores counts, entries that were already in the list may also have grown. To check, diff the baseline from 12 days ago with today's: `git diff <commit-12-days-ago> HEAD -- <baseline.json>`.\n- I don't know whether CI can push baseline changes on its own. Check the regenerate script's call sites and the pipeline's write permissions.\n\n```text\nGate:         source-module line limit + JSON exception baseline, merge gate\nStage:        unplaced (merge gate; stage not given)\nTrigger:      churn\nProof:        UNPROVEN (34 red runs exist but were erased by regeneration; no committed negative control)\nScope:        declared all source modules / effective modules not in a baseline regenerated from the current tree / delta every module over the limit after regeneration is no longer checked\nBaseline:     58 entries, trend +17 in 12 days over 34 rewrites; last accepted growth: none named\nStatus:       BLOCKING (nominal; effectively non-blocking)\nDecision:     RATCHET\nGuard:        unnamed growth refused by reconcile; red run writes nothing; owner TBD (user to assign)\nHandoff:      none\nNext action:  replace the regenerate script with reconcile plus per-entry --accept-growth, and add the refused-case test to CI\nVerification: Not run (no repository or gate files in this workspace)\n```"
+  "metrics": {
+    "duration_ms": 23309,
+    "duration_api_ms": 24645,
+    "total_cost_usd": 0.1891829,
+    "usage": {
+      "input_tokens": 8,
+      "cache_creation_input_tokens": 17577,
+      "cache_read_input_tokens": 40640,
+      "output_tokens": 2008,
+      "output_tokens_details": {
+        "thinking_tokens": 591
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 17577,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1654,
+          "cache_read_input_tokens": 20171,
+          "cache_creation_input_tokens": 1250,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 1250
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "modelUsage": {
+      "claude-haiku-5-5": {
+        "inputTokens": 1324,
+        "outputTokens": 229,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.00024690000000000004,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 201,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 0,
+        "canonicalModel": "claude-haiku-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-opus-5-5": {
+        "inputTokens": 8,
+        "outputTokens": 2008,
+        "cacheReadInputTokens": 40640,
+        "cacheCreationInputTokens": 17577,
+        "webSearchRequests": 0,
+        "costUSD": 0.188936,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 591,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 17577,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    }
+  },
+  "output": "**What I found:** The line-limit gate can't fail. Every time it goes red, a script rewrites the exception list to match the current code, so 17 modules were added to it in 12 days and no commit said so. The fix is to let the script only shrink the list and to make every addition name the module and the reason (the record calls this RATCHET). The deciding fact is that the list grew from 41 to 58 across 34 rewrites while the gate stayed green.\n\n**Why it matters:** Right now the gate just records whatever exists. Each oversized module is excused the moment it appears, and if the JSON only lists module names, the 58 excused modules can grow without any limit. If nothing changes, the list keeps growing at about 1.4 modules a day and the gate keeps reporting green.\n\n**Do this first:**\n1. Replace the regeneration script with a reconcile step (algorithm in `.claude/skills/gate-lifecycle/references/ratchet.md`):\n   - A new oversized module, or a listed module that got bigger, fails the gate unless the change names it with `--accept-growth <path>`.\n   - A red run never writes the JSON.\n   - A module that is now under the limit is removed from the list automatically.\n   - The refused case is unit-tested, and that test is the gate's negative control: proof it can still fail.\n2. Store each listed module's current line count, not just its name, so \"bigger than its baseline\" fails too.\n3. Diff the baseline from 12 days ago against the current one to get the 17 additions. The list's owner fixes each one or accepts it by name in one commit with a reason per module. Don't drop all 17 back to red at once: that would block every merge.\n\n**What I did not check:**\n- The repository, the script, the JSON and the history. This directory has no git repo, so everything comes from your description. Run `git log -p -- <baseline.json>` in the real repo.\n- Whether the JSON stores sizes or only names. Read the file.\n- Whether listed modules have already grown. Compare `wc -l` per module against the size each had when it was first listed.\n\n```text\nGate:         Per-module line-limit check with a JSON exception baseline, merge gate in CI\nStage:        unplaced (merge-time CI; nothing earlier was described)\nTrigger:      churn\nProof:        UNPROVEN (it has gone red, but each red run was turned green by regenerating; there is no committed negative control)\nScope:        declared all source modules / effective modules not in the regenerated list / delta every oversized module at the moment it appears (17 in 12 days), and listed modules' size if the baseline stores only names\nBaseline:     58 entries, up from 41 over 12 days (34 rewrites); last accepted growth: none named in any commit\nStatus:       BLOCKING (in name only)\nDecision:     RATCHET\nGuard:        Unnamed growth refused by reconcile; a red run writes nothing; the list has a named owner (not yet assigned)\nHandoff:      none (PROVE follows once the reconcile refused-case test runs in CI)\nNext action:  Replace the regenerate-on-red script with reconcile + per-entry --accept-growth, then triage the 17 additions in one named commit\nVerification: Not run (no repository in the working directory); target is a CI run where an unnamed new oversized module turns the gate red and the JSON is unchanged\n```"
 }

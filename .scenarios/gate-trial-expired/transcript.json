@@ -51,7 +51,82 @@
     "gate-lifecycle"
   ],
   "files_read": [],
-  "paths_searched": [],
-  "turns": 3,
-  "output": "## Gate 1: pre-push hook skipping the integration suite\n\n**What I found:** The trial that let the pre-push hook skip the integration suite ended on 10 September and nobody decided anything, so the hook goes back to running the suite (the record calls this REINSTATE). Nobody measured the criterion (CI red rate under 5%), so there is no data that could justify renewing the trial.\n\n**Why it matters:** Reinstating brings back the local cost the trial was trying to remove. Leaving the hook as it is keeps a ten-week-old suspension that only a comment enforces. That makes it permanent by default, and a gate removed that way looks just as green as one that checked something.\n\n**Do this first:**\n1. Restore the integration-suite step in the pre-push hook. Then push a branch with a known-failing integration test and confirm the hook blocks it.\n2. If the local cost is still a problem, pull the CI red rate for the integration suite for 3–10 September from CI history. Open a new TRIAL only if that rate is under 5%, and give it a named owner and an expiry that a dated CI step enforces, not a comment.\n\n**What I did not check:** The hook file and CI history. No repository was available, so `git log -- <hook path>` and a CI-history query for suite failures from 3 Sep to 19 Nov were not run.\n\n```text\nGate:         pre-push hook running the integration suite (local, developer machine)\nStage:        pre-push\nTrigger:      suspended (expiry 10 Sep passed)\nProof:        UNPROVEN (no recorded negative control or last red)\nScope:        declared integration suite on push / effective none since 3 Sep / delta whole suite not checked locally\nBaseline:     none\nStatus:       TRIAL (expired, undecided)\nDecision:     REINSTATE\nGuard:        the hook blocks again and its negative control goes red\nHandoff:      none (a renewal is a new TRIAL citing the 3–10 Sep CI red rate)\nNext action:  restore the suite step in the hook; push a known-failing test and confirm the push is refused\nVerification: Not run (no repository in this workspace)\n```\n\n## Gate 2: deploy gate failing on identity\n\n**What I found:** The deploy gate failed authentication with the identity provider before it compared anything, so it said nothing about the code. The answer is to keep it, fix the identity setup, and prove it with a deliberate failure (the record calls this PROVE). Deleting it is ruled out: a gate that could not run, or has never fired, is unproven, not useless.\n\n**Why it matters:** Deleting it removes the only check against the target environment, with no evidence that anything else covers it. If this failure gets read as a defect or as noise, people will start overriding the gate. \"Application identifier not found in the directory\" usually means the app registration or service principal was deleted or recreated, or the gate is pointing at the wrong tenant.\n\n**Do this first:**\n1. Check in the identity provider that the deploy gate's client ID exists in the tenant the pipeline targets. Re-register it or fix the configured client ID or tenant.\n2. Make the gate exit with a distinct indeterminate code or label for identity, environment and tooling errors, separate from violations. Then deploy a known-bad change against the target environment and record the red run as the gate's proof.\n3. Hand off to `defect-shift-left` §8a, because this gate depends on target-environment state.\n\n**What I did not check:** The gate's configuration, its pipeline history, and the identity-provider directory. I had no access, so the directory lookup for the client ID and a pipeline-history query for this gate's past red runs were not run.\n\n```text\nGate:         deploy gate comparing the change against the target environment (deploy pipeline)\nStage:        deploy (needs target-environment state)\nTrigger:      indeterminate (identity-provider error: application identifier not found)\nProof:        UNPROVEN (no recorded red from a real violation)\nScope:        declared comparison against target environment / effective none this run / delta whole comparison, evaluation did not happen\nBaseline:     none\nStatus:       INDETERMINATE\nDecision:     PROVE (deletion rejected: an evaluation failure and never having fired are not grounds to RETIRE)\nGuard:        a known-bad deploy turns the gate red, recorded or kept in CI\nHandoff:      defect-shift-left §8a\nNext action:  restore the app registration or client ID/tenant so the gate can authenticate, then run the negative control\nVerification: Not run (no access to the pipeline or identity provider)\n```"
+  "paths_searched": [
+    "."
+  ],
+  "turns": 4,
+  "metrics": {
+    "duration_ms": 25447,
+    "duration_api_ms": 26477,
+    "total_cost_usd": 0.2051124,
+    "usage": {
+      "input_tokens": 8,
+      "cache_creation_input_tokens": 18879,
+      "cache_read_input_tokens": 40403,
+      "output_tokens": 2283,
+      "output_tokens_details": {
+        "thinking_tokens": 560
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 18879,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 1635,
+          "cache_read_input_tokens": 19898,
+          "cache_creation_input_tokens": 2825,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 2825
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 8,
+        "outputTokens": 2283,
+        "cacheReadInputTokens": 40403,
+        "cacheCreationInputTokens": 18879,
+        "webSearchRequests": 0,
+        "costUSD": 0.2048046,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 560,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 18879,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-haiku-5-5": {
+        "inputTokens": 1363,
+        "outputTokens": 343,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.0003078,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 319,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 0,
+        "canonicalModel": "claude-haiku-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    }
+  },
+  "output": "Both records come from your description only. This directory holds the skill library and no project code, hook files or CI history, so I could not inspect either gate.\n\n## Gate 1: integration suite in the pre-push hook\n\n**What I found:** The trial that took the integration suite out of the pre-push hook ended on 10 September with no decision made and no measurement of the red rate. The suite goes back into the hook now (the record calls this REINSTATE). An expired trial defaults to that, and no data exists that could justify keeping it out.\n\n**Why it matters:** For more than two months the trial has had no criterion behind it, so pushes have skipped this check without anyone deciding they should. Changing the date in the hook again would not be a decision.\n\n**Do this first:**\n1. Turn the integration suite back on in the pre-push hook. Then push a known-bad change and confirm the hook goes red.\n2. If you still want the suite out of the hook, open a new trial. Measure the CI red rate first, give the trial an owner, and make a dated CI step fail at expiry instead of relying on a comment in the hook.\n3. Whether this suite should run at pre-push at all is a placement question for `/defect-shift-left`, not for this skill.\n\n**What I did not check:**\n- The current hook content: `git log -p -- <hook path>`\n- The CI red rate since 3 September: query the CI run history for the integration job\n- Whether the hook was ever seen red: look in run history for a failed pre-push run before 3 September\n\n```text\nGate:         integration suite in pre-push hook\nStage:        pre-push (local)\nTrigger:      suspended (expiry 10 September passed, no decision)\nProof:        UNPROVEN (no recorded negative control or last red)\nScope:        declared integration suite at pre-push / effective nothing at pre-push since 3 September / delta whole suite unchecked locally\nBaseline:     none\nStatus:       TRIAL (expired)\nDecision:     REINSTATE\nGuard:        the hook blocks again and its control goes red\nHandoff:      defect-shift-left if the suite's stage is in question; a new TRIAL only with red-rate data measured over a defined window\nNext action:  remove the trial skip from the hook and push a known-bad change to confirm red\nVerification: Not run (no repository available)\n```\n\n## Gate 2: deploy gate failing on an identity-provider error\n\n**What I found:** The deploy gate failed on authentication (\"application identifier not found in the directory\") before it compared anything. It told you nothing about the code. Keep the gate, fix its authentication, then prove it can catch a defect (the record calls this PROVE). An error like this is a gate that could not run, not a failure of what it checks.\n\n**Why it matters:** Deleting the gate because it errored, or because nobody has seen it catch a defect, removes a check without evidence that it is useless. Never having fired means the gate is unproven, not that it is worthless. Until authentication works, deploys either stay blocked or go out unchecked.\n\n**Do this first:**\n1. Fix the deploy pipeline's identity: the application ID it uses is not registered in the target directory (it may have been deleted or rotated, or the pipeline points at the wrong tenant or app ID). Rerun the gate.\n2. Give \"could not evaluate\" its own exit code or label so nobody reads it as a defect or as a pass.\n3. Run a known-bad target comparison through the gate and record the red run. Because the gate needs target-environment state, pass it to `/defect-shift-left` for 8a.\n\nIf the outage lasts longer than delivery can wait, the only allowed loosening is a trial with a measurable criterion, an owner and an expiry that a dated step enforces. Deleting the gate is not an option on this evidence.\n\n**What I did not check:**\n- The app registration: `az ad app show --id <appId>` (or your provider's equivalent) against the tenant the pipeline uses\n- The gate's red history: the CI run history for the deploy gate\n- What the gate compares: read the gate's configuration\n\n```text\nGate:         deploy gate (pre-deploy comparison against target environment)\nStage:        deploy / release\nTrigger:      indeterminate (identity provider: app ID not in directory)\nProof:        UNPROVEN (\"not catching real defects\" = never seen red, not shown useless)\nScope:        declared target-environment comparison / effective nothing this run / delta whole comparison unevaluated\nBaseline:     none\nStatus:       INDETERMINATE\nDecision:     PROVE\nGuard:        the negative control runs in CI, or its last red run is recorded\nHandoff:      defect-shift-left (8a, needs target-environment state); functionality-complexity-tradeoff only if someone argues the obligation itself lapsed\nNext action:  restore the app registration or the pipeline's app ID/tenant, then rerun the gate\nVerification: Not run (no repository or pipeline available)\n```"
 }

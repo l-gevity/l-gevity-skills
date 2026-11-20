@@ -168,6 +168,17 @@ evaluator. A job with its own `if:` runs
 whether or not the jobs it needs succeeded, so each such condition tests
 `needs.<job>.result`. This rule was read from the CLI's scheduler.
 
+Correction snapshots use `base_ledger` to read the previous ledger's `head_commit`
+and emit only the correction delta plus its resolved `base_commit`. Missing,
+invalid, or non-ancestor review heads fail the action; initial review still
+uses the full plan-base diff. The ledger stays at the reviewed head until the
+correction's review finishes.
+
+Dependency-ready scheduling uses the plan check's `ready` list and repeatable
+`--completed` / `--running` flags. Streaming requires immutable in-flight inputs
+and individual completion events; foreground batch calls keep wave barriers.
+The lead still waits for all agents before ending its turn.
+
 ## Limitations and cost
 
 - **Deny rules are a guardrail, not a sandbox.** Claude Code matches the

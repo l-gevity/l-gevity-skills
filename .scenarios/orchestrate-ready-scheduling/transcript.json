@@ -1,0 +1,134 @@
+{
+  "scenario": "orchestrate-ready-scheduling",
+  "revision": "acac69ac67cc",
+  "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
+  "skills_available": [
+    "alchemy",
+    "alchemy-orchestrate",
+    "architecture-as-code",
+    "architecture-guidelines",
+    "batch",
+    "bring-down",
+    "ci-cd-reliability-architecture",
+    "claude-api",
+    "code-review",
+    "continuous-improvement",
+    "dataviz",
+    "debug",
+    "deep-research",
+    "defect-shift-left",
+    "dependency-lifecycle",
+    "design",
+    "design-sync",
+    "doctor",
+    "evolutionary-database-design",
+    "fewer-permission-prompts",
+    "functionality-complexity-tradeoff",
+    "gate-lifecycle",
+    "implementation-readiness",
+    "infrastructure-fit",
+    "loop",
+    "morphogenetic-architecture",
+    "observability-design",
+    "plugin-authoring",
+    "push-out",
+    "requirements-grounding",
+    "requirements-topology",
+    "requirements-traceability",
+    "run",
+    "run-skill-generator",
+    "schedule",
+    "simplify",
+    "structural-simplification",
+    "system-optimization",
+    "test-strategy",
+    "update-config",
+    "verify",
+    "workflow-authoring",
+    "zero-copy-requirements"
+  ],
+  "skills_invoked": [
+    "alchemy-orchestrate"
+  ],
+  "files_read": [
+    ".claude/skills/alchemy-orchestrate/references/contracts.md"
+  ],
+  "paths_searched": [
+    ".claude/skills/alchemy-orchestrate/references"
+  ],
+  "turns": 5,
+  "metrics": {
+    "duration_ms": 14714,
+    "duration_api_ms": 15580,
+    "total_cost_usd": 0.196426,
+    "usage": {
+      "input_tokens": 10,
+      "cache_creation_input_tokens": 19615,
+      "cache_read_input_tokens": 64885,
+      "output_tokens": 1313,
+      "output_tokens_details": {
+        "thinking_tokens": 127
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 19615,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 713,
+          "cache_read_input_tokens": 22579,
+          "cache_creation_input_tokens": 880,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 880
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "modelUsage": {
+      "claude-haiku-5-5": {
+        "inputTokens": 1385,
+        "outputTokens": 181,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.000229,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 155,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 0,
+        "canonicalModel": "claude-haiku-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-opus-5-5": {
+        "inputTokens": 10,
+        "outputTokens": 1313,
+        "cacheReadInputTokens": 64885,
+        "cacheCreationInputTokens": 19615,
+        "webSearchRequests": 0,
+        "costUSD": 0.19619699999999998,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 127,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 19615,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    }
+  },
+  "output": "**Scheduling:** ready\n**Next package:** C\n\nC can start now. It doesn't need to wait for B.\n\n- **Dependencies are met.** C depends only on A. A counts as completed under the skill's rule (`references/contracts.md:103-104`): its hand-off was accepted and its changes were integrated and committed. Finishing alone would not have been enough.\n- **Starting C early is safe** (`contracts.md:114-116`):\n  - The runtime reports each agent's completion separately.\n  - B's inputs are fixed to its original base commit.\n  - Integrating A cannot change what B is reading, because B works in its own isolated worktree.\n- **The limits allow it.** The cap is 2 and the lead doesn't count toward it, so B plus C is exactly 2. C's owner is not B's owner, so no owner runs two packages at once. The plan check already confirmed that writes don't overlap.\n- **Where C starts:** from the integrated head that includes A, recorded in `base.integrated`. It does not start from the original base.\n\n**If B reads a shared live workspace instead:**\n- **Scheduling:** wave\n- **Next package:** None\n\nIntegrating A, and later C's work, could change files B is reading while it runs. That breaks the \"integration cannot alter another agent's read scope\" condition, so starting C early is no longer allowed. Use the plan's waves instead: C waits until B finishes, B's hand-off is checked and accepted, and B is integrated. Then C starts from that integrated head.\n\n**Not run:**\n- I did not run `check_orchestration.py plan <plan.json> --completed A --running B --profile alchemy-workspace.json --root <clean integrated head>`, so the \"ready\" above is reasoned from the skill's rules, not a checked result. Run that command to confirm it before spawning C, then record C as running.\n- No hand-off, gate or integration check ran in this assessment, so I'm giving no verdict on any of them."
+}

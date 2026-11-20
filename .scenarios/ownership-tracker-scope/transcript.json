@@ -53,5 +53,78 @@
   "files_read": [],
   "paths_searched": [],
   "turns": 3,
-  "output": "**What I found:** All five notes belong somewhere other than a new document. One goes in the commit, one is a question for the owner, one goes on the milestone checklist, one is a bug to fix now, and one gets no artifact at all (the record calls these AUTHORITY placements, plus one Delete).\n\n**Why it matters:** Filing them all as issues would turn the tracker into a memory dump, and a decision kept in two places will eventually disagree with itself. Putting each note in exactly one place keeps the paid-plan question and the pentest from getting lost.\n\n**Do this first:**\n1. Before merging, add a test for exporting an empty report and fix the crash in this change.\n\n**What I did not check:** There's no project profile, so I used generic artifact names. Map them to your tracker, checklist and register names.\n\n---\n\n1. **Streaming writer → the commit message (or PR description) of the export change.** Write it there in one sentence, e.g. \"Use a streaming writer; easy to swap later, no change to what users see.\" No issue and no decision doc, because it's a reversible technical choice.\n2. **Paid plan → the standing questions issue.** Add it as one plain-language owner question with a default that holds unless someone objects: \"Export stays on all plans.\" Only ask it if fewer than three questions are already open. If the answer is \"paid,\" that answer becomes work: build it, and add a requirement that cites the issue.\n3. **Ugly helper → no artifact.** It works and it's outside this change, so drop it. Don't open an issue.\n4. **Pentest → the milestone checklist for \"first customer live.\"** Add it as a check. It closes when the test has run, or when the owner accepts the risk for that milestone.\n5. **Empty-report crash → code and tests, in this change.** Add the failing test and the fix before merging. If it can't be fixed before the merge, open a defect issue now instead, because a known bug belongs in the tracker and nowhere else."
+  "metrics": {
+    "duration_ms": 12901,
+    "duration_api_ms": 14587,
+    "total_cost_usd": 0.1565789,
+    "usage": {
+      "input_tokens": 6,
+      "cache_creation_input_tokens": 16340,
+      "cache_read_input_tokens": 20532,
+      "output_tokens": 1072,
+      "output_tokens_details": {
+        "thinking_tokens": 628
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 16340,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 4,
+          "output_tokens": 1016,
+          "cache_read_input_tokens": 16688,
+          "cache_creation_input_tokens": 3496,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 3496
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 6,
+        "outputTokens": 1072,
+        "cacheReadInputTokens": 20532,
+        "cacheCreationInputTokens": 16340,
+        "webSearchRequests": 0,
+        "costUSD": 0.1562904,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 628,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 16340,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-haiku-5-5": {
+        "inputTokens": 1390,
+        "outputTokens": 299,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.0002885,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 276,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 0,
+        "canonicalModel": "claude-haiku-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    }
+  },
+  "output": "1. **Streaming vs. buffered writer:** put it in the commit message (or PR description) of the export change. Name the choice and say it's reversible. Don't open an issue or write a decision doc; a technical trade-off isn't a question for the owner.\n2. **Paid-plan gating:** add it to the one standing owner-questions issue. Ask in plain language and give a default that stands unless someone objects, e.g. \"Export ships on all plans unless you object.\" Don't build the gating until the owner says yes.\n3. **Ugly helper in another module:** don't file it anywhere. It works and is outside this change, so drop it and don't open the issue.\n4. **Penetration test before first customer:** add it to the milestone checklist for first-customer go-live. It closes when the test has run, or when the owner accepts the risk for that milestone.\n5. **Crash on an empty report:** open a defect issue in the tracker now. If the crash is in code this change adds, fix it here with an empty-report test instead, and don't open an issue.\n\nI haven't checked whether the empty-report crash is in this change's code or already on the main branch. Running the export on an empty report from the main branch tells you which line in item 5 applies."
 }

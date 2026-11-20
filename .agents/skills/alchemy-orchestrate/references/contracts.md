@@ -94,6 +94,30 @@ omitted.
 | `execution.rework_extension` | A ceiling above the profile's `max_rework_cycles` for this run: `{"ceiling", "conditions", "authorization"}`, captured in the approved plan before the first cycle that uses it; see Amendments below. |
 | `conflicts` | `{"between": [ids], "resolution": null}` until a human or evidence resolves it: `{"basis": "human", "decided_by": "human", "rationale": "..."}` or `{"basis": "evidence", "evidence": [...], "rationale": "..."}`. |
 
+### Scheduling a checked plan
+
+The plan check retains `waves` for a batch runtime and reports `ready` for
+the current state. Re-run `check_orchestration.py plan <plan.json> --completed A
+--running B` with the same profile, approval/revision anchors, and `--root` at
+the clean integrated head. Repeat each option for every package in that state.
+`completed` means its hand-off was checked and accepted, its decisions accepted,
+and its changes integrated and committed; finishing alone never qualifies. The
+caller supplies these facts; the check cannot prove runtime completion.
+
+`ready` releases packages whose dependencies are completed, within the lower
+plan/profile sub-agent cap, with no owner running two packages. The lead is
+excluded from that cap. Unknown IDs, overlapping states, unmet dependencies,
+duplicate active owners, and excess running agents are rejected. A failing
+plan releases nothing. Record the returned IDs as running before calling again;
+this is a single lead's scheduling calculation, not a concurrent reservation.
+
+Use it after each accepted integration only when the runtime delivers individual
+completions, all in-flight inputs are pinned to immutable heads, and integration
+cannot alter another agent's live read scope. Otherwise use `waves`, including
+foreground batch runtimes. Keep the lead alive until every spawned agent finishes;
+do not replace a safe wait with detached agents. Scheduling never bypasses the
+plan, unattended preflight, hand-off checks, or final integrated-head gate.
+
 ### Amendments
 
 The plan owns packages, so rework is a change to the plan: the lead appends
