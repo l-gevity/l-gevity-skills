@@ -3,8 +3,8 @@
 # deterministic checks, and stops at human checkpoints. It never merges.
 pipeline:
   name: 'ALCHEMY Multi-Agent'
-  version: '3.3'
-  description: 'Route with alchemy, plan and check, prove the prerequisites of an unattended run, execute with native sub-agents after approval, review across two providers, gate, correct within the profile''s rework bound with a review and a gate after every pass, and open a pull request only after a second approval. Never merges.'
+  version: '3.4'
+  description: 'Route with alchemy, plan and check, prove the prerequisites of an unattended run, execute with native sub-agents after approval, review integration once, with a second provider for a named additional risk, gate, correct within the profile''s rework bound with a review and a gate after every pass, and open a pull request only after a second approval. Never merges.'
   scope: [directory, worktree]
   on:
     dispatch:
@@ -13,6 +13,11 @@ pipeline:
           description: What the run must achieve. Name the issue or requirement register that holds its requirement IDs.
           type: string
           required: true
+        additional_review:
+          description: Distinct risk or review obligation for a second provider; empty uses one integrated reviewer. Required package reviews still run.
+          type: string
+          required: false
+          default: ''
 
   model_aliases:
     - id: lead
@@ -57,7 +62,8 @@ pipeline:
       each accepted integration to select ready packages when immutable worktrees and
       individual completion events allow it; call wait_agent until every spawned agent
       completes. Keep waves when any in-flight agent reads a shared live workspace.
-      Launch a package owned by an agent other than `lead` through this runtime's native
+      Recheck native spawn and completion tools before launching; a changed capability stops
+      execution for replanning. Launch a package owned by an agent other than `lead` through this runtime's native
       sub-agents: in Claude Code the Agent tool with subagent_type `alchemy-implementer`
       for implement packages and `alchemy-analyst` for read-only packages; in Codex
       spawn_agent and wait_agent with the custom agents of the same names. The
@@ -104,9 +110,16 @@ pipeline:
       check, criterion, or test to reach PASS. Do not push, open a pull request, or merge.
     PLAN_SCHEMA: >-
       {"type":"object","additionalProperties":false,"properties":{
-      "plan":{"type":"string","description":"The complete alchemy-plan/1 record as JSON text, or an empty string when planning stops"},
+      "dispatch":{"type":"string","enum":["SKIP","DIRECT","ADAPTIVE","FULL"]},
+      "proceed":{"type":"boolean"},
+      "plan":{"type":"string","description":"The complete alchemy-plan/1 record as JSON text; empty for SKIP, DIRECT, or a stopped route"},
       "report":{"type":"string","description":"The alchemy decision trail and the alchemy-orchestrate execution block, or why planning stopped"}},
-      "required":["plan","report"]}
+      "required":["dispatch","proceed","plan","report"]}
+    CAPABILITY_SCHEMA: >-
+      {"type":"object","additionalProperties":false,"properties":{
+      "spawn":{"type":"boolean"},"wait":{"type":"boolean"},"isolated":{"type":"boolean"},
+      "evidence":{"type":"string","description":"The tool names seen, or the capabilities missing"}},
+      "required":["spawn","wait","isolated","evidence"]}
     PREFLIGHT_SCHEMA: >-
       {"type":"object","additionalProperties":false,"properties":{
       "report":{"type":"string","description":"Each probe with command, exit code, and commit; what could not be proved; the preflight verdict"}},
@@ -188,17 +201,74 @@ pipeline:
               </objective>
 
               1. Route. Read `<skills>/alchemy/SKILL.md` and apply it to the objective exactly as an explicit `alchemy` invocation (`/alchemy` or `$alchemy`) would, reading the references and sibling skills it routes to. Record the dispatch, route, companions, and execution decision.
-              2. Plan. Read `<skills>/alchemy-orchestrate/SKILL.md`, its `references/contracts.md` and `references/governance.md`, and the profile `alchemy-workspace.json` at the root (defaults in `<skills>/alchemy-orchestrate/assets/alchemy-workspace.json`). Write one alchemy-plan/1 record by section 4 steps 1 and 2. Its base commit is ${{ needs.start.outputs.head_commit }}.
-              3. The plan must fit this pipeline: the next job runs the plan check and stops on any verdict but PASS; a human approves the plan before execution; writing packages run as `alchemy-implementer` sub-agents in isolated worktrees and read-only packages as `alchemy-analyst` sub-agents, each owned by a distinct label such as `agent-a`; packages you hold are owned by `lead`; after integration two reviewers on different providers review the integrated diff independently and their findings enter the ledger, in addition to the plan's own `verify` packages; merge_policy is `human-approval`. The human chooses at plan approval whether to watch the run until the pull request approval; a run left unattended on a plan that is not stops before execution. Set `execution.unattended` to true only when the objective says the run proceeds while nobody watches between this plan's approval and the pull request approval; then every package states its `needs` per `references/autonomy-preflight.md`, and execution starts only after a preflight bound to this plan passes.
-              4. If section 4 step 1 stops, or the route does not proceed, return an empty `plan` and say why in `report`.
+              2. This read-only step has no sub-agent tools; do not judge delegation from your own tool roster. Plan for the execute step's runtime: a separate probe runs in it, and the next job refuses a delegated plan the probe cannot support. For SKIP or DIRECT, do not load orchestration: return an empty plan and the compact route report. Set proceed false when a prerequisite blocks the route; otherwise the local job performs the selected work and verification.
+              3. For ADAPTIVE or FULL only, plan. Read `<skills>/alchemy-orchestrate/SKILL.md`, its `references/contracts.md` and `references/governance.md`, and the profile `alchemy-workspace.json` at the root (defaults in `<skills>/alchemy-orchestrate/assets/alchemy-workspace.json`). Write one alchemy-plan/1 record by section 4 steps 1 and 2. Its base commit is ${{ needs.start.outputs.head_commit }}.
+              4. The plan must fit this pipeline: the next job runs the plan check and stops on any verdict but PASS; a human approves the plan before execution; writing packages run as `alchemy-implementer` sub-agents in isolated worktrees and read-only packages as `alchemy-analyst` sub-agents, each owned by a distinct label such as `agent-a`; packages you hold are owned by `lead`; after integration one independent provider reviews integration and uncovered criteria. A second provider runs only for this additional obligation: ${{ inputs.additional_review }}. Keep verify packages required by high risk or independent_review, and those needed before dependent work. Avoid optional package reviews that duplicate the final integration review; merge_policy is `human-approval`. The human chooses at plan approval whether to watch the run until the pull request approval; a run left unattended on a plan that is not stops before execution. Set `execution.unattended` to true only when the objective says the run proceeds while nobody watches between this plan's approval and the pull request approval; then every package states its `needs` per `references/autonomy-preflight.md`, and execution starts only after a preflight bound to this plan passes.
+              5. If section 4 step 1 stops, or the route does not proceed, return proceed false, an empty `plan`, and say why in `report`.
 
-              You cannot edit files in this step. Return `plan` as the complete plan JSON text and `report` as the alchemy decision trail and the execution block of alchemy-orchestrate section 2.
+              You cannot edit files in this step. Return dispatch, proceed, plan, and report. A planned route reports the decision trail and execution block; a cheap route reports only its selected route.
+
+    capabilities:
+      name: Probe Execution Runtime
+      needs: start
+      outputs:
+        response_file: ${{ steps.probe.outputs.json_response_file }}
+      steps:
+        - id: probe
+          uses: builtin/agent-prompt
+          with:
+            model: lead
+            thinking_effort: low
+            permission_preset: dangerous_all
+            structured_output_schema: ${{ env.CAPABILITY_SCHEMA }}
+            prompt: |
+              You run with the model and permissions of this pipeline's execute step, only to report its tools. Do not read, edit, or run anything, and do not call any tool.
+              From your current tool roster, report whether you can spawn a native sub-agent (spawn), wait for or receive each sub-agent's completion (wait), and start a sub-agent in an isolated git worktree (isolated). Unknown means false. Name the tools you saw, or what is missing, as evidence.
+
+    route_check:
+      name: Check Dispatch And Runtime
+      needs:
+        - plan
+        - capabilities
+      outputs:
+        path: ${{ steps.check.outputs.path }}
+      steps:
+        - id: check
+          uses: project/alchemy-check
+          with:
+            mode: route
+            plan: ${{ needs.plan.outputs.response_file }}
+            capabilities: ${{ needs.capabilities.outputs.response_file }}
+
+    local:
+      name: Execute Focused Route
+      needs:
+        - plan
+        - route_check
+      if: needs.route_check.outputs.path == 'local'
+      steps:
+        - id: execute
+          uses: builtin/agent-prompt
+          with:
+            model: lead
+            permission_preset: dangerous_all
+            prompt: |
+              Complete this objective using the checked SKIP or DIRECT route: ${{ inputs.objective }}
+              Route record: ${{ needs.plan.outputs.response_file }}
+              ${{ env.SKILLS_NOTE }} ${{ env.UNTRUSTED_NOTE }}
+              Read alchemy/SKILL.md and only the selected gate and matching companions.
+              Do not load alchemy-orchestrate or create an orchestration plan. Honor missing
+              prerequisites and the project's normal checks. Verify the result and report
+              actual commands and outcomes. Keep all changes local; do not push, open a PR,
+              merge, deploy, or perform destructive or external actions.
 
     plan_check:
       name: Check Plan
       needs:
         - start
         - plan
+        - route_check
+      if: needs.route_check.outputs.path == 'planned'
       outputs:
         verdict: ${{ steps.check.outputs.verdict }}
         summary: ${{ steps.check.outputs.summary }}
@@ -368,6 +438,7 @@ pipeline:
         findings_file: ${{ steps.review.outputs.json_response_file }}
       steps:
         - id: review
+          if: matrix.reviewer == 'reviewer_codex' || inputs.additional_review != ''
           uses: builtin/agent-prompt
           with:
             model: ${{ matrix.reviewer }}
@@ -382,6 +453,11 @@ pipeline:
               - Test commands: every `command` criterion in the plan and `repository.verification` in `alchemy-workspace.json`, recorded in `${{ needs.plan_check.outputs.run_dir }}/evidence/`.
 
               ${{ env.REVIEW_RULES }}
+              Review integration effects and criteria not already covered by an independent
+              package review at this head. Read that review's primary evidence before carrying
+              forward its assessment; reopen it only for a concrete regression, changed contract,
+              or missing evidence. Required package reviews are not replaced by this pass.
+              If you are reviewer_claude, focus on this distinct obligation: ${{ inputs.additional_review }}.
 
     consolidate:
       name: Build Ledger
@@ -405,7 +481,7 @@ pipeline:
               - Plan: ${{ needs.plan_check.outputs.plan_file }}
               - Run directory: ${{ needs.plan_check.outputs.run_dir }}; hand-offs in its `handoffs/`
               - Hand-off check: ${{ needs.handoff_check.outputs.summary }}
-              - Independent reviews; each child's `outputs.findings_file` holds one reviewer's findings: ${{ toJson(needs.review) }}
+              - Independent reviews; each executed child's `outputs.findings_file` holds findings; the optional skipped child has no findings file, so do not invent or read one: ${{ toJson(needs.review) }}
 
               ${{ env.LEDGER_RULES }} ${{ env.EVIDENCE_NOTE }} ${{ env.CHECK_NOTE }} Do not change code in this step.
 

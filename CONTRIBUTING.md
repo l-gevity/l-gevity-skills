@@ -65,7 +65,8 @@ the skill triggers. Each `.scenarios/<name>/` folder holds:
   `python scripts/validate-skills.py --record-scenario <name>`. The run uses a
   throwaway project that holds only this library, read-only tools, and a
   signed-in `claude` CLI. Without names, every missing or stale transcript is
-  recorded.
+  recorded. Runs go four at a time, each in its own project; cost is the same
+  as one at a time.
 - `project/`, optional: files copied into the throwaway project before the run,
   for a scenario whose request is about code.
 
@@ -77,7 +78,10 @@ before treating a timing difference as an improvement.
 CI never calls a model. It fails when a transcript is missing, when the
 request, the fixture project, `CLAUDE.md`, or a named skill changed after
 the transcript was recorded, when an expectation is not met, and when an entry in
-`known_failures` passes again. Code checks structure; read the transcript diff
+`known_failures` passes again. A skill's `adapters/` directory is not part of
+that revision: a headless run never executes a runtime adapter, which has its
+own tests. A transcript that reads a file under `adapters/` fails instead, so
+no recorded run can depend on text the revision does not cover. Code checks structure; read the transcript diff
 to judge the reasoning. Before a release, re-record the scenarios for must
 requirements by name, even when their transcripts are current.
 

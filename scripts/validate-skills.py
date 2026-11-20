@@ -1815,14 +1815,27 @@ def write_raw(path: Path, text: str, crlf: bool) -> None:
     path.write_bytes((text.replace("\n", "\r\n") if crlf else text).encode("utf-8"))
 
 
-def skill_revision(skill: Path) -> str:
+# Skill directories a headless scenario run never executes: runtime adapters
+# are installed into other runtimes by init_workspace.py and exercised by their
+# own tests. They stay out of a scenario's revision, so an adapter-only edit
+# does not force paid re-recordings that test nothing; a transcript that reads
+# one fails instead (validate_scenarios), so the exclusion cannot hide a
+# dependency.
+SCENARIO_UNHASHED_DIRS = ("adapters",)
+
+
+def skill_revision(skill: Path, scenario: bool = False) -> str:
     """Content hash of a skill's authored files, line endings normalized so a
-    CRLF working copy and an LF checkout agree."""
+    CRLF working copy and an LF checkout agree. With `scenario`, the hash
+    covers only what a scenario run depends on."""
     digest = hashlib.sha256()
+    files = mirror_source_files(skill)
+    if scenario:
+        files = {path for path in files if path.parts[0] not in SCENARIO_UNHASHED_DIRS}
     # Sort by the posix string, not the Path: Path ordering is case-insensitive
     # on Windows and case-sensitive elsewhere, so SKILL.md and references/
     # would hash in a different order per platform.
-    for relative in sorted(mirror_source_files(skill), key=lambda path: path.as_posix()):
+    for relative in sorted(files, key=lambda path: path.as_posix()):
         digest.update(relative.as_posix().encode("utf-8"))
         digest.update(b"\0")
         digest.update((skill / relative).read_bytes().replace(b"\r\n", b"\n"))
@@ -2075,7 +2088,7 @@ def scenario_revision(directory: Path, scenario: dict) -> str:
     digest.update((ROOT / "CLAUDE.md").read_bytes().replace(b"\r\n", b"\n"))
     for name in sorted(scenario["skills"]):
         digest.update(b"\0" + name.encode("utf-8") + b"\0")
-        digest.update(skill_revision(CLAUDE_SKILLS / name).encode("ascii"))
+        digest.update(skill_revision(CLAUDE_SKILLS / name, scenario=True).encode("ascii"))
     fixture = scenario_fixture(directory)
     if fixture is not None:
         for path in sorted(fixture.rglob("*"), key=lambda item: item.as_posix()):
@@ -2363,6 +2376,17 @@ def validate_scenarios() -> None:
             fail(f"{label} has no transcript; record one with {record}")
         if transcript["scenario"] != directory.name:
             fail(f"{label}/transcript.json was recorded for scenario '{transcript['scenario']}'")
+        unhashed = sorted(
+            str(path) for path in transcript["files_read"] + transcript["paths_searched"]
+            if len(str(path).split("/")) > 3 and str(path).split("/")[:2] == [".claude", "skills"]
+            and str(path).split("/")[3] in SCENARIO_UNHASHED_DIRS
+        )
+        if unhashed:
+            fail(
+                f"{label} transcript reads {', '.join(unhashed)}, which the scenario revision does "
+                f"not cover ({', '.join(SCENARIO_UNHASHED_DIRS)}/ is excluded); the run must not "
+                "depend on it, so narrow the request or move that text out of the excluded directory"
+            )
         revision = scenario_revision(directory, scenario)
         if transcript["revision"] != revision:
             fail(
@@ -2448,6 +2472,9 @@ def scenario_transcript(directory: Path, scenario: dict, stream: str, project: P
     }, ""
 
 
+RECORD_WORKERS = 4
+
+
 def record_scenarios(names: list[str]) -> int:
     """Run scenarios through headless Claude Code in a throwaway project that
     holds only this library, and write each transcript. Named scenarios are
@@ -2476,8 +2503,9 @@ def record_scenarios(names: list[str]) -> int:
         return 0
     environment = {key: value for key, value in os.environ.items() if key != "CLAUDECODE"}
     tools = ",".join(SCENARIO_TOOLS)
-    status = 0
-    for directory in directories:
+
+    def record(directory: Path) -> tuple[int, list[str]]:
+        """One scenario in its own throwaway project; returns status and report lines."""
         scenario, _ = load_scenario(directory)
         project = Path(tempfile.mkdtemp(prefix="l-gevity-scenario-")).resolve()
         try:
@@ -2504,14 +2532,20 @@ def record_scenarios(names: list[str]) -> int:
         finally:
             shutil.rmtree(project, ignore_errors=True)
         if transcript is None:
-            print(f"ERROR: {directory.name}: the run failed: {reason.encode('ascii', 'replace').decode('ascii')}")
-            status = 1
-            continue
+            return 1, [f"ERROR: {directory.name}: the run failed: {reason.encode('ascii', 'replace').decode('ascii')}"]
         write_raw(directory / "transcript.json", json.dumps(transcript, indent=2, ensure_ascii=False) + "\n", False)
         missed = [expectation for expectation in scenario["expect"] if not scenario_passes(expectation, transcript)]
-        print(f"recorded {directory.name}: {len(scenario['expect']) - len(missed)} of {len(scenario['expect'])} expectations met")
-        for expectation in missed:
-            print(f"  not met: {expectation['id']} ({expectation['criterion']})")
+        lines = [f"recorded {directory.name}: {len(scenario['expect']) - len(missed)} of {len(scenario['expect'])} expectations met"]
+        lines += [f"  not met: {expectation['id']} ({expectation['criterion']})" for expectation in missed]
+        return 0, lines
+
+    # Each run is an independent headless session in its own temp project and
+    # writes only its own transcript, so runs overlap; cost is unchanged.
+    status = 0
+    with ThreadPoolExecutor(max_workers=RECORD_WORKERS) as executor:
+        for code, lines in executor.map(record, directories):
+            status |= code
+            print("\n".join(lines), flush=True)
     return status
 
 
@@ -3357,7 +3391,7 @@ def mutation_test(match: str | None = None) -> int:
          "            preflight: ${{ needs.plan_check.outputs.run_dir }}/preflight.json\n", "",
          "without the run's preflight record"),
         ("the check action drops preflight mode", actions,
-         'MODES = ("plan", "preflight", "handoff", "gate")', 'MODES = ("plan", "handoff", "gate")',
+         'MODES = ("route", "plan", "preflight", "handoff", "gate")', 'MODES = ("route", "plan", "handoff", "gate")',
          "MODES must include preflight"),
         # The correction loop's bound and order, each link broken on its own.
         ("the correction loop ignores the gate's bound", pipelines,
@@ -3653,6 +3687,54 @@ def mutation_test(match: str | None = None) -> int:
     cases.append((Case("flow: correction receives full original diff",
                        both("alchemy-orchestrate/adapters/unstoppable/pipelines/alchemy-multi-agent.yaml"),
                        ("flow controls:",)), full_correction_diff))
+
+    route_adapter = "alchemy-orchestrate/adapters/unstoppable/actions/alchemy-check/check.py"
+    multi_pipeline = "alchemy-orchestrate/adapters/unstoppable/pipelines/alchemy-multi-agent.yaml"
+
+    def mutate_both(relative: str, old: str, new: str):
+        def apply() -> None:
+            for path in both(relative):
+                text, crlf = read_raw(path)
+                write_raw(path, text.replace(old, new, 1), crlf)
+        return apply
+
+    for label, relative, old, new in (
+        ("flow: cheap dispatch carries an orchestration plan", route_adapter,
+         'if not data["proceed"] or data["dispatch"] in ("SKIP", "DIRECT"):', 'if not data["proceed"]:'),
+        ("flow: delegated plan accepted without spawn tools", route_adapter,
+         'if not (capabilities["spawn"] and capabilities["wait"]):', "if False:"),
+        ("flow: plan check ignores the checked route", multi_pipeline,
+         "      if: needs.route_check.outputs.path == 'planned'\n", ""),
+        ("flow: runtime probe cannot see the execute step's tools", multi_pipeline,
+         "            thinking_effort: low\n            permission_preset: dangerous_all\n",
+         "            thinking_effort: low\n            permission_preset: read_only\n"),
+        ("flow: second provider review always runs", multi_pipeline,
+         "          if: matrix.reviewer == 'reviewer_codex' || inputs.additional_review != ''\n", ""),
+    ):
+        cases.append((Case(label, both(relative), ("flow controls:",)), mutate_both(relative, old, new)))
+
+    def serialize_recorder() -> None:
+        text, crlf = read_raw(validator)
+        write_raw(validator, text.replace("RECORD_WORKERS = 4\n", "RECORD_WORKERS = 1\n", 1), crlf)
+
+    cases.append((Case("flow: scenario recorder serialized", [validator], ("flow controls:",)), serialize_recorder))
+
+    def hash_adapters() -> None:
+        text, crlf = read_raw(validator)
+        write_raw(validator, text.replace("    if scenario:\n        files = {", "    if False:\n        files = {", 1), crlf)
+
+    cases.append((Case("flow: adapter edits stale every scenario transcript", [validator],
+                       ("flow controls:",)), hash_adapters))
+
+    def read_adapter() -> None:
+        path = copy / ".scenarios/orchestrate-gate-vote/transcript.json"
+        transcript = json.loads(path.read_text(encoding="utf-8"))
+        transcript["files_read"].append(".claude/skills/alchemy-orchestrate/adapters/README.md")
+        write_raw(path, json.dumps(transcript, indent=2, ensure_ascii=False) + "\n", False)
+
+    cases.append((Case("scenario: transcript depends on an unhashed adapter",
+                       [copy / ".scenarios/orchestrate-gate-vote/transcript.json"],
+                       ("which the scenario revision does not cover",)), read_adapter))
 
     def serialize_repository_fixtures() -> None:
         text, crlf = read_raw(validator)

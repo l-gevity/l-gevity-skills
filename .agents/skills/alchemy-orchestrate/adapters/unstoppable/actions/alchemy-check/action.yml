@@ -5,11 +5,12 @@ description: >-
   verdict is PASS or ACCEPT.
 inputs:
   mode:
-    description: plan, preflight, handoff, or gate.
+    description: route, plan, preflight, handoff, or gate.
     required: true
   plan:
     description: >-
-      Path to the alchemy-plan/1 file, or with plan_field set, a JSON file whose
+      In route mode, the planning agent's structured result before any publication.
+      Otherwise, path to the alchemy-plan/1 file, or with plan_field set, a JSON file whose
       field of that name holds the plan as an object or as JSON text. Relative
       paths resolve against the repository root.
     required: true
@@ -121,7 +122,17 @@ inputs:
       only reports it. Unreadable input fails the step either way.
     required: false
     default: 'true'
+  capabilities:
+    description: >-
+      Route mode only: the execution-runtime probe's structured result (spawn,
+      wait, isolated, evidence). Required in route mode.
+    required: false
+    default: ''
 outputs:
+  path:
+    description: route mode, local for SKIP/DIRECT, planned for orchestration, stop for a blocked route.
+  dispatch:
+    description: route mode, the validated SKIP, DIRECT, ADAPTIVE, or FULL dispatch.
   verdict:
     description: PASS, ACCEPT, FAIL, REJECT, STALE, RETRY, or ESCALATE.
   summary:

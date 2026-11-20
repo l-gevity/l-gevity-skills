@@ -149,6 +149,45 @@ class Measurements(unittest.TestCase):
         self.assertFalse(any(p.exists() for p in seen))
 
 
+class ScenarioRecording(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.validator = load("record_validator", ROOT / "scripts/validate-skills.py")
+
+    def test_adapter_files_do_not_change_scenario_revision(self):
+        skill = ROOT / ".claude/skills/alchemy-orchestrate"
+        files = self.validator.mirror_source_files(skill)
+        self.assertTrue(any(path.parts[0] == "adapters" for path in files))
+        before = self.validator.skill_revision(skill, scenario=True)
+        full = self.validator.skill_revision(skill)
+        adapter = sorted(path for path in files if path.parts[0] == "adapters")[0]
+        original = (skill / adapter).read_bytes()
+        try:
+            (skill / adapter).write_bytes(original + b"\n# adapter-only edit\n")
+            self.assertEqual(self.validator.skill_revision(skill, scenario=True), before)
+            self.assertNotEqual(self.validator.skill_revision(skill), full)
+        finally:
+            (skill / adapter).write_bytes(original)
+
+    def test_recorder_runs_scenarios_in_parallel(self):
+        names = sorted(path.name for path in (ROOT / ".scenarios").iterdir() if path.is_dir())[:2]
+
+        def transcript(name):
+            path = ROOT / ".scenarios" / name / "transcript.json"
+            return path.read_bytes() if path.is_file() else None
+
+        before = {name: transcript(name) for name in names}
+        timeout = subprocess.TimeoutExpired("claude", 1)
+        with patch.object(self.validator.shutil, "which", return_value="claude"), \
+             patch.object(self.validator.subprocess, "run", side_effect=timeout), \
+             patch.object(self.validator, "ThreadPoolExecutor", wraps=self.validator.ThreadPoolExecutor) as executor, \
+             patch("builtins.print"):
+            self.assertEqual(self.validator.record_scenarios(names), 1)
+        executor.assert_called_once_with(max_workers=4)
+        for name in names:
+            self.assertEqual(transcript(name), before[name])
+
+
 class ReviewDelta(unittest.TestCase):
     def test_correction_adapter_supplies_delta(self):
         adapter = ROOT / ".agents/skills/alchemy-orchestrate/adapters/unstoppable"
@@ -170,6 +209,77 @@ class ReviewDelta(unittest.TestCase):
             ledger.write_text('{"schema":"alchemy-ledger/1","head_commit":"--all"}')
             with self.assertRaises(snapshot.InputError):
                 snapshot.review_base(root, "", str(ledger))
+
+
+class PipelineRouting(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.adapter = load("pipeline_check", ROOT / ".agents/skills/alchemy-orchestrate/adapters/unstoppable/actions/alchemy-check/check.py")
+
+    def payload(self, dispatch="ADAPTIVE", plan=None):
+        if plan is None:
+            plan = {"execution": {"mode": "single-agent"}, "packages": [{"owner": "lead"}]}
+        return {"dispatch": dispatch, "proceed": True, "plan": json.dumps(plan)}
+
+    def probe(self, spawn=True, wait=True):
+        return {"spawn": spawn, "wait": wait, "isolated": False, "evidence": "Agent tool seen"}
+
+    def route(self, data, probe=None):
+        return self.adapter.route(data, self.probe() if probe is None else probe)
+
+    def test_cheap_dispatch_never_accepts_orchestration(self):
+        for dispatch in ("SKIP", "DIRECT"):
+            data = self.payload(dispatch)
+            with self.assertRaises(self.adapter.InputError):
+                self.route(data)
+            data["plan"] = ""
+            self.assertEqual(self.route(data)["path"], "local")
+
+    def test_missing_runtime_capabilities_reject_delegated_plan(self):
+        plan = {"execution": {"mode": "multi-agent"}, "packages": [{"owner": "agent-a"}]}
+        for spawn, wait in ((False, True), (True, False), (False, False)):
+            with self.assertRaises(self.adapter.InputError):
+                self.route(self.payload(plan=plan), self.probe(spawn, wait))
+        self.assertEqual(self.route(self.payload(plan=plan))["path"], "planned")
+        self.assertEqual(self.route(self.payload(), self.probe(False, False))["path"], "planned")
+
+    def test_fail_closed_on_missing_or_malformed_route(self):
+        for field in ("dispatch", "proceed", "plan"):
+            data = self.payload()
+            del data[field]
+            with self.assertRaises(self.adapter.InputError):
+                self.route(data)
+        for probe in (None, {}, {**self.probe(), "spawn": "false"}, {**self.probe(), "evidence": " "}):
+            with self.assertRaises(self.adapter.InputError):
+                self.adapter.route(self.payload(), probe)
+
+    def test_pipeline_branches_on_checked_route(self):
+        pipeline = (ROOT / ".agents/skills/alchemy-orchestrate/adapters/unstoppable/pipelines/alchemy-multi-agent.yaml").read_text()
+        jobs = pipeline.split("\n  jobs:\n", 1)[1]
+        def job(name):
+            return jobs.split(f"\n    {name}:\n", 1)[1].split("\n\n    ", 1)[0]
+        self.assertIn("mode: route", job("route_check"))
+        self.assertIn("capabilities: ${{ needs.capabilities.outputs.response_file }}", job("route_check"))
+        # The probe must see the execute step's tools: same model alias and preset.
+        execute, probe = job("execute"), job("capabilities")
+        for setting in ("model: lead", "permission_preset: dangerous_all"):
+            self.assertIn(setting, execute)
+            self.assertIn(setting, probe)
+        self.assertIn("permission_preset: read_only", job("plan"))
+        self.assertNotIn("capabilities", pipeline.split("PLAN_SCHEMA:", 1)[1].split("CAPABILITY_SCHEMA:", 1)[0])
+        self.assertIn("if: needs.route_check.outputs.path == 'local'", job("local"))
+        self.assertNotIn("alchemy-orchestrate/SKILL.md", job("local").replace("Do not load alchemy-orchestrate", ""))
+        self.assertIn("- route_check", job("plan_check"))
+        self.assertIn("if: needs.route_check.outputs.path == 'planned'", job("plan_check"))
+        self.assertIn("if: matrix.reviewer == 'reviewer_codex' || inputs.additional_review != ''", job("review"))
+
+    def test_blocked_route_cannot_release_work(self):
+        data = self.payload()
+        data.update(proceed=False, plan="")
+        self.assertEqual(self.route(data)["path"], "stop")
+        data["plan"] = "{}"
+        with self.assertRaises(self.adapter.InputError):
+            self.route(data)
 
 
 if __name__ == "__main__":
