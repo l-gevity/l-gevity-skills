@@ -54,12 +54,84 @@
     "eslint.config.mjs",
     "package.json",
     "src/billing/invoice.js",
-    "src/auth/index.js",
-    "src/auth/internal/token.js"
+    "src/auth/index.js"
   ],
   "paths_searched": [
     "."
   ],
-  "turns": 9,
-  "output": "**What I found:** The rule is still declared, but it no longer applies to anything, so the gate needs its reach put back (the record calls this RESTORE). In `eslint.config.mjs:15-25`, a later `files: ['**/*.js']` block sets `no-restricted-syntax` again. In ESLint flat config, a later block replaces an earlier block's options for the same rule instead of adding to them. So every file, including `src/billing/invoice.js`, only gets the `DebuggerStatement` check, and the green runs were never checking for auth-internal imports.\n\n**Why it matters:** Every PR since that second block went in has merged with no boundary check, so `invoice.js:1` may not be the only bypass. Billing also now depends on `signToken`, which only base64-encodes the claims (`src/auth/internal/token.js:2`). Anyone can forge an invoice link token, which is a security problem separate from the lint issue. If nothing changes, the rule stays decorative and more bypasses can merge.\n\n**Do this first:**\n1. In `eslint.config.mjs`, move the auth boundary off the shared rule key so the debugger block can't override it. Replace the first block's `rules` with:\n   ```js\n   'no-restricted-imports': ['error', { patterns: [{ group: ['**/auth/internal/**'],\n     message: 'Import auth through src/auth/index.js, never its internals.' }] }],\n   ```\n   Then commit a known-bad file that imports `auth/internal`, and add a CI step that runs `eslint` on it with the full config and fails unless that message appears.\n2. Restoring the rule makes `invoice.js:1` fail lint. Fix it in the same PR by giving `src/auth/index.js` a public export that billing can use. Whether auth should expose invoice tokens is the auth owner's decision. If that can't happen in this PR, add a one-entry baseline with an owner and an expiry date.\n3. Give the token-forgery problem to the auth owner. `signToken` needs a real signature such as HMAC.\n\n**What I did not check:**\n- That the resolved config really drops the rule. I worked this out from flat-config semantics and didn't run anything: `npx eslint --print-config src/billing/invoice.js`\n- Whether other files already import auth internals: `npx eslint .` after the fix, or `rg \"auth.internal\" src --glob '!src/auth/**'`\n- When the shadowing block was added. This isn't a git repo, so there's no history to look at.\n\n```text\nGate:         eslint no-restricted-syntax auth-internal boundary (eslint.config.mjs:2-14), via `npm run lint`, merge-blocking on PRs\nStage:        PR CI (static analysis); unplaced pre-commit\nTrigger:      narrowed — passed while a known-bad input (src/billing/invoice.js:1) existed\nProof:        UNPROVEN — no negative control; no recorded red run\nScope:        declared src/**/*.js minus src/auth/** / effective none (block 2 at :15-25 replaces the rule's options for all **/*.js) / delta every auth-internal import in src/ outside src/auth/\nBaseline:     none; restoring the rule adds 1 existing violation (src/billing/invoice.js:1)\nStatus:       BLOCKING (for debugger statements only)\nDecision:     RESTORE\nGuard:        committed known-bad fixture run through the assembled config in CI, asserting the boundary message and a non-zero exit\nHandoff:      architecture-as-code (boundary rule form, auth public API for billing)\nNext action:  Move the boundary to no-restricted-imports in eslint.config.mjs and add the CI negative control in the same change\nVerification: Not run — I only had read-only tools in this session; I didn't run `npx eslint --print-config src/billing/invoice.js` or `npm run lint`\n```"
+  "turns": 8,
+  "metrics": {
+    "duration_ms": 30538,
+    "duration_api_ms": 31744,
+    "total_cost_usd": 0.22249850000000002,
+    "usage": {
+      "input_tokens": 10,
+      "cache_creation_input_tokens": 19303,
+      "cache_read_input_tokens": 62360,
+      "output_tokens": 2766,
+      "output_tokens_details": {
+        "thinking_tokens": 1046
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 19303,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 2282,
+          "cache_read_input_tokens": 22146,
+          "cache_creation_input_tokens": 1001,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 1001
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 10,
+        "outputTokens": 2766,
+        "cacheReadInputTokens": 62360,
+        "cacheCreationInputTokens": 19303,
+        "webSearchRequests": 0,
+        "costUSD": 0.222256,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 1046,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 19303,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-haiku-5-5": {
+        "inputTokens": 1265,
+        "outputTokens": 232,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.0002425,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 212,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 0,
+        "canonicalModel": "claude-haiku-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    }
+  },
+  "output": "**What I found:** The gate is not doing its job. The auth-internals rule is overwritten: the second block in `eslint.config.mjs` (lines 15–26) sets `no-restricted-syntax` again for `**/*.js`. ESLint flat config replaces the earlier rule's options instead of combining them, so every file is checked only for `debugger`. Lint has stayed green because the auth rule has never run on any file. The fix is to turn it back on and add a test that proves it fails (the record calls this RESTORE).\n\n**Why it matters:** Every green lint run so far says nothing about auth boundaries, and `src/billing/invoice.js` shows other code already depends on auth internals. Turning the rule back on will make `npm run lint` fail on `invoice.js`, and maybe other files. That change has to deal with every violation it uncovers, or merges stop.\n\n**Do this first:**\n1. In `eslint.config.mjs`, replace the second block's `no-restricted-syntax` / `DebuggerStatement` entry with `'no-debugger': 'error'`. The two rules then stop sharing a name, so neither can overwrite the other.\n2. In the same PR, fix `src/billing/invoice.js:1`: export an invoice-token function from `src/auth/index.js` and import it from there. If other files fail too, list each one by name in a baseline that can only shrink, with an owner. Don't just add them to an ignore list.\n3. Add a lint test to CI that checks a known-bad import, for example: `new ESLint().lintText(\"import { signToken } from '../auth/internal/token.js';\", { filePath: 'src/billing/__control__.js' })`. It must report the \"Import auth through src/auth/index.js\" message, and a `debugger` line must still be flagged. This proves the rule works in the config as actually assembled, not just on its own.\n\n**What I did not check:**\n- I couldn't run commands here, so I haven't confirmed which rules ESLint actually applies. `npx eslint --print-config src/billing/invoice.js` shows that.\n- I don't know how many other files import auth internals. `npx eslint .` after step 1 gives the count.\n- I found no CI config in the repo, so I couldn't confirm where `npm run lint` blocks merge.\n\n```text\nGate:         eslint no-restricted-syntax \"auth.internal\" import ban, eslint.config.mjs:1-14, run by `npm run lint` (blocks merge)\nStage:        pre-merge static analysis\nTrigger:      narrowed — passed while a known-bad input (src/billing/invoice.js:1) existed\nProof:        UNPROVEN — no negative control; no recorded red run\nScope:        declared src/**/*.js minus src/auth/** / effective none (the **/*.js block at lines 15-26 replaces the rule's options everywhere) / delta all auth-internal import checks\nBaseline:     none\nStatus:       BLOCKING (blocks on debugger statements only)\nDecision:     RESTORE\nGuard:        a CI negative control that lints a src/billing file importing auth/internal through the assembled config and asserts the rule's message; a second control asserts debugger is still flagged\nHandoff:      architecture-as-code (the boundary belongs in a per-subsystem architecture config / boundaries rule, not a syntax selector); gate-lifecycle §5 if restoring exposes more violations than one PR can fix\nNext action:  switch the debugger check to the core no-debugger rule, fix invoice.js to go through src/auth/index.js, and add the negative control in the same PR\nVerification: Not run — no shell available this session; close with `npx eslint --print-config src/billing/invoice.js` and `npx eslint .` (expect red on invoice.js:1 before the fix)\n```"
 }

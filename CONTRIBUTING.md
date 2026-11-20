@@ -69,6 +69,11 @@ the skill triggers. Each `.scenarios/<name>/` folder holds:
 - `project/`, optional: files copied into the throwaway project before the run,
   for a scenario whose request is about code.
 
+New recordings also retain duration, API duration, cost, usage, and per-model
+usage when the runtime reports them. Old transcripts without metrics remain
+valid; compare matched models, objectives, revisions, and quality outcomes
+before treating a timing difference as an improvement.
+
 CI never calls a model. It fails when a transcript is missing, when the
 request, the fixture project, `CLAUDE.md`, or a named skill changed after
 the transcript was recorded, when an expectation is not met, and when an entry in
@@ -99,6 +104,12 @@ that run tests nothing the skill says.
 it only shrinks, and a new skill ships with a scenario.
 
 ## Change checklist
+
+To diagnose one mutation family, use `python scripts/validate-skills.py
+--mutation-test --mutation-match <label-substring>`. It reports the selected
+count, rejects an empty selection, and does not replace the full mutation run.
+Child validators emit UTF-8 so Windows console encoding cannot hide a failure
+or turn the expected diagnostic into a different one.
 
 - [ ] Generic skill method changed in `.agents/skills/<name>/SKILL.md`.
 - [ ] `.claude/skills/<name>/SKILL.md` is byte-identical.

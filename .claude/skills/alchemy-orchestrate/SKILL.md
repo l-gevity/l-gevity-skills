@@ -66,7 +66,7 @@ names:
 | Strategy | Use |
 |:--|:--|
 | `sequential` | Packages form one chain; extra agents only review |
-| `dependency-aware` | Waves of independent packages after their contracts |
+| `dependency-aware` | Ready packages after their contracts; waves when streaming is unsafe |
 | `parallel-review` | One writer; several read-only reviewers with different lenses |
 
 Emit the execution block before any delegation:
@@ -139,19 +139,17 @@ the runtime transcript).
 4. **Approve when consequential.** Ask the human before executing a plan that
    crosses a subsystem boundary, writes a protected path, or exceeds the
    profile's agent budget. Show packages, owners, and write sets.
-5. **Spawn sub-agents by wave.** This step is the explicit instruction to
-   delegate: spawn one sub-agent per package through the runtime's agent tool,
-   using the agent definition named after its plan envelope
-   (`alchemy-analyst` or `alchemy-implementer`), and pass the package record,
-   its skill names, its budget, the hand-off format, and, to a verifier, the
-   evidence records at its head. Spawn a wave's packages together
-   and wait for all of them before ending your turn; contract packages go
-   first. Each writer starts
-   from the plan's base or an integrated head, works in an isolated workspace
-   when the runtime provides one, and touches only its write set. Delegated
-   agents never delegate. When the runtime cannot spawn agents, re-plan as
-   `single-agent` and report the limitation: a plan nobody was delegated is
-   not a multi-agent run.
+5. **Spawn ready packages.** Delegate one sub-agent per package with the runtime's
+   agent tool and its envelope (`alchemy-analyst` or `alchemy-implementer`),
+   package, skills, budget, and hand-off format. Use `plan --completed <id>
+   --running <id>` per [references/contracts.md](references/contracts.md) to
+   release dependencies after acceptance and integration. Stream only with
+   individual completion events and immutable inputs for in-flight packages;
+   otherwise use the printed waves. Contracts go first. Keep the lead active
+   until every spawned agent finishes. Each writer starts from the plan's base
+   or an integrated head in an isolated workspace when available, and touches
+   only its write set. Delegated agents never delegate. Without spawning,
+   re-plan as `single-agent` and report the limitation.
 6. **Receive hand-offs.** Each package ends its reply with its hand-off as
    one JSON block. Save it unedited under `state_dir` and, before anyone
    changes the workspace, run `check_orchestration.py handoff <handoff.json>
@@ -159,19 +157,19 @@ the runtime transcript).
    the claims: the check proves digests, not meaning. `ACCEPT` continues;
    `REJECT`, `STALE`, `RETRY`, and `ESCALATE` follow
    [references/governance.md](references/governance.md) §4.
-7. **Integrate.** The lead merges accepted packages in wave order, resolves
+7. **Integrate.** The lead merges accepted packages in dependency order, resolves
    conflicts by serializing, records the plan's command criteria and the
    profile's verification commands once on the integrated head with
    `scripts/record_evidence.py`, and records that head in the plan's
-   `base.integrated` so the next wave may start from it.
+   `base.integrated` so dependents may start from it.
 8. **Verify independently.** Verifiers read the requirements, the integrated
    diff, the tests, and those evidence logs, and cite the records; they run a
    command only where no record covers a criterion or to test a suspected
    finding. A hand-off summary is a claim to test, never evidence.
 9. **Correct, bounded.** Before anybody edits, add a plan amendment (yours
    too) and re-run the plan check with `--approved`.
-   A cycle answers a blocking or major finding; minor ones stay open. Its
-   re-review covers only the change since the last reviewed head.
+   A cycle answers a blocking or major finding; minor ones stay open. Give the reviewer that head, the correction diff, findings, and current
+   evidence; its re-review covers only the change since the last reviewed head.
    At most `max_rework_cycles` per origin chain; then escalate. Never raise a
    bound yourself: an unanswered question is no
    answer. On `NOT_CONVERGING`, stop patching that work and propose a

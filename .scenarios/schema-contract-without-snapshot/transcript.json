@@ -53,5 +53,78 @@
   "files_read": [],
   "paths_searched": [],
   "turns": 3,
-  "output": "**What I found:** The runbook drops `customers.fax_number` with no snapshot and uses the migration's down step as the production rollback. That down step only re-adds an empty column, so the contract step has no real reversal. The skill's rules call this BREAKING. Readers, writers, the coexistence window and retention are all cleared by the evidence. The decision rests on the missing snapshot alone.\n\n**Why it matters:** If the drop ships as written and any reader the logs missed turns up, about 300,000 fax numbers are gone for good. \"Rollback\" would bring back the column but not the data. Fixing it costs one snapshot step, and then this becomes a clean STAGED contract.\n\n**Do this first:**\n1. Before the drop release, add a runbook step that snapshots the data. For example, `CREATE TABLE customers_fax_number_archive AS SELECT id, fax_number FROM customers WHERE fax_number IS NOT NULL;` and verify it with a row count of about 300k. A named PITR or backup ID with a tested restore also works. Then replace the down step as the rollback with \"restore from `<snapshot>`\".\n   - Follow-up: the snapshot holds personal data, so give it its own deletion date and owner, and get the privacy owner's sign-off.\n   - Follow-up: in the drop migration, set `lock_timeout` (e.g. `SET lock_timeout = '5s'`). `DROP COLUMN` is metadata-only, but it needs a brief `ACCESS EXCLUSIVE` lock on a busy table.\n\n**What I did not check:**\n- **The runbook and migration files themselves.** This review uses your description, not the repo.\n- **`SELECT *` readers.** The log search finds statements that name `fax_number`. A `SELECT *` from either release, the export, or ad-hoc tooling reads the column without naming it. Close it by searching the same 90 days of logs for `SELECT \\*` / `customers.*` against `customers`.\n- **Database objects that depend on the column** (views, functions, triggers, indexes, policies). Close it with `SELECT * FROM pg_depend d JOIN pg_attribute a ON a.attrelid=d.refobjid AND a.attnum=d.refobjsubid WHERE d.refobjid='customers'::regclass AND a.attname='fax_number';` plus a `grep` of function bodies in `pg_proc`.\n- **Readers outside the query log:** logical replication or CDC publications, warehouse syncs, read replicas with their own logging. Close it with `SELECT * FROM pg_publication_tables WHERE tablename='customers';` and the CDC connector configs.\n- **Prepared statements or ORM column caches in the old release.** Close it with a staging rolling deploy: old and new release side by side, drop applied, smoke tests run.\n\n| Element | Change class | Writer / readers | Coexisting versions | Compatibility mode | Transition stage | Reversal step | Evidence | Residual blind spot |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| `customers.fax_number` | Destructive | Writer: `accounts`, stopped 5 releases ago. Readers: `accounts` and the quarterly marketing export, both stopped | Current release + new release (~10 min), rollback = previous release; none touch the column | full (met) | Contract | None that restores data: the down step re-adds an empty column; no snapshot | 90-day query logs incl. one export run: 0 references; export owner's written confirmation; retention owner's written clearance | `SELECT *` readers, dependent DB objects, CDC/replication, no snapshot |\n\n```text\nSubject:              customers.fax_number drop (contract step), PostgreSQL, accounts service\nMode:                 Design\nDesign pass:          Combined (target shape, ownership, topology accepted; final step only)\nDecision:             BREAKING\nChange class:         destructive\nCompatibility mode:   full: satisfied, no live or rollback version reads or writes the column\nCoexistence window:   old + new accounts release (~10 min rolling); rollback target = previous release; none use the column\nCoexisting clients:   none: no browser bundle, mobile app, or SDK; public API never exposed it\nReversibility input:  irreversible data migration\nStaged path:          expand/migrate/verify stages complete (writes stopped 5 releases ago, readers removed, evidence gathered); contract remains\nContract trigger:     defined and met: 90-day query logs with 0 references incl. one full quarterly export run, plus the export owner's written confirmation\nMigration increments: contract only: DROP COLUMN fax_number, shipped alone. Missing: pre-drop snapshot; rollback names the down-migration, which restores the shape but not the ~300k values\nData contract:        none needed after the drop; the export consumer has withdrawn in writing\nObligations:          7-year retention: cleared in writing (does not cover fax numbers); backup/restore: not met, no snapshot named\nHandoffs:             ci-cd-reliability-architecture (snapshot-before-contract gate, rollback artifact = snapshot, not down step); test-strategy (staging skew test with the drop applied); defect-shift-left (migration lint: DROP COLUMN requires a snapshot reference + lock_timeout); privacy companion (snapshot holds PII: deletion date and owner); functionality-complexity-tradeoff (remove leftover fax_number code/mappings after the drop)\nResidual risk:        blocked: irreversible loss of ~300k values if an unseen reader exists; unknown: SELECT * readers, dependent objects, CDC subscribers\nNext action:          add a verified snapshot step (archive table or named PITR/backup ID) before the drop and make it the production rollback\nVerification:         Not run: no access to the database, query logs, or runbook files; decision based on the facts as stated\n```"
+  "metrics": {
+    "duration_ms": 23671,
+    "duration_api_ms": 25154,
+    "total_cost_usd": 0.20808749999999998,
+    "usage": {
+      "input_tokens": 6,
+      "cache_creation_input_tokens": 19638,
+      "cache_read_input_tokens": 20778,
+      "output_tokens": 2326,
+      "output_tokens_details": {
+        "thinking_tokens": 475
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 19638,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 4,
+          "output_tokens": 2015,
+          "cache_read_input_tokens": 16934,
+          "cache_creation_input_tokens": 6548,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 6548
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "modelUsage": {
+      "claude-haiku-5-5": {
+        "inputTokens": 1639,
+        "outputTokens": 240,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.0002839,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 221,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 0,
+        "canonicalModel": "claude-haiku-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-opus-5-5": {
+        "inputTokens": 6,
+        "outputTokens": 2326,
+        "cacheReadInputTokens": 20778,
+        "cacheCreationInputTokens": 19638,
+        "webSearchRequests": 0,
+        "costUSD": 0.20780359999999998,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 475,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 19638,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    }
+  },
+  "output": "**What I found:** The step that drops `customers.fax_number` should not ship as the runbook stands (the record calls this BREAKING). The evidence that nothing reads the column and the retention clearance are both sufficient, but the runbook takes no snapshot and treats the down step as the rollback, and that down step only brings back an empty column. The ~300,000 stored fax numbers would be gone.\n\n**Why it matters:** If the drop ships as written and anyone later needs a fax number back, nothing can restore it. Adding a snapshot to the runbook costs little, and the drop can proceed once one exists.\n\n**Do this first:**\n1. Before the drop, add a runbook step that copies the column, e.g. `CREATE TABLE customers_fax_number_snapshot AS SELECT id, fax_number FROM customers WHERE fax_number IS NOT NULL;`. Verify it by count (≈300,000). Name it as the restore source, and give it an owner and a deletion date, because it holds personal data.\n2. Change the rollback line. The real rollback is the previous release, which works because it never touches the column. Restoring data means running `UPDATE … FROM` the snapshot after the down step re-adds the column.\n3. Run the migration with a short `SET lock_timeout` (e.g. `'5s'`). `DROP COLUMN` needs a brief ACCESS EXCLUSIVE lock on a 4M-row table that is being written.\n\n**What I did not check:**\n- The migration file and runbook text. None were in the workspace, so this review is based only on your description.\n- Whether a backup or point-in-time recovery outside the runbook already covers this table. You can check `pg_stat_archiver` or your backup tool's listing. Even if one exists, the runbook still names no restore source, so the decision stays the same.\n- The 90-day query logs and the written confirmations. I took them as you stated them.\n\n| Element | Change class | Writer / readers | Coexisting versions | Compatibility mode | Transition stage | Reversal step | Evidence | Residual blind spot |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| `customers.fax_number` | destructive | `accounts` (stopped writing 5 releases ago) / none current (formerly `accounts` and the quarterly marketing export) | N and N-1 for ~10 min; rollback target N-1; neither reads or writes the column | full (trivially satisfied: no version touches the column) | contract | **none valid:** the down step re-adds an empty column, and no snapshot is taken | 90-day query logs with zero references, covering one full export run; export owner's written confirmation; retention owner's written clearance | ~300k values cannot be recovered; existence of an out-of-runbook backup unverified |\n\n```text\nSubject:              customers.fax_number contract step (accounts service, PostgreSQL)\nMode:                 Design\nDesign pass:          Combined (target shape, ownership, topology accepted and stable)\nDecision:             BREAKING\nChange class:         destructive\nCompatibility mode:   full (no coexisting version reads or writes the element)\nCoexistence window:   current + new release ~10 min during rolling deploy; rollback target = previous release; none reference the column\nCoexisting clients:   none (no browser bundle, mobile app, SDK; public API never exposed it)\nReversibility input:  irreversible data migration\nStaged path:          expand/migrate/verify complete; contract = this step\nContract trigger:     satisfied: 90-day logs (incl. one quarterly export run) show zero references from any role or job; export owner confirmed in writing\nMigration increments: contract: ALTER TABLE customers DROP COLUMN fax_number; no access-code change; reversal step missing\nData contract:        none needed after contract (export consumer closed with written confirmation)\nObligations:          retention: cleared in writing (7-year rule excludes fax numbers); backup: unmet (no snapshot, no named restore source); privacy: snapshot of personal data needs owner and expiry\nHandoffs:             ci-cd-reliability-architecture: snapshot-before-contract gate, rollback = previous release, not the down migration; test-strategy: snapshot count verification\nResidual risk:        blocked: ~300k fax values lost permanently if the drop ships without a snapshot\nNext action:          add snapshot step (count-verified, owner, deletion date) and name it as the restore source; replace down-migration-as-rollback\nVerification:         Not run: no migration file or database access in the workspace; evidence taken from your description\n```\n\nThe decision becomes STAGED, and the drop can ship, once the snapshot step and the corrected rollback are in the runbook. Nothing else blocks it."
 }

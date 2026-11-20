@@ -63,5 +63,78 @@
     "."
   ],
   "turns": 12,
-  "output": "**What I found:** Put the new invoice PDF formatter at `src/exports/invoice-pdf.js` (the record calls this PLACE). The planned import of `src/orders/repository.js` breaks a boundary: only `src/orders/index.js` is meant to be imported from outside orders, and the existing export job already goes through it (`src/exports/billing-export.js:1`).\n\n**Why it matters:** Importing `repository.js` directly would tie exports to how orders stores its data, which today is an in-memory `Map`, and would skip the tax and total logic in `getOrderTotals`. Invoice amounts could then drift from what billing exports. If the formatter takes data as an argument and has no orders import at all, it stays a pure function you can test without a store.\n\n**Do this first:**\n1. Create `src/exports/invoice-pdf.js` exporting something like `formatInvoicePdf(totals)`. In `runBillingExport`, call `getOrderTotals(id)` and pass the result in. Don't import anything from `src/orders/` in the formatter.\n2. If the invoice needs order lines and not just totals, add a read function to `src/orders/index.js` rather than reaching into `repository.js`.\n3. When you pick a PDF library, import it only in `invoice-pdf.js`.\n\n**What I did not check:**\n- Whether the invoice needs more than `{ orderId, subtotal, tax, total }`. That depends on the invoice spec.\n- Which PDF library you'll use. `package.json` has no dependencies yet.\n- Enforcement (gate E) did not run, and the repo has no ESLint or architecture config, so nothing blocks this import automatically. Running `/alchemy E` would add the rule below.\n\n```\nDispatch:   DIRECT\nCore route: L\nCompanions: None\nExecution:  single-agent — one bounded placement check\n```\n\n| Subsystem / edge | Declared position | Observed pressure | Finding | Evidence / confidence | Decision | Next action | Verification |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| `exports/invoice-pdf` → `orders/repository.js` (planned) | exports / capability / application → orders / primitive / infrastructure | Not measured | cross-domain coupling: skips the orders inbound interface `src/orders/index.js` | Static: `index.js` is the only entry the existing caller uses; `repository.js` is internal storage. High | Remove the edge | Pass the data in from `runBillingExport`. If more fields are needed, add them to `orders/index.js` | Grep: nothing outside `src/orders/` imports `repository.js` |\n\n```text\nSubject:             invoice PDF formatter (new) + its planned imports\nMode:                Design\nAnalysis mode:       Rapid\nSelection reason:    bounded placement of one new subsystem and its static edges\nDecision:            PLACE\nDeclared topology:   exports / capability / application — src/exports/invoice-pdf.js\n                     Inbound: formatInvoicePdf(data) → PDF; one caller, src/exports/billing-export.js\n                     Outbound: PDF library only (this module is its sole importer); no orders import\nPosition legality:   Fail (planned edge): cross-domain coupling, exports/invoice-pdf → orders/repository.js.\n                     Pass (revised): billing-export → orders/index.js (existing), billing-export → invoice-pdf\nObserved fields:     static (3 source files read); runtime/change/data/failure Not measured (Rapid)\nStatic cycle:        Pass: exports → orders/index → orders/repository; the revised design adds no back-edge\nRuntime cycles:      none\nBoundary evidence:   orders already publishes index.js as its entry and the only existing external caller uses it;\n                     repository.js is internal storage with a write function (saveOrder) too\nEnforcement:         add architecture rule: src/exports/** must not import src/orders/repository.js;\n                     cross-domain imports of orders go through src/orders/index.js only (start at warn)\nNext action:         create src/exports/invoice-pdf.js as a pure formatter; wire it in runBillingExport\nVerification:        grep shows no import of orders/repository.js outside src/orders; unit test formatInvoicePdf with a literal totals object\n```"
+  "metrics": {
+    "duration_ms": 39634,
+    "duration_api_ms": 41290,
+    "total_cost_usd": 0.34358,
+    "usage": {
+      "input_tokens": 12,
+      "cache_creation_input_tokens": 30916,
+      "cache_read_input_tokens": 71287,
+      "output_tokens": 4082,
+      "output_tokens_details": {
+        "thinking_tokens": 1306
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 30916,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 3129,
+          "cache_read_input_tokens": 29998,
+          "cache_creation_input_tokens": 4762,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 4762
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 12,
+        "outputTokens": 4082,
+        "cacheReadInputTokens": 71287,
+        "cacheCreationInputTokens": 30916,
+        "webSearchRequests": 0,
+        "costUSD": 0.3432734,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 1306,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 30916,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-haiku-5-5": {
+        "inputTokens": 1241,
+        "outputTokens": 365,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.00030659999999999997,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 341,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 0,
+        "canonicalModel": "claude-haiku-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    }
+  },
+  "output": "**What I found:** Put the invoice PDF formatter in `src/exports/invoice-pdf.js` as a pure function. The billing export job fetches the order data and passes it in (the record calls this PLACE). The planned import of `src/orders/repository.js` is not legal: `src/orders/index.js` is the only public entry point to orders, so importing the repository directly skips both that entry point and the step from the job to orders.\n\n**Why it matters:** If the formatter reads the repository, exports becomes tied to how orders stores its data, and you can't test the formatter without the order store. Routing reads through `orders/index.js` keeps the formatter a pure data-to-PDF step. It also leaves orders free to change its storage.\n\n**Do this first:**\n1. Create `src/exports/invoice-pdf.js` exporting something like `formatInvoicePdf(invoiceData)`, with no imports from `src/orders`. Call it from `runBillingExport` in `src/exports/billing-export.js:3`, which already reads orders correctly through `getOrderTotals` in `src/orders/index.js`.\n2. If the invoice needs order lines (`getOrderTotals` returns only subtotal, tax and total), add a read function to `src/orders/index.js` for that data. Don't import `repository.js`.\n3. Add the boundary rules in the handoff below once an architecture config exists. Run alchemy E for that.\n\n**What I did not check:**\n- Which PDF library you'll use. `package.json` has no dependencies yet. Closes when the library is picked and its import is limited to `invoice-pdf.js`.\n- Exactly which fields the invoice needs. Closes by listing the invoice fields against what `src/orders/index.js` exports.\n- Rules that enforce this. There's no ESLint or architecture config in the repo. Closes with `/alchemy E`.\n- Change history and runtime behaviour. This isn't a git repo, and a quick placement check doesn't use them.\n\n---\n\n```\nDispatch:   DIRECT\nCore route: L\nCompanions: None\nExecution:  single-agent — one bounded placement, three edges\n```\n\n| Subsystem / edge | Declared position | Observed pressure | Finding | Evidence / confidence | Decision | Next action | Verification |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| `exports/invoice-pdf` → `orders/repository.js` (planned) | exports / primitive / application → orders / primitive / infrastructure | Not measured | **cross-domain coupling** (skips the `orders/index.js` entry point); **layer-skip violation** (formatter would reach another domain's storage) | `src/orders/index.js:1` is the only file that imports the repository. High | Drop the edge | Formatter takes data as an argument. The job reads through `orders/index.js` | An import rule: no file under `src/exports/**` imports `src/orders/repository.js` |\n| `exports/billing-export` → `exports/invoice-pdf` (new) | exports / orchestrator / application → exports / primitive / application | Not measured | None: same domain, higher tier calls lower | Design. High | PLACE | Write the module | Unit test on the pure formatter |\n| `exports/billing-export` → `orders/index.js` (existing) | exports / orchestrator / application → orders' public entry point | Not measured | None | `src/exports/billing-export.js:1`. High | KEEP | If lines are needed, add a read function to `orders/index.js` | — |\n\n```text\nSubject:             invoice PDF formatter (new) + its edges to exports and orders\nMode:                Design\nAnalysis mode:       Rapid\nSelection reason:    bounded placement of one new subsystem with three static edges\nDecision:            PLACE\nDeclared topology:   exports / primitive / application — src/exports/invoice-pdf.js\n                     Inbound: formatInvoicePdf(invoiceData) → PDF bytes; caller: exports/billing-export only\n                     Outbound: PDF library only (this module is its sole owner); no src/orders imports\nPosition legality:   Fail (planned edge): invoice-pdf → orders/repository.js — cross-domain coupling + layer-skip;\n                     Pass for the proposed placement without that edge\nObserved fields:     static (3 files read) | runtime, change, data, failure: Not measured\nStatic cycle:        Pass — orders does not import exports\nRuntime cycles:      none\nBoundary evidence:   domain reason — orders publishes index.js as its entry point; repository.js is internal to orders.\n                     This entry point is a convention only: nothing declares or enforces it\nEnforcement:         add architecture rules (warn → error):\n                     1. src/exports/** must not import src/orders/repository.js; only src/orders/index.js\n                     2. src/exports/invoice-pdf.js must not import src/orders/**\n                     3. the PDF library may be imported only by src/exports/invoice-pdf.js\nNext action:         write invoice-pdf.js as a pure formatter; add an orders/index.js read function if lines are needed; run /alchemy E for the rules\nVerification:        unit test on formatInvoicePdf with fixture data; import-rule lint once configured\n```\n\nHandoff to `architecture-as-code`:\n\n```text\nPrinciple:   interface\nConstraint:  src/exports/** must not depend on src/orders/repository.js\nEnforcement: add architecture rule: exports may import orders only via src/orders/index.js\n\nPrinciple:   SDK ownership\nConstraint:  only src/exports/invoice-pdf.js may depend on <PDF library>\nEnforcement: add architecture rule once the library is chosen\n```"
 }

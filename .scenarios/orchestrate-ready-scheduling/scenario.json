@@ -1,0 +1,10 @@
+{
+  "request": "Run alchemy-orchestrate to assess scheduling policy only. A checked plan has A and B independent, and C depends only on A, with distinct owners and disjoint writes. The sub-agent cap is 2. A has finished, its hand-off was accepted, its changes integrated and committed. B is still running in an isolated worktree pinned to its original base. The runtime delivers individual completion events and the lead stays active until all agents finish. Can C start now, or must it wait for B? Reply with Scheduling: ready or wave, and Next package: C or None. Also say what changes if B instead reads a shared live workspace that integration could change. Do not invent executed checks or a gate verdict.",
+  "skills": ["alchemy-orchestrate"],
+  "expect": [
+    {"id": "loads-orchestration", "criterion": "flow-scheduling #1: the owning orchestration policy decides", "check": "guidance_includes", "skills": ["alchemy-orchestrate"]},
+    {"id": "starts-ready-dependent", "criterion": "flow-scheduling #2: an unrelated running package does not block accepted integrated dependencies", "check": "field_in", "field": "Next package", "values": ["C"]},
+    {"id": "selects-ready", "criterion": "flow-scheduling #2: use ready scheduling when the runtime and isolation allow it", "check": "field_in", "field": "Scheduling", "values": ["ready"]},
+    {"id": "retains-shared-workspace-barrier", "criterion": "flow-scheduling #3: shared mutable read inputs require a barrier", "check": "text_matches", "pattern": "(?i)\\b(wave|barrier|wait|serialize)\\b"}
+  ]
+}

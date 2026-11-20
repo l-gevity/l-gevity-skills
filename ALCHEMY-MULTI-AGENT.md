@@ -69,7 +69,7 @@ Objective
 → plan check                                               check_orchestration.py plan
 → human approval when consequential                        §9
 → preflight when the run proceeds unattended               check_orchestration.py preflight
-→ launch agents by wave, contracts first                   §5
+→ launch ready agents (safe waves otherwise), contracts first                   §5
 → hand-off check per package                               check_orchestration.py handoff
 → integration by the lead
 → independent verification by an agent that wrote nothing it reviews

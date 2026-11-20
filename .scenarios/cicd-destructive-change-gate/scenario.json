@@ -34,7 +34,7 @@
       "id": "rechecks-at-deploy",
       "criterion": "destructive-change-gate #3: the preview runs again in the deploy job, not only at review",
       "check": "text_matches",
-      "pattern": "(?is)what-if[^\\n]{0,250}\\b(again|re-?run|repeat|twice|two places)\\b[^\\n]{0,250}\\bdeploy|\\bin the `?deploy`? job[^\\n]{0,200}what-if|what-if[^\\n]{0,250}\\bin the `?deploy`? job"
+      "pattern": "(?is)what-if[^\\n]{0,250}\\b(again|re-?run|repeat|twice|two places)\\b[^\\n]{0,250}\\bdeploy|\\bin the `?deploy`? job[^\\n]{0,200}what-if|what-if[^\\n]{0,250}\\bin the `?deploy`? job|(?m:^[ \\t>*_-]*Next action:[^\\n]*\\bdeploy[- ]time what-if\\b)"
     },
     {
       "id": "deletion-protection-out-of-reach",

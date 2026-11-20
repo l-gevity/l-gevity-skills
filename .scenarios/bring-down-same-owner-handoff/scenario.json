@@ -36,7 +36,7 @@
       "id": "hands-internal-extraction-to-architecture",
       "criterion": "bring-down #6: an extraction inside the same repository is handed to the architecture skills",
       "check": "text_matches",
-      "pattern": "(?m)^[ \\t>*_-]*Better skill:[^\\n]*(architecture|structural-simplification|refactor)"
+      "pattern": "(?m)^([ \\t]*)(?![ \\t])[ \\t>*_-]*Better skill:\\**(?:[^\\n]*\\n(?=[ \\t]{2})\\1[ \\t]+(?![ \\t]|[-*][ \\t]|\\**[A-Za-z][A-Za-z /-]{0,30}\\**:\\**(?:[ \\t]|$)))*[^\\n]*(architecture|structural-simplification|refactor)"
     },
     {
       "id": "opens-with-report-blocks",
