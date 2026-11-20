@@ -149,6 +149,45 @@ class Measurements(unittest.TestCase):
         self.assertFalse(any(p.exists() for p in seen))
 
 
+class ScenarioRecording(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.validator = load("record_validator", ROOT / "scripts/validate-skills.py")
+
+    def test_adapter_files_do_not_change_scenario_revision(self):
+        skill = ROOT / ".claude/skills/alchemy-orchestrate"
+        files = self.validator.mirror_source_files(skill)
+        self.assertTrue(any(path.parts[0] == "adapters" for path in files))
+        before = self.validator.skill_revision(skill, scenario=True)
+        full = self.validator.skill_revision(skill)
+        adapter = sorted(path for path in files if path.parts[0] == "adapters")[0]
+        original = (skill / adapter).read_bytes()
+        try:
+            (skill / adapter).write_bytes(original + b"\n# adapter-only edit\n")
+            self.assertEqual(self.validator.skill_revision(skill, scenario=True), before)
+            self.assertNotEqual(self.validator.skill_revision(skill), full)
+        finally:
+            (skill / adapter).write_bytes(original)
+
+    def test_recorder_runs_scenarios_in_parallel(self):
+        names = sorted(path.name for path in (ROOT / ".scenarios").iterdir() if path.is_dir())[:2]
+
+        def transcript(name):
+            path = ROOT / ".scenarios" / name / "transcript.json"
+            return path.read_bytes() if path.is_file() else None
+
+        before = {name: transcript(name) for name in names}
+        timeout = subprocess.TimeoutExpired("claude", 1)
+        with patch.object(self.validator.shutil, "which", return_value="claude"), \
+             patch.object(self.validator.subprocess, "run", side_effect=timeout), \
+             patch.object(self.validator, "ThreadPoolExecutor", wraps=self.validator.ThreadPoolExecutor) as executor, \
+             patch("builtins.print"):
+            self.assertEqual(self.validator.record_scenarios(names), 1)
+        executor.assert_called_once_with(max_workers=4)
+        for name in names:
+            self.assertEqual(transcript(name), before[name])
+
+
 class ReviewDelta(unittest.TestCase):
     def test_correction_adapter_supplies_delta(self):
         adapter = ROOT / ".agents/skills/alchemy-orchestrate/adapters/unstoppable"
