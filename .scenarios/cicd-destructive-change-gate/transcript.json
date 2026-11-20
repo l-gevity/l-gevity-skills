@@ -1,6 +1,6 @@
 {
   "scenario": "cicd-destructive-change-gate",
-  "revision": "87e234939f7a",
+  "revision": "b8850f752d7a",
   "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
@@ -60,16 +60,16 @@
   ],
   "turns": 7,
   "metrics": {
-    "duration_ms": 56718,
-    "duration_api_ms": 57388,
-    "total_cost_usd": 0.3206907,
+    "duration_ms": 37474,
+    "duration_api_ms": 39238,
+    "total_cost_usd": 0.2863096,
     "usage": {
       "input_tokens": 8,
-      "cache_creation_input_tokens": 25906,
-      "cache_read_input_tokens": 48116,
-      "output_tokens": 5173,
+      "cache_creation_input_tokens": 25932,
+      "cache_read_input_tokens": 47563,
+      "output_tokens": 3453,
       "output_tokens_details": {
-        "thinking_tokens": 2821
+        "thinking_tokens": 1153
       },
       "server_tool_use": {
         "web_search_requests": 0,
@@ -77,19 +77,19 @@
       },
       "service_tier": "standard",
       "cache_creation": {
-        "ephemeral_1h_input_tokens": 25906,
+        "ephemeral_1h_input_tokens": 25932,
         "ephemeral_5m_input_tokens": 0
       },
       "inference_geo": "global",
       "iterations": [
         {
           "input_tokens": 2,
-          "output_tokens": 4629,
-          "cache_read_input_tokens": 27687,
-          "cache_creation_input_tokens": 2063,
+          "output_tokens": 2931,
+          "cache_read_input_tokens": 27111,
+          "cache_creation_input_tokens": 2665,
           "cache_creation": {
             "ephemeral_5m_input_tokens": 0,
-            "ephemeral_1h_input_tokens": 2063
+            "ephemeral_1h_input_tokens": 2665
           },
           "type": "message"
         }
@@ -98,39 +98,39 @@
       "fallback_credit": null
     },
     "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 8,
+        "outputTokens": 3453,
+        "cacheReadInputTokens": 47563,
+        "cacheCreationInputTokens": 25932,
+        "webSearchRequests": 0,
+        "costUSD": 0.2860606,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 1153,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 25932,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
       "claude-haiku-5-5": {
         "inputTokens": 1290,
-        "outputTokens": 397,
+        "outputTokens": 240,
         "cacheReadInputTokens": 0,
         "cacheCreationInputTokens": 0,
         "webSearchRequests": 0,
-        "costUSD": 0.0003275,
+        "costUSD": 0.000249,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
-        "thinkingTokens": 372,
+        "thinkingTokens": 218,
         "cacheCreationEphemeral5mInputTokens": 0,
         "cacheCreationEphemeral1hInputTokens": 0,
         "canonicalModel": "claude-haiku-5-5",
         "provider": "firstParty",
         "costBasis": "list"
-      },
-      "claude-opus-5-5": {
-        "inputTokens": 8,
-        "outputTokens": 5173,
-        "cacheReadInputTokens": 48116,
-        "cacheCreationInputTokens": 25906,
-        "webSearchRequests": 0,
-        "costUSD": 0.3203632,
-        "contextWindow": 1000000,
-        "maxOutputTokens": 128000,
-        "thinkingTokens": 2821,
-        "cacheCreationEphemeral5mInputTokens": 0,
-        "cacheCreationEphemeral1hInputTokens": 25906,
-        "canonicalModel": "claude-opus-5-5",
-        "provider": "firstParty",
-        "costBasis": "list"
       }
     }
   },
-  "output": "**No, this pipeline isn't safe for that.**\n\n## What I found\n`.github/workflows/deploy.yml` deploys `infra/main.bicep` with `--mode Complete`, and the identity doing it is Owner of the whole subscription. Nothing in the pipeline shows what a change will actually do to Azure, before or after the merge. So the decision is to stop: no agent infrastructure pull requests until the gates below exist (the record calls this Block). Complete mode deletes every resource in `app-prod` that the template no longer lists. A one-line rename in a large agent diff, such as `storageName` or the `orders` database name, would delete the customer data or leave it orphaned next to a new empty copy.\n\n## Why it matters\nYour one human review checks the Bicep text, but the data loss happens in the effect on Azure. A redeploy brings back neither the customer orders nor the customer uploads. Because the identity is Owner, a template can also give any principal read access to the uploads through a role assignment, and it can remove any lock you add.\n\n## Do this first\n1. In `.github/workflows/deploy.yml:40`, remove `--mode Complete`. Before the `az deployment group create` step, add a step that runs a preview of the deployment (`what-if`) against live Azure and fails on any deletion. It should also fail on any new database or storage account, because that means one is being replaced:\n   ```yaml\n         - name: Destructive-change gate\n           run: |\n             az deployment group what-if --resource-group app-prod \\\n               --template-file infra/main.bicep --no-pretty-print > effect.json\n             bad=$(jq -r '.changes[]\n               | select(.changeType==\"Delete\" or (.changeType==\"Create\"\n                   and (.resourceId|test(\"Microsoft.Sql/servers/|Microsoft.Storage/storageAccounts/\";\"i\"))))\n               | \"\\(.changeType) \\(.resourceId)\"' effect.json)\n             if [ -n \"$bad\" ]; then echo \"$bad\"; exit 1; fi\n   ```\n2. Replace Owner on the subscription with Contributor on the `app-prod` resource group. Have a separate admin put `CanNotDelete` locks on `app-prod-sql` and `appproduploads`. Contributor can't remove locks or create role assignments.\n3. Run the same `what-if` in the `validate` job using a separate Reader identity, and post its output on the pull request, so the reviewer approves the effect and not just the text. In branch protection, require approval of the most recent push, and add CODEOWNERS for `infra/**` and `.github/workflows/**`.\n\n## What I did not check\n- I didn't run anything. The gate above is untested: `what-if` needs Azure access.\n- Branch protection and whether a new push dismisses an earlier approval: `gh api repos/{owner}/{repo}/branches/main/protection`\n- Whether the `production` environment has required reviewers and only allows `main`: `gh api repos/{owner}/{repo}/environments/production`\n- What the Azure login trusts. If it accepts runs other than the `production` environment, an agent pull request could edit the workflow and get an Owner token: `az ad app federated-credential list --id <AZURE_CLIENT_ID>`\n- Whether Complete mode would also delete the `existing` SQL server: run `az deployment group what-if --resource-group app-prod --template-file infra/main.bicep --mode Complete`\n- Backups. SQL point-in-time restore only helps while the server exists, and blob soft delete doesn't survive deleting the storage account: `az sql db ltr-policy show` and `az storage account blob-service-properties show -n appproduploads`\n\n```\nScope:          .github/workflows/deploy.yml → deploy job → resource group app-prod (production)\nDecision:       Block\nRisk:           destructive-change, IaC, preflight, secret (over-privileged identity), concurrency, authorization\nArtifact:       none — template deployed from the merge commit's source; no saved plan or preview output\nRelease state:  BLOCKED\nTest evidence:  PR runs only `az bicep build` and `az bicep lint`; no IaC security scan, no what-if, no effect posted for the reviewer\nPreflight:      none — no what-if, IAM, or lock check before `az deployment group create`\nStrategy:       production-only, with no way to limit exposure\nRepresentativeness: n/a — no stage before production\nRollout:        in-place ARM deployment in Complete mode; no exposure switch; no earlier version to re-promote\nZero-downtime:  no — Complete mode deletes resources left out of the template; renaming the database or storage account replaces it with an empty one\nRollback:       none — no trigger, no health check; deleted SQL databases and storage accounts can't be restored by redeploying\nOwner handoff:  missing\nEvidence:       deploy.yml:10-12 (id-token: write workflow-wide), :21-22 (build and lint only), :28 (environment: production, its settings unverified), :37-40 (--mode Complete); main.bicep:2-3 (resource names set by parameters), :9-21 (state-holding db and storage, no locks); given: deploy identity = subscription Owner, 1 human approval required\nVerification:   Not run — no Azure access and not a git repository; recommended gate untested\nNext action:    Remove --mode Complete and add the deploy-time what-if gate; scope the identity to Contributor on app-prod plus CanNotDelete locks; add a PR-time what-if with a Reader identity; add `concurrency: { group: deploy-prod, cancel-in-progress: false }`\n```"
+  "output": "**What I found:** The workflow in `.github/workflows/deploy.yml` is not safe for agent-written infrastructure pull requests. It should not deploy until a destructive-change gate exists (the record calls this Block). It deploys with `--mode Complete` and never previews what will change, so whatever is in the template deletes resources directly. The deploy identity holds Owner, which means it can also remove any lock that would have stopped a deletion.\n\n**Why it matters:** One approved PR that renames a parameter can delete the orders database or the uploads storage account and leave a new, empty one in its place. For example, changing the default of `storageName` or the name `'orders'` in `infra/main.bicep` does this. A reviewer reading a large agent diff will not see that from the text, and redeploying does not bring the data back. Adding the gates below costs one preview step and a role change. Without them, the only thing between an agent PR and data loss is one human reading the diff.\n\n**Do this first:**\n1. Delete `--mode Complete` at `.github/workflows/deploy.yml:40`. Incremental, the default mode, never deletes resources the template doesn't declare.\n2. Add `az deployment group what-if --no-pretty-print` in two places: in a PR job that posts its output for the reviewer, and in the deploy job immediately before `create`. Fail either one on any `Delete` of the database, the storage account or the key vault, and on any `Create` of one of those types while the existing one shows `Ignore`. Only a list of resource IDs that the same PR adds, such as `infra/released-deletions.txt`, lets a deletion through.\n3. Put `CanNotDelete` locks on the SQL server, the database, the storage account and the key vault. Change the deploy identity from Owner to Contributor, which cannot delete locks, and scope it to `app-prod`.\n\n**What I did not check:**\n- Whether `main` actually requires the one approving review and blocks merges when `validate` fails. This folder is not a git repo. Check with `gh api repos/{owner}/{repo}/branches/main/protection`.\n- Whether the `production` environment has required reviewers. Check with `gh api repos/{owner}/{repo}/environments/production`.\n- What Complete mode would delete in `app-prod` today, including the `existing` SQL server at `infra/main.bicep:5`. That server is only referenced, not declared, so I can't confirm from the files whether Complete mode would delete it. Check with `az deployment group what-if -g app-prod -f infra/main.bicep --mode Complete`.\n- Existing locks: `az lock list -g app-prod`.\n- The deploy identity's actual roles and the subjects its federated credentials trust: `az role assignment list --assignee <client-id> --all` and `az ad app federated-credential list --id <app-id>`.\n- Whether backups or soft delete can recover the database or the storage account: `az sql db show -g app-prod -s app-prod-sql -n orders` and `az storage account blob-service-properties show -n appproduploads`.\n\n```\nScope:          .github/workflows/deploy.yml → az deployment group create, RG app-prod (production)\nDecision:       Block\nRisk:           destructive-change, IaC, secret (over-privileged identity), preflight, concurrency, production-verification\nArtifact:       none — template deployed from checkout of main at push; no what-if output, no saved plan, no release record\nRelease state:  BLOCKED\nTest evidence:  PR: az bicep build + lint only (deploy.yml:21-22). Missing: IaC scan, effect preview, state-holding deletion/orphan check\nPreflight:      none before mutation (deploy.yml:36-40); no what-if, no lock check, no IAM check\nStrategy:       production-only (no non-production stage); no progressive exposure applies to IaC here\nRepresentativeness: n/a (production is the only target)\nRollout:        in-place Complete-mode apply; no exposure switch; reversal = redeploy, which cannot restore deleted data\nZero-downtime:  no — Complete mode deletes undeclared resources; a rename deletes and recreates state-holding resources\nRollback:       none defined; deleted DB/storage not restorable by pipeline\nOwner handoff:  missing\nEvidence:       deploy.yml:40 `--mode Complete`; no what-if anywhere; main.bicep:2-3,11 names come from parameters/literals, so a rename can orphan or replace data; main.bicep:5 SQL server `existing` (not declared); main.bicep:16-31 storage and key vault have no lock or deletion protection; key vault has no enablePurgeProtection; no `concurrency:` group, so two pushes can apply at once; `id-token: write` granted at workflow level, not per job; deploy identity = Owner (user statement)\nVerification:   Not run — no Azure access; not a git repo, so branch and environment rules unverified\nNext action:    Remove --mode Complete; add what-if gate in PR and deploy jobs that fails on unreleased Delete/orphan of state-holding resources (tag them state=holds-data); CanNotDelete locks on SQL server, orders DB, storage, key vault; reduce deploy identity to Contributor on app-prod; add `concurrency: deploy-prod` with cancel-in-progress: false; move id-token: write onto the deploy job\n```"
 }

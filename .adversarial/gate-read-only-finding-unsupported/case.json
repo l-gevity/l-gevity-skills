@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #226: an open finding a read-only run reports stands on evidence",
+  "description": "Same audit; the ledger records F-A1-1 open but cites no evidence for it.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "UNSUPPORTED_FINDING"
+    ]
+  }
+}

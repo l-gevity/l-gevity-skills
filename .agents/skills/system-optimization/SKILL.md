@@ -3,9 +3,10 @@ name: system-optimization
 description: >-
     Applies Lean, Kaizen, Six Sigma, Theory of Constraints, queueing/flow
     science, and DevOps delivery metrics (DORA) to eliminate waste and improve
-    flow across all aspects of a software project. Use when scanning for
-    optimizations in CI/CD pipelines, developer workflows, code structure,
-    testing strategy, documentation, or the overall value stream. Activate when
+    flow across a software project. Use when scanning for
+    optimizations in CI/CD pipelines, developer workflows, runtime job queues,
+    code structure, testing strategy, documentation, or the
+    overall value stream. Activate when
     a review is requested to identify waste, bottlenecks, and improvement
     opportunities across the project.
 ---
@@ -35,12 +36,10 @@ description: >-
 ## Order of Operations
 
 Apply these steps **in order**. The most expensive mistake is optimizing or
-automating something that should have been deleted — work done out of order is
-work to undo later.
+automating something that should have been deleted.
 
 1. **Question the requirement.** The requirement is the most upstream waste.
-   Strip it to first principles before touching the implementation; the cheapest
-   step is the one that no longer needs to exist. Separate each requirement's
+   Strip it to first principles before touching the implementation. Separate each requirement's
    *obligation* (the outcome, evidence, or restriction that must exist) from its
    *mechanism* (the specific rights, routes, roles, record types, or protocols
    it names). Obligations are floors; pinned mechanism is negotiable — audit
@@ -70,6 +69,7 @@ work to undo later.
 | -------------------------- | ------------------------------------------------------------------- |
 | **CI/CD & Automation**     | Sequential stages that could parallelize, manual steps, flaky gates |
 | **Developer Workflow**     | Large PRs, long-lived branches, slow feedback loops                 |
+| **Runtime Flow**           | Job queues, workers, request paths: queue wait, concurrency, batch size, retries, scale limits |
 | **Code Structure**         | Dead code, duplication, divergent patterns                          |
 | **Public Surface**         | One route per view of the same aggregate, same data at multiple addresses, rights/roles vocabulary larger than the behavior it guards, one-user wrappers around an existing primitive |
 | **Testing Strategy**       | Coverage gaps, flaky tests, defects caught late                     |
@@ -152,7 +152,9 @@ policy costs nothing but agreement.
 ## 5. Measure the System
 
 "Go and see" the real signal — logs, queues, traces, timings — rather than
-optimizing from assumption.
+optimizing from assumption. When access the user can grant in a minute, such as
+an expired sign-in, blocks the signal, stop with the command that restores it;
+emit no Decision.
 
 ### Delivery & flow metrics
 
@@ -257,3 +259,6 @@ Next action:    <one concrete edit, experiment, measurement, or owner question>
 Verification:   <before/after metric, command, CI run, or Not run + reason>
 Residual risk:  <risk left for judgment, rollout, or future measurement>
 ```
+
+Post a measured baseline, its queries, and a `Defer`'s reopening trigger to the
+issue that owns the work, never only to agent memory.

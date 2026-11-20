@@ -1,6 +1,6 @@
 {
   "scenario": "gate-baseline-churn-ratchet",
-  "revision": "5f94200f9db6",
+  "revision": "3d1ec3e30fb5",
   "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
@@ -56,16 +56,16 @@
   "paths_searched": [],
   "turns": 4,
   "metrics": {
-    "duration_ms": 23309,
-    "duration_api_ms": 24645,
-    "total_cost_usd": 0.1891829,
+    "duration_ms": 21536,
+    "duration_api_ms": 23712,
+    "total_cost_usd": 0.1843902,
     "usage": {
       "input_tokens": 8,
-      "cache_creation_input_tokens": 17577,
-      "cache_read_input_tokens": 40640,
-      "output_tokens": 2008,
+      "cache_creation_input_tokens": 17293,
+      "cache_read_input_tokens": 40359,
+      "output_tokens": 1884,
       "output_tokens_details": {
-        "thinking_tokens": 591
+        "thinking_tokens": 611
       },
       "server_tool_use": {
         "web_search_requests": 0,
@@ -73,19 +73,19 @@
       },
       "service_tier": "standard",
       "cache_creation": {
-        "ephemeral_1h_input_tokens": 17577,
+        "ephemeral_1h_input_tokens": 17293,
         "ephemeral_5m_input_tokens": 0
       },
       "inference_geo": "global",
       "iterations": [
         {
           "input_tokens": 2,
-          "output_tokens": 1654,
-          "cache_read_input_tokens": 20171,
-          "cache_creation_input_tokens": 1250,
+          "output_tokens": 1678,
+          "cache_read_input_tokens": 19876,
+          "cache_creation_input_tokens": 1261,
           "cache_creation": {
             "ephemeral_5m_input_tokens": 0,
-            "ephemeral_1h_input_tokens": 1250
+            "ephemeral_1h_input_tokens": 1261
           },
           "type": "message"
         }
@@ -94,39 +94,39 @@
       "fallback_credit": null
     },
     "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 8,
+        "outputTokens": 1884,
+        "cacheReadInputTokens": 40359,
+        "cacheCreationInputTokens": 17293,
+        "webSearchRequests": 0,
+        "costUSD": 0.1841278,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 611,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 17293,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
       "claude-haiku-5-5": {
         "inputTokens": 1324,
-        "outputTokens": 229,
+        "outputTokens": 260,
         "cacheReadInputTokens": 0,
         "cacheCreationInputTokens": 0,
         "webSearchRequests": 0,
-        "costUSD": 0.00024690000000000004,
+        "costUSD": 0.0002624,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
-        "thinkingTokens": 201,
+        "thinkingTokens": 233,
         "cacheCreationEphemeral5mInputTokens": 0,
         "cacheCreationEphemeral1hInputTokens": 0,
         "canonicalModel": "claude-haiku-5-5",
         "provider": "firstParty",
         "costBasis": "list"
-      },
-      "claude-opus-5-5": {
-        "inputTokens": 8,
-        "outputTokens": 2008,
-        "cacheReadInputTokens": 40640,
-        "cacheCreationInputTokens": 17577,
-        "webSearchRequests": 0,
-        "costUSD": 0.188936,
-        "contextWindow": 1000000,
-        "maxOutputTokens": 128000,
-        "thinkingTokens": 591,
-        "cacheCreationEphemeral5mInputTokens": 0,
-        "cacheCreationEphemeral1hInputTokens": 17577,
-        "canonicalModel": "claude-opus-5-5",
-        "provider": "firstParty",
-        "costBasis": "list"
       }
     }
   },
-  "output": "**What I found:** The line-limit gate can't fail. Every time it goes red, a script rewrites the exception list to match the current code, so 17 modules were added to it in 12 days and no commit said so. The fix is to let the script only shrink the list and to make every addition name the module and the reason (the record calls this RATCHET). The deciding fact is that the list grew from 41 to 58 across 34 rewrites while the gate stayed green.\n\n**Why it matters:** Right now the gate just records whatever exists. Each oversized module is excused the moment it appears, and if the JSON only lists module names, the 58 excused modules can grow without any limit. If nothing changes, the list keeps growing at about 1.4 modules a day and the gate keeps reporting green.\n\n**Do this first:**\n1. Replace the regeneration script with a reconcile step (algorithm in `.claude/skills/gate-lifecycle/references/ratchet.md`):\n   - A new oversized module, or a listed module that got bigger, fails the gate unless the change names it with `--accept-growth <path>`.\n   - A red run never writes the JSON.\n   - A module that is now under the limit is removed from the list automatically.\n   - The refused case is unit-tested, and that test is the gate's negative control: proof it can still fail.\n2. Store each listed module's current line count, not just its name, so \"bigger than its baseline\" fails too.\n3. Diff the baseline from 12 days ago against the current one to get the 17 additions. The list's owner fixes each one or accepts it by name in one commit with a reason per module. Don't drop all 17 back to red at once: that would block every merge.\n\n**What I did not check:**\n- The repository, the script, the JSON and the history. This directory has no git repo, so everything comes from your description. Run `git log -p -- <baseline.json>` in the real repo.\n- Whether the JSON stores sizes or only names. Read the file.\n- Whether listed modules have already grown. Compare `wc -l` per module against the size each had when it was first listed.\n\n```text\nGate:         Per-module line-limit check with a JSON exception baseline, merge gate in CI\nStage:        unplaced (merge-time CI; nothing earlier was described)\nTrigger:      churn\nProof:        UNPROVEN (it has gone red, but each red run was turned green by regenerating; there is no committed negative control)\nScope:        declared all source modules / effective modules not in the regenerated list / delta every oversized module at the moment it appears (17 in 12 days), and listed modules' size if the baseline stores only names\nBaseline:     58 entries, up from 41 over 12 days (34 rewrites); last accepted growth: none named in any commit\nStatus:       BLOCKING (in name only)\nDecision:     RATCHET\nGuard:        Unnamed growth refused by reconcile; a red run writes nothing; the list has a named owner (not yet assigned)\nHandoff:      none (PROVE follows once the reconcile refused-case test runs in CI)\nNext action:  Replace the regenerate-on-red script with reconcile + per-entry --accept-growth, then triage the 17 additions in one named commit\nVerification: Not run (no repository in the working directory); target is a CI run where an unnamed new oversized module turns the gate red and the JSON is unchanged\n```"
+  "output": "**What I found:** The line-limit gate can't fail. Whenever it goes red, a script rewrites the baseline from the current tree and the new baseline is committed with the change. The fix is to let automation only shrink the list and to refuse any addition the change doesn't name (the record calls this RATCHET). What decided it: the list grew from 41 to 58 modules across 34 rewrites in 12 days, and no commit message names any of those 17 additions.\n\n**Why it matters:** As things stand, the green result only records what the code looks like now. It says nothing about the line limit, so oversized modules keep accumulating without anyone deciding to accept them. Once the regeneration path is gone, the gate can block new violations again without retroactively failing the 17 modules already admitted.\n\n**Do this first:**\n1. Remove the step that regenerates the baseline on red. Replace the script with a reconcile step:\n   - New or grown entries fail the gate unless the change names them, e.g. `--accept-growth <path>`.\n   - Shrunk entries are lowered automatically.\n   - Stale entries are removed automatically.\n   - A red run writes nothing.\n   - The unit test for the refused case is the gate's negative control and runs in CI.\n2. Store each module's line count in the baseline instead of just its presence. With presence only, the 58 listed modules can grow without limit.\n3. Freeze the baseline at the current 58 and assign it an owner. Open one issue listing the 17 unnamed additions, so each is either accepted with a reason or split below the limit.\n\n**What I did not check:**\n- The gate, the script, the baseline file and its history. Nothing is in the working directory (it isn't a git repository). Closes with: `git log --follow -p -- <baseline.json>`\n- Whether the gate has ever failed without being regenerated, so it's currently unproven. Closes with: commit a module one line over the limit in a branch and confirm the gate fails.\n- Which pipeline stage the gate runs in. Closes with: a `defect-shift-left` pass on the CI configuration.\n\n```text\nGate:         source-module line limit + JSON exception baseline, merge gate\nStage:        unplaced (merge-time CI; stage number not verified)\nTrigger:      churn\nProof:        UNPROVEN (every red run is converted to green by regeneration; no recorded red that blocked a merge)\nScope:        declared all source modules / effective modules not in the baseline at the time of the\n              run, and the baseline is rewritten from the tree / delta every module that exceeds the limit\n              when the change lands is no longer checked\nBaseline:     58 entries (was 41, 12 days ago); 34 rewrites; last accepted growth: none named\nStatus:       BLOCKING (nominally; it cannot go red)\nDecision:     RATCHET\nGuard:        reconcile refuses unnamed additions and growth, a red run writes nothing, stale entries removed;\n              baseline owner named; refused-case unit test runs in CI as the negative control\nHandoff:      functionality-complexity-tradeoff (keep or split for each of the 17 unnamed additions); PROVE follows once the control lands\nNext action:  replace the regenerate-on-red script with reconcile plus per-entry --accept-growth, storing line counts per entry\nVerification: Not run (no gate code, baseline, or history in the working directory)\n```"
 }

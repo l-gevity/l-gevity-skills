@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #231: a file declared deleted that still exists contradicts the workspace",
+  "description": "P1 declares src/orders/repository.js deleted, but the workspace still holds it.",
+  "command": "handoff",
+  "args": {
+    "plan": "plan.json",
+    "handoff": "handoff.json",
+    "root": "workspace"
+  },
+  "expect": {
+    "verdict": "REJECT",
+    "codes": [
+      "CLAIM_CONTRADICTS_WORKSPACE"
+    ]
+  }
+}

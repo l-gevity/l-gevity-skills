@@ -229,7 +229,9 @@ or `ESCALATE` with the codes in [contracts.md](contracts.md). `PASS` with a
 non-empty `queued` list means the run proceeds on reversible defaults the
 human confirms at the merge boundary. The first wave starts only on `PASS`,
 and the gate of an unattended plan re-checks the same record with
-`--preflight <preflight.json>`.
+`--preflight <preflight.json>`. With `--root`, the repository may stand at the
+plan's base or at an integrated head recorded in `base.integrated`, so the
+record can be re-checked after a wave; its probes stay bound to the base.
 
 ## 5. During the Run
 

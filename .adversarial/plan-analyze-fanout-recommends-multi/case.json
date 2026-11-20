@@ -1,0 +1,17 @@
+{
+  "criterion": "multi-agent-governance #227: two independent analyze packages are independent parts that justify a second agent",
+  "description": "A read-only audit of two subsystems by two analysts: the plan check recommends multi-agent, as alchemy's execution rule allows for an audit.",
+  "command": "plan",
+  "args": {
+    "plan": "plan.json"
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": [],
+    "facts": {
+      "recommendation": "multi-agent",
+      "independent_parts": 2,
+      "derived_mode": "multi-agent"
+    }
+  }
+}

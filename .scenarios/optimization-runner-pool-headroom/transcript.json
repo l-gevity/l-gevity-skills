@@ -1,6 +1,6 @@
 {
   "scenario": "optimization-runner-pool-headroom",
-  "revision": "629d0ed9f356",
+  "revision": "1b97ad46056f",
   "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
@@ -54,16 +54,16 @@
   "paths_searched": [],
   "turns": 3,
   "metrics": {
-    "duration_ms": 19833,
-    "duration_api_ms": 20330,
-    "total_cost_usd": 0.1834691,
+    "duration_ms": 20186,
+    "duration_api_ms": 22126,
+    "total_cost_usd": 0.18628299999999998,
     "usage": {
       "input_tokens": 6,
-      "cache_creation_input_tokens": 18371,
-      "cache_read_input_tokens": 20671,
-      "output_tokens": 1609,
+      "cache_creation_input_tokens": 18475,
+      "cache_read_input_tokens": 20688,
+      "output_tokens": 1704,
       "output_tokens_details": {
-        "thinking_tokens": 432
+        "thinking_tokens": 534
       },
       "server_tool_use": {
         "web_search_requests": 0,
@@ -71,19 +71,19 @@
       },
       "service_tier": "standard",
       "cache_creation": {
-        "ephemeral_1h_input_tokens": 18371,
+        "ephemeral_1h_input_tokens": 18475,
         "ephemeral_5m_input_tokens": 0
       },
       "inference_geo": "global",
       "iterations": [
         {
           "input_tokens": 4,
-          "output_tokens": 1535,
-          "cache_read_input_tokens": 16827,
-          "cache_creation_input_tokens": 5388,
+          "output_tokens": 1652,
+          "cache_read_input_tokens": 16844,
+          "cache_creation_input_tokens": 5475,
           "cache_creation": {
             "ephemeral_5m_input_tokens": 0,
-            "ephemeral_1h_input_tokens": 5388
+            "ephemeral_1h_input_tokens": 5475
           },
           "type": "message"
         }
@@ -92,39 +92,39 @@
       "fallback_credit": null
     },
     "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 6,
+        "outputTokens": 1704,
+        "cacheReadInputTokens": 20688,
+        "cacheCreationInputTokens": 18475,
+        "webSearchRequests": 0,
+        "costUSD": 0.18604159999999997,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 534,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 18475,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
       "claude-haiku-5-5": {
         "inputTokens": 1529,
-        "outputTokens": 20,
+        "outputTokens": 177,
         "cacheReadInputTokens": 0,
         "cacheCreationInputTokens": 0,
         "webSearchRequests": 0,
-        "costUSD": 0.0001629,
+        "costUSD": 0.0002414,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
-        "thinkingTokens": 0,
+        "thinkingTokens": 157,
         "cacheCreationEphemeral5mInputTokens": 0,
         "cacheCreationEphemeral1hInputTokens": 0,
         "canonicalModel": "claude-haiku-5-5",
         "provider": "firstParty",
         "costBasis": "list"
-      },
-      "claude-opus-5-5": {
-        "inputTokens": 6,
-        "outputTokens": 1609,
-        "cacheReadInputTokens": 20671,
-        "cacheCreationInputTokens": 18371,
-        "webSearchRequests": 0,
-        "costUSD": 0.1833062,
-        "contextWindow": 1000000,
-        "maxOutputTokens": 128000,
-        "thinkingTokens": 432,
-        "cacheCreationEphemeral5mInputTokens": 0,
-        "cacheCreationEphemeral1hInputTokens": 18371,
-        "canonicalModel": "claude-opus-5-5",
-        "provider": "firstParty",
-        "costBasis": "list"
       }
     }
   },
-  "output": "**What I found:** Cutting the shared CI runner pool from 10 to 8 would put it at about 97.5% utilization, so keep all 10 runners (the record calls this Reject). The 22% of capacity finance sees as idle is the headroom that keeps queue waits at 9 minutes, and the 3-runner/7-runner split fails the litmus test because it adds complexity and nobody has measured whether it helps.\n\n**Why it matters:** The cut would push average queue wait from about 9 minutes to roughly 100, and during 14:00–17:00 the queue would probably keep growing until the evening. If you keep 10 runners, waits stay as they are, but jobs still wait 31 minutes at peak, longer than the 12 minutes they take to run.\n\n**Do this first:**\n1. Get the queue-depth and utilization curve per hour for 14:00–17:00 from the CI runner metrics for the same 30 days. This confirms the peak load and gives you the baseline to compare any change against.\n2. Look for policy causes of the afternoon merge burst before adding runners. Examples are rules that batch merges or rerun everything on every rebase.\n\n**What I did not check:**\n- Peak-hour utilization, because only the 30-day average was given. The hourly data from the runner metrics closes this.\n- Variation in job length (the multi-server Kingman estimate needs it). A runtime histogram from CI job logs closes this.\n- Queue time under the split. You would need to simulate it or trial it on a reversible routing config before anyone proposes it.\n\n```\nScope:          Shared CI runner pool (10 runners), last 30 days\nConstraint:     Runner pool during 14:00–17:00; peak wait 31 min > 12 min cycle time\nDecision:       Reject (both the cut and the fast-lane split)\nFlow signal:    ρ = 0.78 now → 7.8/8 = 0.975 after cut; Kingman factor ρ/(1−ρ) 3.5 → 39 (~11×);\n                avg wait 9 min (< cycle 12 min), peak wait 31 min (> cycle, queued inventory);\n                Mura from merge burst; job count steady\nEvidence:       User-supplied 30-day averages: 12 min run, 9 min avg wait, 31 min peak wait, 78% utilization\nNext action:    Pull hourly utilization and queue depth for 14:00–17:00; look for a policy constraint behind the merge burst\nVerification:   Not run; figures come from the Kingman approximation, not a simulation\nResidual risk:  Without any change the pool stays over capacity at peak (31 min wait). The cut would make\n                that much worse. The split gives up pooling: 3- and 7-runner pools each queue\n                more than one 10-runner pool at the same load, and the routing table needs upkeep\n```\n\nCut the pool: no\n\nThe split fails because it makes three complexity axes worse:\n- **D (diversity):** two lane types instead of one pool.\n- **K (coupling):** every repository is tied to a lane through the routing table.\n- **n (quantity):** a routing entry for each repository.\n\nNothing measured shows it improves flow, reliability, or cost. Queueing theory suggests it would make waits worse: a dedicated 3-runner lane loses the pooling benefit, and small-repo jobs that land in the general pool would still queue behind long ones.\n\nLitmus test: fail"
+  "output": "**What I found:** Finance wants to cut the CI runner pool from 10 to 8. Refuse the cut and the fallback split (the record calls this Reject), because 8 runners would have to absorb the same 7.8 runners' worth of work and run at 97.5% utilization.\n\n**Why it matters:** At 78% utilization, jobs already wait 9 minutes on average and 31 minutes in the afternoon. At 97.5%, the skill's queueing rule of thumb (wait ∝ ρ/(1−ρ)) puts average wait at about 11× today's, and the afternoon peak can need more than 8 runners, so its queue may keep growing until merges ease off. Splitting the pool adds a routing table and two queues, and nobody has measured whether it shortens wait at all.\n\n**Do this first:**\n1. Pull hourly runner utilization and queue wait for the last 30 days from the CI runner metrics, so the 14:00–17:00 peak has a measured number.\n   - Follow-up: test whether spreading out the afternoon merges lowers the 31-minute peak wait before anyone buys or removes runners.\n\n**What I did not check:**\n- Hourly utilization at the peak (CI runner metrics export, broken out by hour).\n- Variance in job duration, which also drives queue time (job duration distribution from the same 30-day data).\n- Runner cost compared with the cost of developers waiting (finance's per-runner cost × the change in wait-hours).\n\n```\nScope:          Shared CI runner pool, 10 runners, last 30 days\nConstraint:     Runner pool during 14:00–17:00 (31 min wait vs 12 min job, so wait > job time);\n                root cause is Mura: merges bunch up in the afternoon. Peak utilization: Not measured\nDecision:       Reject (cut to 8); Reject (3+7 split as proposed)\nFlow signal:    ρ = 0.78 now → 0.975 with 8 runners (7.8 runners' worth of work / 8).\n                Kingman factor ρ/(1−ρ): 3.5 → 39, ≈11× average wait. Peak load is above\n                average, so the afternoon queue at 8 runners is likely to grow without limit.\n                The 22% \"idle\" is the headroom that keeps today's wait at 9 min\nEvidence:       User-supplied 30-day figures: 78% avg utilization, 12 min job, 9 min avg wait,\n                31 min peak wait, steady daily job count\nNext action:    Measure hourly utilization; trial spreading the afternoon merges (a policy change,\n                not capacity) and re-measure peak wait\nVerification:   Not run. Analysis only; no CI data accessed\nResidual risk:  Job duration variance and peak ρ unknown. A split pool could cut wait for the\n                small repositories while raising it for the 7-runner pool. Unmeasured either way\n```\n\nCut the pool: no\n\nThe split adds a routing table, a second lane, and a repository-to-lane mapping that has to be kept up to date. That makes the system more complex on three of the four complexity axes the litmus test uses (D, K and n), and nobody has measured any improvement in flow. As proposed, it fails the skill's test for an optimization. Queueing theory also predicts that splitting one pool into two dedicated lanes raises total wait for the same capacity.\n\nLitmus test: fail"
 }

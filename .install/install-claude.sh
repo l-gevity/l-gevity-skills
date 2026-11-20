@@ -218,7 +218,13 @@ for name in $KNOWN_MEMFILES; do
     EXISTING_MEM="$name"
   fi
 done
-if [ -n "$EXISTING_MEM" ]; then
+if [ -n "$EXISTING_MEM" ] &&
+   [ "$(tr -d '\r' < "$TARGET/$EXISTING_MEM")" = "$(tr -d '\r' < "$SRC/CLAUDE.md")" ]; then
+  # Line endings alone are no difference to review: a Windows checkout's CRLF
+  # copy of the current file is current.
+  rm -f "$TARGET/$EXISTING_MEM.l-gevity"
+  MEM_REPORT="$EXISTING_MEM (already current)"
+elif [ -n "$EXISTING_MEM" ]; then
   cp "$SRC/CLAUDE.md" "$TARGET/$EXISTING_MEM.l-gevity"
   MEM_REPORT="$EXISTING_MEM.l-gevity (existing $EXISTING_MEM kept; review and merge manually)"
 else

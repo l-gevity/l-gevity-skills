@@ -97,10 +97,11 @@ Objective
    found no native spawn and completion tools (`scripts/test-skill-performance.py` `PipelineRouting`).
 7. `multi-agent` MUST be selected only when the work changes or audits code and
    (a) at least two parts are independent — no dependency path, disjoint write
-   sets — or (b) a high-risk change needs a reviewer that did not write it. The
-   number of gates, skills, or roles MUST NOT be a reason. *Check:* the plan
-   check's `recommendation` and `independent_write_sets` facts; *judgment* for
-   the risk grade.
+   sets or, for an audit, disjoint read scopes — or (b) a high-risk change
+   needs a reviewer that did not write it. The number of gates, skills, or
+   roles MUST NOT be a reason. *Check:* the plan check's `recommendation`,
+   `independent_parts`, and `mode_override` facts; *judgment* for the risk
+   grade.
 8. The run MUST fall back to `single-agent`, and say why, when the profile sets
    `execution.multi_agent` to `off` or the runtime cannot launch agents. A plan
    nobody was delegated MUST NOT be reported as multi-agent execution.
@@ -242,8 +243,11 @@ Objective
 
 36. A run is complete only when the gate returns `PASS`: every plan criterion
     is verified by passing evidence at the integrated head or deferred by the
-    human; no blocking or major finding is open; no dispute is open; no bound
-    was exceeded. *Check:* `check_orchestration.py gate`.
+    human; no blocking or major finding is open, except in a run that writes
+    nothing, whose evidenced findings are its result; the ledger keeps every
+    blocking or major finding a saved hand-off or reviewer output raised; no
+    dispute is open; no bound was exceeded. *Check:* `check_orchestration.py
+    gate` with `--review` per saved hand-off.
 37. Completion proves a working capability, not downstream impact; outcome
     evidence stays with `requirements-traceability`.
 38. The pull request MUST list what was verified, what was not, the executed

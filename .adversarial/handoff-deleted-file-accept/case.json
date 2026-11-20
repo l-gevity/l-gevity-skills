@@ -1,0 +1,14 @@
+{
+  "criterion": "multi-agent-governance #230: a deleted file is recorded with deleted: true and checked gone",
+  "description": "P1 deletes src/orders/legacy.js and records it with deleted: true and no digest; the workspace holds no such file.",
+  "command": "handoff",
+  "args": {
+    "plan": "plan.json",
+    "handoff": "handoff.json",
+    "root": "workspace"
+  },
+  "expect": {
+    "verdict": "ACCEPT",
+    "codes": []
+  }
+}

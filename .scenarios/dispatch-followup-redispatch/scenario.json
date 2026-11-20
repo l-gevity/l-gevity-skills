@@ -1,0 +1,30 @@
+{
+  "request": "Earlier in this session `/alchemy audit` of this repository ran single-agent, read-only, and raised three findings: F1, src/api/orders.js imports src/worker/ directly, across a subsystem boundary; F2, src/worker/run.js swallows every exception in one catch-all; F3, the boundary rule for src/worker/ is missing from the architecture config. Now run alchemy on this: fix them all in one PR.",
+  "skills": ["alchemy"],
+  "expect": [
+    {
+      "id": "dispatches-again",
+      "criterion": "adaptive-dispatch #10: a follow-up acting on earlier findings is a new dispatch, not the audit's",
+      "check": "field_in",
+      "field": "Dispatch",
+      "values": ["ADAPTIVE", "DIRECT"]
+    },
+    {
+      "id": "decides-execution-again",
+      "criterion": "adaptive-dispatch #10: the follow-up states its own execution decision",
+      "check": "field_present",
+      "field": "Execution"
+    },
+    {
+      "id": "selects-companions-again",
+      "criterion": "adaptive-dispatch #10: the follow-up states its own companions",
+      "check": "field_present",
+      "field": "Companions"
+    },
+    {
+      "id": "claims-only-loaded-stages",
+      "criterion": "claim-only-what-ran #1: every stage and companion the run names was loaded",
+      "check": "route_loaded"
+    }
+  ]
+}

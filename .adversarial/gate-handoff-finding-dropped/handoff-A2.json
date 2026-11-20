@@ -1,0 +1,34 @@
+{
+  "schema": "alchemy-handoff/1",
+  "package": "A2",
+  "owner": "agent-b",
+  "status": "DONE",
+  "attempt": 1,
+  "base_commit": "3f9c2e1",
+  "requirements": [
+    "AUD-2"
+  ],
+  "relied_on": [],
+  "changed_files": [],
+  "evidence": [
+    {
+      "id": "E2",
+      "command": "git grep -n \"except Exception\" -- src/worker/",
+      "exit_code": 0,
+      "commit": "3f9c2e1",
+      "produced_by": "agent-b",
+      "criterion": "A2-AC1"
+    }
+  ],
+  "claims": [
+    {
+      "text": "The audit of the scope is complete",
+      "evidence": [
+        "E2"
+      ]
+    }
+  ],
+  "blockers": [],
+  "next_owner": "lead",
+  "integration_ready": true
+}

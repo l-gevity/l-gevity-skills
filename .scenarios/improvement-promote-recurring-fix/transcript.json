@@ -1,6 +1,6 @@
 {
   "scenario": "improvement-promote-recurring-fix",
-  "revision": "553e34b118c6",
+  "revision": "8b9f53eb374c",
   "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
@@ -58,16 +58,16 @@
   ],
   "turns": 5,
   "metrics": {
-    "duration_ms": 27412,
-    "duration_api_ms": 28897,
-    "total_cost_usd": 0.2025303,
+    "duration_ms": 27103,
+    "duration_api_ms": 30662,
+    "total_cost_usd": 0.20483259999999998,
     "usage": {
       "input_tokens": 10,
-      "cache_creation_input_tokens": 17378,
-      "cache_read_input_tokens": 62199,
-      "output_tokens": 2536,
+      "cache_creation_input_tokens": 17528,
+      "cache_read_input_tokens": 62053,
+      "output_tokens": 2588,
       "output_tokens_details": {
-        "thinking_tokens": 532
+        "thinking_tokens": 885
       },
       "server_tool_use": {
         "web_search_requests": 0,
@@ -75,19 +75,19 @@
       },
       "service_tier": "standard",
       "cache_creation": {
-        "ephemeral_1h_input_tokens": 17378,
+        "ephemeral_1h_input_tokens": 17528,
         "ephemeral_5m_input_tokens": 0
       },
       "inference_geo": "global",
       "iterations": [
         {
           "input_tokens": 2,
-          "output_tokens": 1908,
-          "cache_read_input_tokens": 20820,
-          "cache_creation_input_tokens": 402,
+          "output_tokens": 1574,
+          "cache_read_input_tokens": 21031,
+          "cache_creation_input_tokens": 341,
           "cache_creation": {
             "ephemeral_5m_input_tokens": 0,
-            "ephemeral_1h_input_tokens": 402
+            "ephemeral_1h_input_tokens": 341
           },
           "type": "message"
         }
@@ -96,39 +96,39 @@
       "fallback_credit": null
     },
     "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 10,
+        "outputTokens": 2588,
+        "cacheReadInputTokens": 62053,
+        "cacheCreationInputTokens": 17528,
+        "webSearchRequests": 0,
+        "costUSD": 0.20443459999999997,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 885,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 17528,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
       "claude-haiku-5-5": {
         "inputTokens": 1805,
-        "outputTokens": 252,
+        "outputTokens": 435,
         "cacheReadInputTokens": 0,
         "cacheCreationInputTokens": 0,
         "webSearchRequests": 0,
-        "costUSD": 0.0003065,
+        "costUSD": 0.000398,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
-        "thinkingTokens": 233,
+        "thinkingTokens": 411,
         "cacheCreationEphemeral5mInputTokens": 0,
         "cacheCreationEphemeral1hInputTokens": 0,
         "canonicalModel": "claude-haiku-5-5",
         "provider": "firstParty",
         "costBasis": "list"
-      },
-      "claude-opus-5-5": {
-        "inputTokens": 10,
-        "outputTokens": 2536,
-        "cacheReadInputTokens": 62199,
-        "cacheCreationInputTokens": 17378,
-        "webSearchRequests": 0,
-        "costUSD": 0.20222379999999998,
-        "contextWindow": 1000000,
-        "maxOutputTokens": 128000,
-        "thinkingTokens": 532,
-        "cacheCreationEphemeral5mInputTokens": 0,
-        "cacheCreationEphemeral1hInputTokens": 17378,
-        "canonicalModel": "claude-opus-5-5",
-        "provider": "firstParty",
-        "costBasis": "list"
       }
     }
   },
-  "output": "**What I found:** Naming a flag after what it switches, not after the ticket that added it, is a general rule, so it belongs upstream in the shared skills repository, as one more line in `architecture-guidelines` §6 \"Naming & Traceability\" (`.claude/skills/architecture-guidelines/SKILL.md:107-113`). Your vendored copy is a byte-for-byte pinned release that the platform team owns, so it is not yours to edit. The reviewer has made the same correction twice, which is the evidence that makes this worth promoting.\n\n**Why it matters:** If you patch the vendored copy, the next repin silently erases the fix and your tree stops matching the release you pinned. If you do nothing, reviewers keep renaming flags by hand.\n\n**Do this first:**\n1. Add a Go lint or CI check in the payments repo that rejects flag identifiers matching your ticket-key pattern (for example `flag_[A-Z]+_[0-9]+`). Run it against `flag_PAY_1432` and confirm it fails before you rely on it.\n2. Send the platform team the generic rule plus both corrections as evidence (draft under Next action below).\n3. If you still need prose before their release, add a short rule to `.claude/skills/payments-profile/`. Mark it as a temporary divergence, name the platform team as its upstream owner, and delete it when you repin a release that includes the fix.\n\n**What I did not check:** The flag-declaration syntax in the Go code, so the regex is a guess until step 1 sees it fail (close by grepping how flags are declared). The shared repository's contribution rules and validation, which I can't reach from here (the platform team closes this).\n\nLesson goes to: shared-repository\n\nPatch the vendored copy: no\n\n**In the meantime, in your own tree:** use only places you own.\n- The lint check from step 1. Your ticket-key pattern is a fact about this project, so the check can stay permanently, even after the upstream rule ships.\n- If needed, a prose rule in `payments-profile`, marked temporary as in step 3.\n- Don't touch the vendored files.\n\nReword the naming rule: proposal\nNothing has gone wrong because of \"reveals\", so the only reason to change it is preference, and that isn't evidence. Send it to the platform team as a proposal. Attach the stated reason (\"reads better\") and say plainly that no review or agent run has gone wrong because of the current wording. Include a decision from `functionality-complexity-tradeoff` (its M step) on whether the change is worth making; I expect it to say leave the wording as it is. Keep it separate from the flag-naming change so the evidence-backed fix doesn't wait on a matter of taste.\n\nNew skill: no\nFlag naming has no trigger, lifecycle, or output contract separate from the existing naming rule. A new skill would split one rule across two owners, so it should be one line in §6.\n\n```\nSubject:        architecture-guidelines §6 Naming & Traceability (shared skills repository)\nTrigger:        correction (same reviewer correction, twice this month)\nRoot cause:     missing/ambiguous: §6 requires names to reveal domain role but does not exclude naming by where something came from (ticket, author, date), and flags are not mentioned\nOwner:          shared repository, architecture-guidelines §6; interim: payments repo lint check (permanent) + payments-profile prose (temporary)\nAutomation:     deferred upstream (ticket-key formats differ by project, so no generic lint); implemented locally as a Go lint/CI check matching the PAY ticket pattern\nDecision:       add one clause to the existing §6 rule (no new skill); reword \"reveals\"→\"states\": no change, proposal only\nVerification:   not run here. Required: the local check fails on flag_PAY_1432 and passes on flag_instant_refunds; upstream, the two corrections recorded as a scenario that fails before the edit and passes after\nNext action:    propose upstream: \"Names state what a thing does or switches, not where it came from: no ticket IDs, authors, or dates in identifiers, including feature flags.\" Repin when it is published; then delete the payments-profile interim rule\nResidual risk:  until the upstream fix is repinned, flag names that dodge the regex but are still not behavioral (e.g. flag_q3_launch) depend on reviewer judgment\n```"
+  "output": "**What I found:** Flags were named after their ticket (`flag_PAY_1432`) instead of the behavior they switch, and a reviewer corrected it twice. The lesson applies to any project, so it belongs in the shared library's `architecture-guidelines` naming rule (`§6 Naming & Traceability`, `SKILL.md:109`). That rule covers only functions, variables and directories, and it doesn't rule out names based on where something came from. The record calls this an ownership gap fixed by **replace**: widen the existing rule rather than add a new one.\n\n**Why it matters:** If the vendored copy is patched, it is no longer byte-identical to the pinned release, and the next repin silently deletes the fix. If nothing is done, the third flag will get a ticket name too, and a reviewer will catch it by hand again.\n\n**Do this first:**\n1. Send the platform team a change to `architecture-guidelines/SKILL.md:109` with both corrections attached as evidence. Proposed wording: \"Every identifier, including feature flags and config keys, names its domain role and behavior, never where it came from (ticket ID, author, date).\" Ask them to add a scenario that fails on `flag_PAY_1432`.\n   - Until that release ships, add a Go test or lint check over the flag registry that rejects ticket-shaped names (for example `flag_[A-Z]+_\\d+`). Confirm it fails on `flag_PAY_1432` before you rely on it.\n   - If you also want prose, put a rule in `.claude/skills/payments-profile/` marked as a temporary divergence. Name the platform team as the upstream owner and remove it when you repin to the release that has the fix. Keep the check either way; it applies only to this repo.\n\n**What I did not check:** whether your Go tree has a central flag registry for the check to scan (`grep -rn \"flag_\" --include=*.go`), and whether the shared repository has validation or contribution rules this change must follow (read its contributing guide).\n\nLesson goes to: shared-repository\n\nPatch the vendored copy: no\n\nUntil the platform team ships the fix, use the two `.claude/skills/payments-profile/` measures from step 1: the check, and the temporary rule if you want one. Leave `architecture-guidelines/` byte-identical to the pinned release.\n\nReword the naming rule: proposal\n\nNothing has gone wrong because of the word \"reveals\", so there is no evidence for the change. Send it as a proposal with an M verdict attached. The honest verdict is KEEP the current wording, because the change adds churn and prevents nothing. Send it separately from the flag fix so it doesn't hold that fix up.\n\nNew skill: no\n\nA `flag-naming` skill would have no trigger, lifecycle, or output contract of its own. It would be a second place that owns naming, alongside `architecture-guidelines §6`, and the two would drift apart. Widening the existing rule is smaller and leaves naming with one owner.\n\n```\nSubject:        architecture-guidelines §6 Naming & Traceability (shared skill library)\nTrigger:        correction (repeated: 2 reviewer renames this month)\nRoot cause:     ownership gap — naming rule scoped to functions/variables/directories; flags and provenance-based names uncovered\nOwner:          shared skills repository, architecture-guidelines/SKILL.md (platform team)\nAutomation:     deferred upstream; in our repo, add a Go test/lint check over flag names (local fact, stays in our tree)\nDecision:       replace — widen the existing Domain-Driven Names bullet; no new skill; no vendored patch\nVerification:   none run; upstream needs a scenario failing on `flag_PAY_1432` before / passing after; the local check must be seen to fail on `flag_PAY_1432`\nNext action:    send proposal + evidence to platform team; add local check; optional temporary payments-profile rule, removed on repin\nResidual risk:  ticket-shaped names that miss the regex; reword proposal sent with M verdict KEEP (no evidence)\n```"
 }

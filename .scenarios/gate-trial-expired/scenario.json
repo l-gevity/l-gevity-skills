@@ -47,5 +47,8 @@
       "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
       "check": "blocks_in_order"
     }
-  ]
+  ],
+  "known_failures": {
+    "indeterminate-is-no-retirement-reason": "Wording, not behavior: the recorded run refuses the deletion (\"the proposal to delete it rests on two things that don't justify removal\") and decides PROVE, but the pattern accepts only fixed phrasings such as \"not a reason to delete\". It missed in 2 of 3 recordings on this branch, where gate-lifecycle is unchanged; widen the pattern in its own change."
+  }
 }

@@ -195,6 +195,18 @@ check "no second instruction file invented" \
   "$([ -f "$T/CLAUDE.md" ] && echo yes || echo no)" "no"
 echo
 
+# --- An instruction file that differs only in line endings is current ---
+echo "== a CRLF copy of the current CLAUDE.md gets no sidecar =="
+T="$WORK/consumer-crlf-claude-md"
+mkdir -p "$T"
+awk '{ printf "%s\r\n", $0 }' "$STAGE/CLAUDE.md" > "$T/CLAUDE.md"
+printf 'stale sidecar\n' > "$T/CLAUDE.md.l-gevity"
+( cd "$T" && bash "$REPO_ROOT/.install/install-claude.sh" ) > "$WORK/crlf-claude-md.log" 2>&1
+check "no sidecar for a line-ending-only difference" \
+  "$([ -f "$T/CLAUDE.md.l-gevity" ] && echo yes || echo no)" "no"
+check "reported as current" "$(grep -c 'CLAUDE.md (already current)' "$WORK/crlf-claude-md.log")" "1"
+echo
+
 # --- A consumer keeping both trees gets both, identically ---
 echo "== a dual-tree consumer keeps its mirror =="
 T="$WORK/consumer-both"

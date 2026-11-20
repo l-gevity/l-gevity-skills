@@ -10,7 +10,7 @@ This skill finds waste and bottlenecks across delivery, testing, tooling, code, 
 - **Keep capacity headroom.** Saturated reviewers and runners build queues when arrivals and task durations vary.
 - **Prefer small batches.** Smaller changes shorten feedback and reduce the size of failures.
 
-Stability comes before tuning. Measure a baseline and distinguish normal variation from a real change. When used through Alchemy, optimization follows the shipped increment in a later iteration.
+Stability comes before tuning. Measure a baseline and distinguish normal variation from a real change. When used through Alchemy, optimization follows the shipped increment in a later iteration; on a system already running, it starts by measuring that baseline.
 
 ```mermaid
 flowchart LR
@@ -31,4 +31,4 @@ A change takes ten days to ship but only four hours to implement. Review consume
 
 [Full skill](../.claude/skills/system-optimization/SKILL.md) · [Detailed diagram](system_optimization.svg)
 
-<!-- skill-revision: aa99d612016f -->
+<!-- skill-revision: 7adaa2b6ba73 -->

@@ -44,7 +44,8 @@ Requirements Grounding, when evidence or meaning is absent or stale
 M returns BUILD / KEEP / SIMPLIFY or stop. Only `READY`, or `PARTLY-READY` as a bounded
 reversible increment, enters A; `NOT-GROUNDED`, `BLOCKED`, and `NOT-READY` stop or return to
 the failed stage. Audits start at the read-only `C₀` structural baseline. Y optimizes a
-stable, measured baseline, so it runs in the iteration after the increment ships.
+stable, measured baseline: it runs in the iteration after the increment ships, or, on a
+running system, measures that baseline first.
 
 A **subsystem** is *where change lands*; an **aspect**, one obligation and one mechanism
 across declared subsystems, is *which dimension is touched*; an **increment** is *what

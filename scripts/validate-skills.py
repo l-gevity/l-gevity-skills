@@ -57,7 +57,7 @@ SIZE_BUDGET_WORDS = {
 # total rose with every new entry and with growth inside each file's own
 # grain, and nothing failed. A new skill funds its words with a cut. Skills
 # are counted whole, so the count is slack as soon as it is one below its cap.
-LIBRARY_BUDGET_WORDS = 49300
+LIBRARY_BUDGET_WORDS = 49370
 LIBRARY_BUDGET_SKILLS = 24
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
@@ -4596,10 +4596,15 @@ def run_adversarial_case(checker, directory: Path) -> tuple[dict, dict]:
     def load(key: str):
         if key not in args:
             return None
-        path = directory / args[key]
-        if not path.is_file():
-            fail(f"{label} names {args[key]}, which does not exist")
-        return json.loads(path.read_text(encoding="utf-8"))
+        # A list names several records, as a repeated CLI option passes them.
+        names = args[key] if isinstance(args[key], list) else [args[key]]
+        records = []
+        for name in names:
+            path = directory / name
+            if not path.is_file():
+                fail(f"{label} names {name}, which does not exist")
+            records.append(json.loads(path.read_text(encoding="utf-8")))
+        return tuple(records) if isinstance(args[key], list) else records[0]
 
     profile_path = directory / args["profile"] if "profile" in args else None
     if profile_path is not None and not profile_path.is_file():

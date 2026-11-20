@@ -1,6 +1,6 @@
 {
   "scenario": "worth-existing-retry-wrapper",
-  "revision": "a9bd0c941be4",
+  "revision": "2ad255e059c5",
   "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
@@ -56,16 +56,16 @@
   ],
   "turns": 4,
   "metrics": {
-    "duration_ms": 20198,
-    "duration_api_ms": 20495,
-    "total_cost_usd": 0.22592510000000002,
+    "duration_ms": 30875,
+    "duration_api_ms": 32629,
+    "total_cost_usd": 0.2488346,
     "usage": {
       "input_tokens": 8,
-      "cache_creation_input_tokens": 22770,
-      "cache_read_input_tokens": 46483,
-      "output_tokens": 1715,
+      "cache_creation_input_tokens": 22819,
+      "cache_read_input_tokens": 46568,
+      "output_tokens": 2840,
       "output_tokens_details": {
-        "thinking_tokens": 508
+        "thinking_tokens": 988
       },
       "server_tool_use": {
         "web_search_requests": 0,
@@ -73,19 +73,19 @@
       },
       "service_tier": "standard",
       "cache_creation": {
-        "ephemeral_1h_input_tokens": 22770,
+        "ephemeral_1h_input_tokens": 22819,
         "ephemeral_5m_input_tokens": 0
       },
       "inference_geo": "global",
       "iterations": [
         {
           "input_tokens": 2,
-          "output_tokens": 972,
-          "cache_read_input_tokens": 26095,
-          "cache_creation_input_tokens": 519,
+          "output_tokens": 2077,
+          "cache_read_input_tokens": 26154,
+          "cache_creation_input_tokens": 509,
           "cache_creation": {
             "ephemeral_5m_input_tokens": 0,
-            "ephemeral_1h_input_tokens": 519
+            "ephemeral_1h_input_tokens": 509
           },
           "type": "message"
         }
@@ -96,11 +96,11 @@
     "modelUsage": {
       "claude-haiku-5-5": {
         "inputTokens": 1255,
-        "outputTokens": 22,
+        "outputTokens": 23,
         "cacheReadInputTokens": 0,
         "cacheCreationInputTokens": 0,
         "webSearchRequests": 0,
-        "costUSD": 0.0001365,
+        "costUSD": 0.00013700000000000002,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
         "thinkingTokens": 0,
@@ -112,21 +112,21 @@
       },
       "claude-opus-5-5": {
         "inputTokens": 8,
-        "outputTokens": 1715,
-        "cacheReadInputTokens": 46483,
-        "cacheCreationInputTokens": 22770,
+        "outputTokens": 2840,
+        "cacheReadInputTokens": 46568,
+        "cacheCreationInputTokens": 22819,
         "webSearchRequests": 0,
-        "costUSD": 0.22578860000000003,
+        "costUSD": 0.2486976,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
-        "thinkingTokens": 508,
+        "thinkingTokens": 988,
         "cacheCreationEphemeral5mInputTokens": 0,
-        "cacheCreationEphemeral1hInputTokens": 22770,
+        "cacheCreationEphemeral1hInputTokens": 22819,
         "canonicalModel": "claude-opus-5-5",
         "provider": "firstParty",
         "costBasis": "list"
       }
     }
   },
-  "output": "**What I found:** Don't keep it as it is. Remove the blanket retry, and keep at most one retry for failures reaching the gateway (the record calls this SIMPLIFY). Since the gateway already retries twice, a single failing call can now hit the backend service up to 4 × 3 = 12 times.\n\n**Why it matters:** During an outage, the stacked retries multiply load on a service that is already failing. Retrying non-idempotent requests (POSTs) at two layers can create duplicates. The fixed 1-second delay makes every client retry at the same moment. If you remove it outright, you lose protection on the one hop the gateway can't cover: client → gateway.\n\n**Do this first:**\n1. Find the gateway's retry policy: which status codes, which HTTP methods, and whether it covers connection failures. Then compare it with the original outage postmortem. If the outage was caused by backend flakiness, the gateway now covers it.\n2. Measure how often client → gateway calls fail with connect, reset, or DNS errors. If almost never, delete `withRetry`.\n3. If they do happen, replace `withRetry(fn, 3)` with one retry. Only retry connection failures before the request was sent, or idempotent methods, and use jittered backoff.\n\n**What I did not check:** `withRetry` isn't in this workspace (grep found nothing), so I haven't seen the callers, the methods they use, or any telemetry. The gateway retry config and the outage postmortem are also unchecked. Steps 1–2 close these gaps.\n\n```\nSubject:        withRetry(fn, 3) wrapping every outgoing request in the HTTP client\nMode:           Retrospective\nNecessity:      Fail (partial)\nNecessity note: Already-defended-elsewhere — the gateway owns retry for gateway→backend; two\n                mechanisms for one aspect. The client→gateway hop is not covered by the gateway,\n                so that slice may still be needed.\nOutcome evidence: none\nDecision:       SIMPLIFY\nRationale:      Retry has two owners. Stacking them amplifies load 12× and duplicates\n                non-idempotent calls, and the fixed delay synchronizes retries. The premise from\n                two years ago (no other layer retries) no longer holds for the backend hop. It may\n                still hold for client→gateway, so this is SIMPLIFY rather than OBSOLETE.\nNext action:    Confirm the gateway retry scope. Narrow the client to ≤1 retry on pre-send\n                connection errors or idempotent methods, with jitter, or delete it if\n                client→gateway failures are negligible.\nVerification:   Not run — no code, gateway config, or telemetry in this workspace.\nMinimal alt:    Delete withRetry entirely and rely on the gateway.\nRevisit when:   Gateway retry policy changes, or any traffic starts bypassing the gateway.\n```"
+  "output": "**What I found:** Partly. The retry between the gateway and the services behind it now belongs to the gateway, so your client's copy only multiplies its attempts. The hop from client to gateway still has no retry. My recommendation is to cut the wrapper down to retrying only that hop (the record calls this SIMPLIFY). The deciding fact: 4 client attempts × 3 gateway attempts means up to **12 hits on a struggling service per logical call**, all on a fixed 1 s delay with no jitter.\n\n**Why it matters:** If you keep it, the next outage like the one that prompted it gets 12× the load on the failing service, in synchronized waves, and POST/PATCH requests can be applied more than once. If you delete it outright, a dropped connection to the gateway goes straight to the caller as an error, because the gateway never saw the request and can't retry it.\n\n**Do this first:**\n1. Find the gateway's retry policy: which methods, which status codes, its per-try timeout and its total retry duration. Every recommendation below depends on it.\n2. Change `withRetry` so it retries only connection-level failures before the request reaches the gateway (connect refused, connection reset, DNS failure). Limit it to one retry with jittered backoff, and only for idempotent methods or requests that carry an idempotency key. Never retry a 5xx from the gateway, because the gateway has already retried it.\n3. Set the client timeout above the gateway's total retry time. Otherwise the client gives up and retries while the gateway is still retrying.\n\n**What I did not check:**\n- The code. `withRetry` doesn't appear anywhere in this working directory, so I'm working only from your description.\n- The gateway's retry config: which methods, statuses and timeouts it covers. Check the gateway's route or retry policy.\n- Whether any calls skip the gateway, such as third-party APIs or direct service-to-service calls: `grep` the HTTP client's base URLs.\n- What the original outage actually was: check the commit/PR that added `withRetry`. If it was the client-to-gateway hop failing, step 2 keeps that protection. If it was a failing upstream service, the gateway now covers it.\n- Whether retries ever succeed: count first-try failures that later succeeded in client logs or metrics. If almost none do, delete the wrapper instead of shrinking it.\n\n```\nSubject:        HTTP client withRetry(fn, 3) wrapper on all outgoing requests\nMode:           Retrospective\nNecessity:      Pass (partial)\nNecessity note: Already-defended-elsewhere for the gateway→upstream hop (the gateway owns\n                retry); the client→gateway hop is not covered by the gateway, so the\n                necessity gate fails only for that portion.\nV scores:       U=2  wrapper does nothing extra for upstream failures; it still covers\n                     client→gateway transport errors\n                F=1  client→gateway transport failures should be rare; unmeasured\n                R=3  every outgoing request\n                I=1  the gateway covers most of what it did\nC scores:       Subsystem-kinds Δ=0  Dependency-edges Δ=0  Max-chain-depth Δ=0  Subsystem-count Δ=0 (single wrapper)\n                Maintenance=1  small, stable code\n                Risk=3  up to 12 attempts per call; fixed delay with no jitter → synchronized\n                        retry storms; non-idempotent requests sent more than once\n                Evolution=1  hides gateway errors; makes timeout tuning across the two layers harder\nConfidence V:   Low (no retry-success telemetry)\nConfidence C:   Medium (amplification follows from the stated config; the gateway config is unverified)\nOutcome evidence: none\nDecision:       SIMPLIFY\nRationale:      Two layers own the same retry job and multiply each other's attempts, so\n                Risk is high on the very failure the wrapper was added for. Only the\n                client→gateway hop still needs client-side retry. Shrinking the wrapper\n                to that hop keeps the remaining value and removes the amplification.\n                Low V confidence would normally mean QUARANTINE, but the risk is\n                structural, not something usage data would change.\nNext action:    Limit withRetry to pre-gateway transport errors, idempotent methods or\n                requests with an idempotency key, 1 retry, jittered backoff; set the\n                client timeout above the gateway's total retry time.\nVerification:   Not run (no code in workspace). Load test against a failing upstream:\n                the upstream should see ≤3 attempts per logical call.\nMinimal alt:    Delete withRetry entirely if telemetry shows retries to the gateway almost\n                never succeed.\nRevisit when:   Retry-success metric has 4 weeks of data (2026-12-18), or the gateway's\n                retry policy changes.\n```"
 }

@@ -27,9 +27,8 @@ Invoke as `/alchemy <alias> <subject>` in Claude Code or `$alchemy <alias>
 `do some alchemy`, `run alchemy on this`, `use alchemy`, and `give this an
 alchemy pass` all request adaptive dispatch on the active subject.
 
-The subject is the invocation arguments. Where commands expand arguments,
-`$ARGUMENTS` is that string; if it is empty or literally unexpanded, use the
-surrounding request text. A natural phrase with no explicit subject uses the
+The subject is the invocation arguments, or the surrounding request text when
+there are none. A natural phrase with no explicit subject uses the
 active request or most recent unresolved task; never ask the user to restate
 context already in the conversation or worktree. `?`, `help`, `--help`, or an
 empty command with no active subject returns only this table.
@@ -70,14 +69,16 @@ only the artifacts and skills the route selects.
 | Dispatch | Select when | Core route |
 |:--|:--|:--|
 | `SKIP` | Local behavior stays inside one governed boundary and asks no Alchemy question: copy/CSS, trivial rename, contract-preserving dependency bump, isolated in-boundary fix | None: load no gate skill; continue with matching companions and normal verification |
-| `DIRECT` | An alias, or one unambiguous gate question: worth, dead code, speculative abstraction, or "should this exist?" is M; a defect found late, check placement, or CI detection timing is H or `left` | Only that gate or triad skill |
+| `DIRECT` | An alias, or one unambiguous gate question: worth, dead code, speculative abstraction, or "should this exist?" is M; a defect found late, check placement, or CI detection timing is H or `left`; optimize, bottleneck, throughput, or queue wait is Y | Only that gate or triad skill |
 | `ADAPTIVE` | Structure, responsibility, data flow, abstraction, multiple requirements, or boundaries may change | The smallest justified set: a structural refactor inside one boundary is M, C, plus A when responsibility or public contract changes and H when verification placement changes; a new subsystem/service/library, cross-boundary dependency, increment cut through every layer (vertical slice), consolidation, or an aspect added or changed across several subsystems (auth, audit, logging, retry, i18n) is qualification as needed, M, A, L, C, E, H; an existing-code over-engineering audit is Audit mode from `C₀` |
 | `FULL` | The user explicitly says `full`, `all`, `walk the gates`, or `complete alchemy` | Every justified stage, with the reason for each conditional stage skipped |
 
 Natural language stays adaptive: only explicit full language selects `FULL`,
-and Alchemy `FULL` is a traversal dispatch, not a gate's analysis mode. Do not
+a traversal dispatch. Do not
 convert uncertainty into `FULL`; select the smallest plausible route, state
-the uncertain signal, and stop at the first missing prerequisite.
+the uncertain signal, and stop at the first missing prerequisite. An ambiguous
+subject (a workflow: CI or a runtime queue?) names both readings and stops. A follow-up acting on earlier findings ("fix them all")
+is a new dispatch, companions and execution included.
 
 Gate and triad aliases are authoritative: use only that core gate or triad
 move, even when the subject mentions subsystem boundaries, and expand the core
@@ -90,8 +91,8 @@ unless the user asked for a broader pass. The prerequisites:
   `SPLIT`, `MERGE`, or `INTRODUCE-BOUNDARY` first runs the bounded
   `L candidate → C measurement → L acceptance` handshake, re-entering L once.
 - Gate Y runs in iteration 2, the iteration after the increment ships, from its
-  stable, measured baseline, unless the request is explicitly about an
-  existing bottleneck.
+  stable, measured baseline; on a running system, Y measures that baseline
+  first. The dispatch names it met or missing.
 
 ### Companion Skill Routing
 
@@ -120,9 +121,8 @@ stack, UX, security, accessibility, API, release, or evidence rules.
   `gate-lifecycle`; it never places a check or decides how it blocks.
 - `test-strategy` and `evolutionary-database-design` are two-pass companions
   that bracket A/L/C/E; the route in §2 orders their passes.
-- `SKIP` skips only the Alchemy core; it never suppresses a matching companion.
-  `DIRECT` keeps the core route focused while allowing independently triggered
-  companions.
+- `SKIP` skips only the Alchemy core and `DIRECT` focuses it; a dispatch
+  never suppresses a matching companion.
 - Report companions explicitly. Use `None` when no companion trigger matches,
   and name no companion whose trigger is unmet or unknown; write a selected
   companion whose `SKILL.md` was not read in this task as

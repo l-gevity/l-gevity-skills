@@ -1,0 +1,29 @@
+{
+  "request": "Run alchemy on this: our analysis workflow is too slow, optimise it.",
+  "skills": ["alchemy"],
+  "expect": [
+    {
+      "id": "names-both-readings",
+      "criterion": "adaptive-dispatch #8: a subject word with two readings names both in the dispatch",
+      "check": "text_matches",
+      "pattern": "(?is)(?=.*\\b(CI|pipeline|GitHub Actions|\\.github/workflows)\\b)(?=.*\\b(queue|worker|runtime|job)\\b)"
+    },
+    {
+      "id": "stops-before-optimizing",
+      "criterion": "adaptive-dispatch #8: an ambiguous subject stops before any gate runs",
+      "check": "reads_exclude",
+      "paths": [".claude/skills/system-optimization/SKILL.md"]
+    },
+    {
+      "id": "issues-no-decision",
+      "criterion": "adaptive-dispatch #8: an ambiguous subject stops before any gate runs",
+      "check": "field_absent",
+      "field": "Decision"
+    },
+    {
+      "id": "claims-only-loaded-stages",
+      "criterion": "claim-only-what-ran #1: every stage and companion the run names was loaded",
+      "check": "route_loaded"
+    }
+  ]
+}

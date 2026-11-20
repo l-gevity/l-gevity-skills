@@ -246,8 +246,8 @@ Readiness → Evolutionary Database Design compatibility pass
 Topology is conditional. A single bounded requirement with no meaningful
 dependency relationships may move directly from M to implementation readiness.
 Y remains deferred to iteration 2 — the iteration after the increment ships,
-starting from its stable, measured baseline — unless the request concerns an
-existing bottleneck. The deferral names its baseline metric, where it is read,
+starting from its stable, measured baseline. On a running system with no
+increment in flight, Y measures that baseline first. The deferral names its baseline metric, where it is read,
 and the date or event that opens iteration 2.
 
 ### Existing code or project

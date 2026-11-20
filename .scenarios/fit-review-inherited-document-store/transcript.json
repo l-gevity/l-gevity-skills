@@ -1,6 +1,6 @@
 {
   "scenario": "fit-review-inherited-document-store",
-  "revision": "fbe9f6bb0587",
+  "revision": "717469a73c3a",
   "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
@@ -54,16 +54,16 @@
   "paths_searched": [],
   "turns": 3,
   "metrics": {
-    "duration_ms": 27209,
-    "duration_api_ms": 28594,
-    "total_cost_usd": 0.19046090000000002,
+    "duration_ms": 27174,
+    "duration_api_ms": 30396,
+    "total_cost_usd": 0.1917117,
     "usage": {
       "input_tokens": 6,
-      "cache_creation_input_tokens": 16948,
-      "cache_read_input_tokens": 20502,
-      "output_tokens": 2525,
+      "cache_creation_input_tokens": 17320,
+      "cache_read_input_tokens": 20516,
+      "output_tokens": 2439,
       "output_tokens_details": {
-        "thinking_tokens": 717
+        "thinking_tokens": 540
       },
       "server_tool_use": {
         "web_search_requests": 0,
@@ -71,19 +71,19 @@
       },
       "service_tier": "standard",
       "cache_creation": {
-        "ephemeral_1h_input_tokens": 16948,
+        "ephemeral_1h_input_tokens": 17320,
         "ephemeral_5m_input_tokens": 0
       },
       "inference_geo": "global",
       "iterations": [
         {
           "input_tokens": 4,
-          "output_tokens": 2444,
-          "cache_read_input_tokens": 16658,
-          "cache_creation_input_tokens": 4134,
+          "output_tokens": 2175,
+          "cache_read_input_tokens": 16672,
+          "cache_creation_input_tokens": 4492,
           "cache_creation": {
             "ephemeral_5m_input_tokens": 0,
-            "ephemeral_1h_input_tokens": 4134
+            "ephemeral_1h_input_tokens": 4492
           },
           "type": "message"
         }
@@ -92,39 +92,39 @@
       "fallback_credit": null
     },
     "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 6,
+        "outputTokens": 2439,
+        "cacheReadInputTokens": 20516,
+        "cacheCreationInputTokens": 17320,
+        "webSearchRequests": 0,
+        "costUSD": 0.1914672,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 540,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 17320,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
       "claude-haiku-5-5": {
         "inputTokens": 1360,
-        "outputTokens": 233,
+        "outputTokens": 217,
         "cacheReadInputTokens": 0,
         "cacheCreationInputTokens": 0,
         "webSearchRequests": 0,
-        "costUSD": 0.0002525,
+        "costUSD": 0.00024450000000000003,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
-        "thinkingTokens": 215,
+        "thinkingTokens": 199,
         "cacheCreationEphemeral5mInputTokens": 0,
         "cacheCreationEphemeral1hInputTokens": 0,
         "canonicalModel": "claude-haiku-5-5",
         "provider": "firstParty",
         "costBasis": "list"
-      },
-      "claude-opus-5-5": {
-        "inputTokens": 6,
-        "outputTokens": 2525,
-        "cacheReadInputTokens": 20502,
-        "cacheCreationInputTokens": 16948,
-        "webSearchRequests": 0,
-        "costUSD": 0.1902084,
-        "contextWindow": 1000000,
-        "maxOutputTokens": 128000,
-        "thinkingTokens": 717,
-        "cacheCreationEphemeral5mInputTokens": 0,
-        "cacheCreationEphemeral1hInputTokens": 16948,
-        "canonicalModel": "claude-opus-5-5",
-        "provider": "firstParty",
-        "costBasis": "list"
       }
     }
   },
-  "output": "**What I found:** The document database doesn't fit your domain. Switch to one relational database now, before the first customer, and don't wait (the record calls this MIGRATE). The deciding fact is that your code already contains every workaround that points to a relational domain on a document store, and production holds no real customer data yet, so the switch will never be cheaper than it is today.\n\n**Why it matters:** If you switch now, you rewrite the persistence layer and delete the hand-written uniqueness checks, conflict retries, application-side joins and old-shape readers, with no live data to move. If you wait, every customer's data adds a staged migration, keeps the readers alive, and the store keeps taking about one commit in eight.\n\n**Do this first:**\n1. Check that every environment, including production, holds only test or seed data. Then write the store decision record (forcing need: the invariants that span entities and the reporting joins) wherever your project keeps decisions.\n2. Build the relational store behind a port your team owns. Run the walking skeleton on it: sign-in, deploy and rollback, a restore drill, erasure of one person's data, a cross-tenant read that gets refused, and your hardest report.\n3. Then decide on compute and sign-in. Both depend on the new store (records below).\n\n**What I did not check:**\n- This folder isn't a git repository and has no application code, so I couldn't count commits. Run `git log --since=6.months --name-only --format= | grep -c <store-path>` against `git rev-list --count --since=6.months HEAD` in the product repo.\n- I didn't search for the workaround patterns in the code. Grep for retry-on-conflict, uniqueness lookups and shape-version readers.\n- I didn't confirm that production holds no real data. Run a row or document count per collection in each environment.\n- I didn't check whether the sign-in service issues standard OIDC tokens or is tied to the document platform. Read the backend's auth configuration.\n\n```text\nMode:            Review (workarounds accumulating; first real data not yet entered)\nComponent:       Document database\nDoor:            ONE-WAY\nStatus:          INHERITED (starter template default; no decision recorded)\nForcing need:    none found\nProfile:         Domain shape: employers, employees, roles, assessments, reports; uniqueness,\n                 referential integrity, cross-entity joins -> relational.\n                 Access: reports joining all entities. Scale: tens of small tenants -> one node.\n                 Data lifecycle, residency, cost: GAP\nEvidence:        As reported by you, NOT VERIFIED: hand-written uniqueness checks, write-conflict\n                 retries, joins in application code, readers for old document shapes,\n                 ~1 in 8 commits touching the store\nVerdict:         MIGRATE\nTripwires:       n/a for the old store; for the new one: store-touching commit share > 10% per\n                 quarter, owner = tech lead, checked at the quarterly fit review\nReversal cost:   Low now (persistence rewrite, seed data only); rises with every tenant's real rows\nHandoff:         evolutionary-database-design (only if any environment holds data worth keeping)\nNext action:     Confirm no real data, then define the relational schema with uniqueness and\n                 foreign-key constraints in the database\n```\n\n```text\nMode:            Review (store change alters compute fit)\nComponent:       Serverless backend\nDoor:            ONE-WAY\nStatus:          INHERITED\nForcing need:    none found\nProfile:         Scale: tens of small tenants, likely idle most of the time (scale-to-zero may\n                 pay). Workload shape, cost envelope, operability: GAP\nEvidence:        NOT VERIFIED. Serverless plus relational brings a connection-limit and\n                 cold-start risk\nVerdict:         DEFER (missing: workload shape, cost envelope, a relational skeleton run)\nTripwires:       DB connection exhaustion or p95 cold start above the agreed budget during the\n                 skeleton run, owner = tech lead\nReversal cost:   Moderate; lower if handlers stay thin behind the store port\nHandoff:         requirements-grounding (fill the workload and cost dimensions)\nNext action:     Run the skeleton's hardest report from a serverless function against the new\n                 database, through a pooler or HTTP driver\n```\n\n```text\nMode:            Review (store change may drag identity with it)\nComponent:       Platform-managed sign-in\nDoor:            ONE-WAY\nStatus:          INHERITED\nForcing need:    none found\nProfile:         Identity: employer admins and employees; federation needs: GAP.\n                 Erasure across store and identity provider: GAP\nEvidence:        NOT VERIFIED\nVerdict:         DEFER (missing: token standard, where the user store lives, where roles are\n                 enforced)\nTripwires:       Authorization logic found in platform rules rather than the app, or erasure\n                 that cannot reach the identity provider, owner = tech lead, checked in the\n                 skeleton erasure path\nReversal cost:   Rises sharply once real users exist (password and credential migration)\nHandoff:         none until the skeleton runs\nNext action:     Confirm the provider issues standard OIDC tokens and that roles live in the\n                 new relational schema, not in the platform\n```"
+  "output": "**What I found:** All three parts of the stack came with the starter template, and nobody recorded why any of them were picked. The document database doesn't fit a domain this relational, so replace it with one relational database now, before the first customer's data goes in (the records below call this MIGRATE). The deciding fact is that your backend already rebuilds by hand what a relational database does for you (uniqueness, joins, safe concurrent writes), while production has no real data that would need moving.\n\n**Why it matters:** Switching now means pointing the backend at a new store and throwing away test data. If you switch after the first customers, you have to run both stores side by side, copy live data across, and plan a rollback. Meanwhile you keep paying the workaround cost, which you put at about one commit in eight.\n\n**Do this first:**\n1. Before any real customer data enters production, write down which tables you need and which rules the database should enforce: unique keys, foreign keys between employer, employee, role and assessment, and transactions. Then build your hardest report as one SQL query and check it against the real database.\n2. Then delete the uniqueness checks, the retry-on-conflict loops, the joins in application code and the readers for old document shapes. Each one becomes a database constraint, a transaction or a query. The old shapes exist only in test data, so their readers can go without a migration.\n3. Put the store behind an interface you own, so the rest of the code never imports the database driver directly. Run the contract tests for that interface against a real database, not a fake.\n\n**What I did not check:**\n- The workspace has no repo or git history, so the one-in-eight figure is your estimate, not a count. Close: `git log --since=6.months --name-only --format= | grep -c <store-path>` divided by `git rev-list --count --since=6.months HEAD`.\n- I didn't read your infrastructure-as-code or runtime config, so I haven't seen which provider you use, its pricing at zero traffic, or its connection limits.\n- No walking skeleton has run: backup and restore drill, erasing one person's data, a probe that one employer can't read another's data, the hardest report.\n\n```text\nMode:            Review (workarounds accumulating; before first real data)\nComponent:       Datastore (document DB)\nDoor:            ONE-WAY\nStatus:          INHERITED\nForcing need:    none found\nProfile:         Domain shape: relational (employer–employee–role–assessment, uniqueness and\n                 referential invariants across entities); Access: reports joining entities;\n                 Scale: tens of small tenants, single node; Lifecycle/residency: GAP\nEvidence:        Reported: manual uniqueness checks, conflict retries, app-side joins,\n                 old-shape readers, ~1/8 commits touch the store. Count NOT VERIFIED.\nVerdict:         MIGRATE\nTripwires:       n/a after migration; new: any app-side join or uniqueness check in review → flag (owner: tech lead, PR review)\nReversal cost:   Now: low (no real data, code rewrite of the data layer only).\n                 Rises sharply with the first real customer row (dual-write and backfill required).\nHandoff:         evolutionary-database-design only if real data lands before cutover\nNext action:     Write the relational schema with constraints; port the hardest report as SQL.\n\nComponent:       Compute (serverless backend)\nDoor:            ONE-WAY\nStatus:          INHERITED\nForcing need:    none found; idle-heavy load at tens of tenants is a plausible fit (scale-to-zero)\nProfile:         Workload shape: GAP (long jobs, report generation, batch imports?); Cost: GAP\nEvidence:        No workaround signals reported. NOT VERIFIED.\nVerdict:         KEEP (provisional)\nTripwires:       DB connection exhaustion or a pooling proxy needed after migration; cold\n                 starts in user-facing latency; jobs hitting function time limits\n                 (owner: tech lead, quarterly review)\nReversal cost:   Moderate; low if handlers stay thin over a domain core.\nHandoff:         none\nNext action:     Confirm the provider offers a serverless-compatible Postgres connection path before choosing the database.\n\nComponent:       Identity (platform-managed sign-in)\nDoor:            ONE-WAY\nStatus:          INHERITED\nForcing need:    none found\nProfile:         Identity: GAP (employer admins vs employees; employer SSO; account\n                 lifecycle when an employee leaves; erasure)\nEvidence:        No signals reported. NOT VERIFIED.\nVerdict:         DEFER — missing: identity dimension\nTripwires:       First customer asking for SSO/SCIM; erasure not reachable via API\n                 (owner: product, before first contract)\nReversal cost:   Low now; with real users it requires migrating password hashes or forcing a reset.\nHandoff:         requirements-grounding (identity dimension)\nNext action:     Ask the first prospective customers whether they require SSO, and test erasure end to end.\n```"
 }

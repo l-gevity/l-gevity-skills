@@ -1,0 +1,23 @@
+{
+  "criterion": "multi-agent-governance #225: a read-only run passes with its evidenced major findings open and reported",
+  "description": "Same audit; the ledger records F-A1-1 open with the evidence that shows it. A run that writes nothing reports its findings; it does not resolve them.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "review": [
+      "handoff-A1.json",
+      "handoff-A2.json"
+    ]
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": [],
+    "facts": {
+      "open_serious": [
+        "F-A1-1"
+      ],
+      "read_only_run": true
+    }
+  }
+}
