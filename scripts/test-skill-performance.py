@@ -177,38 +177,42 @@ class PipelineRouting(unittest.TestCase):
     def setUpClass(cls):
         cls.adapter = load("pipeline_check", ROOT / ".agents/skills/alchemy-orchestrate/adapters/unstoppable/actions/alchemy-check/check.py")
 
-    def payload(self, dispatch="ADAPTIVE", spawn=True, wait=True, plan=None):
+    def payload(self, dispatch="ADAPTIVE", plan=None):
         if plan is None:
             plan = {"execution": {"mode": "single-agent"}, "packages": [{"owner": "lead"}]}
-        return {"dispatch": dispatch, "proceed": True, "capabilities": {
-            "spawn": spawn, "wait": wait, "isolated": False,
-            "evidence": "Current lead tool roster inspected"}, "plan": json.dumps(plan)}
+        return {"dispatch": dispatch, "proceed": True, "plan": json.dumps(plan)}
+
+    def probe(self, spawn=True, wait=True):
+        return {"spawn": spawn, "wait": wait, "isolated": False, "evidence": "Agent tool seen"}
+
+    def route(self, data, probe=None):
+        return self.adapter.route(data, self.probe() if probe is None else probe)
 
     def test_cheap_dispatch_never_accepts_orchestration(self):
         for dispatch in ("SKIP", "DIRECT"):
             data = self.payload(dispatch)
             with self.assertRaises(self.adapter.InputError):
-                self.adapter.route(data)
+                self.route(data)
             data["plan"] = ""
-            self.assertEqual(self.adapter.route(data)["path"], "local")
+            self.assertEqual(self.route(data)["path"], "local")
 
     def test_missing_runtime_capabilities_reject_delegated_plan(self):
         plan = {"execution": {"mode": "multi-agent"}, "packages": [{"owner": "agent-a"}]}
         for spawn, wait in ((False, True), (True, False), (False, False)):
             with self.assertRaises(self.adapter.InputError):
-                self.adapter.route(self.payload(spawn=spawn, wait=wait, plan=plan))
-        self.assertEqual(self.adapter.route(self.payload(spawn=False, wait=False))["path"], "planned")
+                self.route(self.payload(plan=plan), self.probe(spawn, wait))
+        self.assertEqual(self.route(self.payload(plan=plan))["path"], "planned")
+        self.assertEqual(self.route(self.payload(), self.probe(False, False))["path"], "planned")
 
     def test_fail_closed_on_missing_or_malformed_route(self):
-        for field in ("dispatch", "proceed", "capabilities", "plan"):
+        for field in ("dispatch", "proceed", "plan"):
             data = self.payload()
             del data[field]
             with self.assertRaises(self.adapter.InputError):
-                self.adapter.route(data)
-        data = self.payload()
-        data["capabilities"]["spawn"] = "false"
-        with self.assertRaises(self.adapter.InputError):
-            self.adapter.route(data)
+                self.route(data)
+        for probe in (None, {}, {**self.probe(), "spawn": "false"}, {**self.probe(), "evidence": " "}):
+            with self.assertRaises(self.adapter.InputError):
+                self.adapter.route(self.payload(), probe)
 
     def test_pipeline_branches_on_checked_route(self):
         pipeline = (ROOT / ".agents/skills/alchemy-orchestrate/adapters/unstoppable/pipelines/alchemy-multi-agent.yaml").read_text()
@@ -216,6 +220,14 @@ class PipelineRouting(unittest.TestCase):
         def job(name):
             return jobs.split(f"\n    {name}:\n", 1)[1].split("\n\n    ", 1)[0]
         self.assertIn("mode: route", job("route_check"))
+        self.assertIn("capabilities: ${{ needs.capabilities.outputs.response_file }}", job("route_check"))
+        # The probe must see the execute step's tools: same model alias and preset.
+        execute, probe = job("execute"), job("capabilities")
+        for setting in ("model: lead", "permission_preset: dangerous_all"):
+            self.assertIn(setting, execute)
+            self.assertIn(setting, probe)
+        self.assertIn("permission_preset: read_only", job("plan"))
+        self.assertNotIn("capabilities", pipeline.split("PLAN_SCHEMA:", 1)[1].split("CAPABILITY_SCHEMA:", 1)[0])
         self.assertIn("if: needs.route_check.outputs.path == 'local'", job("local"))
         self.assertNotIn("alchemy-orchestrate/SKILL.md", job("local").replace("Do not load alchemy-orchestrate", ""))
         self.assertIn("- route_check", job("plan_check"))
@@ -225,10 +237,10 @@ class PipelineRouting(unittest.TestCase):
     def test_blocked_route_cannot_release_work(self):
         data = self.payload()
         data.update(proceed=False, plan="")
-        self.assertEqual(self.adapter.route(data)["path"], "stop")
+        self.assertEqual(self.route(data)["path"], "stop")
         data["plan"] = "{}"
         with self.assertRaises(self.adapter.InputError):
-            self.adapter.route(data)
+            self.route(data)
 
 
 if __name__ == "__main__":

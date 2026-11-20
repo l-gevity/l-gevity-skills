@@ -122,6 +122,12 @@ inputs:
       only reports it. Unreadable input fails the step either way.
     required: false
     default: 'true'
+  capabilities:
+    description: >-
+      Route mode only: the execution-runtime probe's structured result (spawn,
+      wait, isolated, evidence). Required in route mode.
+    required: false
+    default: ''
 outputs:
   path:
     description: route mode, local for SKIP/DIRECT, planned for orchestration, stop for a blocked route.

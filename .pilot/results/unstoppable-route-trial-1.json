@@ -1,0 +1,62 @@
+{
+  "schema": "alchemy-pilot-evidence/1",
+  "runtime": "unstoppable (CLI: unstoppable-code pipelines executions run)",
+  "pipeline": ".agents/skills/alchemy-orchestrate/adapters/unstoppable/pipelines/alchemy-multi-agent.yaml",
+  "fixture": ".pilot/server-audit/project, built like run_pilot.py build_project with init_workspace.py --runtime all",
+  "date": "2026-11-20",
+  "models": {"lead": "opus[1m] (claude-opus-5-5)"},
+  "comparison": "Matched trial of the 5.4.0 pipeline (3.3) against the route-checked pipeline (3.4) on the same fixture and objective. One run per arm: not a statistical sample.",
+  "runs": [
+    {
+      "arm": "5.4.0 pipeline 3.3",
+      "objective": "trivial (rename paginate to paginateList)",
+      "dispatch": "SKIP",
+      "jobs": {"plan": "success 45s", "plan_check": "failure: field 'plan' is empty; the planning step returned no plan"},
+      "status": "failure",
+      "wall_clock_seconds": 46,
+      "cost_usd": 0.685,
+      "work_done": false
+    },
+    {
+      "arm": "pipeline 3.4, first build (capabilities read from the read-only plan step)",
+      "objective": "trivial",
+      "dispatch": "SKIP",
+      "jobs": {"plan": "success 16s", "route_check": "path=local", "local": "success 18s"},
+      "status": "success",
+      "wall_clock_seconds": 36,
+      "cost_usd": 0.573,
+      "work_done": true,
+      "project_tests": "20 pass, 0 fail"
+    },
+    {
+      "arm": "pipeline 3.4, first build",
+      "objective": "audit",
+      "dispatch": "ADAPTIVE",
+      "jobs": {"plan": "success 1m51s, proceed false", "route_check": "path=stop"},
+      "status": "success (stopped before planning)",
+      "wall_clock_seconds": 113,
+      "defect": "The read-only plan step has no Agent tool, so it reported spawn false and refused to plan. Fixed by probing the execute step's runtime (same model alias and permission preset) in a parallel job; mutation 'flow: runtime probe cannot see the execute step's tools' guards it."
+    },
+    {
+      "arm": "pipeline 3.4, final",
+      "objective": "audit",
+      "dispatch": "ADAPTIVE",
+      "jobs": {"capabilities": "success 4s: spawn, wait, isolated true (Agent tool with isolation worktree)", "plan": "success 3m20s", "route_check": "path=planned", "plan_check": "PASS; derived mode multi-agent; waves P1 | P2,P3 | P4 | P6 | P5", "approve_plan": "paused"},
+      "status": "paused at plan approval, then cancelled by the operator",
+      "wall_clock_seconds": 204,
+      "cost_usd": 1.572,
+      "not_measured": "execute, review, gate: the single-review saving is unmeasured end to end"
+    },
+    {
+      "arm": "pipeline 3.4, final",
+      "objective": "trivial",
+      "dispatch": "SKIP",
+      "jobs": {"capabilities": "success 4s", "plan": "success 15s", "route_check": "path=local", "local": "success 20s"},
+      "status": "success",
+      "wall_clock_seconds": 37,
+      "cost_usd": 0.561,
+      "work_done": true,
+      "project_tests": "20 pass, 0 fail"
+    }
+  ]
+}

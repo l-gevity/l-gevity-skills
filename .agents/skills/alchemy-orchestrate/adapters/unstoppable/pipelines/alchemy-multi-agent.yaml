@@ -112,12 +112,14 @@ pipeline:
       {"type":"object","additionalProperties":false,"properties":{
       "dispatch":{"type":"string","enum":["SKIP","DIRECT","ADAPTIVE","FULL"]},
       "proceed":{"type":"boolean"},
-      "capabilities":{"type":"object","additionalProperties":false,"properties":{
-      "spawn":{"type":"boolean"},"wait":{"type":"boolean"},"isolated":{"type":"boolean"},
-      "evidence":{"type":"string"}},"required":["spawn","wait","isolated","evidence"]},
       "plan":{"type":"string","description":"The complete alchemy-plan/1 record as JSON text; empty for SKIP, DIRECT, or a stopped route"},
       "report":{"type":"string","description":"The alchemy decision trail and the alchemy-orchestrate execution block, or why planning stopped"}},
-      "required":["dispatch","proceed","capabilities","plan","report"]}
+      "required":["dispatch","proceed","plan","report"]}
+    CAPABILITY_SCHEMA: >-
+      {"type":"object","additionalProperties":false,"properties":{
+      "spawn":{"type":"boolean"},"wait":{"type":"boolean"},"isolated":{"type":"boolean"},
+      "evidence":{"type":"string","description":"The tool names seen, or the capabilities missing"}},
+      "required":["spawn","wait","isolated","evidence"]}
     PREFLIGHT_SCHEMA: >-
       {"type":"object","additionalProperties":false,"properties":{
       "report":{"type":"string","description":"Each probe with command, exit code, and commit; what could not be proved; the preflight verdict"}},
@@ -199,17 +201,35 @@ pipeline:
               </objective>
 
               1. Route. Read `<skills>/alchemy/SKILL.md` and apply it to the objective exactly as an explicit `alchemy` invocation (`/alchemy` or `$alchemy`) would, reading the references and sibling skills it routes to. Record the dispatch, route, companions, and execution decision.
-              2. Before planning, inspect this lead runtime's current tool roster for native sub-agent spawn, completion/wait, and isolated workspaces. Return capabilities with the tool names or missing capabilities as evidence; unknown means false. Never infer support from the model name or installed agent files. Do not spawn a probe. For SKIP or DIRECT, do not load orchestration: return an empty plan and the compact route report. Set proceed false when a prerequisite blocks the route; otherwise the local job performs the selected work and verification.
+              2. This read-only step has no sub-agent tools; do not judge delegation from your own tool roster. Plan for the execute step's runtime: a separate probe runs in it, and the next job refuses a delegated plan the probe cannot support. For SKIP or DIRECT, do not load orchestration: return an empty plan and the compact route report. Set proceed false when a prerequisite blocks the route; otherwise the local job performs the selected work and verification.
               3. For ADAPTIVE or FULL only, plan. Read `<skills>/alchemy-orchestrate/SKILL.md`, its `references/contracts.md` and `references/governance.md`, and the profile `alchemy-workspace.json` at the root (defaults in `<skills>/alchemy-orchestrate/assets/alchemy-workspace.json`). Write one alchemy-plan/1 record by section 4 steps 1 and 2. Its base commit is ${{ needs.start.outputs.head_commit }}.
               4. The plan must fit this pipeline: the next job runs the plan check and stops on any verdict but PASS; a human approves the plan before execution; writing packages run as `alchemy-implementer` sub-agents in isolated worktrees and read-only packages as `alchemy-analyst` sub-agents, each owned by a distinct label such as `agent-a`; packages you hold are owned by `lead`; after integration one independent provider reviews integration and uncovered criteria. A second provider runs only for this additional obligation: ${{ inputs.additional_review }}. Keep verify packages required by high risk or independent_review, and those needed before dependent work. Avoid optional package reviews that duplicate the final integration review; merge_policy is `human-approval`. The human chooses at plan approval whether to watch the run until the pull request approval; a run left unattended on a plan that is not stops before execution. Set `execution.unattended` to true only when the objective says the run proceeds while nobody watches between this plan's approval and the pull request approval; then every package states its `needs` per `references/autonomy-preflight.md`, and execution starts only after a preflight bound to this plan passes.
-              5. Without native spawn and completion support, assign every package to lead and select single-agent before asking for approval. If mandatory independent verification cannot be represented by a valid plan, stop with proceed false; never weaken the review requirement. Without isolation use waves, not streaming. The execute step rechecks tools before spawning.
-              6. If section 4 step 1 stops, or the route does not proceed, return proceed false, an empty `plan`, and say why in `report`.
+              5. If section 4 step 1 stops, or the route does not proceed, return proceed false, an empty `plan`, and say why in `report`.
 
-              You cannot edit files in this step. Return dispatch, proceed, capabilities, plan, and report. A planned route reports the decision trail and execution block; a cheap route reports only its selected route.
+              You cannot edit files in this step. Return dispatch, proceed, plan, and report. A planned route reports the decision trail and execution block; a cheap route reports only its selected route.
+
+    capabilities:
+      name: Probe Execution Runtime
+      needs: start
+      outputs:
+        response_file: ${{ steps.probe.outputs.json_response_file }}
+      steps:
+        - id: probe
+          uses: builtin/agent-prompt
+          with:
+            model: lead
+            thinking_effort: low
+            permission_preset: dangerous_all
+            structured_output_schema: ${{ env.CAPABILITY_SCHEMA }}
+            prompt: |
+              You run with the model and permissions of this pipeline's execute step, only to report its tools. Do not read, edit, or run anything, and do not call any tool.
+              From your current tool roster, report whether you can spawn a native sub-agent (spawn), wait for or receive each sub-agent's completion (wait), and start a sub-agent in an isolated git worktree (isolated). Unknown means false. Name the tools you saw, or what is missing, as evidence.
 
     route_check:
       name: Check Dispatch And Runtime
-      needs: plan
+      needs:
+        - plan
+        - capabilities
       outputs:
         path: ${{ steps.check.outputs.path }}
       steps:
@@ -218,6 +238,7 @@ pipeline:
           with:
             mode: route
             plan: ${{ needs.plan.outputs.response_file }}
+            capabilities: ${{ needs.capabilities.outputs.response_file }}
 
     local:
       name: Execute Focused Route

@@ -405,22 +405,22 @@ def emit(outputs: dict[str, str]) -> None:
         print(line)
 
 
-def route(data: Any) -> dict[str, str]:
+def route(data: Any, capabilities: Any) -> dict[str, str]:
     """Check routing before publishing a plan or asking for execution approval.
 
-    Capability observations come from the lead's tool roster, not its model
-    name. This validates their consistency, not the truth of that observation.
-    The execution lead must recheck availability before spawning.
+    `capabilities` comes from a probe in the execute step's runtime (model and
+    permissions), never from the read-only planning step, whose tool roster
+    has no sub-agents. This checks the plan against that observation, not the
+    observation's truth; the execution lead rechecks before spawning.
     """
     if not isinstance(data, dict) or data.get("dispatch") not in ("SKIP", "DIRECT", "ADAPTIVE", "FULL"):
         raise InputError("route needs a valid dispatch")
     if type(data.get("proceed")) is not bool or not isinstance(data.get("plan"), str):
         raise InputError("route needs boolean proceed and a plan string")
-    capabilities = data.get("capabilities")
     if (not isinstance(capabilities, dict)
             or any(type(capabilities.get(key)) is not bool for key in ("spawn", "wait", "isolated"))
             or not isinstance(capabilities.get("evidence"), str) or not capabilities["evidence"].strip()):
-        raise InputError("route needs explicit capability observations and their evidence")
+        raise InputError("route needs the execution-runtime probe: spawn, wait, isolated, and evidence")
     raw = data["plan"].strip()
     if not data["proceed"] or data["dispatch"] in ("SKIP", "DIRECT"):
         if raw:
@@ -453,7 +453,10 @@ def main() -> int:
         enforce = flag("enforce", "true")
         root = repo_root()
         if mode == "route":
-            outputs = route(read_json(resolve(option("plan"), root)))
+            if not option("capabilities"):
+                raise InputError("route mode needs input capabilities")
+            outputs = route(read_json(resolve(option("plan"), root)),
+                            read_json(resolve(option("capabilities"), root)))
             emit(outputs)
             return 0
         skill = skill_dir(root)

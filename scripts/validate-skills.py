@@ -3671,6 +3671,9 @@ def mutation_test(match: str | None = None) -> int:
          'if not (capabilities["spawn"] and capabilities["wait"]):', "if False:"),
         ("flow: plan check ignores the checked route", multi_pipeline,
          "      if: needs.route_check.outputs.path == 'planned'\n", ""),
+        ("flow: runtime probe cannot see the execute step's tools", multi_pipeline,
+         "            thinking_effort: low\n            permission_preset: dangerous_all\n",
+         "            thinking_effort: low\n            permission_preset: read_only\n"),
         ("flow: second provider review always runs", multi_pipeline,
          "          if: matrix.reviewer == 'reviewer_codex' || inputs.additional_review != ''\n", ""),
     ):
