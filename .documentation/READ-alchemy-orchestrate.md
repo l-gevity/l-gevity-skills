@@ -37,4 +37,4 @@ An export feature needs a backend endpoint and a frontend screen. Agree on the r
 
 [Full skill](../.claude/skills/alchemy-orchestrate/SKILL.md)
 
-<!-- skill-revision: 74ab20d45135 -->
+<!-- skill-revision: 193582d8bd34 -->
