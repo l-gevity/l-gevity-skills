@@ -154,6 +154,7 @@ SKILL_REQUIRED_TERMS = {
         "Plan check: <command and verdict | Not run + reason>",
         "check_orchestration.py plan",
         "check_orchestration.py handoff",
+        "never from a runtime output file",
         "check_orchestration.py gate",
         "A hand-off summary is a claim to test, never evidence",
         "`scripts/record_evidence.py`",
@@ -700,6 +701,8 @@ REFERENCE_REQUIRED_TERMS = {
             "this holds for a plan without amendments too, which used to pass",
             "`--approved <digest>` on the gate: the `approved_digest` the plan check printed",
             "A delegated agent reads this section and no other part of this skill",
+            "Every claim cites at least one evidence item, read-only findings included",
+            "`command` is the command exactly as it ran, never a paraphrase",
             "running the same command on the same commit again yields the same evidence",
             "because the runtime stops the agent at the ceiling",
         ),
@@ -4785,7 +4788,8 @@ def validate_evidence_recorder() -> None:
         if "Hand-off section" not in text:
             fail(f"{label} envelope {name} must point at the Hand-off section of contracts.md")
     analyst = envelopes.get("analyst", {}).get("instructions", "")
-    for term in ("record_evidence.py", "instead of running those commands again", "at most three per package"):
+    for term in ("record_evidence.py", "instead of running those commands again", "at most three per package",
+                 "Every claim in your hand-off cites an evidence item"):
         if term not in analyst:
             fail(f"{label} envelope analyst must say '{term}'")
 

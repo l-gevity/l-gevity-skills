@@ -206,6 +206,18 @@ artifact the work depended on with the digest it saw, so a receiver detects a
 context that moved underneath it. `changed_files` digests are taken after the
 change, so a receiver detects a summary that does not match the workspace.
 
+Every claim cites at least one evidence item, read-only findings included. A
+claim resting on a file read cites the command that shows it, such as
+`git grep -n <pattern> -- <path>` or `sed -n '<a>,<b>p' <path>`, so a receiver
+can run it again; a file:line citation in prose is not evidence, and the claim
+is `UNSUPPORTED_CLAIM`. `command` is the command exactly as it ran, never a
+paraphrase or a placeholder: a paraphrase hides the flag or the default that
+decided the result. `exit_code` is that command's own, never the exit code of a
+later pipe stage or of a following `echo`. When a check's failure is itself
+the finding, such as a test that fails on this host, record the code it
+returned as `expect_exit` and say so in the claim; a `command` criterion still
+passes only on exit 0.
+
 ## Ledger — `alchemy-ledger/1`
 
 Kept by the lead from hand-offs, independent verification, and integration.
