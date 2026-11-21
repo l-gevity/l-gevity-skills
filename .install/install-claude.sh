@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 # l-gevity-skills installer (Claude Code)
 # Usage: curl -fsSL https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-claude.sh | bash
-# Pin a version: curl -fsSL <same url> | L_GEVITY_SKILLS_REF=<branch|tag|commit> bash
+# Installs the release this script belongs to (DEFAULT_REF below).
+# Another version: curl -fsSL <same url> | L_GEVITY_SKILLS_REF=<branch|tag|commit> bash
+# Unreleased work: L_GEVITY_SKILLS_REF=main. Remove an install with .install/uninstall.sh.
 #
 # Lock format v2 records a sha256 for every file it writes, and a later run
 # removes files that upstream has since dropped. That pruning reads the file
 # map from the lock already on disk, so upgrading FROM a v1 lock (which has no
 # map) prunes nothing on that first run — removals begin from the second.
+# The lock also names the instruction file this run wrote, with a sha256
+# digest of its text (carriage returns removed, trailing newlines trimmed),
+# so the uninstaller removes it only while it is unedited.
 #
 # Test seam: L_GEVITY_SKILLS_ARCHIVE=<path or url> installs from that archive
 # instead of GitHub, and skips commit resolution. Used by
@@ -21,7 +26,10 @@ ADAPTER_RUNTIME="claude-code"
 # --- end agent profile ---
 
 REPO="l-gevity/l-gevity-skills"
-REF="${L_GEVITY_SKILLS_REF:-main}"
+# The release this script ships with. A release bump changes it together with
+# package.json; scripts/validate-skills.py fails while the two differ.
+DEFAULT_REF="v5.6.0"
+REF="${L_GEVITY_SKILLS_REF:-$DEFAULT_REF}"
 REPO_TARBALL="https://github.com/$REPO/archive/$REF.tar.gz"
 TARGET="$PWD"
 LOCK_NAME="l-gevity-skills.lock.json"
@@ -37,6 +45,12 @@ sha256_of() {
     echo "Error: neither sha256sum nor shasum is available; cannot hash the install." >&2
     exit 1
   fi
+}
+
+# Digest of a text file with line endings ignored, as the lock records it.
+text_digest() {
+  printf '%s' "$(tr -d '\r' < "$1")" > "$TMP/digest.txt"
+  printf 'sha256:%s' "$(sha256_of "$TMP/digest.txt")"
 }
 
 # Files this installer recorded in a previous run, from that run's lock.
@@ -172,6 +186,10 @@ write_lock() {
 $SRC_SKILL_NAMES
 INNER
     printf '\n    ],\n'
+    printf '    "instructionFile": {\n'
+    printf '        "path": "%s",\n' "$INSTR_PATH"
+    printf '        "digest": "%s"\n' "$INSTR_DIGEST"
+    printf '    },\n'
     printf '    "files": {\n'
     first=1
     while IFS= read -r line; do
@@ -184,6 +202,31 @@ INNER
     printf '}\n'
   } > "$dest_abs/$LOCK_NAME"
 }
+
+# Honor whichever instruction file the project already uses, whatever its name.
+EXISTING_MEM=""
+for name in $KNOWN_MEMFILES; do
+  if [ -z "$EXISTING_MEM" ] && [ -e "$TARGET/$name" ]; then
+    EXISTING_MEM="$name"
+  fi
+done
+if [ -n "$EXISTING_MEM" ] &&
+   [ "$(tr -d '\r' < "$TARGET/$EXISTING_MEM")" = "$(tr -d '\r' < "$SRC/CLAUDE.md")" ]; then
+  # Line endings alone are no difference to review: a Windows checkout's CRLF
+  # copy of the current file is current.
+  rm -f "$TARGET/$EXISTING_MEM.l-gevity"
+  MEM_REPORT="$EXISTING_MEM (already current)"
+  INSTR_PATH="$EXISTING_MEM"
+elif [ -n "$EXISTING_MEM" ]; then
+  cp "$SRC/CLAUDE.md" "$TARGET/$EXISTING_MEM.l-gevity"
+  MEM_REPORT="$EXISTING_MEM.l-gevity (existing $EXISTING_MEM kept; review and merge manually)"
+  INSTR_PATH="$EXISTING_MEM.l-gevity"
+else
+  cp "$SRC/CLAUDE.md" "$TARGET/$MEMFILE"
+  MEM_REPORT="$MEMFILE"
+  INSTR_PATH="$MEMFILE"
+fi
+INSTR_DIGEST="$(text_digest "$SRC/CLAUDE.md")"
 
 REMOVED_TOTAL=0
 for d in $DESTS; do
@@ -210,27 +253,6 @@ for d in $DESTS; do
   done < "$OLD"
   write_lock "$dest"
 done
-
-# Honor whichever instruction file the project already uses, whatever its name.
-EXISTING_MEM=""
-for name in $KNOWN_MEMFILES; do
-  if [ -z "$EXISTING_MEM" ] && [ -e "$TARGET/$name" ]; then
-    EXISTING_MEM="$name"
-  fi
-done
-if [ -n "$EXISTING_MEM" ] &&
-   [ "$(tr -d '\r' < "$TARGET/$EXISTING_MEM")" = "$(tr -d '\r' < "$SRC/CLAUDE.md")" ]; then
-  # Line endings alone are no difference to review: a Windows checkout's CRLF
-  # copy of the current file is current.
-  rm -f "$TARGET/$EXISTING_MEM.l-gevity"
-  MEM_REPORT="$EXISTING_MEM (already current)"
-elif [ -n "$EXISTING_MEM" ]; then
-  cp "$SRC/CLAUDE.md" "$TARGET/$EXISTING_MEM.l-gevity"
-  MEM_REPORT="$EXISTING_MEM.l-gevity (existing $EXISTING_MEM kept; review and merge manually)"
-else
-  cp "$SRC/CLAUDE.md" "$TARGET/$MEMFILE"
-  MEM_REPORT="$MEMFILE"
-fi
 
 # Agent-team adapters. The skill's own installer renders them and never
 # overwrites a file the project already has. Single-agent runs need none of

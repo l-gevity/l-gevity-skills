@@ -15,7 +15,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$LASTEXITCODE = 0
+# Global, never script scope: CI calls this file from its own script, and a
+# script-scoped $LASTEXITCODE would shadow the one native commands set, so
+# every exit-status check would read 0.
+$global:LASTEXITCODE = 0
 
 # The installers add the Unstoppable adapter when the session shows the app.
 # Clear its variables, so every run here starts outside it wherever the suite
@@ -124,6 +127,24 @@ function Invoke-Installer($Exe, $Agent, $ConsumerDir, $Archive, $PathPrefix) {
     } finally {
         Pop-Location
         $env:L_GEVITY_SKILLS_ARCHIVE = $previous
+        $env:PATH = $previousPath
+    }
+}
+
+function Invoke-Uninstaller($Exe, $ConsumerDir, $PathPrefix) {
+    $uninstaller = Join-Path $RepoRoot '.install/uninstall.ps1'
+    $argv = @('-NoProfile')
+    if ($IsWindows -or $null -eq $IsWindows) { $argv += @('-ExecutionPolicy', 'Bypass') }
+    $argv += @('-File', $uninstaller)
+
+    $previousPath = $env:PATH
+    if ($PathPrefix) { $env:PATH = $PathPrefix + [System.IO.Path]::PathSeparator + $env:PATH }
+    Push-Location $ConsumerDir
+    try {
+        $output = (& $Exe @argv 2>&1 | Out-String)
+        return [pscustomobject]@{ Output = $output; ExitCode = $LASTEXITCODE }
+    } finally {
+        Pop-Location
         $env:PATH = $previousPath
     }
 }
@@ -388,6 +409,129 @@ function Invoke-Suite($Exe, $ExeLabel) {
         Check "refusal reported" `
             ($traversal.Output -match 'Refused to remove unsafe path from lock: \.\./\.\./CANARY\.md') $true
         Check "install still succeeds" ($traversal.Output -match 'Installed \d+ skills') $true
+
+        # --- The uninstaller removes an unedited install and nothing else ---
+        Write-Host ""
+        Write-Host "== an unedited install is removed completely =="
+        $consumer = Join-Path $work 'uninstall-clean'
+        New-Item -ItemType Directory -Path $consumer -Force | Out-Null
+        Invoke-Installer $Exe 'claude' $consumer $archive | Out-Null
+        $gone = Invoke-Uninstaller $Exe $consumer
+        Check "exit status" $gone.ExitCode 0
+        Check "nothing left in the project" @(Get-ChildItem -LiteralPath $consumer -Force).Count 0
+        Check "instruction file reported removed" `
+            ($gone.Output -match '(?m)^Instruction file: removed CLAUDE\.md\r?$') $true
+        Check "every installed file reported removed" (Match-One $gone.Output 'Removed (\d+) file') $expectFiles
+        $again = Invoke-Uninstaller $Exe $consumer
+        Check "second run exits 0" $again.ExitCode 0
+        Check "second run finds nothing" ($again.Output -match '(?m)^Nothing to uninstall') $true
+
+        Write-Host ""
+        Write-Host "== edited files and the project's own instruction file are kept =="
+        $consumer = Join-Path $work 'uninstall-edited'
+        New-Item -ItemType Directory -Path $consumer -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $consumer 'AGENTS.md') -Value 'project instructions'
+        Invoke-Installer $Exe 'claude' $consumer $archive | Out-Null
+        $lock = Get-Content -Raw -LiteralPath (Join-Path $consumer '.claude/skills/l-gevity-skills.lock.json') |
+            ConvertFrom-Json
+        Check "lock names the sidecar it wrote" $lock.instructionFile.path 'AGENTS.md.l-gevity'
+        Add-Content -LiteralPath (Join-Path $consumer '.claude/skills/alchemy/SKILL.md') -Value 'local note'
+        $edited = Invoke-Uninstaller $Exe $consumer
+        Check "exit status" $edited.ExitCode 0
+        Check "project instruction file untouched" `
+            (Get-Content -Raw -LiteralPath (Join-Path $consumer 'AGENTS.md')).Trim() 'project instructions'
+        Check "installed sidecar removed" (Test-Path (Join-Path $consumer 'AGENTS.md.l-gevity')) $false
+        Check "edited skill file kept" (Test-Path (Join-Path $consumer '.claude/skills/alchemy/SKILL.md')) $true
+        Check "edited skill file reported" `
+            ($edited.Output -match 'Kept \(edited since install\): \.claude/skills/alchemy/SKILL\.md') $true
+        Check "lock removed" (Test-Path (Join-Path $consumer '.claude/skills/l-gevity-skills.lock.json')) $false
+
+        Write-Host ""
+        Write-Host "== an edited instruction file is kept =="
+        $consumer = Join-Path $work 'uninstall-edited-memfile'
+        New-Item -ItemType Directory -Path $consumer -Force | Out-Null
+        Invoke-Installer $Exe 'codex' $consumer $archive | Out-Null
+        Add-Content -LiteralPath (Join-Path $consumer 'AGENTS.md') -Value 'my rule'
+        $memKept = Invoke-Uninstaller $Exe $consumer
+        Check "instruction file kept" (Test-Path (Join-Path $consumer 'AGENTS.md')) $true
+        Check "kept file reported" `
+            ($memKept.Output -match '(?m)^Instruction file: kept AGENTS\.md \(edited since install\)\r?$') $true
+
+        Write-Host ""
+        Write-Host "== a CRLF copy of an unedited instruction file is removed =="
+        $consumer = Join-Path $work 'uninstall-crlf'
+        New-Item -ItemType Directory -Path $consumer -Force | Out-Null
+        Invoke-Installer $Exe 'claude' $consumer $archive | Out-Null
+        $memPath = Join-Path $consumer 'CLAUDE.md'
+        $crlf = [IO.File]::ReadAllText($memPath) -replace "`r", '' -replace "`n", "`r`n"
+        [IO.File]::WriteAllText($memPath, $crlf)
+        Invoke-Uninstaller $Exe $consumer | Out-Null
+        Check "instruction file removed" (Test-Path $memPath) $false
+
+        Write-Host ""
+        Write-Host "== a lock path outside the tree is refused, even with a matching hash =="
+        $consumer = Join-Path $work 'uninstall-traversal'
+        New-Item -ItemType Directory -Path $consumer -Force | Out-Null
+        Invoke-Installer $Exe 'gemini' $consumer $archive | Out-Null
+        $canary = Join-Path $consumer 'CANARY.md'
+        Set-Content -LiteralPath $canary -Value 'do not delete me'
+        $lockPath = Join-Path $consumer '.agents/skills/l-gevity-skills.lock.json'
+        $lock = Get-Content -Raw -LiteralPath $lockPath | ConvertFrom-Json
+        $lock.files | Add-Member -NotePropertyName '../../CANARY.md' -Force `
+            -NotePropertyValue (Get-FileHash -LiteralPath $canary -Algorithm SHA256).Hash.ToLowerInvariant()
+        $lock | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $lockPath -Encoding utf8
+        $refused = Invoke-Uninstaller $Exe $consumer
+        Check "file outside the tree survives" (Test-Path $canary) $true
+        Check "refusal reported" `
+            ($refused.Output -match 'Refused to remove unsafe path from lock: \.\./\.\./CANARY\.md') $true
+
+        Write-Host ""
+        Write-Host "== a lock written before v5.7.0 leaves the instruction file to the user =="
+        $consumer = Join-Path $work 'uninstall-old-lock'
+        New-Item -ItemType Directory -Path $consumer -Force | Out-Null
+        Invoke-Installer $Exe 'grok' $consumer $archive | Out-Null
+        $lockPath = Join-Path $consumer '.agents/skills/l-gevity-skills.lock.json'
+        $lock = Get-Content -Raw -LiteralPath $lockPath | ConvertFrom-Json
+        $lock.PSObject.Properties.Remove('instructionFile')
+        $lock | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $lockPath -Encoding utf8
+        $old = Invoke-Uninstaller $Exe $consumer
+        Check "exit status" $old.ExitCode 0
+        Check "instruction file kept" (Test-Path (Join-Path $consumer 'GROK.md')) $true
+        Check "gap reported" ($old.Output -match '(?m)^Instruction file: not recorded') $true
+        Check "skills removed" (Test-Path (Join-Path $consumer '.agents')) $false
+
+        if ($havePython) {
+            Write-Host ""
+            Write-Host "== without Python 3, installed adapters stop the uninstall before any removal =="
+            $consumer = Join-Path $work 'uninstall-no-python'
+            New-Item -ItemType Directory -Path $consumer -Force | Out-Null
+            Invoke-Installer $Exe 'claude' $consumer $archive | Out-Null
+            $stopped = Invoke-Uninstaller $Exe $consumer (New-NoPythonDir $work)
+            Check "exit status" $stopped.ExitCode 1
+            Check "cause named" ($stopped.Output -match 'Python 3 not found') $true
+            Check "skills untouched" (Test-Path (Join-Path $consumer '.claude/skills/alchemy/SKILL.md')) $true
+            Check "adapters untouched" (Test-Path (Join-Path $consumer '.claude/agents/alchemy-analyst.md')) $true
+
+            Write-Host ""
+            Write-Host "== an edited adapter file is kept =="
+            Add-Content -LiteralPath (Join-Path $consumer '.claude/agents/alchemy-analyst.md') -Value '# mine'
+            $adapter = Invoke-Uninstaller $Exe $consumer
+            Check "exit status" $adapter.ExitCode 0
+            Check "edited adapter kept" (Test-Path (Join-Path $consumer '.claude/agents/alchemy-analyst.md')) $true
+            Check "unedited adapter removed" `
+                (Test-Path (Join-Path $consumer '.claude/agents/alchemy-implementer.md')) $false
+            Check "adapter summary counts the kept file" `
+                ($adapter.Output -match '(?m)^Agent-team adapters: removed; 1 kept \(listed above\)\r?$') $true
+            Check "workspace profile removed" (Test-Path (Join-Path $consumer 'alchemy-workspace.json')) $false
+        }
+
+        # --- With no ref set, an installer installs the release it ships with ---
+        Write-Host ""
+        Write-Host "== the default source is this checkout's release tag =="
+        $release = 'v' + (Get-Content -Raw -LiteralPath (Join-Path $RepoRoot 'package.json') | ConvertFrom-Json).version
+        $lock = Get-Content -Raw -LiteralPath (Join-Path $work 'consumer-claude/.claude/skills/l-gevity-skills.lock.json') |
+            ConvertFrom-Json
+        Check "lock records the release tag as ref" $lock.source.ref $release
     } finally {
         Remove-Item -Recurse -Force -LiteralPath $work -ErrorAction SilentlyContinue
     }

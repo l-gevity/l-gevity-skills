@@ -4,6 +4,7 @@
 Usage:
     init_workspace.py --runtime claude-code|codex|unstoppable|all
                       [--root <project dir>] [--profile <alchemy-workspace.json>] [--dry-run]
+                      [--uninstall]
 
 Reads the defaults from this skill's assets/alchemy-workspace.json, overridden
 key by key by the project profile (--profile, else alchemy-workspace.json at
@@ -14,8 +15,13 @@ envelopes at render time; nothing here restates them.
 An existing file is never overwritten. Identical content is reported
 unchanged; different content is kept and the rendered version is written
 beside it as <file>.l-gevity for a manual merge. A second run on an installed
-project reports every file unchanged. Exit 0, or 2 on bad arguments or an
-unusable profile.
+project reports every file unchanged.
+
+--uninstall removes what an install would write: each file, and its .l-gevity
+sibling, that is byte-identical to its rendering now, line endings ignored. An
+edited file is kept and reported. So are a profile that differs from the
+defaults and a state directory that holds run records. Directories left empty
+are removed. Exit 0, or 2 on bad arguments or an unusable profile.
 """
 
 from __future__ import annotations
@@ -325,6 +331,45 @@ def install(root: Path, writes: list[tuple[str, bytes | None, str]], dry_run: bo
     return lines
 
 
+def prune_empty(root: Path, start: Path) -> None:
+    """Remove start and its parents while empty, never root or above it."""
+    base = root.resolve()
+    current = start
+    while current != base and base in current.parents and current.is_dir() and not any(current.iterdir()):
+        current.rmdir()
+        current = current.parent
+
+
+def uninstall(root: Path, writes: list[tuple[str, bytes | None, str]], dry_run: bool) -> list[str]:
+    """Remove each planned file still identical to its rendering; keep the rest."""
+    lines = []
+    verb = "would remove" if dry_run else "removed"
+    for relative, content, policy in writes:
+        if policy == "skip":
+            lines.append(f"{relative}: not removed (profile given with --profile)")
+            continue
+        assert content is not None
+        candidates = [relative] if policy == "profile" else [relative, f"{relative}{SUFFIX}"]
+        for name in candidates:
+            path = root / name
+            if not path.is_file():
+                continue
+            if not same(path, content):
+                reason = ("project profile differs from the defaults" if policy == "profile"
+                          else "edited since install; delete it by hand if unneeded")
+                lines.append(f"{name}: kept ({reason})")
+                continue
+            if not dry_run:
+                path.unlink()
+                prune_empty(root, path.parent)
+            lines.append(f"{name}: {verb}")
+        if relative.endswith("/.gitignore") and policy == "file":
+            state = (root / relative).parent
+            if state.is_dir() and any(entry.name != ".gitignore" for entry in state.iterdir()):
+                lines.append(f"{PurePosixPath(relative).parent.as_posix()}/: kept (holds run records)")
+    return lines
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Install the alchemy-orchestrate runtime adapters.")
     parser.add_argument("--runtime", required=True, choices=[*RUNTIMES, "all"])
@@ -332,6 +377,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--profile", type=Path, help="project alchemy-workspace.json (default: <root>/"
                         f"{PROFILE_NAME} when present)")
     parser.add_argument("--dry-run", action="store_true", help="report what would change; write nothing")
+    parser.add_argument("--uninstall", action="store_true",
+                        help="remove the files an install would write, where still unedited")
     return parser.parse_args(argv)
 
 
@@ -349,7 +396,7 @@ def main(argv: list[str] | None = None) -> int:
         profile = load_profile(overlay)
         runtimes = list(RUNTIMES) if args.runtime == "all" else [args.runtime]
         writes = plan_writes(runtimes, root, overlay, args.profile is not None, profile)
-        lines = install(root, writes, args.dry_run)
+        lines = (uninstall if args.uninstall else install)(root, writes, args.dry_run)
     except UsageError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

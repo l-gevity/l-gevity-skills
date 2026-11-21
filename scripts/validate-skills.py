@@ -2666,6 +2666,29 @@ def mutation_test(match: str | None = None) -> int:
 
     cases.append((Case("package: __pycache__ exclusion removed", [package], ("__pycache__",)), drop_cache_exclusion))
 
+    # The defect this pin prevents: a release bump that leaves the installers
+    # installing the previous release.
+    def bump_without_installers(path=package):
+        text, crlf = read_raw(path)
+        mutated, count = re.subn(r'("version": ")[^"]+(")', r"\g<1>0.0.0-mutation\g<2>", text, count=1)
+        if count == 0:
+            raise RuntimeError("version not found in package.json")
+        write_raw(path, mutated, crlf)
+
+    cases.append((Case("installers: version bumped without the default ref", [package],
+                       ("default ref is", "bump the installers")), bump_without_installers))
+
+    uninstaller = copy / ".install" / "uninstall.sh"
+
+    def drop_uninstall_path_guard(path=uninstaller):
+        text, crlf = read_raw(path)
+        if "safe_relpath" not in text:
+            raise RuntimeError("safe_relpath not found in uninstall.sh")
+        write_raw(path, text.replace("safe_relpath", "any_relpath"), crlf)
+
+    cases.append((Case("installers: uninstaller path guard removed", [uninstaller],
+                       ("uninstall.sh must keep 'safe_relpath'",)), drop_uninstall_path_guard))
+
     # The two stack references of architecture-as-code were skills until they
     # were folded into it; each keeps the removal case its first pin had as a
     # skill, which the automatic cases above no longer generate.
@@ -4437,6 +4460,16 @@ INSTALLER_BODY_REQUIRED = {
     "ps1": ("$SrcSkillNames.Count", "$SrcFiles.Count", "Get-FileHash",
             "Get-PreviousFiles", "KnownMemFiles", "KnownSkillDirs"),
 }
+INSTALLER_DEFAULT_REF_RE = {
+    "sh": re.compile(r'(?m)^DEFAULT_REF="([^"]+)"$'),
+    "ps1": re.compile(r"(?m)^\$DefaultRef\s*=\s*'([^']+)'\r?$"),
+}
+# The lock drives a delete in the consumer's repository; the uninstaller must
+# keep refusing paths that leave the skills tree, and remove only unedited files.
+UNINSTALLER_REQUIRED = {
+    "sh": ("safe_relpath", "sha256_of", "text_digest", "--uninstall"),
+    "ps1": ("Test-SafeRelPath", "Get-FileHash", "Get-TextDigest", "--uninstall"),
+}
 INSTALLER_BODY_FORBIDDEN = {
     "sh": ('find "$TARGET',),
     "ps1": ("Get-ChildItem $SkillsDest -Directory",),
@@ -4485,6 +4518,26 @@ def validate_installers() -> None:
                     f"install-{agent}.{suffix} differs from "
                     f"install-claude.{suffix} outside its agent profile block"
                 )
+
+        # An installer fetched from main once installed main, so every push
+        # reached every consumer unreleased. It installs its own release now,
+        # and a release bump that leaves the pin behind fails here.
+        release = "v" + json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
+        pinned = INSTALLER_DEFAULT_REF_RE[suffix].search(reference)
+        if pinned is None:
+            fail(f"install-*.{suffix} must declare its default ref as a release tag")
+        if pinned.group(1) != release:
+            fail(
+                f"install-*.{suffix} default ref is {pinned.group(1)}, but package.json "
+                f"is {release}; bump the installers' default ref with the version"
+            )
+
+        uninstaller = INSTALL / f"uninstall.{suffix}"
+        if not uninstaller.is_file():
+            fail(f"missing uninstaller {uninstaller.relative_to(ROOT)}")
+        for term in UNINSTALLER_REQUIRED[suffix]:
+            if term not in uninstaller.read_text(encoding="utf-8"):
+                fail(f"{uninstaller.relative_to(ROOT)} must keep '{term}'")
 
 
 def validate_ci_wiring() -> None:

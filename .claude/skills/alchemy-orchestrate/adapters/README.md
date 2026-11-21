@@ -37,6 +37,28 @@ refused when empty, `.`, absolute, rooted, UNC, drive-prefixed (`C:\x`,
 `D:x`), or when it contains `..` or `:`. The `alchemy-check` action applies
 the same state_dir rule.
 
+## Uninstall
+
+```text
+python <skills>/alchemy-orchestrate/scripts/init_workspace.py --uninstall --runtime claude-code|codex|unstoppable|all [--root <project>] [--profile <file>] [--dry-run]
+```
+
+It removes each file an install would write, and its `.l-gevity` sibling,
+while the file is identical to its rendering now, line endings ignored. The
+rendering uses the same profile an install would. It prints one line per file
+it finds:
+
+- `removed`: the file was unedited and is gone.
+- `kept (edited since install; ...)`: the file differs, so it stays.
+- `kept (project profile differs from the defaults)`: `alchemy-workspace.json`
+  holds your settings, so it stays.
+- `kept (holds run records)`: the state directory holds more than its
+  `.gitignore`.
+
+Directories left empty are removed. The project uninstaller
+(`.install/uninstall.sh` or `.install/uninstall.ps1`) runs this step before it
+removes the skills.
+
 ## Execution categories
 
 | Category | Claude Code | Codex | Unstoppable Code |
