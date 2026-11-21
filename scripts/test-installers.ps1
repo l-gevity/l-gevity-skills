@@ -505,7 +505,6 @@ function Invoke-Suite($Exe, $ExeLabel) {
             Invoke-Installer $Exe 'claude' $consumer $archive | Out-Null
             $stopped = Invoke-Uninstaller $Exe $consumer (New-NoPythonDir $work)
             Check "exit status" $stopped.ExitCode 1
-            if ($stopped.ExitCode -ne 1) { Write-Host $stopped.Output }
             Check "cause named" ($stopped.Output -match 'Python 3 not found') $true
             Check "skills untouched" (Test-Path (Join-Path $consumer '.claude/skills/alchemy/SKILL.md')) $true
             Check "adapters untouched" (Test-Path (Join-Path $consumer '.claude/agents/alchemy-analyst.md')) $true
