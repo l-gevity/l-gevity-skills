@@ -59,7 +59,9 @@ and read a stage's or companion pass's `SKILL.md` only once every stage before
 it has passed, never ahead. A blocking decision in the route's hand-off table
 ends the route for that candidate: the stages after it stay unloaded and
 appear in the trail as `Not run` with that decision as the reason. Only
-candidates with a passing decision continue. `PROVISIONAL` passes with its
+candidates with a passing decision continue. In Audit mode `DEPRECATE`,
+`DELETE`, and `OBSOLETE` admit the removal as that candidate's remediation
+increment; they block only keeping or extending the code. `PROVISIONAL` passes with its
 confirmation queue, and Readiness decides whether the unconfirmed requirements
 can change the increment (rule 5); a confirmation that contradicts it reopens
 grounding.
@@ -240,7 +242,7 @@ Mode:           Design | Refactor | Audit
 Dispatch:       SKIP | DIRECT | ADAPTIVE | FULL
 Companions:     <None | task-matched skills>
 Execution:      single-agent | multi-agent
-Blocking stage: <first non-passing qualification decision or gate, or None>
+Blocking stage: <first stage no candidate passed, or None>
 Decision:       Proceed | Redesign | Drop | Defer
 Verification:   <commands, lint rules, tests, or Not run + reason>
 ```

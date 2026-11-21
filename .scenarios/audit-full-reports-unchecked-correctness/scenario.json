@@ -1,0 +1,60 @@
+{
+  "request": "Run alchemy full audit on src/export in this repository. It is one subsystem and the audit is read-only: report findings, change nothing.",
+  "skills": [
+    "alchemy",
+    "structural-simplification",
+    "functionality-complexity-tradeoff"
+  ],
+  "expect": [
+    {
+      "id": "walks-full",
+      "criterion": "audit-report #1: a full audit walks FULL from the read-only baseline",
+      "check": "field_in",
+      "field": "Dispatch",
+      "values": [
+        "FULL"
+      ]
+    },
+    {
+      "id": "starts-at-baseline",
+      "criterion": "audit-report #1: a full audit walks FULL from the read-only baseline",
+      "check": "guidance_includes",
+      "skills": [
+        "structural-simplification"
+      ]
+    },
+    {
+      "id": "audit-mode",
+      "criterion": "audit-report #1: a full audit walks FULL from the read-only baseline",
+      "check": "field_in",
+      "field": "Mode",
+      "values": [
+        "Audit"
+      ]
+    },
+    {
+      "id": "names-unchecked-correctness",
+      "criterion": "audit-report #2: an audit lists functional correctness as unchecked",
+      "check": "text_matches",
+      "pattern": "(?s)What I did not check\\b.{0,2000}?correctness"
+    },
+    {
+      "id": "answer-keeps-contracts",
+      "criterion": "report-contract #1: a routed answer keeps its trail, scope block, and stage record contracts",
+      "check": "alchemy_report"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    },
+    {
+      "id": "claims-only-loaded-stages",
+      "criterion": "claim-only-what-ran #1: every stage and companion the run names was loaded",
+      "check": "route_loaded"
+    }
+  ],
+  "known_failures": {
+    "answer-keeps-contracts": "2 of 2 recordings list unchecked items closed by a question to an owner (broker config, payload schema), not a command; CLAUDE.md §14 asks for the closing command and check_alchemy_report.py B1 holds it"
+  }
+}
