@@ -82,7 +82,7 @@ omitted.
 | `depends_on` | Package IDs. The graph must be acyclic. |
 | `produces` / `consumes` | Contract names. A consumer depends, directly or transitively, on the producer; a consumed contract nobody produces must be listed in `contracts_existing`. |
 | `reviews` | `verify` only: the packages it reviews. Its owner owns none of them, and it depends, directly or transitively, on each. |
-| `acceptance` | At least one criterion per package, so the plan holds at least one. `check` is `command` with a `command`, or `review` with a `question`. IDs are canonical criterion IDs where they exist. |
+| `acceptance` | At least one criterion per package, so the plan holds at least one. `check` is `command` with a `command`, or `review` with a `question`. IDs are canonical criterion IDs where they exist. A check proves a `review` criterion's evidence passed, not that it answers the question. |
 | `permissions` | Subset of `read`, `test`, `edit`, `commit`, and of the package's envelope. `push` and `pull_request` belong to the lead after human approval; `merge` and `deploy` never appear in a plan. |
 | `approved_by` | `human` on a package of the approved plan that writes a protected path; the human approves the plan that carries it. A protected entry guards itself and every path under it, with or without a trailing `/`, case-insensitively. An amendment's protected write needs an `approval` record instead. |
 | `may_delegate` | Absent or `false`. Delegation depth is 1. |
@@ -186,14 +186,19 @@ other part of this skill: the lead holds the rest.
   "assumptions": ["Order totals are integers in cents"],
   "relied_on": [{"path": "src/orders/repository.js", "sha256": "<64 hex>"}],
   "changed_files": [{"path": "src/orders/validate.js", "sha256": "<64 hex>"}],
-  "evidence": [{"id": "E1", "criterion": "REQ-12-AC1", "command": "npm test -- orders", "exit_code": 0, "commit": "8a1d4b0", "summary": "14 passed"}],
-  "claims": [{"text": "Order input is validated before persistence", "evidence": ["E1"]}],
+  "evidence": [{"id": "P1-E1", "criterion": "REQ-12-AC1", "command": "npm test -- orders", "exit_code": 0, "commit": "8a1d4b0", "summary": "14 passed"}],
+  "claims": [{"text": "Order input is validated before persistence", "evidence": ["P1-E1"]}],
   "findings": [],
   "blockers": [],
   "next_owner": "lead",
   "integration_ready": true
 }
 ```
+
+Evidence and finding IDs start with the package ID and a hyphen, as `P1-E1`
+and `P1-F1`, so the lead copies them into the ledger unchanged: the ledger
+refuses a repeated evidence or finding ID (`SCHEMA`), and the gate's
+`--review` matches a hand-off's findings to the ledger by ID and package.
 
 `status` is `DONE`, `PARTIAL`, `BLOCKED`, or `FAILED`. A blocker is
 `{"id", "text", "blocking": true|false}`; an evidence item needs `id`,
@@ -242,20 +247,20 @@ Kept by the lead from hand-offs, independent verification, and integration.
   "schema": "alchemy-ledger/1",
   "head_commit": "c47e9aa",
   "rework_cycles": {"P1": 1},
-  "evidence": [{"id": "E7", "command": "npm test", "exit_code": 0, "commit": "c47e9aa", "produced_by": "agent-c"}],
+  "evidence": [{"id": "P3-E7", "command": "npm test", "exit_code": 0, "commit": "c47e9aa", "produced_by": "agent-c"}],
   "criteria": [
-    {"id": "REQ-12-AC1", "package": "P1", "status": "verified", "evidence": ["E7"], "verified_by": "agent-c"},
+    {"id": "REQ-12-AC1", "package": "P1", "status": "verified", "evidence": ["P3-E7"], "verified_by": "agent-c"},
     {"id": "REQ-13-AC2", "package": "P2", "status": "deferred", "deferred_by": "human", "reason": "Needs production data"}
   ],
   "findings": [
     {"id": "F1", "package": "P1", "severity": "blocking", "status": "resolved", "raised_by": "agent-c",
-     "evidence": ["E5"], "resolution": {"by": "agent-a", "evidence": ["E7"]}}
+     "evidence": ["P3-E5"], "resolution": {"by": "agent-a", "evidence": ["P3-E7"]}}
   ],
   "disputes": [
     {"id": "X1", "subject": "Validate in handler or in repository",
-     "positions": [{"by": "agent-a", "claim": "handler", "evidence": ["E7"]}, {"by": "agent-b", "claim": "repository", "evidence": []}],
+     "positions": [{"by": "agent-a", "claim": "handler", "evidence": ["P3-E7"]}, {"by": "agent-b", "claim": "repository", "evidence": []}],
      "status": "resolved",
-     "resolution": {"basis": "evidence", "decided_by": "lead", "evidence": ["E7"], "rationale": "Only the handler position has a passing test"}}
+     "resolution": {"basis": "evidence", "decided_by": "lead", "evidence": ["P3-E7"], "rationale": "Only the handler position has a passing test"}}
   ]
 }
 ```
@@ -267,7 +272,7 @@ Kept by the lead from hand-offs, independent verification, and integration.
 | `criteria[]` | `verified_by` is required when verified; `reason` when deferred. Only plan criteria, under their own package. When independent review is on or the package's risk is `high`, an `implement` criterion's `verified_by` is the owner of a `verify` package that reviews it. A verified `command` criterion cites evidence whose `command` is the plan's, whitespace-normalized, or that of an `equivalent: {"command", "accepted_by": "human"}` the human accepted in its place. |
 | `evidence[]` | `id`, `command`, `exit_code`, `commit`; optional `produced_by`, `expect_exit` as in the hand-off, `criterion`, the only criterion the item may verify, and `log` and `log_sha256`, the output file and its digest. Items with the same normalized command, commit, and exit code are the same evidence, whatever their IDs. Profile verification commands pass only on exit 0. |
 | `findings[]` | Optional convergence links, recorded by the reviewer who raises the finding: `after`, the amendment whose review raised it (absent: the review of the planned work); `related_to`, earlier finding IDs in the same component or of the same class; `introduced_by`, the amendment whose fix caused it; `reopened_after`, the amendments after which it was reopened. Each named amendment and finding exists, and `package` names a plan package. Once the plan has amendments, every blocking or major finding names its `package`, and one with `related_to` or `introduced_by` names `after` (`SCHEMA` otherwise). The gate evaluates them as governance section 2 states (`NOT_CONVERGING`). |
-| `--review` | A reviewer's own output, a file the reviewing step wrote, or a saved hand-off; repeat it to give every one. Each of its blocking or major findings appears in the ledger under its ID, at no lower severity, for the same package, with every `related_to` link, `introduced_by` when it is a `regression`, and `reopened_after` on the finding it `reopens` (`SILENT_SKIP` otherwise). The gate checks that the ledger keeps what the reviewer recorded; whether a finding is related, a regression, or reopened is the reviewer's judgment, which no check confirms. Without `--review` the gate reads the ledger alone. |
+| `--review` | A reviewer's own output, a file the reviewing step wrote, or a saved hand-off; repeat it to give every one. Each of its blocking or major findings appears in the ledger under its ID, at no lower severity, for the same package (a hand-off's own `package` for its findings), with every `related_to` link, `introduced_by` when it is a `regression`, and `reopened_after` on the finding it `reopens` (`SILENT_SKIP` otherwise). The gate checks that the ledger keeps what the reviewer recorded; whether a finding is related, a regression, or reopened is the reviewer's judgment, which no check confirms. Without `--review` the gate reads the ledger alone. |
 | `findings[].severity` | `blocking`, `major`, or `minor`. In a run whose plan holds no `implement` package, a blocking or major finding may stay `open`: it is the run's result, which the gate lists under `open_serious`, and it cites passing evidence (`UNSUPPORTED_FINDING`). Otherwise blocking and major must end `resolved` with `resolution.evidence`, `rejected` with `resolution.evidence` showing the finding is wrong — sharing no evidence, by ID or identity, with the raiser's own `evidence` — or `accepted-risk` with `accepted_by: human`. |
 | `disputes[].resolution.basis` | `evidence` with evidence IDs, only when exactly one position's evidence all exists and exited 0; when both positions or neither have it, the human decides. Or `human` with `decided_by: human`. Majority, seniority, model, and confidence are not a basis. |
 | `rework_cycles` | A claim of correction rounds per package, summed along each origin chain. The gate counts the chain's rework amendments and takes the larger number, so neither a rename nor a new rework package starts at zero; above the bound it escalates. A ledger that records it, even for a plan without amendments, needs `--approved` on the gate (`AMENDMENT_INVALID` otherwise; see the upgrade table below). |

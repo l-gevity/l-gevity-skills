@@ -72,6 +72,7 @@ FIELD_RE = re.compile(r"^(?P<name>[A-Z][A-Za-z ]*):[ \t]*(?P<value>.*)$")
 # backticks that share their line with other text.
 BLOCK_RE = re.compile(r"^[ \t]*```[^`\r\n]*\r?\n(.*?)^[ \t]*```[ \t]*\r?$", re.S | re.M)
 NOT_REQUIRED_RE = re.compile(r"^not required\b", re.I)
+HASH_RE = re.compile(r"\b[0-9a-f]{7,64}\b", re.I)
 
 
 def parse(report: str) -> dict[str, str]:
@@ -177,6 +178,14 @@ def check(report: str, label: str) -> list[str]:
     if reversibility_value.startswith(("low", "unknown")) and probationary:
         bad("R8", "Low or Unknown reversibility can never be accepted probationarily")
 
+    # R10 — a graph result is reproducible or it is not claimed
+    # (graph-analysis.md: retain the tool, its version, and the input hash).
+    graph = fields.get("Graph analysis")
+    if graph is not None and not re.match(r"^\s*not (measured|required)\b", graph, re.I):
+        if re.search(r"\bno\b[^;,]*\bhash\b", graph, re.I) or not HASH_RE.search(graph):
+            bad("R10", "Graph analysis names a result without its input hash; "
+                       "record tool, version, and hash, or Not measured")
+
     return problems
 
 
@@ -233,6 +242,8 @@ SELF_TEST_CASES = (
     ("R7", ("manual alternative: attempted, falls on the same edge.", "that is all.")),
     ("R8", ("Reversibility:       medium - three internal call sites share the contract.",
             "Reversibility:       low - external consumers depend on the contract.")),
+    ("R10", ("Graph analysis:      Not required - no algorithmic cut generated the candidate.",
+             "Graph analysis:      ad-hoc ast script, Python 3.14.7, no input hash")),
 )
 
 # Each case is one fence shape and the block bodies it must yield.

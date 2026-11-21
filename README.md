@@ -519,7 +519,7 @@ maps skills to capabilities, inputs, outputs, parallelism, exclusive file
 ownership, and verification.
 
 `check_orchestration.py` enforces deterministic rules. All 70 check codes have
-coverage among 237 [adversarial cases](./.adversarial/).
+coverage among 240 [adversarial cases](./.adversarial/).
 
 | Check | Rejects, among others |
 |:--|:--|

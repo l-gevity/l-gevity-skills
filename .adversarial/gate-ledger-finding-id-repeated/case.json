@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #234: the ledger refuses a repeated finding ID",
+  "description": "The lead copies both F1 findings into the ledger unchanged. Two findings under one ID cannot be told apart by any later check, so the ledger is malformed.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json"
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "SCHEMA"
+    ]
+  }
+}

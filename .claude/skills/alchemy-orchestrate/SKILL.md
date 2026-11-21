@@ -148,9 +148,10 @@ the runtime transcript).
    or an integrated head in an isolated workspace when available, and touches
    only its write set. Delegated agents never delegate. Without spawning,
    re-plan as `single-agent` and report the limitation.
-6. **Receive hand-offs.** Each package ends its reply with its hand-off as
-   one JSON block. Save it unedited under `state_dir` from the reply the
-   agent tool returned, never from a runtime output file. Before anyone
+6. **Receive hand-offs.** Save each package's closing JSON hand-off unedited
+   under `state_dir`, from the agent tool's reply or, with
+   `scripts/extract_handoff.py`, its transcript, never from a runtime output
+   file. Before anyone
    changes the workspace, run `check_orchestration.py handoff <handoff.json>
    --plan <plan.json> --root <workspace>`, and read each changed file against
    the claims: the check proves digests, not meaning. `ACCEPT` continues;
