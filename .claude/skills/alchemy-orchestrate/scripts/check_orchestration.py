@@ -2286,8 +2286,15 @@ def _parse_ledger(ledger: Any, report: Report) -> dict[str, Any]:
             "reopened_after": _get(item, "reopened_after", "strs", report, label, fid, required=False,
                                    default=[]),
         }
-        if fid is not None:
-            parsed["findings"].append(entry)
+        if fid is None:
+            continue
+        # Two agents that each number from F1 collide here; the gate would
+        # match a reviewer's finding to the other package's.
+        if any(seen["id"] == fid for seen in parsed["findings"]):
+            report.add("SCHEMA", f"{label} repeats finding id '{fid}'; prefix each package's IDs with its "
+                       "package ID, as P1-F1", fid)
+            continue
+        parsed["findings"].append(entry)
 
     for index, item in enumerate(_get(ledger, "disputes", "list", report, where, required=False, default=[])):
         label = f"{where}.disputes[{index}]"
@@ -2671,6 +2678,8 @@ def _rule_review_record(led: dict[str, Any], review: Any, report: Report) -> Non
         return
     ledger = {finding["id"]: finding for finding in led["findings"]}
     order = ["minor", "major", "blocking"]
+    # A hand-off's findings belong to the package the hand-off names.
+    handoff_package = review.get("package") if review.get("schema") == HANDOFF_SCHEMA else None
     for index, item in enumerate(review["findings"]):
         if not isinstance(item, dict) or not isinstance(item.get("id"), str):
             report.add("SCHEMA", f"review.findings[{index}] needs an id")
@@ -2678,6 +2687,7 @@ def _rule_review_record(led: dict[str, Any], review: Any, report: Report) -> Non
         fid, severity = item["id"], item.get("severity")
         if severity not in SERIOUS:
             continue
+        package = item.get("package") if isinstance(item.get("package"), str) else handoff_package
         mine = ledger.get(fid)
         gaps = []
         if mine is None:
@@ -2685,8 +2695,8 @@ def _rule_review_record(led: dict[str, Any], review: Any, report: Report) -> Non
         else:
             if mine["severity"] not in order or order.index(mine["severity"]) < order.index(severity):
                 gaps.append(f"is recorded as {mine['severity']}, not {severity}")
-            if isinstance(item.get("package"), str) and mine["package"] != item["package"]:
-                gaps.append(f"is recorded for {mine['package']}, not {item['package']}")
+            if isinstance(package, str) and mine["package"] != package:
+                gaps.append(f"is recorded for {mine['package'] or 'no package'}, not {package}")
             dropped = sorted(set(item.get("related_to") or []) - set(mine["related_to"]))
             if dropped:
                 gaps.append(f"lost its related_to {', '.join(dropped)}")
@@ -2961,7 +2971,13 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
         for problem in problems:
             report.add("WORKSPACE_MISMATCH", problem)
 
+    facts: dict[str, Any] = {}
+    if open_serious:
+        # A passing read-only run reads too easily as a clean audit.
+        facts["note"] = (f"a passing gate means the records hold together, not that the subject is clean: "
+                         f"{len(open_serious)} blocking or major finding(s) stay open as this run's result")
     return _result(report, {
+        **facts,
         "verified": verified,
         "unverified": unverified,
         "open": open_items,

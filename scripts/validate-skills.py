@@ -4988,6 +4988,56 @@ def validate_evidence_recorder() -> None:
         shutil.rmtree(scratch, ignore_errors=True)
 
 
+def validate_handoff_extractor() -> None:
+    """A lead retyped four 12-25 KB hand-offs from analyst replies (issue #56).
+    extract_handoff.py copies the block from the last assistant message byte
+    for byte, pairs fences by line so a text block before it cannot swallow
+    it, ignores hand-off examples the agent read, and refuses a final reply
+    without exactly one hand-off."""
+    import contextlib
+    import importlib.util
+    import io
+
+    path = ORCHESTRATE / "scripts" / "extract_handoff.py"
+    spec = importlib.util.spec_from_file_location("extract_handoff", path)
+    extractor = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(extractor)
+    block = '{\n  "schema": "alchemy-handoff/1",\n  "package": "P1",\n  "note": "a ``` b"\n}\n'
+    example = '```json\n{"schema": "alchemy-handoff/1", "package": "EXAMPLE"}\n```\n'
+    final = f"Summary.\n\n```text\nGate: PASS\n```\n\nMore.\n\n```\nplain\n```\n\n```json\n{block}```\n"
+
+    def line(role: str, text: str) -> str:
+        return json.dumps({"type": role, "message": {"role": role, "content": [{"type": "text", "text": text}]}})
+
+    def transcript(*texts: str) -> str:
+        lines = [line("user", f"Read the contract:\n{example}")]
+        lines += [line("assistant", f"Draft:\n{example}")]
+        lines += [line("assistant", text) for text in texts]
+        lines += [json.dumps({"type": "assistant", "message": {"role": "assistant",
+                                                                "content": [{"type": "tool_use", "name": "Read"}]}})]
+        return "\n".join(lines) + "\n"
+
+    scratch = Path(tempfile.mkdtemp(prefix="l-gevity-extract-"))
+    try:
+        cases = [
+            ("transcript", transcript(final), 0),
+            ("reply", final, 0),
+            ("no hand-off", transcript("Done, no record."), 1),
+            ("two hand-offs", transcript(final + f"\n```json\n{block}```\n"), 1),
+        ]
+        for label, text, code in cases:
+            source, out = scratch / f"{label}.in", scratch / f"{label}.json"
+            source.write_text(text, encoding="utf-8")
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                got = extractor.main([str(source), "--out", str(out)])
+            if got != code:
+                fail(f"extract_handoff.py exits {got} on the {label} case, not {code}")
+            if code == 0 and out.read_bytes() != block.encode("utf-8"):
+                fail(f"extract_handoff.py changed the hand-off in the {label} case")
+    finally:
+        shutil.rmtree(scratch, ignore_errors=True)
+
+
 def validate_package_budgets() -> None:
     """Every envelope carries a turn and tool-call ceiling (rule 15), its agent
     is told to stop and escalate at its budget, and the Claude Code adapter
@@ -5424,6 +5474,7 @@ def main() -> int:
     # caught by its owning check rather than hidden by a revision mismatch.
     validate_gate_repository_rules()
     validate_evidence_recorder()
+    validate_handoff_extractor()
     validate_primer_revisions()
     validate_scenarios()
     print("Skills validated")

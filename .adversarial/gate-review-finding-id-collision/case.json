@@ -1,0 +1,19 @@
+{
+  "criterion": "multi-agent-governance #233: a finding ID two hand-offs share cannot hide one of them in the ledger",
+  "description": "Two analysts each number their first finding F1. The ledger keeps A1's F1 only, so A2's major finding is gone while every --review ID still matches. The hand-off's own package must match the ledger's.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "review": [
+      "handoff-A1.json",
+      "handoff-A2.json"
+    ]
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "SILENT_SKIP"
+    ]
+  }
+}

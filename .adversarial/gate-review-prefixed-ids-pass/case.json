@@ -1,0 +1,24 @@
+{
+  "criterion": "multi-agent-governance #235: package-prefixed finding IDs carry every analyst's findings into the ledger unchanged",
+  "description": "Each analyst prefixes its finding IDs with its package ID, so the lead copies both into the ledger unchanged and the gate passes with both open, noting that a pass is not a clean subject.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "review": [
+      "handoff-A1.json",
+      "handoff-A2.json"
+    ]
+  },
+  "expect": {
+    "verdict": "PASS",
+    "codes": [],
+    "facts": {
+      "open_serious": [
+        "A1-F1",
+        "A2-F1"
+      ],
+      "note": "a passing gate means the records hold together, not that the subject is clean: 2 blocking or major finding(s) stay open as this run's result"
+    }
+  }
+}

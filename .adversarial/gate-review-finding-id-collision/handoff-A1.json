@@ -1,0 +1,44 @@
+{
+  "schema": "alchemy-handoff/1",
+  "package": "A1",
+  "owner": "agent-a",
+  "status": "DONE",
+  "attempt": 1,
+  "base_commit": "3f9c2e1",
+  "requirements": [
+    "AUD-1"
+  ],
+  "relied_on": [],
+  "changed_files": [],
+  "evidence": [
+    {
+      "id": "E1",
+      "command": "git grep -n \"import worker\" -- src/api/",
+      "exit_code": 0,
+      "commit": "3f9c2e1",
+      "produced_by": "agent-a",
+      "criterion": "A1-AC1"
+    }
+  ],
+  "claims": [
+    {
+      "text": "The audit of the scope is complete",
+      "evidence": [
+        "E1"
+      ]
+    }
+  ],
+  "blockers": [],
+  "next_owner": "lead",
+  "integration_ready": true,
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "major",
+      "text": "The API imports the worker",
+      "evidence": [
+        "E1"
+      ]
+    }
+  ]
+}
