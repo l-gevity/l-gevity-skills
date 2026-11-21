@@ -27,7 +27,7 @@ flowchart LR
 
 One integration reviewer covers what package reviews did not; a second provider is added only for a named, distinct risk. Correction reviewers receive a diff from the last reviewed head, the findings it answers, and current check evidence. Opt-in command reuse shares an execution only within one recorder invocation for repeat-safe checks with stable inputs; each criterion retains its own record.
 
-Blocking findings need evidence of resolution or explicit human risk acceptance. Minor findings stay open for the pull request instead of costing another correction round. The skill's workflow requires human approval before merging.
+Blocking findings need evidence of resolution or explicit human risk acceptance; a read-only audit instead reports them open, each with its evidence, and the gate checks the ledger kept every one the agents raised. Minor findings stay open for the pull request instead of costing another correction round. The skill's workflow requires human approval before merging.
 
 ## Project example
 
@@ -37,4 +37,4 @@ An export feature needs a backend endpoint and a frontend screen. Agree on the r
 
 [Full skill](../.claude/skills/alchemy-orchestrate/SKILL.md)
 
-<!-- skill-revision: 193582d8bd34 -->
+<!-- skill-revision: f3d15792d2be -->

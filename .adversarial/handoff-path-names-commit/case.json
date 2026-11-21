@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #228: a hand-off path that names a commit is malformed, not stale",
+  "description": "P1 records relied_on as 'src/orders/repository.js@8a1d4b0'; the digest records the version, so the path is a schema error.",
+  "command": "handoff",
+  "args": {
+    "plan": "plan.json",
+    "handoff": "handoff.json",
+    "root": "workspace"
+  },
+  "expect": {
+    "verdict": "REJECT",
+    "codes": [
+      "SCHEMA"
+    ]
+  }
+}

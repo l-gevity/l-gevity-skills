@@ -61,7 +61,7 @@ names:
 | Mode | Select when |
 |:--|:--|
 | `single-agent` | No two write packages are independent, no package needs an independent reviewer, or coordination would cost more than the parallel time saved |
-| `multi-agent` | At least two write packages have no dependency path and disjoint write sets, or a high-risk package needs a reviewer that did not write it |
+| `multi-agent` | At least two write or analyze packages have no dependency path and disjoint scopes, or a high-risk package needs a reviewer that did not write it |
 
 | Strategy | Use |
 |:--|:--|
@@ -107,10 +107,7 @@ skills are `per-subject` and the write sets are disjoint, and serialize every
 package that touches an `exclusive` file. The fewest agents that cover the
 packages win; one agent may hold several capabilities.
 
-Rules the plan check enforces: every package names its skills; a verifier
-never reviews a package it owns and waits for every package it reviews; a
-package asks for no permission its envelope lacks. The hand-off check rejects a
-read-only package that returns changed files. Agents load their skills from
+Agents load their skills from
 the library, never from text pasted into their prompt (judgment, reviewed from
 the runtime transcript).
 
@@ -124,12 +121,11 @@ the runtime transcript).
    permissions, budget. A package consuming a contract depends on the package
    producing it.
 3. **Check the plan.** Run `python <skill>/scripts/check_orchestration.py plan
-   <plan.json> --profile alchemy-workspace.json --root .`. It rejects a work
-   tree that is not clean at the plan's base, cycles, write overlap between
-   concurrent packages, missing contract order, self-review,
-   unreviewed high-risk writes, recursive delegation, a cap above the profile,
-   protected paths without human approval, and any merge policy other than
-   human approval. It prints waves and the derived mode. For a run that
+   <plan.json> --profile alchemy-workspace.json --root .`; its codes are in
+   [references/contracts.md](references/contracts.md) Check Codes. It prints
+   waves and the derived mode; a `mode_override`
+   it prints needs its reason on the execution block. Spawning a package
+   agent without a passing plan check is a skipped check: report it. For a run that
    proceeds unattended, set `execution.unattended`, give every package its
    `needs`, and run `check_orchestration.py preflight <preflight.json> --plan
    <plan.json>` per
@@ -138,10 +134,12 @@ the runtime transcript).
    The first wave starts only on `PASS`; an amended plan needs a new one.
 4. **Approve when consequential.** Ask the human before executing a plan that
    crosses a subsystem boundary, writes a protected path, or exceeds the
-   profile's agent budget. Show packages, owners, and write sets.
+   profile's agent budget. Show packages, owners, and write sets; a blanket
+   "fix it all" approves no protected path the human has not seen.
 5. **Spawn ready packages.** Delegate one sub-agent per package with the runtime's
    agent tool and its envelope (`alchemy-analyst` or `alchemy-implementer`),
-   package, skills, budget, and hand-off format. Use `plan --completed <id>
+   package, skills, budget, hand-off format, and the tool quirks the lead
+   knows that bear on its commands. Use `plan --completed <id>
    --running <id>` per [references/contracts.md](references/contracts.md) to
    release dependencies after acceptance and integration. Stream only with
    individual completion events and immutable inputs for in-flight packages;
@@ -161,7 +159,8 @@ the runtime transcript).
 7. **Integrate.** The lead merges accepted packages in dependency order, resolves
    conflicts by serializing, records the plan's command criteria and the
    profile's verification commands once on the integrated head with
-   `scripts/record_evidence.py`, and records that head in the plan's
+   `scripts/record_evidence.py` (no selection flag, or `--criterion` per
+   command criterion), and records that head in the plan's
    `base.integrated` so dependents may start from it.
 8. **Verify independently.** Verifiers read the requirements, the integrated
    diff, the tests, and those evidence logs, and cite the records; they run a
@@ -178,12 +177,14 @@ the runtime transcript).
 10. **Gate.** Record criteria, evidence, findings, disputes, and each
     package's usage as the runtime reported it in the ledger;
     run `check_orchestration.py gate <ledger.json> --plan <plan.json>
-    --approved <digest> --profile alchemy-workspace.json --root .`, plus `--preflight
+    --approved <digest> --profile alchemy-workspace.json --root .`, with
+    `--review` for every saved hand-off and reviewer output, plus `--preflight
     <preflight.json>` for an unattended plan, which confirms the
     ledger's head is the repository's committed, clean head. Only `PASS`
     continues.
 11. **Report and stop at the merge boundary.** Prepare the pull request with
-    the gate's verified and unverified lists. Push, open, merge, and deploy
+    the gate's verified and unverified lists; a pull request ships a gated
+    head, so split work gates each pull request's head. Push, open, merge, and deploy
     only as the profile's approval policy and the human allow.
 
 Single-agent runs keep steps 1, 7, 10, and 11: the same plan file with one
@@ -219,7 +220,7 @@ result:
 Gate:        PASS | FAIL | ESCALATE | Not run + reason
 Verified:    <criterion IDs with evidence IDs>
 Unverified:  <criterion IDs deferred by the human, or None>
-Open:        <findings, disputes, and blockers, or None>
+Open:        <findings, disputes, blockers, over_budget packages, or None>
 Merge:       human approval required
 ```
 

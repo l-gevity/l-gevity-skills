@@ -12,7 +12,7 @@ flowchart LR
     C -->|Explicit full request| F["FULL<br/>All gates"]
 ```
 
-For structural work, establish the problem and its worth before designing. Then check readiness, design the boundaries, measure complexity, enforce the rules, and place defect checks. Optimize in a later iteration, after the change ships and has a measured baseline.
+For structural work, establish the problem and its worth before designing. Then check readiness, design the boundaries, measure complexity, enforce the rules, and place defect checks. Optimize in a later iteration, after the change ships and has a measured baseline; on a system already running, measure the baseline first.
 
 A subsystem is where change lands; an increment is what changes. An aspect is one obligation and mechanism spanning subsystems. An iteration delivers and measures an increment.
 
@@ -20,7 +20,7 @@ A subsystem is where change lands; an increment is what changes. An aspect is on
 
 1. Name the change, affected area, and intended result. Say whether you want advice, implementation, or an audit.
 2. Invoke `$alchemy` in Codex or `/alchemy` in Claude Code. The dispatcher selects the route before loading deeper guidance.
-3. Continue from existing decisions when they remain valid. Reopen the specific failed question when new evidence contradicts one.
+3. Continue from existing decisions when they remain valid. Reopen the specific failed question when new evidence contradicts one. A request to act on earlier findings, such as fixing them all, is routed again from the start.
 
 An audit starts by measuring the current structure without changing it. Several selected skills do not automatically require several agents.
 
@@ -32,4 +32,4 @@ You want to extract billing logic from checkout. Alchemy checks whether the extr
 
 [Full skill](../.claude/skills/alchemy/SKILL.md) · [Detailed diagram](design_and_refactor.svg)
 
-<!-- skill-revision: e8e44202c82d -->
+<!-- skill-revision: d5b6ee7808ca -->

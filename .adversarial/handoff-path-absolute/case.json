@@ -1,0 +1,16 @@
+{
+  "criterion": "multi-agent-governance #229: a hand-off path outside the agent's workspace is malformed, not stale",
+  "description": "P1 records relied_on as an absolute path into its own worktree; paths are relative to the workspace root.",
+  "command": "handoff",
+  "args": {
+    "plan": "plan.json",
+    "handoff": "handoff.json",
+    "root": "workspace"
+  },
+  "expect": {
+    "verdict": "REJECT",
+    "codes": [
+      "SCHEMA"
+    ]
+  }
+}

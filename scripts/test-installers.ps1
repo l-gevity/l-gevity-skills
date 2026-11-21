@@ -252,6 +252,18 @@ function Invoke-Suite($Exe, $ExeLabel) {
         Check "no second instruction file invented" `
             (Test-Path (Join-Path $consumer 'CLAUDE.md')) $false
 
+        # --- An instruction file that differs only in line endings is current ---
+        Write-Host ""
+        Write-Host "== a CRLF copy of the current CLAUDE.md gets no sidecar =="
+        $consumer = Join-Path $work 'consumer-crlf-claude-md'
+        New-Item -ItemType Directory -Path $consumer -Force | Out-Null
+        $lf = [IO.File]::ReadAllText((Join-Path $RepoRoot 'CLAUDE.md')) -replace "`r", ''
+        [IO.File]::WriteAllText((Join-Path $consumer 'CLAUDE.md'), ($lf -replace "`n", "`r`n"))
+        Set-Content -LiteralPath (Join-Path $consumer 'CLAUDE.md.l-gevity') -Value 'stale sidecar'
+        Invoke-Installer $Exe 'claude' $consumer $archive | Out-Null
+        Check "no sidecar for a line-ending-only difference" `
+            (Test-Path (Join-Path $consumer 'CLAUDE.md.l-gevity')) $false
+
         # --- A consumer keeping both trees gets both, identically ---
         Write-Host ""
         Write-Host "== a dual-tree consumer keeps its mirror =="

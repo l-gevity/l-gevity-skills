@@ -100,6 +100,7 @@ CODES = {
     "REVIEW_NOT_INDEPENDENT": "FAIL",
     "UNRESOLVED_FINDING": "FAIL",
     "UNSUPPORTED_RESOLUTION": "FAIL",
+    "UNSUPPORTED_FINDING": "FAIL",
     "RISK_NOT_ACCEPTED_BY_HUMAN": "FAIL",
     "VOTE_NOT_EVIDENCE": "FAIL",
     "VERIFICATION_FAILED": "FAIL",
@@ -1324,17 +1325,30 @@ def _plan_facts(parsed: dict[str, Any], graph: dict[str, list[str]], owners: lis
     cap = min(caps) if caps else max(1, len(packages))
     waves = [level[start:start + cap] for level in _levels(graph) for start in range(0, len(level), cap)]
     width = max((sum(1 for pid in wave if packages[pid]["kind"] == "implement") for wave in waves), default=0)
+    # An audit's analyze packages are independent parts too (alchemy
+    # adaptive-route section 4): two in one wave justify a second agent.
+    parts = max((sum(1 for pid in wave if packages[pid]["kind"] in ("implement", "analyze")) for wave in waves),
+                default=0)
     independent = parsed["execution"]["independent_review"]
     needs_review = any(
         pkg["kind"] == "implement" and (independent or pkg["risk"] == "high") for pkg in packages.values()
     )
-    return {
+    derived = "single-agent" if len(_agents(parsed, owners)) <= 1 else "multi-agent"
+    recommendation = "multi-agent" if parts >= 2 or needs_review else "single-agent"
+    facts = {
         "waves": waves,
         "owners": owners,
-        "derived_mode": "single-agent" if len(_agents(parsed, owners)) <= 1 else "multi-agent",
+        "derived_mode": derived,
         "independent_write_sets": width,
-        "recommendation": "multi-agent" if width >= 2 or needs_review else "single-agent",
+        "independent_parts": parts,
+        "recommendation": recommendation,
     }
+    if derived != recommendation:
+        # Not a verdict: the lead may have a reason the plan cannot show, but
+        # the execution block's Reason line must state it.
+        facts["mode_override"] = (f"the plan runs {derived} where its facts recommend {recommendation}; "
+                                  "state the reason on the execution block's Reason line")
+    return facts
 
 
 def _verdict(check: str, errors: list[dict[str, Any]]) -> str:
@@ -1815,8 +1829,8 @@ def check_preflight(preflight: Any, plan: Any, profile: Any, root: str | Path | 
     """Decide whether a checked plan can run unattended for its whole window.
 
     Reads executed probe evidence and never runs a probe. With `root`, the
-    repository there must be at the plan's base and hold no change outside the
-    state directory.
+    repository there must be at the plan's base or an integrated head and hold
+    no change outside the state directory.
     """
     report = Report("preflight")
     view = _profile_view(profile, report)
@@ -1855,8 +1869,11 @@ def check_preflight(preflight: Any, plan: Any, profile: Any, root: str | Path | 
     facts["human_steps"] = _rule_human_steps(preflight, report)
 
     if root is not None:
-        problems, facts["head_checked"] = _workspace_problems(Path(root), [base] if base else [],
-                                                              view["state_dir"], "the plan base")
+        # Probes ran at the base; re-checking the record after a wave was
+        # integrated is legitimate, so an integrated head counts as the plan's.
+        heads = [base, *parsed_plan["integrated"]] if base else []
+        problems, facts["head_checked"] = _workspace_problems(Path(root), heads, view["state_dir"],
+                                                              "the plan base or an integrated head")
         for problem in problems:
             report.add("WORKSPACE_MISMATCH", problem)
     return _result(report, facts)
@@ -1872,13 +1889,32 @@ def _parse_digests(raw: list[Any], key: str, report: Report, subject: str | None
             report.add("SCHEMA", f"{label} must be an object", subject)
             continue
         path = _get(item, "path", "str", report, label, subject)
-        digest = _get(item, "sha256", "str", report, label, subject)
+        # A deleted file has no digest; the receiver checks it is gone.
+        deleted = key == "changed_files" and item.get("deleted") is True
+        digest = None if deleted else _get(item, "sha256", "str", report, label, subject)
         if digest is not None and not SHA256_RE.match(digest):
             report.add("SCHEMA", f"{label}.sha256 must be 64 hex characters", subject)
             digest = None
         if path is not None:
-            entries.append({"path": path, "sha256": digest})
+            problem = _path_shape(path)
+            if problem:
+                report.add("SCHEMA", f"{label}.path {path} {problem}", subject)
+                continue
+            entries.append({"path": path, "sha256": digest, "deleted": deleted})
     return entries
+
+
+COMMIT_SUFFIX_RE = re.compile(r"@[0-9a-fA-F]{7,64}$")
+
+
+def _path_shape(raw: str) -> str | None:
+    """Why a hand-off path is malformed, or None. A malformed path is a schema
+    error, never a stale context: nothing moved underneath the agent."""
+    if _normalize_file(raw) is None:
+        return "must be relative to the agent's workspace root, inside it"
+    if COMMIT_SUFFIX_RE.search(raw):
+        return "names a commit; give the path alone, the sha256 records the version seen"
+    return None
 
 
 def _parse_evidence(raw: list[Any], report: Report, where: str, subject: str | None) -> dict[str, dict[str, Any]]:
@@ -1915,7 +1951,7 @@ def _parse_handoff(handoff: Any, report: Report) -> dict[str, Any]:
     parsed: dict[str, Any] = {
         "package": None, "owner": None, "status": None, "attempt": None, "base_commit": None,
         "requirements": [], "relied_on": [], "changed_files": [], "evidence": {}, "claims": [],
-        "blockers": [], "integration_ready": None,
+        "findings": [], "blockers": [], "integration_ready": None,
     }
     where = "handoff"
     if not isinstance(handoff, dict):
@@ -1945,6 +1981,20 @@ def _parse_handoff(handoff: Any, report: Report) -> dict[str, Any]:
         _get(item, "text", "str", report, label, pid)
         cited = _get(item, "evidence", "strs", report, label, pid, required=False, default=[])
         parsed["claims"].append({"index": index, "evidence": cited})
+    # Findings a package raises; the gate's --review keeps the ledger from
+    # dropping a blocking or major one.
+    parsed["findings"] = []
+    for index, item in enumerate(_get(handoff, "findings", "list", report, where, pid, required=False,
+                                      default=[])):
+        label = f"{where}.findings[{index}]"
+        if not isinstance(item, dict):
+            report.add("SCHEMA", f"{label} must be an object", pid)
+            continue
+        fid = _get(item, "id", "str", report, label, pid)
+        _enum(item, "severity", SEVERITIES, report, label, pid)
+        _get(item, "text", "str", report, label, pid)
+        cited = _get(item, "evidence", "strs", report, label, pid, required=False, default=[])
+        parsed["findings"].append({"id": fid, "index": index, "evidence": cited})
     for index, item in enumerate(_get(handoff, "blockers", "list", report, where, pid, default=[])):
         label = f"{where}.blockers[{index}]"
         if not isinstance(item, dict):
@@ -1965,7 +2015,7 @@ def _rule_untrusted_text(handoff: Any, report: Report, subject: str | None) -> N
                 break
 
 
-def _digest_problem(root: Path, raw_path: str, declared: str | None) -> str | None:
+def _digest_problem(root: Path, raw_path: str, declared: str | None, deleted: bool = False) -> str | None:
     relative = _normalize_file(raw_path)
     if relative is None:
         return "escapes the workspace root"
@@ -1974,6 +2024,8 @@ def _digest_problem(root: Path, raw_path: str, declared: str | None) -> str | No
         target = (base / relative).resolve()
         if not target.is_relative_to(base):
             return "resolves outside the workspace root"
+        if deleted:
+            return "is declared deleted but still exists in the workspace" if target.exists() else None
         if not target.is_file():
             return "is missing from the workspace"
         actual = hashlib.sha256(target.read_bytes()).hexdigest()
@@ -2027,7 +2079,8 @@ def check_handoff(handoff: Any, plan: Any, profile: Any, root: str | Path | None
                     report.add("SCOPE_VIOLATION", f"{pid} changed {entry['path']}, outside its write set", pid)
         extra = [req for req in h["requirements"] if req not in pkg["requirements"]]
         if extra:
-            report.add("SCOPE_EXPANSION", f"{pid} claims {', '.join(extra)}, which it was not assigned", pid)
+            report.add("SCOPE_EXPANSION", f"{pid} claims {', '.join(extra)}, which it was not assigned; "
+                       "requirements lists only the package's plan requirement IDs, never finding IDs", pid)
 
     bases = [parsed_plan["base_commit"], *parsed_plan["integrated"]] if parsed_plan["base_commit"] else []
     if h["base_commit"] and bases and not any(_same_commit(h["base_commit"], base) for base in bases):
@@ -2061,6 +2114,12 @@ def check_handoff(handoff: Any, plan: Any, profile: Any, root: str | Path | None
         elif unknown:
             report.add("UNSUPPORTED_CLAIM", f"claim {claim['index']} cites unknown evidence "
                        f"{', '.join(unknown)}", pid)
+    for finding in h["findings"]:
+        cited = finding["evidence"]
+        unknown = [eid for eid in cited if eid not in evidence]
+        if not cited or unknown:
+            what = "cites no evidence" if not cited else f"cites unknown evidence {', '.join(unknown)}"
+            report.add("UNSUPPORTED_CLAIM", f"finding {finding['id'] or finding['index']} {what}", pid)
 
     finishing = h["status"] == "DONE" or h["integration_ready"] is True
     commands = _command_criteria(pkg)
@@ -2088,8 +2147,10 @@ def check_handoff(handoff: Any, plan: Any, profile: Any, root: str | Path | None
         covered = {entry["criterion"] for entry in evidence.values()}
         for criterion in pkg["acceptance"]:
             if criterion not in covered:
+                how = ("the item that ran the plan's exact command and exited 0"
+                       if criterion in commands else "at least one item that answers its question")
                 report.add("UNEVIDENCED_CRITERION", f"{pid} is DONE but no evidence item names "
-                           f"criterion {criterion}", criterion)
+                           f"criterion {criterion}; set \"criterion\": \"{criterion}\" on {how}", criterion)
 
     if h["integration_ready"] is True:
         for blocker in h["blockers"]:
@@ -2100,7 +2161,7 @@ def check_handoff(handoff: Any, plan: Any, profile: Any, root: str | Path | None
     if root is not None:
         root_path = Path(root)
         for entry in h["changed_files"]:
-            problem = _digest_problem(root_path, entry["path"], entry["sha256"])
+            problem = _digest_problem(root_path, entry["path"], entry["sha256"], entry["deleted"])
             if problem:
                 report.add("CLAIM_CONTRADICTS_WORKSPACE", f"changed file {entry['path']} {problem}", pid)
         for entry in h["relied_on"]:
@@ -2269,6 +2330,13 @@ def _git(root: Path, *args: str) -> tuple[str | None, str | None]:
     return proc.stdout.decode("utf-8", "replace"), None
 
 
+def _bytecode(path: str) -> bool:
+    """A Python bytecode cache path: a `__pycache__` directory or a `.pyc` file.
+    Untracked caches show as their directory, `dir/__pycache__/`."""
+    parts = path.replace("\\", "/").rstrip("/").split("/")
+    return "__pycache__" in parts or parts[-1].endswith(".pyc")
+
+
 def _workspace_problems(root: Path, heads: list[str], state_dir: str | None,
                         named: str) -> tuple[list[str], bool]:
     """Differences between the real repository at root and a record: a HEAD that
@@ -2305,8 +2373,13 @@ def _workspace_problems(root: Path, heads: list[str], state_dir: str | None,
             if position < len(tokens):
                 paths.append(tokens[position])
                 position += 1
-        if not (state_dir and all(_protects(state_dir, path) for path in paths)):
-            changed.append(paths[0])
+        if state_dir and all(_protects(state_dir, path) for path in paths):
+            continue
+        # Bytecode an interpreter wrote next to a script, these included, is
+        # never a change the run made.
+        if all(_bytecode(path) for path in paths):
+            continue
+        changed.append(paths[0])
     if changed:
         shown = ", ".join(changed[:5]) + (" ..." if len(changed) > 5 else "")
         problems.append(f"the work tree has {len(changed)} uncommitted change(s) outside "
@@ -2589,6 +2662,10 @@ def _rule_review_record(led: dict[str, Any], review: Any, report: Report) -> Non
     severity, another package, a related_to link left out, a regression
     without introduced_by, or a reopened finding without reopened_after. The
     reviewer's output is a file the reviewing step wrote, not the lead."""
+    # A saved hand-off is a reviewer's own output too; one that raised nothing
+    # may leave findings out.
+    if isinstance(review, dict) and review.get("schema") == HANDOFF_SCHEMA and "findings" not in review:
+        return
     if not isinstance(review, dict) or not isinstance(review.get("findings"), list):
         report.add("SCHEMA", "the review record must be an object with a findings list")
         return
@@ -2644,8 +2721,10 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
     shape = _plan_rules(parsed_plan, view, report)
     _rule_approved(plan, parsed_plan, approved, report, revision, led)
     _rule_finding_links(led, parsed_plan, report)
-    if review is not None:
-        _rule_review_record(led, review, report)
+    # A tuple holds several records (the CLI's repeated --review); any other
+    # value is one record, so a bare JSON list is refused, not read as several.
+    for record in ([] if review is None else review if isinstance(review, tuple) else [review]):
+        _rule_review_record(led, record, report)
     # Nor on unattended work whose preflight is missing, failed, or stale.
     preflight_verdict = None
     if preflight is not None:
@@ -2753,7 +2832,10 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
             if cid not in flagged:
                 verified.append(cid)
 
-    open_items, minor = [], []
+    # A run with no implement package writes nothing: its blocking and major
+    # findings are its result, reported open, not a defect of the run.
+    read_only_run = bool(packages) and not any(pkg["kind"] == "implement" for pkg in packages.values())
+    open_items, minor, open_serious = [], [], []
     for finding in led["findings"]:
         fid, status = finding["id"], finding["status"]
         if status == "open":
@@ -2763,7 +2845,15 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
             continue
         if finding["severity"] is None or status is None:
             continue
-        if status == "open":
+        if status == "open" and read_only_run:
+            open_serious.append(fid)
+            # Its evidence is what the report stands on; a non-zero exit may
+            # be the finding itself, so the item's own expect_exit applies.
+            gap = _evidence_gap(finding["evidence"], evidence) if finding["evidence"] else "cites no evidence"
+            if gap:
+                report.add("UNSUPPORTED_FINDING", f"open {finding['severity']} finding {fid} of a read-only "
+                           f"run {gap}", fid)
+        elif status == "open":
             report.add("UNRESOLVED_FINDING", f"{finding['severity']} finding {fid} is open", fid)
         elif status in ("resolved", "rejected"):
             # Rejecting a finding needs evidence that it is wrong, never the
@@ -2875,6 +2965,8 @@ def check_gate(ledger: Any, plan: Any, profile: Any, root: str | Path | None = N
         "verified": verified,
         "unverified": unverified,
         "open": open_items,
+        "open_serious": open_serious,
+        "read_only_run": read_only_run,
         "minor": minor,
         "coverage": f"{len(verified)}/{len(plan_criteria)}",
         "preflight": preflight_verdict,
@@ -2931,8 +3023,9 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     gate.add_argument("--root", type=Path, help="repository whose HEAD and work tree must match the ledger")
     gate.add_argument("--preflight", type=Path,
                       help="alchemy-preflight/1 record; required when the plan is unattended")
-    gate.add_argument("--review", type=Path,
-                      help="the last reviewer's own findings output; the ledger must not under-report it")
+    gate.add_argument("--review", type=Path, action="append",
+                      help="a reviewer's own findings output or a saved hand-off; repeatable; the ledger must "
+                      "not under-report any of them")
     for sub in (plan, gate):
         sub.add_argument("--approved", help="plan_digest of the revision the human approved; the plan must "
                          "hold it, a plan with amendments needs it, and it anchors a rework extension")
@@ -2966,7 +3059,7 @@ def main(argv: list[str] | None = None) -> int:
             result = check_handoff(_read_json(args.handoff), _read_json(args.plan), profile, root)
         else:
             preflight = _read_json(args.preflight) if args.preflight is not None else None
-            review = _read_json(args.review) if args.review is not None else None
+            review = tuple(_read_json(path) for path in args.review) if args.review else None
             result = check_gate(_read_json(args.ledger), _read_json(args.plan), profile, root, preflight,
                                 args.approved, args.revision, review)
     except InputError as exc:

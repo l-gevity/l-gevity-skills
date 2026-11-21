@@ -13,7 +13,9 @@ Usage:
                        [--profile <alchemy-workspace.json>] [--out <dir>] [--timeout <seconds>]
 
 Runs only commands the plan or the profile declares; it takes no command of its
-own. Without --criterion or --verification it runs all of them.
+own. Without --criterion or --verification it runs all of them; either flag
+selects, so --verification alone records only the profile's verification
+commands and each command criterion needs its own --criterion.
 --reuse-identical runs each exact command once within this invocation, retaining
 one record and log per criterion (aliases name reused_from). Opt in only for
 repeat-safe checks with stable inputs and environment; sampling, state changes,
@@ -37,6 +39,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
+# The import would leave __pycache__/ beside the checker, inside the consumer's
+# repository, and dirty the work tree the next check requires clean.
+sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import check_orchestration as checker  # noqa: E402  (same directory, loaded by path)
 
@@ -174,8 +179,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Record plan and profile check results as ledger evidence.")
     parser.add_argument("--plan", type=Path, required=True, help="alchemy-plan/1 JSON file")
     parser.add_argument("--root", type=Path, required=True, help="repository at the head to record")
-    parser.add_argument("--criterion", action="append", default=[], help="a command criterion id; repeatable")
-    parser.add_argument("--verification", action="store_true", help="the profile's repository.verification")
+    parser.add_argument("--criterion", action="append", default=[], help="record only this command criterion (and any other selected); repeatable")
+    parser.add_argument("--verification", action="store_true", help="record the profile's repository.verification; with no --criterion, "
+                        "no command criterion is recorded")
     parser.add_argument("--profile", type=Path, help=f"project profile; {checker.PROJECT_PROFILE} at --root "
                         "when omitted and present")
     parser.add_argument("--out", type=Path, help="directory for logs and records; default evidence/ beside the plan")

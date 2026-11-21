@@ -1,0 +1,30 @@
+{
+  "request": "Run alchemy Y on this: the job queue in our running service (src/worker/queue.js) feels slow. Nothing has shipped recently and no change is in flight. We have no measurements yet.",
+  "skills": ["alchemy", "system-optimization"],
+  "expect": [
+    {
+      "id": "selects-y",
+      "criterion": "adaptive-dispatch #9: a Y request on a running system with no increment in flight runs Y",
+      "check": "field_in",
+      "field": "Core route",
+      "values": ["Y"]
+    },
+    {
+      "id": "names-baseline-prerequisite",
+      "criterion": "adaptive-dispatch #9: the dispatch names the Y baseline prerequisite met or missing",
+      "check": "text_matches",
+      "pattern": "(?is)baseline.{0,80}\\b(missing|not (yet )?measured|unmeasured|absent|none)\\b|\\b(missing|no|unmeasured)\\b.{0,40}baseline"
+    },
+    {
+      "id": "measures-first",
+      "criterion": "system-optimization #8: with no baseline, the constraint is not asserted and the next action measures",
+      "check": "text_matches",
+      "pattern": "(?im)^[ \\t>*_-]*Constraint:\\**[ \\t]*not measured"
+    },
+    {
+      "id": "claims-only-loaded-stages",
+      "criterion": "claim-only-what-ran #1: every stage and companion the run names was loaded",
+      "check": "route_loaded"
+    }
+  ]
+}

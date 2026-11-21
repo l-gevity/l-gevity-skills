@@ -1,0 +1,15 @@
+{
+  "criterion": "multi-agent-governance #232: a finding a hand-off raises cites evidence like any claim",
+  "description": "P1 reports major F1 with no evidence item behind it.",
+  "command": "handoff",
+  "args": {
+    "plan": "plan.json",
+    "handoff": "handoff.json"
+  },
+  "expect": {
+    "verdict": "REJECT",
+    "codes": [
+      "UNSUPPORTED_CLAIM"
+    ]
+  }
+}

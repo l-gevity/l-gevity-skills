@@ -188,6 +188,7 @@ other part of this skill: the lead holds the rest.
   "changed_files": [{"path": "src/orders/validate.js", "sha256": "<64 hex>"}],
   "evidence": [{"id": "E1", "criterion": "REQ-12-AC1", "command": "npm test -- orders", "exit_code": 0, "commit": "8a1d4b0", "summary": "14 passed"}],
   "claims": [{"text": "Order input is validated before persistence", "evidence": ["E1"]}],
+  "findings": [],
   "blockers": [],
   "next_owner": "lead",
   "integration_ready": true
@@ -196,7 +197,21 @@ other part of this skill: the lead holds the rest.
 
 `status` is `DONE`, `PARTIAL`, `BLOCKED`, or `FAILED`. A blocker is
 `{"id", "text", "blocking": true|false}`; an evidence item needs `id`,
-`command`, `exit_code`, and `commit`. An item passes when `exit_code` equals its
+`command`, `exit_code`, and `commit`. A finding the package raises is
+`{"id", "severity", "text", "evidence"}`, `severity` `blocking`, `major`, or
+`minor`, citing evidence like a claim; the lead passes the saved hand-off to the
+gate's `--review`, so a blocking or major one cannot leave the ledger.
+
+`requirements` lists only the plan requirement IDs the package was assigned,
+never finding IDs (`SCOPE_EXPANSION`). Every path in `relied_on` and
+`changed_files` is relative to the root of the workspace the agent worked in,
+with no commit suffix such as `@8a1d4b0`: the digest records the version seen
+(`SCHEMA` otherwise). A deleted file is `{"path", "deleted": true}` with no
+digest; the receiver checks it is gone. Each acceptance criterion of a `DONE`
+package is named by the `criterion` of at least one evidence item
+(`UNEVIDENCED_CRITERION`). For a `command` criterion that item ran the plan's
+exact command and exited 0; put `criterion` on no other item, an absence search
+included, because a tagged item that fails contradicts the claim. An item passes when `exit_code` equals its
 optional `expect_exit`, 0 when absent: a search proving absence records the
 code it returns on no match, such as `git grep` with `"expect_exit": 1`, so an
 error code still fails. Evidence for a `command` criterion passes only on exit
@@ -252,8 +267,8 @@ Kept by the lead from hand-offs, independent verification, and integration.
 | `criteria[]` | `verified_by` is required when verified; `reason` when deferred. Only plan criteria, under their own package. When independent review is on or the package's risk is `high`, an `implement` criterion's `verified_by` is the owner of a `verify` package that reviews it. A verified `command` criterion cites evidence whose `command` is the plan's, whitespace-normalized, or that of an `equivalent: {"command", "accepted_by": "human"}` the human accepted in its place. |
 | `evidence[]` | `id`, `command`, `exit_code`, `commit`; optional `produced_by`, `expect_exit` as in the hand-off, `criterion`, the only criterion the item may verify, and `log` and `log_sha256`, the output file and its digest. Items with the same normalized command, commit, and exit code are the same evidence, whatever their IDs. Profile verification commands pass only on exit 0. |
 | `findings[]` | Optional convergence links, recorded by the reviewer who raises the finding: `after`, the amendment whose review raised it (absent: the review of the planned work); `related_to`, earlier finding IDs in the same component or of the same class; `introduced_by`, the amendment whose fix caused it; `reopened_after`, the amendments after which it was reopened. Each named amendment and finding exists, and `package` names a plan package. Once the plan has amendments, every blocking or major finding names its `package`, and one with `related_to` or `introduced_by` names `after` (`SCHEMA` otherwise). The gate evaluates them as governance section 2 states (`NOT_CONVERGING`). |
-| `--review` | The last reviewer's own output, a file the reviewing step wrote. Each of its blocking or major findings appears in the ledger under its ID, at no lower severity, for the same package, with every `related_to` link, `introduced_by` when it is a `regression`, and `reopened_after` on the finding it `reopens` (`SILENT_SKIP` otherwise). The gate checks that the ledger keeps what the reviewer recorded; whether a finding is related, a regression, or reopened is the reviewer's judgment, which no check confirms. Without `--review` the gate reads the ledger alone. |
-| `findings[].severity` | `blocking`, `major`, or `minor`. Blocking and major must end `resolved` with `resolution.evidence`, `rejected` with `resolution.evidence` showing the finding is wrong — sharing no evidence, by ID or identity, with the raiser's own `evidence` — or `accepted-risk` with `accepted_by: human`. |
+| `--review` | A reviewer's own output, a file the reviewing step wrote, or a saved hand-off; repeat it to give every one. Each of its blocking or major findings appears in the ledger under its ID, at no lower severity, for the same package, with every `related_to` link, `introduced_by` when it is a `regression`, and `reopened_after` on the finding it `reopens` (`SILENT_SKIP` otherwise). The gate checks that the ledger keeps what the reviewer recorded; whether a finding is related, a regression, or reopened is the reviewer's judgment, which no check confirms. Without `--review` the gate reads the ledger alone. |
+| `findings[].severity` | `blocking`, `major`, or `minor`. In a run whose plan holds no `implement` package, a blocking or major finding may stay `open`: it is the run's result, which the gate lists under `open_serious`, and it cites passing evidence (`UNSUPPORTED_FINDING`). Otherwise blocking and major must end `resolved` with `resolution.evidence`, `rejected` with `resolution.evidence` showing the finding is wrong — sharing no evidence, by ID or identity, with the raiser's own `evidence` — or `accepted-risk` with `accepted_by: human`. |
 | `disputes[].resolution.basis` | `evidence` with evidence IDs, only when exactly one position's evidence all exists and exited 0; when both positions or neither have it, the human decides. Or `human` with `decided_by: human`. Majority, seniority, model, and confidence are not a basis. |
 | `rework_cycles` | A claim of correction rounds per package, summed along each origin chain. The gate counts the chain's rework amendments and takes the larger number, so neither a rename nor a new rework package starts at zero; above the bound it escalates. A ledger that records it, even for a plan without amendments, needs `--approved` on the gate (`AMENDMENT_INVALID` otherwise; see the upgrade table below). |
 | `usage[]` | What each delegated package spent, as the runtime reported it to the lead; absent when the runtime reports nothing: `package` and any of `turns`, `tool_calls`, `duration_ms`, `tokens`, non-negative integers. The gate reports totals and `over_budget`, the packages that spent more turns or tool calls than their effective budget; it is a fact for the report and the scale-down decision, not a verdict. |
@@ -322,7 +337,7 @@ bound reached must stop rework rather than restart it.
 
 | Code | Check | Verdict | Meaning |
 |:--|:--|:--|:--|
-| `SCHEMA` | all | FAIL / REJECT | A required field is missing or mistyped, a commit is not 7 to 64 hex characters, or the schema version is unknown |
+| `SCHEMA` | all | FAIL / REJECT | A required field is missing or mistyped, a commit is not 7 to 64 hex characters, a hand-off path is absolute, escapes the workspace, or carries a commit suffix, or the schema version is unknown |
 | `SECRET_IN_RECORD` | all | FAIL / REJECT | A plan, preflight, hand-off, or ledger value matches a credential pattern or sits under a credential key; every report redacts it |
 | `MISSING_TRACE` | plan, gate | FAIL | A package has no requirement ID, no acceptance criterion, or no skill, or the plan holds no criterion |
 | `CYCLE` | plan, gate | FAIL | `depends_on` forms a cycle |
@@ -349,9 +364,9 @@ bound reached must stop rework rather than restart it.
 | `NOT_DONE` | handoff | REJECT | `PARTIAL` (returns to the owner), `BLOCKED` (escalates to the lead, then the human), or an `implement` package `DONE` but not integration-ready |
 | `SCOPE_VIOLATION` | handoff | REJECT | A changed file lies outside the write set, or a read-only package changed files |
 | `SCOPE_EXPANSION` | handoff | REJECT | The hand-off claims requirements its package was not assigned |
-| `CLAIM_CONTRADICTS_WORKSPACE` | handoff | REJECT | A changed file is missing or its digest differs from the workspace |
+| `CLAIM_CONTRADICTS_WORKSPACE` | handoff | REJECT | A changed file is missing or its digest differs from the workspace, or a file declared deleted still exists |
 | `CLAIM_CONTRADICTS_EVIDENCE` | handoff | REJECT | A claim cites failing evidence, or `DONE` or integration-ready while any evidence failed; failing is an exit code other than the item's expected one |
-| `UNSUPPORTED_CLAIM` | handoff | REJECT | A claim cites no evidence or unknown evidence |
+| `UNSUPPORTED_CLAIM` | handoff | REJECT | A claim or a finding cites no evidence or unknown evidence |
 | `UNEVIDENCED_CRITERION` | handoff | REJECT | A `DONE` package leaves an acceptance criterion without evidence |
 | `BLOCKER_IGNORED` | handoff | REJECT | Integration-ready with an open blocking blocker |
 | `UNTRUSTED_INSTRUCTION` | handoff | REJECT | A value carries an instruction aimed at agents, such as ignoring prior instructions or skipping review |
@@ -359,18 +374,19 @@ bound reached must stop rework rather than restart it.
 | `STALE_CONTEXT` | handoff | STALE | A `relied_on` digest no longer matches the workspace |
 | `AGENT_FAILED` | handoff | RETRY | `FAILED` within the retry budget |
 | `RETRY_EXHAUSTED` | handoff | ESCALATE | `FAILED` with the retry budget spent |
-| `SILENT_SKIP` | gate | FAIL | A plan criterion is missing from the ledger, or the ledger drops or weakens a blocking or major finding or a convergence link the reviewer's own output (`--review`) records |
+| `SILENT_SKIP` | gate | FAIL | A plan criterion is missing from the ledger, or the ledger drops or weakens a blocking or major finding or a convergence link a reviewer's own output or a saved hand-off (`--review`) records |
 | `CRITERION_FAILED` | gate | FAIL | A criterion is `failed` |
 | `UNVERIFIED` | gate | FAIL | A criterion is `unverified`, or deferred by anyone but the human |
 | `UNSUPPORTED_VERDICT` | gate | FAIL | `verified` without evidence that exists, passed (exit 0 for a `command` criterion), runs the criterion's assigned or human-accepted check, and is not recorded for another criterion |
 | `EVIDENCE_STALE` | gate | FAIL | Evidence a verified criterion, finding resolution, or dispute decision relies on was produced on a commit other than `head_commit` |
 | `REVIEW_NOT_INDEPENDENT` | gate | FAIL | Independent review is required and the verifier is not the owner of a `verify` package that reviews the package |
-| `UNRESOLVED_FINDING` | gate | FAIL | A blocking or major finding is open |
+| `UNRESOLVED_FINDING` | gate | FAIL | A blocking or major finding is open in a run with an `implement` package |
+| `UNSUPPORTED_FINDING` | gate | FAIL | An open blocking or major finding of a run without an `implement` package cites no evidence, unknown evidence, or evidence that did not exit with its expected code |
 | `UNSUPPORTED_RESOLUTION` | gate | FAIL | A finding resolved or rejected without passing evidence, or rejected on its raiser's own evidence, by ID or identity |
 | `RISK_NOT_ACCEPTED_BY_HUMAN` | gate | FAIL | `accepted-risk` without `accepted_by: human` |
 | `VOTE_NOT_EVIDENCE` | gate | FAIL | A dispute resolved on a basis other than evidence or the human, on evidence it does not cite, or on a `human` basis the human did not decide |
 | `VERIFICATION_FAILED` | gate | FAIL | A profile `repository.verification` command has no passing evidence at `head_commit` |
-| `WORKSPACE_MISMATCH` | plan, preflight, gate | FAIL | With `--root`, the repository's HEAD is not the plan's base or an integrated head (plan), the plan's base (preflight), or `head_commit` (gate), it holds uncommitted changes outside `state_dir`, or git cannot confirm either |
+| `WORKSPACE_MISMATCH` | plan, preflight, gate | FAIL | With `--root`, the repository's HEAD is not the plan's base or an integrated head (plan, preflight), or `head_commit` (gate), it holds uncommitted changes outside `state_dir` other than Python bytecode caches, or git cannot confirm either |
 | `DISPUTE_OPEN` | gate | ESCALATE | A dispute is open or escalated, or decided on evidence while both positions, or neither, have passing evidence |
 | `REWORK_LIMIT` | gate | ESCALATE | An origin chain took more correction cycles than `max_rework_cycles` or an extension's ceiling, or a cycle beyond the profile's bound misses an extension condition |
 | `WORK_NOT_READY` | preflight | FAIL | A plan requirement sits in no `READY` increment and no reversible `PARTLY-READY` one |

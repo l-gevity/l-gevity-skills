@@ -161,7 +161,19 @@ try {
 
     # Honor whichever instruction file the project already uses, whatever its name.
     $ExistingMem = $KnownMemFiles | Where-Object { Test-Path (Join-Path $Target $_) } | Select-Object -First 1
+    # Line endings alone are no difference to review: a Windows checkout's CRLF
+    # copy of the current file is current.
+    $SameMem = $false
     if ($ExistingMem) {
+        $mine = [string](Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $Target $ExistingMem))
+        $theirs = [string](Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $Src 'CLAUDE.md'))
+        $SameMem = ($mine -replace "`r", '').TrimEnd("`n") -ceq ($theirs -replace "`r", '').TrimEnd("`n")
+    }
+    if ($SameMem) {
+        Remove-Item -LiteralPath (Join-Path $Target "$ExistingMem.l-gevity") -Force -ErrorAction SilentlyContinue
+        $MemReport = "$ExistingMem (already current)"
+    }
+    elseif ($ExistingMem) {
         Copy-Item -Path (Join-Path $Src 'CLAUDE.md') -Destination (Join-Path $Target "$ExistingMem.l-gevity") -Force
         $MemReport = "$ExistingMem.l-gevity (existing $ExistingMem kept; review and merge manually)"
     } else {

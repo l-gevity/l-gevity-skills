@@ -1,6 +1,6 @@
 {
   "scenario": "orchestrate-ready-scheduling",
-  "revision": "0e53a494fa41",
+  "revision": "77c792d616e0",
   "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
@@ -58,16 +58,16 @@
   ],
   "turns": 5,
   "metrics": {
-    "duration_ms": 14798,
-    "duration_api_ms": 16352,
-    "total_cost_usd": 0.1975371,
+    "duration_ms": 18039,
+    "duration_api_ms": 19813,
+    "total_cost_usd": 0.20564130000000003,
     "usage": {
       "input_tokens": 10,
-      "cache_creation_input_tokens": 19637,
-      "cache_read_input_tokens": 64863,
-      "output_tokens": 1360,
+      "cache_creation_input_tokens": 19808,
+      "cache_read_input_tokens": 65154,
+      "output_tokens": 1694,
       "output_tokens_details": {
-        "thinking_tokens": 139
+        "thinking_tokens": 341
       },
       "server_tool_use": {
         "web_search_requests": 0,
@@ -75,19 +75,19 @@
       },
       "service_tier": "standard",
       "cache_creation": {
-        "ephemeral_1h_input_tokens": 19637,
+        "ephemeral_1h_input_tokens": 19808,
         "ephemeral_5m_input_tokens": 0
       },
       "inference_geo": "global",
       "iterations": [
         {
           "input_tokens": 2,
-          "output_tokens": 798,
-          "cache_read_input_tokens": 22602,
-          "cache_creation_input_tokens": 879,
+          "output_tokens": 1075,
+          "cache_read_input_tokens": 22772,
+          "cache_creation_input_tokens": 880,
           "cache_creation": {
             "ephemeral_5m_input_tokens": 0,
-            "ephemeral_1h_input_tokens": 879
+            "ephemeral_1h_input_tokens": 880
           },
           "type": "message"
         }
@@ -98,14 +98,14 @@
     "modelUsage": {
       "claude-haiku-5-5": {
         "inputTokens": 1385,
-        "outputTokens": 180,
+        "outputTokens": 176,
         "cacheReadInputTokens": 0,
         "cacheCreationInputTokens": 0,
         "webSearchRequests": 0,
-        "costUSD": 0.00022850000000000002,
+        "costUSD": 0.0002265,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
-        "thinkingTokens": 154,
+        "thinkingTokens": 150,
         "cacheCreationEphemeral5mInputTokens": 0,
         "cacheCreationEphemeral1hInputTokens": 0,
         "canonicalModel": "claude-haiku-5-5",
@@ -114,21 +114,21 @@
       },
       "claude-opus-5-5": {
         "inputTokens": 10,
-        "outputTokens": 1360,
-        "cacheReadInputTokens": 64863,
-        "cacheCreationInputTokens": 19637,
+        "outputTokens": 1694,
+        "cacheReadInputTokens": 65154,
+        "cacheCreationInputTokens": 19808,
         "webSearchRequests": 0,
-        "costUSD": 0.1973086,
+        "costUSD": 0.20541480000000004,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
-        "thinkingTokens": 139,
+        "thinkingTokens": 341,
         "cacheCreationEphemeral5mInputTokens": 0,
-        "cacheCreationEphemeral1hInputTokens": 19637,
+        "cacheCreationEphemeral1hInputTokens": 19808,
         "canonicalModel": "claude-opus-5-5",
         "provider": "firstParty",
         "costBasis": "list"
       }
     }
   },
-  "output": "**What I found:** C can start now. Its only dependency, A, counts as `completed` under the skill's definition (hand-off accepted, changes integrated and committed). B's worktree is pinned to the original base, so integrating A cannot change what B reads.\n\n**Why it matters:** Holding C until B finishes would waste a free slot under the cap of 2. Streaming is only safe while every running package reads from a fixed commit, so if that stops being true C must wait for B.\n\n**Do this first:**\n1. Run `python .claude/skills/alchemy-orchestrate/scripts/check_orchestration.py plan <plan.json> --completed A --running B --profile alchemy-workspace.json --root .` at the clean integrated head, with the same approval and revision anchors. Release C only if the check lists it as `ready`. Start C from the head recorded in `base.integrated`, and record C as running before you call the check again.\n\n**What I did not check:** The plan check was not run, so there is no plan or gate verdict. Close it with the command above.\n\n```text\nScheduling:    ready\nNext package:  C\nReason:        C's only dependency (A) is completed. The runtime reports each\n               completion separately and the lead stays active. B reads an\n               immutable pinned base, so integrating A cannot change what B\n               reads. Agents running: B plus C = 2, within the cap of 2.\n               Owners are distinct and write sets do not overlap.\nPlan check:    Not run, because this is a scheduling policy assessment only\n```\n\nIf B instead reads a shared live workspace that integration could change, the streaming condition fails (`references/contracts.md:114-116`): integrating A has already changed, or could change, what B reads. Use waves instead:\n\n```text\nScheduling:    wave\nNext package:  None\n```\n\nC waits until B finishes and its hand-off is checked, accepted, integrated and committed. C then starts from that integrated head. B's hand-off check also has to look at whether A's integration changed what B read, so B may come back `STALE`. In both cases, starting C does not skip the hand-off checks or the final gate on the integrated head."
+  "output": "**What I found:** C can start now. The plan lists C as ready to run (the record calls this `ready`) instead of waiting for the next batch. All three conditions for starting a package before its batch is done hold: the runtime reports each agent's completion separately, B works from a fixed base that cannot change, and integrating A cannot change what B reads.\n\n**Why it matters:** C's only dependency, A, counts as completed: its hand-off was accepted and its changes were integrated and committed. B running plus C makes 2 agents, which is the cap (the lead isn't counted), and the owners are different. Waiting for B would add idle time without lowering any risk.\n\n**Do this first:**\n1. Run `python .claude/skills/alchemy-orchestrate/scripts/check_orchestration.py plan <plan.json> --completed A --running B --profile alchemy-workspace.json --root <clean integrated head>`. Use the same approval and revision anchors, and confirm C is in its `ready` output.\n2. Start C from the integrated head recorded in `base.integrated`, in its own isolated worktree, and record C as running before you call the scheduler again.\n\n**What I did not check:**\n- The `ready` scheduling check. Close it with the command in step 1.\n- That A's commit is in `base.integrated` and the root is clean. Check with `git status` and by reading `plan.json`.\n\n```text\nScheduling:    ready\nNext package:  C\nReason:        A completed (accepted, integrated, committed); C depends only on A;\n               individual completion events; B pinned to immutable original base in\n               isolated worktree; integration cannot alter B's read scope;\n               2 running of cap 2, lead excluded; distinct owners, disjoint writes\nPlan check:    Not run (check_orchestration.py plan --completed A --running B)\nGate:          Not run (scheduling assessment only)\n```\n\n**If B reads a shared live workspace that integration could change:** C can't start yet. The rule that integration must not be able to change another agent's live read scope now fails, so scheduling falls back to batches (the record calls these `waves`) and C waits for B: `Scheduling: wave`, `Next package: None`.\n\nA has already been integrated while B was running, so B may have read files that changed under it. When B finishes, run the `handoff` check and read B's changed files against the current head before accepting it. If its inputs moved, expect `STALE` and handle it as `references/governance.md` §4 describes."
 }

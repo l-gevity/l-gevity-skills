@@ -1,6 +1,6 @@
 {
   "scenario": "test-strategy-persona-findings",
-  "revision": "496c1d6f3972",
+  "revision": "91fd57943483",
   "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
@@ -51,24 +51,24 @@
     "test-strategy"
   ],
   "files_read": [
-    ".claude/skills/test-strategy/references/technique-selection.md",
-    ".claude/skills/test-strategy/references/portfolio-governance.md"
+    ".claude/skills/test-strategy/references/technique-selection.md"
   ],
   "paths_searched": [
+    ".claude/skills/test-strategy/references/portfolio-governance.md",
     "."
   ],
   "turns": 6,
   "metrics": {
-    "duration_ms": 51286,
-    "duration_api_ms": 51754,
-    "total_cost_usd": 0.3417982,
+    "duration_ms": 37358,
+    "duration_api_ms": 40091,
+    "total_cost_usd": 0.2707911,
     "usage": {
       "input_tokens": 10,
-      "cache_creation_input_tokens": 29412,
-      "cache_read_input_tokens": 66493,
-      "output_tokens": 4651,
+      "cache_creation_input_tokens": 23611,
+      "cache_read_input_tokens": 67965,
+      "output_tokens": 3401,
       "output_tokens_details": {
-        "thinking_tokens": 1845
+        "thinking_tokens": 1066
       },
       "server_tool_use": {
         "web_search_requests": 0,
@@ -76,19 +76,19 @@
       },
       "service_tier": "standard",
       "cache_creation": {
-        "ephemeral_1h_input_tokens": 29412,
+        "ephemeral_1h_input_tokens": 23611,
         "ephemeral_5m_input_tokens": 0
       },
       "inference_geo": "global",
       "iterations": [
         {
           "input_tokens": 2,
-          "output_tokens": 2678,
-          "cache_read_input_tokens": 24956,
-          "cache_creation_input_tokens": 8300,
+          "output_tokens": 1796,
+          "cache_read_input_tokens": 26144,
+          "cache_creation_input_tokens": 1311,
           "cache_creation": {
             "ephemeral_5m_input_tokens": 0,
-            "ephemeral_1h_input_tokens": 8300
+            "ephemeral_1h_input_tokens": 1311
           },
           "type": "message"
         }
@@ -97,39 +97,39 @@
       "fallback_credit": null
     },
     "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 10,
+        "outputTokens": 3401,
+        "cacheReadInputTokens": 67965,
+        "cacheCreationInputTokens": 23611,
+        "webSearchRequests": 0,
+        "costUSD": 0.270541,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 1066,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 23611,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
       "claude-haiku-5-5": {
         "inputTokens": 1326,
-        "outputTokens": 22,
+        "outputTokens": 235,
         "cacheReadInputTokens": 0,
         "cacheCreationInputTokens": 0,
         "webSearchRequests": 0,
-        "costUSD": 0.0001436,
+        "costUSD": 0.0002501,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
-        "thinkingTokens": 0,
+        "thinkingTokens": 213,
         "cacheCreationEphemeral5mInputTokens": 0,
         "cacheCreationEphemeral1hInputTokens": 0,
         "canonicalModel": "claude-haiku-5-5",
         "provider": "firstParty",
         "costBasis": "list"
-      },
-      "claude-opus-5-5": {
-        "inputTokens": 10,
-        "outputTokens": 4651,
-        "cacheReadInputTokens": 66493,
-        "cacheCreationInputTokens": 29412,
-        "webSearchRequests": 0,
-        "costUSD": 0.3416546,
-        "contextWindow": 1000000,
-        "maxOutputTokens": 128000,
-        "thinkingTokens": 1845,
-        "cacheCreationEphemeral5mInputTokens": 0,
-        "cacheCreationEphemeral1hInputTokens": 29412,
-        "canonicalModel": "claude-opus-5-5",
-        "provider": "firstParty",
-        "costBasis": "list"
       }
     }
   },
-  "output": "**What I found:** The persona agents are doing exploratory testing, but they run too late (after merge, on the live environment), so last week they found two calculation bugs that ordinary tests should have caught first. The current test setup does not do its job yet (the record calls this NOT-ADEQUATE): the discount and delivery-date bugs had no test that could catch them, because no test looked at half-cent rounding or the time-of-day cut-off.\n\n**Why it matters:** If the two bugs only get regression tests, the next rounding rule or time-zone change slips through the same way, and the bugs reach users before anyone sees them. The Process/Submit finding is a design question, not a test gap. Turning it into an automated check would give a weak stand-in for a human judgment.\n\n**Do this first:**\n1. Get the written rounding rule from finance or the domain owner: half-up or half-even, per line or per order, and before or after tax. Then add boundary and property tests for the discount calculation, including a case that fails with the current code.\n2. Add tests for the delivery date at the 23:00 cut-off, with an injected clock and more than one time zone. Add one test that runs through the real database and display path.\n3. Point the persona agents at the preview build before promotion, give each one a charter, and keep them non-blocking.\n\n**What I did not check:** This workspace contains only skill files, so I reviewed no product code or tests.\n- Why the unit tests passed: read the discount and delivery-date tests and their assertions.\n- Whether the persona's \"one cent too low\" matches the written rule: get the rounding rule from the owner.\n- Whether 23:00 is a UTC conversion problem: compare the server, database and display time zones.\n- Whether \"users could not tell apart\" was seen with real users or is the persona's own judgment: ask whoever runs the agents.\n- Whether \"live\" means production, where agents placing orders cause real side effects: check the agents' target environment.\n\n---\n\n| Risk / criterion | Failure mode | Oracle | Technique | Scope / fidelity | Dependencies | Data / environment | Evidence | Residual blind spot |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| R1 Order total after a percentage discount | Total 0.01 too low (likely truncation, floating-point maths, or rounding at the wrong step) | The written rounding rule: mode, step order and per-line vs per-order. **DEFER until it exists.** The persona's claim is not the source of truth. | Boundary tests at the half-cent point; property tests (total = Σ lines − discount under the rule; result is always whole cents; no amount drifts more than half a cent); the escaped case as a fixed example; mutation testing on the rounding code | In-process pricing code, real decimal type, no test doubles | None | Generated amounts and discount percentages, with the failing case saved; hermetic | None. Existing unit tests passed, so they either never hit a half-cent boundary or expect the same wrong value. | Mismatch between how totals are stored or shown and how they are calculated. Cover with one integration test that checks the stored total. |\n| R2 Delivery date for orders placed after 23:00 | Date shown one day early. The exact one-hour boundary points to a conversion between local time and UTC. | The written cut-off rule and the time zone it uses (the customer's, the warehouse's, or the business's) | Boundary tests at 22:59, 23:00 and 23:01, plus midnight, combined with daylight-saving start and end; the escaped case as a fixed example | (a) Date logic in-process with an injected clock and time zone; (b) one real-boundary test covering database timestamps, serialization and rendering, with the test process set to a non-UTC zone | Clock: a controlled stub at (a), the real clock at (b) | Synthetic orders; container database; test process's time zone deliberately not UTC | None. The unit tests probably ran in one fixed time zone, or the bug sits in the conversion between parts of the system. | Customers in other time zones and date formatting in the browser. Possibly one end-to-end check of the order-confirmation date. |\n| R3 Process vs Submit buttons | Users cannot tell which button does what | Users completing the task correctly. No automated pass/fail check exists. | An issue for the UX owner; a usability test with real users. An automated accessibility check can confirm the buttons have distinct accessible names (WCAG 2.4.6) but cannot judge whether the labels make sense. | Assembled UI | Not applicable | Preview build | One persona's judgment, which is a hypothesis | Whether real users are actually confused. **DEFER until the owner and success measure are set.** |\n| P Persona agents | Discovery happens after merge, in the live environment, without charters | Each finding is checked by reproducing it and comparing it to the R1 to R3 sources of truth | Exploratory testing, not a new test type | Preview build before promotion | Real assembled system | Synthetic, resettable data; never real orders in production | Last week: 2 escaped defects and 1 design issue | Their output varies from run to run, so it can never count as coverage or block a release (CLAUDE.md §9) |\n\n**Where the persona agents belong:** They are exploratory evaluation, which feeds risk discovery. They are not verification.\n- Move them from post-merge on live to the preview build before promotion, and keep them non-blocking.\n- Give each a charter taken from the risk ledger: the tester gets boundaries and time; the domain expert gets money, tax and cut-offs; the designer gets ambiguous controls.\n- Triage every finding by whether it has a fixed right answer:\n  - A fixed right answer (an amount or a date) means an escaped defect. Reproduce it, write a test at the earliest stage that can catch it, then fix it.\n  - A judgment call (a label or a layout) becomes an issue for its owner.\n- Measure their worth by how many findings are confirmed and turned into tests, and how many are false alarms, not by how many findings they post.\n\n```text\nSubject:              Order pricing, delivery-date calculation, order-form controls; persona-agent placement\nMode:                 Audit\nStrategy pass:        Combined (architecture treated as stable; not inspected)\nDecision:             NOT-ADEQUATE (R1 and R2 had no evidence path; R1 oracle and R3 DEFER)\nTest basis:           3 persona findings; reported unit-test passes; no rounding or cut-off rule seen\nArchitecture basis:   Stable existing, not inspected\nQuality risks:        1. R1 money correctness  2. R2 date/time-zone correctness  3. R3 usability\nManual evaluation:    Chartered persona exploration on preview; usability test with real users for R3\nAdequacy signals:     2 escaped deterministic defects; unit-test assertion strength unknown (mutation testing on R1 code)\nHandoffs:             defect-shift-left (R1/R2 test placement); ci-cd-reliability-architecture (persona run on preview, non-blocking);\n                      requirements-grounding (rounding rule, cut-off time zone); UX owner (R3);\n                      requirements-traceability (link the new tests to R1/R2 once the rules exist)\nResidual risk:        R1 blocked on rounding rule; R3 unconfirmed with real users; live-environment side effects unknown\nNext action:          Get the written rounding rule and cut-off time-zone rule from the domain owner\nVerification:         Not run: no product code or tests in this workspace\n```"
+  "output": "**What I found:** The cent error and the date error each have a right answer that can be checked automatically, so treat both as bugs that got past the unit tests: add a regression test for each and fix the rule that let it through. The button finding needs human judgment, so it becomes an issue for the UX owner rather than a test. The persona agents are exploratory testing, but right now they run after release, on the live environment. Overall the test suite falls short, because two money and date risks passed green unit tests (the record calls this NOT-ADEQUATE).\n\n**Why it matters:** If the cent and date tests aren't added, the next change to pricing or dates can bring these bugs back and every check will still pass. While the personas keep running on the live environment, every bug they find has already reached users.\n\n**Do this first:**\n1. Take the exact inputs from the failing live order and the 23:00+ order and turn each into a failing small-scope test. If the unit-level test passes with the live inputs, the bug sits where components connect (database decimal type, serialization, server time zone), and that boundary needs the test instead.\n2. Run the persona agents on the preview candidate before promotion. They should report without blocking the release. Give each persona a written charter: what to explore, a time limit, and an owner for its findings.\n3. Write down the rounding rule and the time zone that decides the cutoff, if no requirement states them. Without those, neither test has a source of truth to check against.\n\n**What I did not check:**\n- Application code and existing tests. There are none in this directory, only skill scripts. Closes with: a Grep for discount/rounding and delivery-date logic in the app repo.\n- Whether the rounding rule (per line or per order, half-up or half-even) and the cutoff time zone are written down anywhere. Closes with: the requirements source or the pricing and logistics owners.\n- Whether an accessibility criterion (for example, distinct accessible names for controls) applies to the button. Closes with: the accessibility policy owner.\n\n| Risk / criterion | Failure mode | Oracle | Technique | Scope / fidelity | Dependencies | Data / environment | Evidence | Residual blind spot |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| Order total after percentage discount | Total 0.01 too low | The documented rounding rule and money type; **DEFER if not written down** | Regression example using the live order's inputs; boundary values at half-cent results; property: total = sum of lines − discount, rounded by the rule | Pricing logic, in-process. Add a real-boundary test only if the in-process test can't reproduce it (DB numeric type or serialization) | Real in-process collaborators; no doubles | Fixed, self-contained amounts | Escaped defect, persona report | Other discount types and stacked discounts until the property covers them |\n| Delivery date when the order is placed after the 23:00 cutoff | Date shown one day early | Cutoff rule plus the time zone it applies in; **DEFER if not written down** | Boundary values: 22:59, 23:00, 23:59, 00:00 local, DST changeover days; decision table of cutoff × time zone | Date calculation with an injected clock, run in a non-UTC time zone. Add a real-boundary test if the DB or runtime converts time zones | Clock injected or controlled; never the system clock | Fixed instants; the time zone set explicitly by the test | Escaped defect, persona report | Server and DB time zone configuration differences across environments |\n| Process vs Submit can be told apart | Users can't distinguish the two actions | Human judgment about the actor's task; no deterministic oracle | Usability evaluation; not automated | Not applicable | Not applicable | Not applicable | Persona report | Whether users trigger the wrong action; accessibility criterion unknown |\n| Persona agents (tester, domain, UI) | Unknown risks found only after release | Charter for each persona | Exploratory evaluation, not a new test type | Assembled preview candidate, before promotion | Full stack | Preview environment with seeded data | Findings triaged by oracle | Anything outside the charters |\n\n```text\nSubject:              Post-merge persona-agent evaluation and its three findings\nMode:                 Audit\nStrategy pass:        Combined\nDecision:             NOT-ADEQUATE\nTest basis:           Three persona findings (escaped defects); unit suite green in all three\nArchitecture basis:   stable existing (not inspected — no app code in workspace)\nQuality risks:        1. money rounding  2. time-zone/cutoff date  3. control distinguishability\nManual evaluation:    Persona exploratory runs (charters needed); UX review of Process/Submit\nAdequacy signals:     2 escaped deterministic defects; unit oracles either hollow or wrong scope — unknown which\nHandoffs:             defect-shift-left (placement of 2 regressions); ci-cd-reliability-architecture\n                      (persona run on preview before promotion, non-blocking); requirements-grounding\n                      (rounding rule, cutoff time zone); requirements-traceability (link new tests);\n                      UX owner issue (button)\nResidual risk:        Deferred: oracles for rounding and cutoff until rules are written; unknown: a11y scope\nNext action:          Reproduce both live inputs as failing tests at the smallest scope that fails\nVerification:         Not run — no application code or tests in this workspace\n```"
 }

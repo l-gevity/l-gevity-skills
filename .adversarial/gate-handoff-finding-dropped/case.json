@@ -1,0 +1,19 @@
+{
+  "criterion": "multi-agent-governance #224: a major finding a hand-off raised cannot vanish from the ledger",
+  "description": "A read-only audit: analyst A1's saved hand-off raises major F-A1-1; the lead's ledger records no findings and the gate is given both hand-offs with --review.",
+  "command": "gate",
+  "args": {
+    "plan": "plan.json",
+    "ledger": "ledger.json",
+    "review": [
+      "handoff-A1.json",
+      "handoff-A2.json"
+    ]
+  },
+  "expect": {
+    "verdict": "FAIL",
+    "codes": [
+      "SILENT_SKIP"
+    ]
+  }
+}
