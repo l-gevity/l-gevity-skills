@@ -15,7 +15,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$LASTEXITCODE = 0
+# Global, never script scope: CI calls this file from its own script, and a
+# script-scoped $LASTEXITCODE would shadow the one native commands set, so
+# every exit-status check would read 0.
+$global:LASTEXITCODE = 0
 
 # The installers add the Unstoppable adapter when the session shows the app.
 # Clear its variables, so every run here starts outside it wherever the suite

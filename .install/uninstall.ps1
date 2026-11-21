@@ -171,13 +171,4 @@ function Invoke-Uninstall {
     Write-Host "Agent-team adapters: $AdapterReport"
 }
 
-# A thrown error does not set a reliable exit status for a -File run: the
-# hosted Windows runners report 0. Run as a file, exit 1 explicitly; piped
-# into iex, rethrow, since exit would close the session that ran it.
-try {
-    Invoke-Uninstall
-} catch {
-    if (-not $PSCommandPath) { throw }
-    Write-Host "Error: $($_.Exception.Message)"
-    exit 1
-}
+Invoke-Uninstall
