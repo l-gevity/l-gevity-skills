@@ -362,6 +362,131 @@ check "second run removes nothing" "$(grep -c 'Removed' "$WORK/long.log" || true
 check "every file is still there" \
   "$(find "$LT/.claude/skills/zz-long" -type f | wc -l | tr -d ' ')" "500"
 
+
+# --- The uninstaller removes an unedited install and nothing else ---
+uninstall_in() {
+  ( cd "$1" && shift && "$@" bash "$REPO_ROOT/.install/uninstall.sh" )
+}
+
+echo
+echo "== an unedited install is removed completely =="
+T="$WORK/uninstall-clean"
+mkdir -p "$T"
+( cd "$T" && bash "$REPO_ROOT/.install/install-claude.sh" ) > /dev/null 2>&1
+uninstall_in "$T" env > "$WORK/uninstall-clean.log" 2>&1
+check "exit status" "$?" "0"
+check "nothing left in the project" "$(find "$T" -mindepth 1 | wc -l | tr -d ' ')" "0"
+check "instruction file reported removed" \
+  "$(grep -cx 'Instruction file: removed CLAUDE.md' "$WORK/uninstall-clean.log")" "1"
+check "every installed file reported removed" \
+  "$(grep -oE '^Removed [0-9]+ file' "$WORK/uninstall-clean.log" | grep -oE '[0-9]+')" "$EXPECT_FILES"
+uninstall_in "$T" env > "$WORK/uninstall-again.log" 2>&1
+check "second run exits 0" "$?" "0"
+check "second run finds nothing" "$(grep -c '^Nothing to uninstall' "$WORK/uninstall-again.log")" "1"
+
+echo
+echo "== edited files and the project's own instruction file are kept =="
+T="$WORK/uninstall-edited"
+mkdir -p "$T"
+printf 'project instructions\n' > "$T/AGENTS.md"
+( cd "$T" && bash "$REPO_ROOT/.install/install-claude.sh" ) > /dev/null 2>&1
+check "lock names the sidecar it wrote" \
+  "$(tr -d '\r\n' < "$T/.claude/skills/l-gevity-skills.lock.json" | grep -oE '"instructionFile" *: *\{ *"path": "[^"]*"' | grep -oE '[^"]+"$' | tr -d '"')" \
+  "AGENTS.md.l-gevity"
+printf 'local note\n' >> "$T/.claude/skills/alchemy/SKILL.md"
+uninstall_in "$T" env > "$WORK/uninstall-edited.log" 2>&1
+check "exit status" "$?" "0"
+check "project instruction file untouched" "$(cat "$T/AGENTS.md")" "project instructions"
+check "installed sidecar removed" "$([ -e "$T/AGENTS.md.l-gevity" ] && echo yes || echo no)" "no"
+check "edited skill file kept" \
+  "$([ -f "$T/.claude/skills/alchemy/SKILL.md" ] && echo yes || echo no)" "yes"
+check "edited skill file reported" \
+  "$(grep -c 'Kept (edited since install): .claude/skills/alchemy/SKILL.md' "$WORK/uninstall-edited.log")" "1"
+check "lock removed" \
+  "$([ -e "$T/.claude/skills/l-gevity-skills.lock.json" ] && echo yes || echo no)" "no"
+
+echo
+echo "== an edited instruction file is kept =="
+T="$WORK/uninstall-edited-memfile"
+mkdir -p "$T"
+( cd "$T" && bash "$REPO_ROOT/.install/install-codex.sh" ) > /dev/null 2>&1
+printf 'my rule\n' >> "$T/AGENTS.md"
+uninstall_in "$T" env > "$WORK/uninstall-memfile.log" 2>&1
+check "instruction file kept" "$([ -f "$T/AGENTS.md" ] && echo yes || echo no)" "yes"
+check "kept file reported" \
+  "$(grep -cx 'Instruction file: kept AGENTS.md (edited since install)' "$WORK/uninstall-memfile.log")" "1"
+
+echo
+echo "== a CRLF checkout of an unedited instruction file is removed =="
+T="$WORK/uninstall-crlf"
+mkdir -p "$T"
+( cd "$T" && bash "$REPO_ROOT/.install/install-claude.sh" ) > /dev/null 2>&1
+awk '{ printf "%s\r\n", $0 }' "$T/CLAUDE.md" > "$T/CLAUDE.md.tmp" && mv "$T/CLAUDE.md.tmp" "$T/CLAUDE.md"
+uninstall_in "$T" env > "$WORK/uninstall-crlf.log" 2>&1
+check "instruction file removed" "$([ -e "$T/CLAUDE.md" ] && echo yes || echo no)" "no"
+
+echo
+echo "== a lock path outside the tree is refused, even with a matching hash =="
+T="$WORK/uninstall-traversal"
+mkdir -p "$T"
+( cd "$T" && bash "$REPO_ROOT/.install/install-gemini.sh" ) > /dev/null 2>&1
+printf 'do not delete me\n' > "$T/CANARY.md"
+awk -v entry="        \"../../CANARY.md\": \"$(sha256_of "$T/CANARY.md")\"," '
+  { print }
+  /^    "files": \{$/ { print entry }
+' "$T/.agents/skills/l-gevity-skills.lock.json" > "$WORK/lock.tmp" &&
+  mv "$WORK/lock.tmp" "$T/.agents/skills/l-gevity-skills.lock.json"
+uninstall_in "$T" env > "$WORK/uninstall-traversal.log" 2>&1
+check "file outside the tree survives" "$([ -f "$T/CANARY.md" ] && echo present || echo deleted)" "present"
+check "refusal reported" \
+  "$(grep -c 'Refused to remove unsafe path from lock: ../../CANARY.md' "$WORK/uninstall-traversal.log")" "1"
+
+echo
+echo "== a lock written before v5.7.0 leaves the instruction file to the user =="
+T="$WORK/uninstall-old-lock"
+mkdir -p "$T"
+( cd "$T" && bash "$REPO_ROOT/.install/install-grok.sh" ) > /dev/null 2>&1
+sed '/"instructionFile"/,/},/d' "$T/.agents/skills/l-gevity-skills.lock.json" > "$WORK/lock.tmp" &&
+  mv "$WORK/lock.tmp" "$T/.agents/skills/l-gevity-skills.lock.json"
+uninstall_in "$T" env > "$WORK/uninstall-old-lock.log" 2>&1
+check "exit status" "$?" "0"
+check "instruction file kept" "$([ -f "$T/GROK.md" ] && echo yes || echo no)" "yes"
+check "gap reported" "$(grep -c '^Instruction file: not recorded' "$WORK/uninstall-old-lock.log")" "1"
+check "skills removed" "$([ -e "$T/.agents" ] && echo yes || echo no)" "no"
+
+if [ -n "$PYTHON" ]; then
+  echo
+  echo "== without Python 3, installed adapters stop the uninstall before any removal =="
+  T="$WORK/uninstall-no-python"
+  mkdir -p "$T"
+  ( cd "$T" && bash "$REPO_ROOT/.install/install-claude.sh" ) > /dev/null 2>&1
+  uninstall_in "$T" env PATH="$NOPY:$PATH" > "$WORK/uninstall-no-python.log" 2>&1
+  check "exit status" "$?" "1"
+  check "cause named" "$(grep -c 'Python 3 not found' "$WORK/uninstall-no-python.log")" "1"
+  check "skills untouched" "$([ -f "$T/.claude/skills/alchemy/SKILL.md" ] && echo yes || echo no)" "yes"
+  check "adapters untouched" "$([ -f "$T/.claude/agents/alchemy-analyst.md" ] && echo yes || echo no)" "yes"
+
+  echo
+  echo "== an edited adapter file is kept =="
+  printf '\n# mine\n' >> "$T/.claude/agents/alchemy-analyst.md"
+  uninstall_in "$T" env > "$WORK/uninstall-adapter.log" 2>&1
+  check "exit status" "$?" "0"
+  check "edited adapter kept" "$([ -f "$T/.claude/agents/alchemy-analyst.md" ] && echo yes || echo no)" "yes"
+  check "unedited adapter removed" \
+    "$([ -e "$T/.claude/agents/alchemy-implementer.md" ] && echo yes || echo no)" "no"
+  check "adapter summary counts the kept file" \
+    "$(grep -cx 'Agent-team adapters: removed; 1 kept (listed above)' "$WORK/uninstall-adapter.log")" "1"
+  check "workspace profile removed" "$([ -e "$T/alchemy-workspace.json" ] && echo yes || echo no)" "no"
+fi
+
+# --- With no ref set, an installer installs the release it ships with ---
+echo
+echo "== the default source is this checkout's release tag =="
+RELEASE="v$(grep -oE '"version": *"[^"]+"' "$REPO_ROOT/package.json" | cut -d'"' -f4)"
+check "lock records the release tag as ref" \
+  "$(grep -oE '"ref": "[^"]*"' "$WORK/consumer-claude/.claude/skills/l-gevity-skills.lock.json" | cut -d'"' -f4)" \
+  "$RELEASE"
+
 echo
 echo "$checks checks run"
 if [ "$fails" -eq 0 ]; then

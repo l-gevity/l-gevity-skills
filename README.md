@@ -65,15 +65,32 @@ does three things:
 
 An existing root instruction file or settings file is kept; the new version
 is written beside it with a `.l-gevity` suffix for you to merge. Locally added
-skills are not removed during updates. Set `L_GEVITY_SKILLS_REF` to pin a
-branch, tag, or commit.
+skills are not removed during updates.
 
-**Uninstall.** There is no uninstaller. Delete the files listed in
-`l-gevity-skills.lock.json` and the lock itself, the root instruction file,
-`alchemy-workspace.json`, `.alchemy/`, the `alchemy-*` agent files and
-settings file under `.claude/` or `.codex/`, and the `alchemy-*` entries under
-`.unstoppable-code/`. Keep any of these you have since edited for your own
-use.
+An installer installs the release it belongs to, not the current `main`. Set
+`L_GEVITY_SKILLS_REF` to install another branch, tag, or commit; `main` gives
+unreleased work. To read an installer before it runs, download it first:
+
+```sh
+curl -fsSLo install.sh https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-claude.sh
+bash install.sh
+```
+
+**Uninstall.** Ask your coding agent, or run the
+[uninstaller](./.install/) from the project root:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/uninstall.sh | bash
+```
+
+On Windows, use `uninstall.ps1` with `iwr -useb <url> | iex`. It removes every
+file the install wrote that you have not edited since: the skills recorded in
+`l-gevity-skills.lock.json`, the lock, the root instruction file or its
+`.l-gevity` copy, and the agent-team files. Edited files stay, and each one is
+listed. A state directory that holds run records and an
+`alchemy-workspace.json` with your own settings stay too. Removing the
+agent-team files needs Python 3. An install made before v5.7.0 recorded no
+instruction file; delete that file by hand, or run the installer once first.
 
 </details>
 

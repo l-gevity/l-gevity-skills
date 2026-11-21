@@ -1,6 +1,6 @@
 {
   "scenario": "orchestrate-ready-scheduling",
-  "revision": "77c792d616e0",
+  "revision": "dd82d7e4e377",
   "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
@@ -50,24 +50,20 @@
   "skills_invoked": [
     "alchemy-orchestrate"
   ],
-  "files_read": [
-    ".claude/skills/alchemy-orchestrate/references/contracts.md"
-  ],
-  "paths_searched": [
-    ".claude/skills/alchemy-orchestrate/references"
-  ],
-  "turns": 5,
+  "files_read": [],
+  "paths_searched": [],
+  "turns": 3,
   "metrics": {
-    "duration_ms": 18039,
-    "duration_api_ms": 19813,
-    "total_cost_usd": 0.20564130000000003,
+    "duration_ms": 16460,
+    "duration_api_ms": 17521,
+    "total_cost_usd": 0.1716068,
     "usage": {
-      "input_tokens": 10,
-      "cache_creation_input_tokens": 19808,
-      "cache_read_input_tokens": 65154,
-      "output_tokens": 1694,
+      "input_tokens": 6,
+      "cache_creation_input_tokens": 17869,
+      "cache_read_input_tokens": 20544,
+      "output_tokens": 1214,
       "output_tokens_details": {
-        "thinking_tokens": 341
+        "thinking_tokens": 339
       },
       "server_tool_use": {
         "web_search_requests": 0,
@@ -75,19 +71,19 @@
       },
       "service_tier": "standard",
       "cache_creation": {
-        "ephemeral_1h_input_tokens": 19808,
+        "ephemeral_1h_input_tokens": 17869,
         "ephemeral_5m_input_tokens": 0
       },
       "inference_geo": "global",
       "iterations": [
         {
-          "input_tokens": 2,
-          "output_tokens": 1075,
-          "cache_read_input_tokens": 22772,
-          "cache_creation_input_tokens": 880,
+          "input_tokens": 4,
+          "output_tokens": 1033,
+          "cache_read_input_tokens": 16700,
+          "cache_creation_input_tokens": 5013,
           "cache_creation": {
             "ephemeral_5m_input_tokens": 0,
-            "ephemeral_1h_input_tokens": 880
+            "ephemeral_1h_input_tokens": 5013
           },
           "type": "message"
         }
@@ -98,14 +94,14 @@
     "modelUsage": {
       "claude-haiku-5-5": {
         "inputTokens": 1385,
-        "outputTokens": 176,
+        "outputTokens": 207,
         "cacheReadInputTokens": 0,
         "cacheCreationInputTokens": 0,
         "webSearchRequests": 0,
-        "costUSD": 0.0002265,
+        "costUSD": 0.000242,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
-        "thinkingTokens": 150,
+        "thinkingTokens": 181,
         "cacheCreationEphemeral5mInputTokens": 0,
         "cacheCreationEphemeral1hInputTokens": 0,
         "canonicalModel": "claude-haiku-5-5",
@@ -113,22 +109,22 @@
         "costBasis": "list"
       },
       "claude-opus-5-5": {
-        "inputTokens": 10,
-        "outputTokens": 1694,
-        "cacheReadInputTokens": 65154,
-        "cacheCreationInputTokens": 19808,
+        "inputTokens": 6,
+        "outputTokens": 1214,
+        "cacheReadInputTokens": 20544,
+        "cacheCreationInputTokens": 17869,
         "webSearchRequests": 0,
-        "costUSD": 0.20541480000000004,
+        "costUSD": 0.17136479999999998,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
-        "thinkingTokens": 341,
+        "thinkingTokens": 339,
         "cacheCreationEphemeral5mInputTokens": 0,
-        "cacheCreationEphemeral1hInputTokens": 19808,
+        "cacheCreationEphemeral1hInputTokens": 17869,
         "canonicalModel": "claude-opus-5-5",
         "provider": "firstParty",
         "costBasis": "list"
       }
     }
   },
-  "output": "**What I found:** C can start now. The plan lists C as ready to run (the record calls this `ready`) instead of waiting for the next batch. All three conditions for starting a package before its batch is done hold: the runtime reports each agent's completion separately, B works from a fixed base that cannot change, and integrating A cannot change what B reads.\n\n**Why it matters:** C's only dependency, A, counts as completed: its hand-off was accepted and its changes were integrated and committed. B running plus C makes 2 agents, which is the cap (the lead isn't counted), and the owners are different. Waiting for B would add idle time without lowering any risk.\n\n**Do this first:**\n1. Run `python .claude/skills/alchemy-orchestrate/scripts/check_orchestration.py plan <plan.json> --completed A --running B --profile alchemy-workspace.json --root <clean integrated head>`. Use the same approval and revision anchors, and confirm C is in its `ready` output.\n2. Start C from the integrated head recorded in `base.integrated`, in its own isolated worktree, and record C as running before you call the scheduler again.\n\n**What I did not check:**\n- The `ready` scheduling check. Close it with the command in step 1.\n- That A's commit is in `base.integrated` and the root is clean. Check with `git status` and by reading `plan.json`.\n\n```text\nScheduling:    ready\nNext package:  C\nReason:        A completed (accepted, integrated, committed); C depends only on A;\n               individual completion events; B pinned to immutable original base in\n               isolated worktree; integration cannot alter B's read scope;\n               2 running of cap 2, lead excluded; distinct owners, disjoint writes\nPlan check:    Not run (check_orchestration.py plan --completed A --running B)\nGate:          Not run (scheduling assessment only)\n```\n\n**If B reads a shared live workspace that integration could change:** C can't start yet. The rule that integration must not be able to change another agent's live read scope now fails, so scheduling falls back to batches (the record calls these `waves`) and C waits for B: `Scheduling: wave`, `Next package: None`.\n\nA has already been integrated while B was running, so B may have read files that changed under it. When B finishes, run the `handoff` check and read B's changed files against the current head before accepting it. If its inputs moved, expect `STALE` and handle it as `references/governance.md` §4 describes."
+  "output": "**What I found:** C can start now, alongside B (the record calls this `ready`). C depends only on A, A has been accepted, integrated and committed, and B's inputs can't change because its worktree is pinned to the original base.\n\n**Why it matters:** The skill allows streaming only when the runtime reports each agent's completion separately and the running packages' inputs can't change. Both hold here, so making C wait for B would idle a free slot for no benefit. Starting C does not break the cap: B and C make 2 running agents of cap 2.\n\n**Do this first:**\n1. Run `python .claude/skills/alchemy-orchestrate/scripts/check_orchestration.py plan <plan.json> --completed A --running B --profile alchemy-workspace.json --root .` to confirm the release. Then start C from the integrated head recorded in `base.integrated`, not from the original base.\n\n**What I did not check:**\n- The plan check and the release command above: not run, because no plan file was given. This answer applies the skill's rule (§4 step 5); it is not a check result.\n- The gate: not run. There is no ledger and the run is incomplete.\n\n```text\nScheduling:    ready\nNext package:  C\nReason:        C's only dependency (A) is accepted, integrated, committed; individual\n               completion events; B's inputs immutable (pinned isolated worktree);\n               2 running of cap 2; disjoint writes, distinct owners\nPlan check:    Not run — no plan file supplied\nGate:          Not run — run incomplete, no ledger\n```\n\n**If B reads a shared live workspace instead:** integrating A, and later C, could change files B reads while it runs. B's inputs are then no longer immutable, so streaming isn't allowed and the printed waves apply. C waits for B's wave to finish, which means B's hand-off accepted and integrated. B's hand-off should also be checked for staleness against what it actually read.\n\n```text\nScheduling:    wave\nNext package:  None\nReason:        in-flight package B has mutable inputs (shared live workspace),\n               so streaming is unsafe; C starts in the next wave, after B\n```"
 }

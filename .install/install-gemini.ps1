@@ -1,11 +1,16 @@
 # l-gevity-skills installer (Gemini CLI / GEMINI.md)
 # Usage: iwr -useb https://raw.githubusercontent.com/l-gevity/l-gevity-skills/main/.install/install-gemini.ps1 | iex
-# Pin a version: $env:L_GEVITY_SKILLS_REF = '<branch|tag|commit>' before running
+# Installs the release this script belongs to ($DefaultRef below).
+# Another version: $env:L_GEVITY_SKILLS_REF = '<branch|tag|commit>' before running
+# Unreleased work: 'main'. Remove an install with .install/uninstall.ps1.
 #
 # Lock format v2 records a sha256 for every file it writes, and a later run
 # removes files that upstream has since dropped. That pruning reads the file
 # map from the lock already on disk, so upgrading FROM a v1 lock (which has no
 # map) prunes nothing on that first run - removals begin from the second.
+# The lock also names the instruction file this run wrote, with a sha256
+# digest of its text (carriage returns removed, trailing newlines trimmed),
+# so the uninstaller removes it only while it is unedited.
 #
 # Test seam: $env:L_GEVITY_SKILLS_ARCHIVE = '<path or url>' installs from that
 # archive instead of GitHub, and skips commit resolution.
@@ -20,12 +25,24 @@ $AdapterRuntime   = ''
 # --- end agent profile ---
 
 $Repo           = 'l-gevity/l-gevity-skills'
-$Ref            = if ($env:L_GEVITY_SKILLS_REF) { $env:L_GEVITY_SKILLS_REF } else { 'main' }
+# The release this script ships with. A release bump changes it together with
+# package.json; scripts/validate-skills.py fails while the two differ.
+$DefaultRef     = 'v5.6.0'
+$Ref            = if ($env:L_GEVITY_SKILLS_REF) { $env:L_GEVITY_SKILLS_REF } else { $DefaultRef }
 $RepoZip        = "https://github.com/$Repo/archive/$Ref.zip"
 $Target         = (Get-Location).Path
 $LockName       = 'l-gevity-skills.lock.json'
 $KnownSkillDirs = @('.claude/skills', '.agents/skills')
 $KnownMemFiles  = @('CLAUDE.md', 'AGENTS.md', 'GEMINI.md', 'GROK.md')
+
+# Digest of a text file with line endings ignored, as the lock records it.
+function Get-TextDigest($Path) {
+    $text = ([string](Get-Content -Raw -Encoding UTF8 -LiteralPath $Path) -replace "`r", '').TrimEnd("`n")
+    $bytes = (New-Object System.Text.UTF8Encoding $false).GetBytes($text)
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try { $hash = $sha.ComputeHash($bytes) } finally { $sha.Dispose() }
+    return 'sha256:' + (($hash | ForEach-Object { $_.ToString('x2') }) -join '')
+}
 
 # Files this installer recorded in a previous run, from that run's lock.
 function Get-PreviousFiles($DestAbs) {
@@ -114,6 +131,32 @@ try {
     $SyncedAt = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
     $RemovedTotal = 0
 
+    # Honor whichever instruction file the project already uses, whatever its name.
+    $ExistingMem = $KnownMemFiles | Where-Object { Test-Path (Join-Path $Target $_) } | Select-Object -First 1
+    # Line endings alone are no difference to review: a Windows checkout's CRLF
+    # copy of the current file is current.
+    $SameMem = $false
+    if ($ExistingMem) {
+        $mine = [string](Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $Target $ExistingMem))
+        $theirs = [string](Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $Src 'CLAUDE.md'))
+        $SameMem = ($mine -replace "`r", '').TrimEnd("`n") -ceq ($theirs -replace "`r", '').TrimEnd("`n")
+    }
+    if ($SameMem) {
+        Remove-Item -LiteralPath (Join-Path $Target "$ExistingMem.l-gevity") -Force -ErrorAction SilentlyContinue
+        $MemReport = "$ExistingMem (already current)"
+        $InstrPath = $ExistingMem
+    }
+    elseif ($ExistingMem) {
+        Copy-Item -Path (Join-Path $Src 'CLAUDE.md') -Destination (Join-Path $Target "$ExistingMem.l-gevity") -Force
+        $MemReport = "$ExistingMem.l-gevity (existing $ExistingMem kept; review and merge manually)"
+        $InstrPath = "$ExistingMem.l-gevity"
+    } else {
+        Copy-Item -Path (Join-Path $Src 'CLAUDE.md') -Destination (Join-Path $Target $MemFile) -Force
+        $MemReport = $MemFile
+        $InstrPath = $MemFile
+    }
+    $InstrDigest = Get-TextDigest (Join-Path $Src 'CLAUDE.md')
+
     foreach ($d in $Dests) {
         $DestAbs = Join-Path $Target $d
         $Old = Get-PreviousFiles $DestAbs
@@ -154,31 +197,13 @@ try {
             installedTo = $Dests
             syncedAt    = $SyncedAt
             skills      = $SrcSkillNames
+            instructionFile = [ordered]@{
+                path   = $InstrPath
+                digest = $InstrDigest
+            }
             files       = $Hashes
         }
         $Lock | ConvertTo-Json -Depth 5 | Set-Content -Path (Join-Path $DestAbs $LockName) -Encoding utf8
-    }
-
-    # Honor whichever instruction file the project already uses, whatever its name.
-    $ExistingMem = $KnownMemFiles | Where-Object { Test-Path (Join-Path $Target $_) } | Select-Object -First 1
-    # Line endings alone are no difference to review: a Windows checkout's CRLF
-    # copy of the current file is current.
-    $SameMem = $false
-    if ($ExistingMem) {
-        $mine = [string](Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $Target $ExistingMem))
-        $theirs = [string](Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $Src 'CLAUDE.md'))
-        $SameMem = ($mine -replace "`r", '').TrimEnd("`n") -ceq ($theirs -replace "`r", '').TrimEnd("`n")
-    }
-    if ($SameMem) {
-        Remove-Item -LiteralPath (Join-Path $Target "$ExistingMem.l-gevity") -Force -ErrorAction SilentlyContinue
-        $MemReport = "$ExistingMem (already current)"
-    }
-    elseif ($ExistingMem) {
-        Copy-Item -Path (Join-Path $Src 'CLAUDE.md') -Destination (Join-Path $Target "$ExistingMem.l-gevity") -Force
-        $MemReport = "$ExistingMem.l-gevity (existing $ExistingMem kept; review and merge manually)"
-    } else {
-        Copy-Item -Path (Join-Path $Src 'CLAUDE.md') -Destination (Join-Path $Target $MemFile) -Force
-        $MemReport = $MemFile
     }
 
     # Agent-team adapters. The skill's own installer renders them and never
