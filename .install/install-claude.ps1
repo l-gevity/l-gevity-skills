@@ -27,7 +27,7 @@ $AdapterRuntime   = 'claude-code'
 $Repo           = 'l-gevity/l-gevity-skills'
 # The release this script ships with. A release bump changes it together with
 # package.json; scripts/validate-skills.py fails while the two differ.
-$DefaultRef     = 'v5.7.0'
+$DefaultRef     = 'v5.8.0'
 $Ref            = if ($env:L_GEVITY_SKILLS_REF) { $env:L_GEVITY_SKILLS_REF } else { $DefaultRef }
 $RepoZip        = "https://github.com/$Repo/archive/$Ref.zip"
 $Target         = (Get-Location).Path
