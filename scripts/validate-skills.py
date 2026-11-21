@@ -90,6 +90,13 @@ ALCHEMY_ROUTE_RULES = {
     "Gate 6 earliest catchable stage": (
         "| 6 | Shift defect detection left | `defect-shift-left` | Each error path → earliest catchable stage"
     ),
+    # A consumer audit put an OBSOLETE candidate in its remediation increment
+    # beside `Blocking stage: None`; the route said a blocking decision ends
+    # it, and a removal verdict is the fix an audit exists to find.
+    "Audit removal verdicts are remediation": (
+        "In Audit mode `DEPRECATE`, `DELETE`, and `OBSOLETE` admit the removal as that candidate's "
+        "remediation increment; they block only keeping or extending the code"
+    ),
     "Handshake records hold one decision word": (
         "The provisional record writes `Decision: DEFER` alone, names the candidate in "
         "`Candidate baseline`, and asks Gate 4 for the measurement in `Next action`; the final "
@@ -217,6 +224,10 @@ SKILL_REQUIRED_TERMS = {
         # A one-stage DIRECT run stated its verdict three times: in the four
         # blocks, in the dispatch block, and in the stage record.
         "open its record with the block's first four lines",
+        # A consumer full audit missed 22 behavior defects and never said it
+        # had not looked for them; it also read `full audit` as plain audit.
+        "names functional correctness, which no gate tests",
+        "`full audit` walks `FULL` from there",
     ),
     "architecture-as-code": (
         "`architecture-guidelines` or `morphogenetic-architecture`",
@@ -831,7 +842,7 @@ REFERENCE_REQUIRED_TERMS = {
             "A blocking decision in the route's hand-off table ends the route",
             "Gate E also waits for a passing readiness decision in a full pass",
             "Decomposition and aspect extraction are different cuts",
-            "Blocking stage:",
+            "Blocking stage: <first stage no candidate passed, or None>",
             # The stack-reference rule holds on the route as well as the alias.
             "only when rule files are written or changed",
             # Each pin follows the one statement of its rule;
@@ -1733,6 +1744,28 @@ def validate_topology_report_checker() -> None:
             fail(f"{checker.relative_to(ROOT)} {description} failed: {detail}")
 
 
+def validate_alchemy_report_checker() -> None:
+    """The routed-answer checker guards trail, scope block, and stage records;
+    its self-test proves each rule still trips on the break it names."""
+    checker = ROOT / "scripts" / "check_alchemy_report.py"
+    if not checker.is_file():
+        fail(f"{checker.relative_to(ROOT)} is missing")
+        return
+    completed = subprocess.run(
+        [sys.executable, str(checker), "--self-test"],
+        cwd=ROOT,
+        env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONDONTWRITEBYTECODE": "1"},
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=30,
+        check=False,
+    )
+    if completed.returncode != 0:
+        detail = (completed.stdout or completed.stderr).strip()
+        fail(f"{checker.relative_to(ROOT)} self-test failed: {detail}")
+
+
 def validate_report_blocks() -> None:
     """One report shape for one audience: the four plain-language blocks are
     defined once in the root instruction file, named by the router, and shown
@@ -1921,6 +1954,9 @@ SCENARIO_CHECKS = {
     # Every placement record (a fenced block with `Analysis mode:`) passes
     # scripts/check_topology_report.py, and the run emits at least one.
     "topology_records": {},
+    # A routed answer passes scripts/check_alchemy_report.py: its trail, scope
+    # block, and the records of the stages it ran keep their contracts.
+    "alchemy_report": {},
 }
 ROUTE_SKILLS = {
     "M": "functionality-complexity-tradeoff",
@@ -1942,7 +1978,6 @@ SCENARIO_UNCOVERED = (
     "implementation-readiness",
     "observability-design",
     "push-out",
-    "structural-simplification",
 )
 SCENARIO_CRITERION_RE = re.compile(r"^[a-z][a-z0-9-]* #\d+: \S")
 # A wrapped field value read as `(?:[^\n]*\n[ \t]{2,})*` lets the spaces that
@@ -2306,8 +2341,20 @@ def scenario_topology_records(output: str) -> bool:
     return bool(records) and not any(checker.check(block, "record") for block in records)
 
 
+def alchemy_report_checker():
+    """The routed-answer checker as a module, loaded from scripts/ by path."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("check_alchemy_report", ROOT / "scripts" / "check_alchemy_report.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def scenario_passes(expectation: dict, transcript: dict) -> bool:
     check, output = expectation["check"], transcript["output"]
+    if check == "alchemy_report":
+        return not alchemy_report_checker().check(output, "answer")
     if check == "route_loaded":
         return scenario_route_loaded(transcript)
     if check == "topology_records":
@@ -3320,6 +3367,7 @@ def mutation_test(match: str | None = None) -> int:
         "Gate 5 rules in the same PR": ("in the same PR as the code they govern", "soon after the code they govern"),
         "Gate 6 earliest catchable stage": ("earliest catchable stage", "a catchable stage"),
         "Handshake records hold one decision word": ("`Decision: DEFER` alone", "`Decision: DEFER` with its candidate"),
+        "Audit removal verdicts are remediation": ("they block only keeping", "they block keeping"),
     }.items():
         def reword_rule(files=route_skill, pattern=phrase_pattern(old), new=new, rule=rule):
             for path in files:
@@ -3329,6 +3377,18 @@ def mutation_test(match: str | None = None) -> int:
                 write_raw(path, pattern.sub(new, text), crlf)
 
         cases.append((Case(f"route: {rule} reworded", route_skill, (f"missing required term '{ALCHEMY_ROUTE_RULES[rule]}'",)), reword_rule))
+
+    # The routed-answer checker is proved by its self-test, so a rule that no
+    # longer reports must fail that self-test, and the validator with it.
+    report_checker = [copy / "scripts" / "check_alchemy_report.py"]
+
+    def silence_principle_rule(files=report_checker):
+        text, crlf = read_raw(files[0])
+        if 'bad("A1",' not in text:
+            raise RuntimeError("principle rule not found in check_alchemy_report.py")
+        write_raw(files[0], text.replace('bad("A1",', '(lambda *_: None)("A1",'), crlf)
+
+    cases.append((Case("report checker: principle rule silenced", report_checker, ("check_alchemy_report.py self-test failed",)), silence_principle_rule))
 
     case_dirs = sorted(path for path in (copy / ".adversarial").iterdir() if path.is_dir()) if (copy / ".adversarial").is_dir() else []
     if case_dirs:
@@ -3545,6 +3605,21 @@ def mutation_test(match: str | None = None) -> int:
             write_raw(files[0], json.dumps(record, indent=2) + "\n", False)
 
         cases.append((Case("scenario: SKIP answer carries a report block", skip_record, ("expectation 'carries-no-report-block' not met",)), add_report_block))
+
+        # A routed answer whose scope block lost a field breaks its output
+        # contract, so the expectation that runs the answer checker must fail.
+        contract_record = [scenario_root / "dispatch-adaptive-structural" / "transcript.json"]
+
+        def drop_blocking_stage(files=contract_record):
+            record = json.loads(files[0].read_text(encoding="utf-8"))
+            output, count = re.subn(r"(?m)^[ \t>*_-]*Blocking stage:.*\n", "", record["output"])
+            if count == 0:
+                raise RuntimeError(f"no 'Blocking stage:' line in {files[0]}")
+            record["output"] = output
+            write_raw(files[0], json.dumps(record, indent=2) + "\n", False)
+
+        cases.append((Case("scenario: routed answer drops its Blocking stage", contract_record,
+                           ("expectation 'answer-keeps-contracts' not met",)), drop_blocking_stage))
 
         # A run that searched inside a file it must not read took the file's
         # text in without a read, so the search must fail the expectation
@@ -5322,6 +5397,7 @@ def main() -> int:
     validate_morphogenetic_probation()
     validate_sample_reports()
     validate_topology_report_checker()
+    validate_alchemy_report_checker()
     validate_report_blocks()
     validate_morphogenetic_public_vocabulary()
     validate_primers()

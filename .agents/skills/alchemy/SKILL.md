@@ -16,9 +16,8 @@ description: >-
 
 # Alchemy
 
-Command entrypoint for the adaptive A.L.C.H.E.M.Y. gate system. Keep the
-default response terse: resume from the latest trustworthy decision, route to
-the smallest useful stage set, state the verdict, and name the next action.
+Command entrypoint for the adaptive A.L.C.H.E.M.Y. gate system; keep the
+default response terse.
 
 ## 1. Command Grammar
 
@@ -36,7 +35,7 @@ empty command with no active subject returns only this table.
 | Alias | Route |
 |:--|:--|
 | none | Run the dispatch preflight; infer Design, Refactor, or Audit mode |
-| `audit` | Start at the read-only `C₀` structural baseline |
+| `audit` | Start at the read-only `C₀` structural baseline; `full audit` walks `FULL` from there |
 | `full`, `all`, `walk the gates`, `complete alchemy` | `FULL`: every justified stage, each skip recorded |
 | `M`, `minimum`, `necessity`, `worth` | `functionality-complexity-tradeoff` — worth it? |
 | `A`, `architecture`, `first-principles` | `architecture-guidelines` — sound design? |
@@ -199,7 +198,8 @@ the root instruction file defines, What I found, Why it matters, Do this first,
 and What I did not check, then emit the records unchanged: the trail and scope
 block, then each stage that ran in execution order, with the decision record
 its skill's output contract defines. The trail summarizes stages; it never
-replaces a stage's record.
+replaces a stage's record. An audit's What I did not check names
+functional correctness, which no gate tests, and its review command.
 
 ## 4. Discipline
 

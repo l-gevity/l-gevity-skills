@@ -104,6 +104,10 @@ must not pay. A search of an excluded path, or of a path beneath one, fails
 gate or skill in the request, as in `Run alchemy L on
 this: …`: a natural request can be answered without loading any skill, and
 that run tests nothing the skill says.
+An `alchemy_report` expectation runs `scripts/check_alchemy_report.py` on
+the answer: the four report blocks, the decision trail and scope block, and
+the records of the stages the trail says ran must keep their output
+contracts. Run the same script on any saved Alchemy answer to check it.
 `SCENARIO_UNCOVERED` in the validator lists the skills no scenario names yet;
 it only shrinks, and a new skill ships with a scenario.
 

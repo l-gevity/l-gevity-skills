@@ -22,7 +22,7 @@ A subsystem is where change lands; an increment is what changes. An aspect is on
 2. Invoke `$alchemy` in Codex or `/alchemy` in Claude Code. The dispatcher selects the route before loading deeper guidance.
 3. Continue from existing decisions when they remain valid. Reopen the specific failed question when new evidence contradicts one. A request to act on earlier findings, such as fixing them all, is routed again from the start.
 
-An audit starts by measuring the current structure without changing it. Several selected skills do not automatically require several agents.
+An audit starts by measuring the current structure without changing it; a `full audit` then walks every gate. A finding that code should go makes its removal the fix. Alchemy checks structure, not behavior, so an audit lists functional correctness as unchecked, with the command that reviews it. Several selected skills do not automatically require several agents.
 
 ## Project example
 
@@ -32,4 +32,4 @@ You want to extract billing logic from checkout. Alchemy checks whether the extr
 
 [Full skill](../.claude/skills/alchemy/SKILL.md) · [Detailed diagram](design_and_refactor.svg)
 
-<!-- skill-revision: d5b6ee7808ca -->
+<!-- skill-revision: 2c47ca5bd4b5 -->

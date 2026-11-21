@@ -26,5 +26,8 @@
       "criterion": "claim-only-what-ran #1: every stage and companion the run names was loaded",
       "check": "route_loaded"
     }
-  ]
+  ],
+  "known_failures": {
+    "claims-only-loaded-stages": "2 of 3 recordings name the planned route in Core route, as in 'M, A, L, C, E, H (F1 cross-boundary edge, ...)', then stop before M because the fixture has no code, without marking those stages Not run; the passing recording wrote '(planned; none run)'. Seen on this branch only; not yet reproduced against 5.7.0 text."
+  }
 }

@@ -287,18 +287,21 @@ confirmation.
   supersede and whose predecessors are retired or lapsing.
 - `$alchemy audit <subject>` starts with `C₀`; it enters requirements recovery
   only when current intent is absent, stale, contradictory, or disputed.
+  `$alchemy full audit <subject>` walks `FULL` from that baseline.
 - Explicit gate aliases such as `$alchemy M`, `$alchemy C`, or `$alchemy E`
   remain focused. They do not silently execute the full Requirements
   Qualification Phase.
 - A focused gate reports missing prerequisites in its decision record rather
   than invoking them without request authority.
-- Full traversal requires an explicit request for `full`, `all`, `audit`,
-  `walk the gates`, or `complete alchemy`; non-trivial and cross-boundary work
+- Full traversal requires an explicit request for `full`, `all`,
+  `walk the gates`, or `complete alchemy`; `audit` alone is adaptive; non-trivial and cross-boundary work
   takes the smallest `ADAPTIVE` route.
 - Re-entry starts at the earliest failed decision, not at the beginning of the
   pipeline.
 - Each stage's skill loads only when the route reaches it. A blocking decision
   ends the route for its candidate, and the stages after it stay unloaded.
+  In Audit mode `DEPRECATE`, `DELETE`, and `OBSOLETE` admit the removal as the
+  candidate's remediation increment.
   `PROVISIONAL` passes with its confirmation queue; Readiness decides whether
   the unconfirmed requirements can change the increment.
 
