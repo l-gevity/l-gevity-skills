@@ -14,8 +14,8 @@ the lease and token handling, or the test recipe is needed.
 - Key-value stores: compare-and-set on the stored revision.
 - Send the version the user's edit was based on. Fetching a fresh version just
   before the write turns the check off.
-- Reject a write that carries no `If-Match` with 428; never treat it as
-  unconditional.
+- Reject a write that carries no precondition (`If-Match` for an update,
+  `If-None-Match: *` for a create) with 428; never treat it as unconditional.
 
 ## Single writer
 - A lease is a record with an owner and an expiry, taken by a conditional write

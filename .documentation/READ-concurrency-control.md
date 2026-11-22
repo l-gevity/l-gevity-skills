@@ -31,4 +31,4 @@ Two planners edit the same plan document; the save endpoint reads it, applies th
 
 [Full skill](../.claude/skills/concurrency-control/SKILL.md)
 
-<!-- skill-revision: 6cc5eafa4812 -->
+<!-- skill-revision: 36509b7faf31 -->

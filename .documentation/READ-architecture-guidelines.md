@@ -33,4 +33,4 @@ An invoice calculator receives line items, tax rules, and the invoice date. It r
 
 [Full skill](../.claude/skills/architecture-guidelines/SKILL.md) · [Detailed diagram](architecture_guidelines.svg)
 
-<!-- skill-revision: f5307e8a5625 -->
+<!-- skill-revision: cb9c5ae8a2b9 -->
