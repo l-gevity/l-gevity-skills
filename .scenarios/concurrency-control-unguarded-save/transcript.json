@@ -1,0 +1,133 @@
+{
+  "scenario": "concurrency-control-unguarded-save",
+  "revision": "b199d14e1875",
+  "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
+  "skills_available": [
+    "alchemy",
+    "alchemy-orchestrate",
+    "architecture-as-code",
+    "architecture-guidelines",
+    "batch",
+    "bring-down",
+    "ci-cd-reliability-architecture",
+    "claude-api",
+    "code-review",
+    "concurrency-control",
+    "continuous-improvement",
+    "dataviz",
+    "debug",
+    "deep-research",
+    "defect-shift-left",
+    "dependency-lifecycle",
+    "design",
+    "design-sync",
+    "doctor",
+    "evolutionary-database-design",
+    "fewer-permission-prompts",
+    "functionality-complexity-tradeoff",
+    "gate-lifecycle",
+    "implementation-readiness",
+    "infrastructure-fit",
+    "loop",
+    "morphogenetic-architecture",
+    "observability-design",
+    "plugin-authoring",
+    "push-out",
+    "requirements-grounding",
+    "requirements-topology",
+    "requirements-traceability",
+    "run",
+    "run-skill-generator",
+    "schedule",
+    "simplify",
+    "structural-simplification",
+    "system-optimization",
+    "test-strategy",
+    "update-config",
+    "verify",
+    "workflow-authoring",
+    "zero-copy-requirements"
+  ],
+  "skills_invoked": [
+    "concurrency-control"
+  ],
+  "files_read": [
+    ".claude/skills/concurrency-control/references/write-models.md"
+  ],
+  "paths_searched": [],
+  "turns": 4,
+  "metrics": {
+    "duration_ms": 37297,
+    "duration_api_ms": 38296,
+    "total_cost_usd": 0.1892665,
+    "usage": {
+      "input_tokens": 8,
+      "cache_creation_input_tokens": 15786,
+      "cache_read_input_tokens": 38742,
+      "output_tokens": 2753,
+      "output_tokens_details": {
+        "thinking_tokens": 960
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 15786,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 2512,
+          "cache_read_input_tokens": 18111,
+          "cache_creation_input_tokens": 1519,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 1519
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "modelUsage": {
+      "claude-haiku-5-5": {
+        "inputTokens": 1286,
+        "outputTokens": 19,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.0001381,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 0,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 0,
+        "canonicalModel": "claude-haiku-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-opus-5-5": {
+        "inputTokens": 8,
+        "outputTokens": 2753,
+        "cacheReadInputTokens": 38742,
+        "cacheCreationInputTokens": 15786,
+        "webSearchRequests": 0,
+        "costUSD": 0.1891284,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 960,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 15786,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    }
+  },
+  "output": "**What I found:** All three writers on the plan document overwrite it without any condition, so every writer is currently UNGUARDED. Planner saves need a version check, client retries need an idempotency key on top of that, and the nightly job needs a single-writer lease and must also use a version check for each document it writes.\n\n**Why it matters:** With these models, a save that loses the race gets a conflict response it can act on, instead of silently erasing someone's edits. Without them, planners keep losing changes, and the job can overwrite planner edits with totals computed from an older copy, whether one instance runs or two.\n\n**Do this first:**\n1. Make the save endpoint pass the client's `If-Match` (the ETag of the copy the user edited) to the store as a conditional replace. Return 412 on mismatch and 428 when `If-Match` is missing. Don't use the ETag of the copy the endpoint reads itself; that turns the check off.\n2. Add an `Idempotency-Key` header to save. Store recently applied keys and their results inside the plan document, so the key and the edit commit in the same conditional replace.\n3. Have the job take a lease with a fencing token before it runs. Write totals with `If-Match`, and on 412 reload, recompute and retry.\n\n**What I did not check:**\n- No code was read. I didn't look for the save endpoint, the job or the store client.\n- I haven't confirmed the store supports conditional replace on ETag. `infrastructure-fit` covers this; check the store's API docs.\n- No interleaving tests were run; there is no code to run them against.\n\n---\n\n```\nSubject:      Plan document — planner save (read, apply edits, replace)\nWriters:      Planner A, Planner B (any number of sessions), nightly totals job\nWrite model:  Version check\nEnforced by:  Client sends the ETag of the version the edit was based on in If-Match;\n              the server does a conditional replace on that ETag; no If-Match → 428\nOn conflict:  412 with the current document and ETag; the client reloads, reapplies or\n              merges the user's edits, and resubmits. A totals-only change by the job\n              also causes 412; reapplying on the server is safe if the user didn't edit totals.\nDecision:     UNGUARDED (current) → DECLARED once the conditional replace ships\nVerification: Not run (no code reviewed). Test: two saves from the same ETag against\n              the real store or its emulator, held at a barrier; exactly one gets 200,\n              the other gets 412.\nNext action:  Change the save endpoint's replace call to a conditional replace on the\n              client's If-Match.\n```\n\n```\nSubject:      Plan document — client retry of a timed-out save\nWriters:      The same client sending the same logical save again\nWrite model:  Idempotency key (on top of the version check)\nEnforced by:  The client generates one key per logical save and resends it on every retry.\n              The document stores recently applied keys with their result (new ETag) and\n              is written in the same conditional replace as the edit. Same key with a\n              different payload → 422.\nOn conflict:  If the key was already applied, return the stored result (200 + ETag),\n              not a 412. Without the key, a retry of a save that succeeded gets a false\n              412, because the first write changed the ETag.\nDecision:     UNGUARDED (current) → DECLARED once keys are stored with the edit\nVerification: Not run. Test: send the same save twice and drop the first response;\n              one edit is applied and both calls return the same ETag.\nNext action:  Add the Idempotency-Key header to the client's save and retry path, plus a\n              list of applied keys in the document. Keep each key at least as long as the\n              client's longest retry window.\n```\n\n```\nSubject:      Nightly totals recompute job (and the plan documents it writes)\nWriters:      Every job instance after scale-out, plus planners writing the same documents\nWrite model:  Single writer (job ownership) + Version check (each document write)\nEnforced by:  The run takes a lease with a fencing token that increases each time,\n              renewed well before it expires. Every totals write is a conditional replace\n              on the ETag it read, so an outdated instance, or one that keeps running after\n              its lease expired, cannot overwrite a newer document.\nOn conflict:  Lease not acquired → the instance exits without writing. Lost lease mid-run\n              → it stops, and the next holder resumes from the last finished document.\n              412 on a document → reload, recompute totals, retry that document.\nDecision:     UNGUARDED (current) → DECLARED once the lease and conditional writes ship\nVerification: Not run. Tests: (1) two instances start at once and exactly one holds the\n              lease; (2) the holder pauses past expiry while a second takes over, and the\n              first one's writes are rejected; (3) a planner saves between the job's read\n              and write, the job gets 412, and the planner's edit survives.\nNext action:  Make the job take a lease before processing, and switch its document\n              writes to a conditional replace on the ETag it read.\n```"
+}

@@ -1,0 +1,51 @@
+{
+  "request": "Run concurrency-control on this: plans are JSON documents in a document store. The save endpoint reads the document, applies the user's edits, and replaces it. Two planners editing one plan lose each other's changes. The client retries a save when it times out. A nightly job recomputes plan totals on the same documents, and after a scale-out two instances of it ran at once. What write model does each writer need?",
+  "skills": [
+    "concurrency-control"
+  ],
+  "expect": [
+    {
+      "id": "applies-concurrency-guidance",
+      "criterion": "concurrency-control #1: a change that writes a shared record gets a write-model record per writer",
+      "check": "guidance_includes",
+      "skills": [
+        "concurrency-control"
+      ]
+    },
+    {
+      "id": "emits-write-model",
+      "criterion": "concurrency-control #1: a change that writes a shared record gets a write-model record per writer",
+      "check": "field_present",
+      "field": "Write model"
+    },
+    {
+      "id": "editors-get-version-check",
+      "criterion": "concurrency-control #2: independent editors of one record get a version check the store enforces",
+      "check": "text_matches",
+      "pattern": "(?mi)^[ \t>*_-]*Write model:\\**[^\n]*Version check"
+    },
+    {
+      "id": "job-gets-fencing-token",
+      "criterion": "concurrency-control #3: a job one process must own gets a lease with a fencing token",
+      "check": "text_matches",
+      "pattern": "(?i)fencing token"
+    },
+    {
+      "id": "retry-gets-idempotency-key",
+      "criterion": "concurrency-control #4: a retried request carries an idempotency key",
+      "check": "text_matches",
+      "pattern": "(?i)idempotency key"
+    },
+    {
+      "id": "current-save-is-unguarded",
+      "criterion": "concurrency-control #5: a read-modify-replace save with no condition is UNGUARDED and blocks the change",
+      "check": "text_matches",
+      "pattern": "(?m)^[ \t>*_-]*Decision:\\**[ \t]*`?UNGUARDED"
+    },
+    {
+      "id": "opens-with-report-blocks",
+      "criterion": "summary-led-report #2: the decision opens with the four blocks in order",
+      "check": "blocks_in_order"
+    }
+  ]
+}

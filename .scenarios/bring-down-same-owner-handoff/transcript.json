@@ -1,6 +1,6 @@
 {
   "scenario": "bring-down-same-owner-handoff",
-  "revision": "5a0ebec1a3d2",
+  "revision": "617ca102262d",
   "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
@@ -12,6 +12,7 @@
     "ci-cd-reliability-architecture",
     "claude-api",
     "code-review",
+    "concurrency-control",
     "continuous-improvement",
     "dataviz",
     "debug",
@@ -56,16 +57,16 @@
   ],
   "turns": 4,
   "metrics": {
-    "duration_ms": 33519,
-    "duration_api_ms": 32012,
-    "total_cost_usd": 0.22427450000000002,
+    "duration_ms": 28212,
+    "duration_api_ms": 28100,
+    "total_cost_usd": 0.2099047,
     "usage": {
       "input_tokens": 8,
-      "cache_creation_input_tokens": 19407,
-      "cache_read_input_tokens": 43752,
-      "output_tokens": 3004,
+      "cache_creation_input_tokens": 19271,
+      "cache_read_input_tokens": 43543,
+      "output_tokens": 2342,
       "output_tokens_details": {
-        "thinking_tokens": 794
+        "thinking_tokens": 331
       },
       "server_tool_use": {
         "web_search_requests": 0,
@@ -73,19 +74,19 @@
       },
       "service_tier": "standard",
       "cache_creation": {
-        "ephemeral_1h_input_tokens": 19407,
+        "ephemeral_1h_input_tokens": 19271,
         "ephemeral_5m_input_tokens": 0
       },
       "inference_geo": "global",
       "iterations": [
         {
           "input_tokens": 2,
-          "output_tokens": 2577,
-          "cache_read_input_tokens": 23129,
-          "cache_creation_input_tokens": 122,
+          "output_tokens": 1923,
+          "cache_read_input_tokens": 22737,
+          "cache_creation_input_tokens": 378,
           "cache_creation": {
             "ephemeral_5m_input_tokens": 0,
-            "ephemeral_1h_input_tokens": 122
+            "ephemeral_1h_input_tokens": 378
           },
           "type": "message"
         }
@@ -112,21 +113,21 @@
       },
       "claude-opus-5-5": {
         "inputTokens": 8,
-        "outputTokens": 3004,
-        "cacheReadInputTokens": 43752,
-        "cacheCreationInputTokens": 19407,
+        "outputTokens": 2342,
+        "cacheReadInputTokens": 43543,
+        "cacheCreationInputTokens": 19271,
         "webSearchRequests": 0,
-        "costUSD": 0.2241184,
+        "costUSD": 0.2097486,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
-        "thinkingTokens": 794,
+        "thinkingTokens": 331,
         "cacheCreationEphemeral5mInputTokens": 0,
-        "cacheCreationEphemeral1hInputTokens": 19407,
+        "cacheCreationEphemeral1hInputTokens": 19271,
         "canonicalModel": "claude-opus-5-5",
         "provider": "firstParty",
         "costBasis": "list"
       }
     }
   },
-  "output": "**What I found:** Move the retry code down. Turn `got` 14's built-in retry back on and delete `src/lib/retry.ts` (the record calls this L4 CODE → L3 LIB). The discount function stays out of bring-down: moving it to `src/shared/discount.ts` keeps the same team as owner, so it's an internal refactor and goes to the architecture skills.\n\n**Why it matters:** By default, `got` doesn't retry POST. Its default retry methods are GET, PUT, HEAD, DELETE, OPTIONS and TRACE, so turning it back on removes the cause of both incidents and 140 lines that needed six fixes last quarter. If you keep the wrapper, your team keeps maintaining code that only repeats what an already-approved library does.\n\n**Do this first:**\n1. Turn on `retry` in the shared `got` instance (`got.extend({ retry: { limit, methods, statusCodes, calculateDelay } })`). Move one real consumer off `src/lib/retry.ts` and add a test showing that a POST that fails with a 503 is sent once.\n2. Move the remaining consumers, delete `src/lib/retry.ts`, and add a lint rule that bans imports of it.\n3. Hand the discount extraction to `morphogenetic-architecture` to decide where it lives.\n\n**What I did not check:**\n- There is no source code in the working directory, so this assessment rests only on what you told me. To close it, read `src/lib/retry.ts` and list each behavior it has: backoff, jitter, status codes, error codes, Retry-After, per-attempt timeout.\n- I haven't confirmed which call sites turn off `got` retry, or which consumers import the wrapper. To close it, run `grep -rn \"retry:\" src` and `grep -rn \"lib/retry\" src`.\n- I haven't confirmed the three discount copies are identical, or that nothing else uses them. To close it, run `diff` on the three function bodies and look at `git log -p` for each copy.\n\n---\n\n```\nScope:          One Node.js 22 / TypeScript API repo, one team of four; src/lib/retry.ts and three copies of isEligibleForDiscount\nMode:           Assessment\nDecision:       Bring down retry.ts to got 14 built-in retry (L4 CODE -> L3 LIB). No bring-down for isEligibleForDiscount; hand off.\nSummary:        retry.ts is 140 lines of generic retry logic with no domain-specific parts, sitting on top of an approved\n                library that already does retry and that you have switched off. It costs a lot to maintain (6 fixes,\n                2 incidents). got's default method list leaves out POST, which removes the incident cause. The discount\n                function is your own policy, and the proposed new location has the same owner, so it isn't bring-down.\n\nCandidates:\n- src/lib/retry.ts (outbound HTTP retry with exponential backoff)\n  - Move: L4 CODE -> L3 LIB (distance 1)\n  - Landing: got 14 `retry` option (limit, methods, statusCodes, errorCodes, calculateDelay, backoffLimit, noise,\n    maxRetryAfter), set once on the shared got.extend() instance\n  - Owners: API team -> got maintainers (already approved by the platform team)\n  - Evidence: 140 lines; 6 bug-fix commits last quarter; 2 production incidents from retrying non-idempotent POSTs;\n    every outbound call already goes through got; nothing domain-specific in the wrapper\n  - Variation: none reported. Custom backoff curves go in calculateDelay. Endpoints that need a different policy\n    set retry options per request. A POST that is safe to retry (for example, one with an idempotency key) must\n    opt in per call, not through a global setting.\n  - Confidence: High on the move. Medium on matching every behavior until retry.ts has been read.\n  - Next action: Turn on retry in the shared got instance, migrate one consumer, and add a test that a failing\n    POST is not retried.\n\nPriorities:\n1. src/lib/retry.ts\n   - Why now: high churn plus a repeated production incident that the landing's defaults prevent\n   - Move: L4 CODE -> L3 LIB\n   - Landing: got 14 `retry` option\n   - Migration proof: one production outbound client passes the retry/no-retry tests and runs through one release\n     with no retry-related incidents\n   - Retire: delete src/lib/retry.ts and every `retry: { limit: 0 }` / `retry: 0` override; ban imports of the old\n     path with a lint rule\n\nGaps:\n- I haven't seen retry.ts. A behavior that got doesn't cover, such as a circuit breaker or a retry budget, would\n  have to stay as explicit local code or be judged separately.\n- I don't know whether any POSTs carry idempotency keys and really need to be retried.\n\nHandoffs:\n- isEligibleForDiscount -> src/shared/discount.ts\n  - Reason excluded: same owner (this team, this repo). It's your own discount policy, so it stays L4 CODE.\n    This is an internal extraction, not bring-down.\n  - Better skill: morphogenetic-architecture (where it belongs: likely a discount or pricing domain module rather\n    than a generic `shared/` folder); structural-simplification (confirm that merging 3 identical copies into 1\n    simplifies things); architecture-as-code (ban the old copies after the merge). Three identical copies is a\n    strong reason to extract, as long as those modules are meant to always follow one policy.\n```"
+  "output": "**What I found:** Only the retry wrapper should move down. Replace `src/lib/retry.ts` with `got` 14's built-in `retry` option, which moves the code from our custom code to a library the `got` maintainers own (the record calls this `L4 CODE -> L3 LIB`). The discount function encodes our own policy and would stay with the same team, so moving it into `src/shared/` is not a bring-down; it goes to the architecture skills.\n\n**Why it matters:** `got` does not retry POST by default, and POST retries caused both production incidents. Keeping the wrapper means we keep maintaining a 140-line file that took six fixes last quarter.\n\n**Do this first:**\n1. Move one real outbound client from `src/lib/retry.ts` onto `got`'s `retry` option, then delete the wrapper call for that client.\n2. Move the other consumers, delete `src/lib/retry.ts`, and add an ESLint `no-restricted-imports` ban on that path.\n3. Hand the `isEligibleForDiscount` merge to `morphogenetic-architecture` and `architecture-guidelines`.\n\n**What I did not check:**\n- The source: there is no `src/` or `package.json` in the working directory, so everything below rests on your description. To close this, run `rg -n \"retry\" src/lib/retry.ts` and `rg -n \"retry:\\s*\\{?\\s*limit:\\s*0|retry:\\s*0\" src` in the repo.\n- That the installed `got` really is 14.x: `npm ls got`.\n- That the wrapper's backoff timing matches `got`'s default. I checked `got`'s behaviour from memory of the v14 docs and did not browse; confirm against `got`'s `documentation/7-retry.md`.\n\n---\n\n```\nScope:          One Node.js 22 TypeScript API repo, one team of four; src/lib/retry.ts and\n                three copies of isEligibleForDiscount\nMode:           Assessment\nDecision:       Bring down src/lib/retry.ts to got 14's native retry option (L4 CODE -> L3 LIB).\n                No bring-down for isEligibleForDiscount; hand off.\nSummary:        The retry wrapper is generic retry logic with no domain content. It duplicates a\n                feature of a library that is already approved and already handles every outbound\n                call, and two production incidents came from a bug that got's defaults avoid\n                (retrying non-idempotent POST). The discount copies are our own business policy\n                and the proposed destination has the same owner, so this skill excludes it. Key\n                risk: a call site that relies on the wrapper's current method list or timing\n                changes behaviour when the wrapper goes.\n\nCandidates:\n- src/lib/retry.ts (140-line exponential-backoff wrapper around got calls)\n  - Move: L4 CODE -> L3 LIB (distance 1)\n  - Landing: got 14 `retry` request option (limit, methods, statusCodes, errorCodes,\n    maxRetryAfter, backoffLimit, noise, calculateDelay), set once through got.extend() and\n    overridable per request\n  - Owners: our team -> got maintainers (sindresorhus/got); approved by the platform team\n  - Evidence: six bug-fix commits in one quarter; two production incidents from retrying\n    non-idempotent POST; got's default `methods` leaves POST out and its default backoff is\n    exponential with jitter; the wrapper has no domain-specific behaviour\n  - Variation: none reported. Any call site that intentionally retries a POST must opt in\n    per request, for example with an idempotency key. That opt-in is the escape hatch and\n    does not block the move.\n  - Confidence: High (Medium until the wrapper's behaviour is diffed against got's defaults)\n  - Next action: Write down the wrapper's limit, methods, codes, and delay formula. Create\n    one got.extend({ retry: {...} }) instance with matching settings, minus POST. Move one\n    consumer onto it and confirm with a test that a failing POST is not retried and a\n    failing GET is.\n\nPriorities:\n1. src/lib/retry.ts -> got native retry\n   - Why now: high churn (six fixes in one quarter), real damage (two incidents from\n     duplicate POSTs), approved landing already installed, migration effort small\n   - Move: L4 CODE -> L3 LIB\n   - Landing: got 14 `retry` option through got.extend()\n   - Migration proof: one production outbound client moved and its retry test passing\n   - Retire: delete src/lib/retry.ts and every `retry: { limit: 0 }` override; add an\n     ESLint no-restricted-imports rule on the old path\n\nGaps:\n- Exact wrapper behaviour (attempt limit, status and error codes, delay cap) not seen; only\n  described\n- Whether any caller depends on POST retries (it would need an idempotency key, see\n  concurrency-control)\n- Whether the wrapper emits logs or metrics that callers consume; got exposes\n  hooks.beforeRetry for that\n\nHandoffs:\n- isEligibleForDiscount (three identical 40-line copies -> src/shared/discount.ts)\n  - Reason excluded: same owner (this team maintains both the source and the\n    destination), the logic is our own domain policy, and src/shared/ is a repo-local\n    shared module. No external landing applies.\n  - Better skill: morphogenetic-architecture (decide which domain owns the discount policy;\n    src/shared/ may be the wrong home for business rules), architecture-guidelines\n    (pure-function core), architecture-as-code (ban new local copies once merged). The\n    merge itself is reasonable: three identical copies of one policy will drift.\n```"
 }

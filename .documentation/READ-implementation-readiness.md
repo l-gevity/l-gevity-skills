@@ -33,4 +33,4 @@ An approval flow has agreed roles and completion criteria, but the notification 
 
 [Full skill](../.claude/skills/implementation-readiness/SKILL.md)
 
-<!-- skill-revision: d11c34e13f07 -->
+<!-- skill-revision: 7ae621ef5d9c -->

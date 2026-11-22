@@ -100,6 +100,11 @@ across.
 - **Failure Classification**: Categorize each external call as **hard** (blocks
   subsequent steps) or **best-effort** (logged, no cascade) before
   implementation.
+- **Outbound calls**: every call to a database, queue, model, or remote
+  service declares a timeout, a retry class (temporary or permanent), a retry
+  budget, the idempotency precondition a retry needs, and the error its caller
+  sees; an unknown error is a 500 with its cause logged. Read
+  [references/runtime-resilience.md](references/runtime-resilience.md).
 - **Atomicity**: Decide whether partial success is acceptable or rollback is
   required.
 - **State Visibility**: Log decision and outcome at each step.
@@ -118,10 +123,11 @@ Every shared mutable state must declare its concurrency model:
 
 - **Per-instance** (multi-tab) → use `navigator.locks` or `BroadcastChannel`.
 - **Per-tab** → fine; document in JSDoc.
-- **Global** → atomic writes or locks.
+- **Global (in-process)** → atomic writes or locks.
 
 **Review check:** if state is modified after an `await`, ask: _"is this guarded
-against concurrent mutation?"_
+against concurrent mutation?"_ A record persisted where several writers reach
+it declares its write model through `concurrency-control`.
 
 ## 8. Layer Self-Sufficiency
 
@@ -132,6 +138,10 @@ against concurrent mutation?"_
   decision must hold with the endpoint publicly reachable. Network isolation,
   private connectivity, and firewall placement are additional layers, never the
   control.
+- **Grant only what is held**: a grant, delegation, or invitation never
+  exceeds the grantor's rights, is re-checked at acceptance, keeps a last
+  owner, and a denied request writes nothing. Read
+  [references/access-control.md](references/access-control.md).
 - **Ambient guarantees are invisible dependencies**: the assumption lives
   outside the codebase, so the deployment or infrastructure change that
   invalidates it never appears in a diff, review, or test of the code relying
@@ -199,7 +209,7 @@ Use `architecture-as-code` only for constraints that can be enforced as import
 or dependency rules. Do not duplicate this skill's principles there; hand off
 the specific rule to encode.
 
-Examples:
+Example:
 
 ```
 Principle:   DI / functional core
@@ -207,43 +217,11 @@ Constraint:  domain must not import infrastructure
 Enforcement: add architecture rule: forbid <domain-subsystem> -> <infra-subsystem>
 ```
 
-```
-Principle:   interface discipline
-Constraint:  external callers use the facade only
-Enforcement: add architecture rule: forbid * -> <subsystem-internal-*>, except <subsystem-*>
-```
-
-```
-Principle:   integration discipline
-Constraint:  no subsystem reaches a peer application's internals
-Enforcement: add architecture rule: forbid * -> <peer-storage-client | peer-internal-*>, except <integration-adapter-*>
-```
-
-```
-Principle:   aspect extraction
-Constraint:  only <audit-mechanism> reaches the audit internals and SDK
-Enforcement: add architecture rule: forbid * -> <audit-internal-*>, except <audit-mechanism>
-```
-
 A principle can also settle as no handoff. Record that outcome rather than
-omitting it:
-
-```
-Principle:   layer self-sufficiency
-Constraint:  the control holds with the layer below absent
-Enforcement: none - not an import or dependency edge; verify by exercising the
-             subsystem without that layer (`defect-shift-left`)
-```
-
-One aspect yields two handoffs: the mechanism's exclusivity edge above, and a
-coverage obligation that is not an edge:
-
-```
-Principle:   aspect coverage
-Constraint:  every subsystem in <holds across> routes through <audit-mechanism>
-Enforcement: none - not an edge; place a coverage check over the subsystem
-             registry (`defect-shift-left`)
-```
+omitting it. One aspect yields two handoffs: the mechanism's exclusivity edge
+and a coverage obligation that is not an edge. The interface, integration,
+aspect-extraction, layer self-sufficiency, and aspect-coverage records are in
+[references/enforcement-handoffs.md](references/enforcement-handoffs.md).
 
 ## 11. Output Contract
 

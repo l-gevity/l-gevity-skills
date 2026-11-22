@@ -1,0 +1,61 @@
+{
+  "request": "Run test-strategy on this access model: an editor can invite people with any role, including owner. Invitations are checked only when they are sent. Any owner may leave a workspace. A provisioning call from the identity provider that is denied still creates a disabled user row. What must the tests prove?",
+  "skills": [
+    "test-strategy",
+    "architecture-guidelines"
+  ],
+  "expect": [
+    {
+      "id": "applies-test-strategy",
+      "criterion": "access-control #1: a granting model gets authorization obligations from test-strategy",
+      "check": "guidance_includes",
+      "skills": [
+        "test-strategy"
+      ]
+    },
+    {
+      "id": "reads-access-reference",
+      "criterion": "access-control #1: a granting model reads the access-control reference",
+      "check": "reads_include",
+      "paths": [
+        ".claude/skills/architecture-guidelines/references/access-control.md"
+      ]
+    },
+    {
+      "id": "keeps-last-owner",
+      "criterion": "access-control #2: a resource that needs an owner always keeps one",
+      "check": "text_matches",
+      "pattern": "(?i)last owner"
+    },
+    {
+      "id": "denial-writes-nothing",
+      "criterion": "access-control #3: a denied request leaves the store unchanged",
+      "check": "text_matches",
+      "pattern": "(?i)writes? nothing|no (?:row|record)|store (?:is )?unchanged"
+    },
+    {
+      "id": "property-over-grants",
+      "criterion": "access-control #4: one generative property over the grant model",
+      "check": "text_matches",
+      "pattern": "(?i)generative property|property-based"
+    },
+    {
+      "id": "negative-test-per-rule",
+      "criterion": "access-control #5: one negative test per grant rule",
+      "check": "text_matches",
+      "pattern": "(?i)negative test"
+    },
+    {
+      "id": "names-attenuation",
+      "criterion": "access-control #6: a grant never exceeds what the grantor holds",
+      "check": "text_matches",
+      "pattern": "(?i)attenuat"
+    },
+    {
+      "id": "rechecks-at-acceptance",
+      "criterion": "access-control #7: an invitation re-checks the grantor's rights when accepted",
+      "check": "text_matches",
+      "pattern": "(?i)re-?check(?:s|ed)?[^\\n]{0,40}accept"
+    }
+  ]
+}

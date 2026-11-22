@@ -53,6 +53,7 @@ ambiguous expected result.
 | Unknown behavior or weak specification | Exploratory testing | Discovers risks and hypotheses not encoded in automation |
 | Performance or capacity threshold matters | Benchmark/load family | Measures behavior under a declared workload |
 | Known failure response matters | Deterministic fault injection | Verifies timeout, retry, fallback, failover, and recovery |
+| Two writers, a lost lease, or a replay can interleave on shared state | Interleaving test | Runs the losing schedule deterministically against the store's real conditional-write semantics |
 | Unknown systemic weakness matters | Chaos experiment | Challenges a steady-state hypothesis under controlled disruption |
 
 ## Functional design techniques
@@ -211,9 +212,10 @@ that needs judgment, such as an unclear control, becomes an issue for its owner.
 | Quality risk | Strategy decision | Specialist hand-off |
 | --- | --- | --- |
 | Performance | Workload model, scenario, measure, threshold need | Performance/SRE policy; CI/CD for cadence |
-| Reliability | Known failure mode and recovery oracle | Resilience/SRE policy |
+| Reliability | Known failure mode and recovery oracle | `architecture-guidelines` runtime-resilience reference; Resilience/SRE policy for thresholds |
 | Chaos | Steady-state hypothesis and blast-radius controls | Operations/SRE owner |
-| Security | Threat or security requirement to verify | Security baseline/OWASP/domain skill |
+| Security | Threat or security requirement to verify | `architecture-guidelines` access-control reference for authorization; Security baseline/OWASP for the rest |
+| Concurrency | Write model and losing schedule | `concurrency-control` |
 | Accessibility | Applicable criterion and manual/automated split | Accessibility specialist |
 | Usability | Actor task and success measure | UX/user research |
 | Recovery | RPO/RTO, restore, reconciliation, data-integrity oracle | Operations/data owner |

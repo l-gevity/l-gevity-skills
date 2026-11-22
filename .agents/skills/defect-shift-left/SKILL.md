@@ -23,12 +23,6 @@ description: >-
 >    when it covers a broader or less-bypassable scope.
 > 4. **Fail loud at the origin.** Errors must surface where they originated.
 
-> **Improvement Trio**
->
-> - `defect-shift-left`: move defect detection earlier.
-> - `push-out`: move recurring operational work outward.
-> - `bring-down`: move bespoke code down into reusable capability.
-
 ---
 
 ## 1. The Ladder
@@ -85,9 +79,11 @@ unrepresentable?_ If yes, the check belongs at Stage 0.
 | Missing case handling                           | 0     | Exhaustive sum types                             |
 | Off-by-one / range                              | 0     | Refinement types (else 6: property test)         |
 | Use-after-free, race                            | 0     | Linear / borrow types (else 5: static analysis)  |
+| Unguarded shared-record write                   | 5     | Conditional-write lint (else 6: interleaving test) |
+| Outbound call without timeout                   | 5     | Call-site lint (else 7: fault-injection test)    |
 | Generated code drift from schema                | 0     | Codegen types (else 5: codegen drift check)      |
 | Contract / schema absent or ambiguous           | 1     | Shared schema / spec                             |
-| Authorization model gap                         | 1     | Threat model (else 7: security test)             |
+| Authorization model gap                         | 1     | Threat model (else 6: grant-model property test; 7: security test) |
 | Style, formatting, unused code, API misuse      | 2     | LSP / editor (else 5: lint)                      |
 | Banned API / unsafe pattern                     | 2     | LSP rule (else 5: lint)                          |
 | Forbidden architectural dependency              | 2     | Editor import rule (else 5: depcheck / lint)     |

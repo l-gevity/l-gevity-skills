@@ -31,4 +31,4 @@ Invoices can be wrong even when the service returns a non-null object. Check agr
 
 [Full skill](../.claude/skills/test-strategy/SKILL.md)
 
-<!-- skill-revision: 2657b44da290 -->
+<!-- skill-revision: 8a1f9f025da6 -->
