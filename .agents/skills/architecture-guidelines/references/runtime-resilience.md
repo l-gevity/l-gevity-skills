@@ -35,8 +35,9 @@ A database waking up is temporary: the budget covers its documented wake time,
 or the design keeps it warm.
 
 ## 3. Map errors to what the caller can do
-- A status is a promise about recovery: 503 says retry later, 409 says you lost
-  a race, any other 4xx says change the request. Send one only when the code knows it is true.
+- A status is a promise about recovery: 429 and 503 say retry later, 409 and
+  412 say you lost a race, any other 4xx says change the request. Send one
+  only when the code knows it is true.
 - An unknown error is a 500 with its cause logged. Never a guessed 503, 409, or
   404: the wrong status sends the caller into the wrong recovery.
 - Log the cause of every 5xx once, at the boundary that maps it, with the

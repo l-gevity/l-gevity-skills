@@ -1,8 +1,10 @@
 # alchemy-orchestrate runtime adapters
 
 These files connect [alchemy-orchestrate](../SKILL.md) to three runtimes. They
-carry no methodology. Packages, hand-offs, ledgers, and check codes are defined
-in [contracts.md](../references/contracts.md). Authority, recovery, and
+carry no methodology. Packages, ledgers, and profiles are defined in
+[contracts.md](../references/contracts.md), hand-offs in
+[handoff.md](../references/handoff.md), and check codes in
+[check-codes.md](../references/check-codes.md). Authority, recovery, and
 permissions are defined in [governance.md](../references/governance.md). Agent
 descriptions and instructions are rendered at install time from the
 `envelopes` of `alchemy-workspace.json`, so the profile stays their only

@@ -53,7 +53,7 @@ DEFAULT_PROFILE = Path(__file__).resolve().parent.parent / "assets" / "alchemy-w
 # importable functions never read a file they were not given.
 PROJECT_PROFILE = "alchemy-workspace.json"
 
-# Code -> verdict class, verbatim from the Check Codes table in contracts.md.
+# Code -> verdict class, verbatim from the table in references/check-codes.md.
 # "FAIL / REJECT" renders as REJECT in a hand-off check and FAIL in a plan or
 # gate check.
 CODES = {

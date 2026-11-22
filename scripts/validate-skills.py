@@ -725,11 +725,20 @@ REFERENCE_REQUIRED_TERMS = {
             "without rename detection, so a moved file counts at its source and its destination",
             "this holds for a plan without amendments too, which used to pass",
             "`--approved <digest>` on the gate: the `approved_digest` the plan check printed",
-            "A delegated agent reads this section and no other part of this skill",
-            "Every claim cites at least one evidence item, read-only findings included",
-            "`command` is the command exactly as it ran, never a paraphrase",
+            "the only file of this skill a delegated agent reads",
+            "[check-codes.md](check-codes.md)",
             "running the same command on the same commit again yields the same evidence",
             "because the runtime stops the agent at the ceiling",
+        ),
+        "references/handoff.md": (
+            "# Hand-off — `alchemy-handoff/1`",
+            "A delegated agent reads this file and no other part of this skill",
+            "Every claim cites at least one evidence item, read-only findings included",
+            "`command` is the command exactly as it ran, never a paraphrase",
+        ),
+        "references/check-codes.md": (
+            "# Check Codes — `check_orchestration.py`",
+            "| Code | Check | Verdict | Meaning |",
         ),
         "references/autonomy-preflight.md": (
             "# Autonomy Preflight — Preparing a Run That Proceeds Unattended",
@@ -4843,10 +4852,10 @@ def validate_adversarial_cases() -> None:
     unknown = sorted(exercised - set(checker.CODES))
     if unknown:
         fail(f"adversarial cases expect codes the checker does not declare: {', '.join(unknown)}")
-    reference = (ORCHESTRATE / "references" / "contracts.md").read_text(encoding="utf-8")
+    reference = (ORCHESTRATE / "references" / "check-codes.md").read_text(encoding="utf-8")
     for code in checker.CODES:
         if f"| `{code}` |" not in reference:
-            fail(f"check code {code} is not documented in alchemy-orchestrate/references/contracts.md")
+            fail(f"check code {code} is not documented in alchemy-orchestrate/references/check-codes.md")
 
 
 def gate_repository_report(checker, scratch: Path, unowned: bool, raised: bool, cycles: int,
@@ -4966,8 +4975,8 @@ def validate_evidence_recorder() -> None:
         text = envelopes.get(name, {}).get("instructions", "")
         if re.search(r"(?<!Do not )\bload the alchemy-orchestrate skill", text, re.I):
             fail(f"{label} envelope {name} must not tell a delegated agent to load alchemy-orchestrate")
-        if "Hand-off section" not in text:
-            fail(f"{label} envelope {name} must point at the Hand-off section of contracts.md")
+        if "references/handoff.md" not in text:
+            fail(f"{label} envelope {name} must point at the Hand-off section, references/handoff.md")
     analyst = envelopes.get("analyst", {}).get("instructions", "")
     for term in ("record_evidence.py", "instead of running those commands again", "at most three per package",
                  "Every claim in your hand-off cites an evidence item"):
