@@ -33,4 +33,4 @@ A renamed API response field breaks checkout after deployment. Generate client t
 
 [Full skill](../.claude/skills/defect-shift-left/SKILL.md) · [Detailed diagram](defect_shift_left.svg)
 
-<!-- skill-revision: f7e8a9b61dcc -->
+<!-- skill-revision: 5b6dd26357e1 -->

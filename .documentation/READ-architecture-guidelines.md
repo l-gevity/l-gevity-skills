@@ -8,7 +8,8 @@ This skill shapes subsystems, interfaces, and integrations. Use it when introduc
 - **Keep decisions pure.** Business logic takes inputs and returns decisions. Database access, clocks, and network calls live at the edges.
 - **Keep dependencies directed and acyclic.** Avoid forwarding layers that add no policy or isolation.
 - **Build only what is needed.** Share business knowledge, but wait for concrete repeated needs before inventing a general abstraction.
-- **Design failure behavior.** Decide which calls must succeed, which are best-effort, and whether partial completion is acceptable. Controls must hold at their own layer.
+- **Design failure behavior.** Decide which calls must succeed, which are best-effort, and whether partial completion is acceptable. Every outbound call states its timeout, whether a failure is temporary or permanent, how often it may retry, what makes a retry safe, and the error its caller sees. Controls must hold at their own layer.
+- **Grant only what is held.** A grant or invitation never exceeds the grantor's rights, is re-checked when accepted, always leaves an owner, and a denied request changes nothing.
 
 Across applications, publish explicit contracts. Keep validation and transformation at owned endpoints; let transport carry messages. Consumers translate external data into their own model.
 
@@ -32,4 +33,4 @@ An invoice calculator receives line items, tax rules, and the invoice date. It r
 
 [Full skill](../.claude/skills/architecture-guidelines/SKILL.md) · [Detailed diagram](architecture_guidelines.svg)
 
-<!-- skill-revision: 90e511ecdde9 -->
+<!-- skill-revision: 2922860e1751 -->

@@ -201,6 +201,9 @@ Check the applicable surface without inventing requirements:
 - performance, capacity, and resource use;
 - reliability, resilience, recovery, and data integrity;
 - security, privacy, compliance, and auditability;
+- authorization: for every rule that grants, delegates, or revokes rights,
+  one generative property over the grant model and one negative test per rule
+  (`architecture-guidelines` access-control reference);
 - usability, accessibility, and supported environments;
 - operability, configuration, deployment, and production verification;
 - aspects: for every aspect that holds across the subject, one oracle per

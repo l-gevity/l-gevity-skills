@@ -33,13 +33,14 @@ SIZE_BUDGET_WORDS = {
     "architecture-guidelines": 1800,
     "bring-down": 2400,
     "ci-cd-reliability-architecture": 3300,
+    "concurrency-control": 700,
     "continuous-improvement": 1300,
     "defect-shift-left": 1900,
     "dependency-lifecycle": 1900,
     "evolutionary-database-design": 2800,
     "functionality-complexity-tradeoff": 3800,
     "gate-lifecycle": 1600,
-    "implementation-readiness": 1900,
+    "implementation-readiness": 1600,
     "infrastructure-fit": 2000,
     "morphogenetic-architecture": 2700,
     "observability-design": 1700,
@@ -57,12 +58,12 @@ SIZE_BUDGET_WORDS = {
 # total rose with every new entry and with growth inside each file's own
 # grain, and nothing failed. A new skill funds its words with a cut. Skills
 # are counted whole, so the count is slack as soon as it is one below its cap.
-LIBRARY_BUDGET_WORDS = 49370
-LIBRARY_BUDGET_SKILLS = 24
+LIBRARY_BUDGET_WORDS = 49700
+LIBRARY_BUDGET_SKILLS = 25
 # The always-on description tier summed over every skill, same ratchet in
 # characters: MAX_DESCRIPTION caps one skill, this caps the listing every
 # session carries whether or not a skill is invoked.
-DESCRIPTION_BUDGET_CHARS = 15700
+DESCRIPTION_BUDGET_CHARS = 16300
 # ADAPTIVE, FULL, and audit read this file; SKIP and DIRECT load it only to
 # emit the decision trail, for that format alone.
 ALCHEMY_ROUTE = AGENT_SKILLS / "alchemy" / "references" / "adaptive-route.md"
@@ -257,7 +258,9 @@ SKILL_REQUIRED_TERMS = {
         "every rule above needs a question",
         "after the caller's own write",
         "Aspects are extracted, not interleaved",
-        "Principle:   aspect coverage",
+        "references/runtime-resilience.md",
+        "references/access-control.md",
+        "Grant only what is held",
     ),
     "ci-cd-reliability-architecture": (
         "Release and Production Promotion",
@@ -285,6 +288,8 @@ SKILL_REQUIRED_TERMS = {
         "a check nobody runs has zero shift-left value",
         "Use this only when the user asks for tooling recommendations",
         "A tool that does not map to a rung on the ladder has no place in the output",
+        "Conditional-write lint",
+        "Outbound call without timeout",
     ),
     "bring-down": (
         "Bring down to the lowest responsible level",
@@ -362,11 +367,10 @@ SKILL_REQUIRED_TERMS = {
         "Riskiest assumption first",
         "## Assumption Vehicles",
         "parallel-ready",
-        "Parallel-ready: yes | no + missing criterion",
         "only on criteria readable from the artifacts",
         "An assumption invalidatable by inspection is resolved, not scheduled",
-        "- Aspects:",
-        "Aspects touched:",
+        "a declared write model for every record more than one writer reaches",
+        "references/build-preparation.md",
     ),
     "morphogenetic-architecture": (
         "Declare before observing",
@@ -457,6 +461,7 @@ SKILL_REQUIRED_TERMS = {
         "enforceable static constraints to `architecture-as-code`",
     ),
     "test-strategy": (
+        "one generative property over the grant model",
         "Risk before test type",
         "Oracle before harness",
         "Minimum sufficient fidelity",
@@ -557,6 +562,15 @@ SKILL_REQUIRED_TERMS = {
         "Vendoring without that is abandonment with extra steps",
         "Classify before dispatching, because the classification is the dispatch",
         "A dependency with no current decision is itself the finding",
+    ),
+    "concurrency-control": (
+        "Declare a write model per record",
+        "The store enforces the model",
+        "A conflict is an answer",
+        "Prove the interleaving",
+        "Last-writer-wins is not a model",
+        "Write model:  Version check | Single writer | Idempotency key | Commutative merge | Ordered start-up | None + reason",
+        "DECLARED | UNGUARDED | NOT-SHARED",
     ),
     "observability-design": (
         "A failure nobody can observe has no severity, no frequency, and no owner",
@@ -993,12 +1007,44 @@ REFERENCE_REQUIRED_TERMS = {
             "Close an `open` characteristic by recording the measurement it needs",
         ),
     },
+    "architecture-guidelines": {
+        "references/runtime-resilience.md": (
+            "Every outbound call declares a timeout",
+            "A retry without an idempotency precondition is a second write",
+            "An unknown error is a 500 with its cause logged",
+        ),
+        "references/access-control.md": (
+            "A grant never exceeds what the grantor holds",
+            "A denied request, a provisioning call included, leaves no record",
+            "never from an identifier in the request",
+        ),
+        "references/enforcement-handoffs.md": (
+            "Principle:   aspect coverage",
+            "Principle:   layer self-sufficiency",
+        ),
+    },
+    "implementation-readiness": {
+        "references/build-preparation.md": (
+            "Parallel-ready: yes | no + missing criterion",
+            "- Aspects:",
+            "Aspects touched:",
+            "| Vehicle | Invalidates | Constraint |",
+        ),
+    },
+    "concurrency-control": {
+        "references/write-models.md": (
+            "A fencing token rises with every lease",
+            "Fetching a fresh version just before the write turns the check off",
+            "Control the schedule with barriers or hooks, never sleeps",
+        ),
+    },
     "test-strategy": {
         "references/technique-selection.md": (
             "A sophisticated harness cannot repair an",
             "Human does not mean informal; automated does not mean objective",
             "Triage each persona finding by its oracle",
             "Do not prescribe a universal unit/integration/E2E ratio",
+            "| Interleaving test |",
         ),
         "references/portfolio-governance.md": (
             "A green result obtained after enough retries is not reliability",
@@ -1012,6 +1058,7 @@ REFERENCE_REQUIRED_TERMS = {
 # it loads a skill. The description ratchet rewards trimming them, and no pin
 # on the body can report the loss.
 DESCRIPTION_REQUIRED_TERMS = {
+    "concurrency-control": ("lost updates", "If-Match", "fencing tokens", "idempotency keys"),
     "architecture-as-code": (
         "an `eslint-plugin-boundaries` rule",
         "an `import-linter` contract",
@@ -1973,7 +2020,6 @@ ROUTE_SKILLS = {
 # Skills no scenario names yet. The list may only shrink: a skill leaves it
 # when a scenario covers it, and a new skill needs a scenario to ship.
 SCENARIO_UNCOVERED = (
-    "architecture-guidelines",
     "dependency-lifecycle",
     "implementation-readiness",
     "observability-design",

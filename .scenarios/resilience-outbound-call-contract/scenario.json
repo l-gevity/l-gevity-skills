@@ -1,0 +1,48 @@
+{
+  "request": "Run architecture-guidelines on this design: the import service calls the database, the object store, and a model API. Every call is wrapped in a helper that retries three times with a one-second delay, whatever the error. Any database exception is returned to the browser as 503 so the user retries later. A streaming summary job marks itself done when the stream closes. No call sets a timeout. Is this sound?",
+  "skills": [
+    "architecture-guidelines"
+  ],
+  "expect": [
+    {
+      "id": "applies-architecture-guidance",
+      "criterion": "runtime-resilience #1: an outbound-call design is judged by architecture-guidelines",
+      "check": "guidance_includes",
+      "skills": [
+        "architecture-guidelines"
+      ]
+    },
+    {
+      "id": "reads-resilience-reference",
+      "criterion": "runtime-resilience #1: an outbound-call design reads the runtime-resilience reference",
+      "check": "reads_include",
+      "paths": [
+        ".claude/skills/architecture-guidelines/references/runtime-resilience.md"
+      ]
+    },
+    {
+      "id": "requires-timeouts",
+      "criterion": "runtime-resilience #2: every outbound call declares a timeout",
+      "check": "text_matches",
+      "pattern": "(?i)timeout"
+    },
+    {
+      "id": "unknown-error-is-500",
+      "criterion": "runtime-resilience #3: an unknown error maps to 500 with its cause logged, never a guessed 503",
+      "check": "text_matches",
+      "pattern": "(?i)unknown error[^\\n]{0,40}\\b500\\b|\\b500\\b[^\\n]{0,40}cause"
+    },
+    {
+      "id": "retry-needs-idempotency",
+      "criterion": "runtime-resilience #4: a retried write needs an idempotency precondition",
+      "check": "text_matches",
+      "pattern": "(?i)idempoten"
+    },
+    {
+      "id": "stream-ends-with-real-outcome",
+      "criterion": "runtime-resilience #5: a stream or job ends with its real outcome, not a short success",
+      "check": "text_matches",
+      "pattern": "(?i)terminal event|real outcome|completed/failed|explicit\\W{0,3}completed\\W{0,3} event|(?:cut|dropped)[^\\n]{0,40}(?:ends?|marked?|counts?)[^\\n]{0,20}failed"
+    }
+  ]
+}

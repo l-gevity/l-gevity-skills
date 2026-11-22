@@ -103,13 +103,9 @@ route to the missing stage.
 ## Assumption Vehicles
 
 Match the vehicle to the assumption it must be able to invalidate. Each is a
-bounded experiment, not the product:
-
-| Vehicle | Invalidates | Constraint |
-| --- | --- | --- |
-| Proof of concept | One named feasibility or technical assumption | Any technology, disposable; throwaway code never crosses the merge boundary without the enforcement `architecture-as-code` requires |
-| Prototype | A functional or interaction assumption, with stakeholders | One-off, without the non-functional obligations; demonstrates, never ships |
-| Minimum viable product | The linked outcome hypothesis, through real use | Complete enough for one full build-measure-learn turn, and the first end-to-end exercise of the delivery path |
+bounded experiment, not the product. The vehicles (proof of concept,
+prototype, minimum viable product) and what each invalidates are in
+[references/build-preparation.md](references/build-preparation.md).
 
 Record the vehicle, the assumption, and the invalidation criterion. For a
 need or outcome assumption, carry the criterion from the grounding
@@ -134,7 +130,8 @@ Mark a requirement or increment **ready** only when it has:
 - usable complete-when conditions;
 - a clear owner and actor;
 - known prerequisites with existing artifacts or named minimal contracts;
-- identified data ownership and lifecycle;
+- identified data ownership and lifecycle, and a declared write model for
+  every record more than one writer reaches (`concurrency-control`);
 - relevant security, privacy, accessibility, compliance, audit, and operational
   constraints, with topology's `Aspect coverage:` at `Pass` for every aspect
   that holds across the increment's capability, or each `Fail` carried as a
@@ -162,60 +159,9 @@ outcome.
 
 ## Derived Artifacts
 
-Produce only what the current audience needs:
-
-```text
-Capability:
-- Purpose:
-- Requirement IDs:
-- Owner:
-- Inputs and outputs:
-- Constraints:
-- Evidence:
-- Prerequisites:
-- Ready state:
-```
-
-```text
-Implementation increment:
-- Outcome:
-- Requirement IDs:
-- Actor workflow:
-- Prerequisites:
-- In scope / out of scope:
-- Acceptance-test references:
-- Data touched and ownership:
-- Aspects touched:
-- Roles and permissions:
-- Evidence and operations:
-- Parallel-ready: yes | no + missing criterion
-- Risks and watch items:
-- Developer / architect questions:
-```
-
-```text
-Contract candidate:
-- Kind: command | query | event | import | export | API
-- Purpose:
-- Producer / consumer:
-- Domain terms:
-- Validation:
-- Security and privacy:
-- Evidence and operations:
-- Requirement traceability:
-```
-
-```text
-ADR seed:
-- Decision needed:
-- Requirement traceability:
-- Forces and constraints:
-- Viable options:
-- Recommendation, if supported:
-- Consequences:
-- Enforcement candidate:
-- Revisit trigger:
-```
+Produce only what the current audience needs. Templates for a capability, an
+implementation increment, a contract candidate, and an ADR seed are in
+[references/build-preparation.md](references/build-preparation.md).
 
 These are design inputs, not automatic commitments. Use
 `architecture-guidelines` when turning them into subsystem or service designs, and
@@ -239,28 +185,8 @@ Verification:       <readiness checks run, or Not run + reason>
 Revisit when:       <required for PARTLY-READY or NOT-READY>
 ```
 
-A complete readiness package additionally contains:
-
-```text
-Implementation readiness:
-- Meta-context:                 # standalone artifacts only
-- Canonical grounding/topology:
-- Readiness decision:           # ready | partly ready | not ready
-- Blocking gaps and owners:
-- Capability map:
-- Workstreams or epics:
-- Implementation order:         # riskiest assumption first; parallel-ready groups marked
-- Smallest coherent increment:
-- Aspects:                      # aspect × capability matrix, projected from topology
-- Data ownership and lifecycle:
-- Evidence and operational needs:
-- Contract candidates:
-- Domain-model seeds:
-- ADR seeds:
-- Acceptance-test references:
-- Technical questions:
-- Traceability:
-```
+A complete readiness package additionally contains the sections listed in
+[references/build-preparation.md](references/build-preparation.md).
 
 `Aspects` is the aspect × capability matrix: one row per aspect (a `constraint`
 node with `holds_across`), one column per capability in the package, and in

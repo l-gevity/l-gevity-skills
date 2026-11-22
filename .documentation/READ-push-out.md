@@ -30,4 +30,4 @@ Certificate rotation depends on one engineer. First capture and verify the proce
 
 [Full skill](../.claude/skills/push-out/SKILL.md)
 
-<!-- skill-revision: e55a9a254a1d -->
+<!-- skill-revision: 383ee68926d3 -->

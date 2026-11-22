@@ -31,4 +31,4 @@ Three services each maintain retry code. Their HTTP library already supports the
 
 [Full skill](../.claude/skills/bring-down/SKILL.md)
 
-<!-- skill-revision: 468c9e5403d9 -->
+<!-- skill-revision: cb4970aea63d -->

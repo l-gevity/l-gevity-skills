@@ -16,12 +16,6 @@ description: >-
 > **Purpose**: Move recurring operational burden outward from fragile human
 > execution into durable system capability.
 
-> **Improvement Trio**
->
-> - `defect-shift-left`: move defect detection earlier.
-> - `push-out`: move recurring operational work outward.
-> - `bring-down`: move bespoke code down into reusable capability.
-
 > **Core Directives**
 >
 > 1. **Push work, not responsibility.** The owner remains accountable; the

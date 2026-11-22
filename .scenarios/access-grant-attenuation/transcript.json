@@ -1,0 +1,135 @@
+{
+  "scenario": "access-grant-attenuation",
+  "revision": "a1f4b30fc106",
+  "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
+  "skills_available": [
+    "alchemy",
+    "alchemy-orchestrate",
+    "architecture-as-code",
+    "architecture-guidelines",
+    "batch",
+    "bring-down",
+    "ci-cd-reliability-architecture",
+    "claude-api",
+    "code-review",
+    "concurrency-control",
+    "continuous-improvement",
+    "dataviz",
+    "debug",
+    "deep-research",
+    "defect-shift-left",
+    "dependency-lifecycle",
+    "design",
+    "design-sync",
+    "doctor",
+    "evolutionary-database-design",
+    "fewer-permission-prompts",
+    "functionality-complexity-tradeoff",
+    "gate-lifecycle",
+    "implementation-readiness",
+    "infrastructure-fit",
+    "loop",
+    "morphogenetic-architecture",
+    "observability-design",
+    "plugin-authoring",
+    "push-out",
+    "requirements-grounding",
+    "requirements-topology",
+    "requirements-traceability",
+    "run",
+    "run-skill-generator",
+    "schedule",
+    "simplify",
+    "structural-simplification",
+    "system-optimization",
+    "test-strategy",
+    "update-config",
+    "verify",
+    "workflow-authoring",
+    "zero-copy-requirements"
+  ],
+  "skills_invoked": [
+    "test-strategy"
+  ],
+  "files_read": [
+    ".claude/skills/architecture-guidelines/references/access-control.md"
+  ],
+  "paths_searched": [
+    "."
+  ],
+  "turns": 5,
+  "metrics": {
+    "duration_ms": 40146,
+    "duration_api_ms": 41957,
+    "total_cost_usd": 0.2296766,
+    "usage": {
+      "input_tokens": 10,
+      "cache_creation_input_tokens": 18883,
+      "cache_read_input_tokens": 63285,
+      "output_tokens": 3281,
+      "output_tokens_details": {
+        "thinking_tokens": 1104
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 18883,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 2978,
+          "cache_read_input_tokens": 21429,
+          "cache_creation_input_tokens": 1298,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 1298
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "modelUsage": {
+      "claude-opus-5-5": {
+        "inputTokens": 10,
+        "outputTokens": 3281,
+        "cacheReadInputTokens": 63285,
+        "cacheCreationInputTokens": 18883,
+        "webSearchRequests": 0,
+        "costUSD": 0.229381,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 1104,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 18883,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-haiku-5-5": {
+        "inputTokens": 1251,
+        "outputTokens": 341,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.00029560000000000003,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 324,
+        "cacheCreationEphemeral5mInputTokens": 0,
+        "cacheCreationEphemeral1hInputTokens": 0,
+        "canonicalModel": "claude-haiku-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    }
+  },
+  "output": "**What I found:** Each of the four statements breaks one grant rule in `.claude/skills/architecture-guidelines/references/access-control.md` §1: attenuation, re-check at acceptance, last owner, and denial writes nothing. So the tests must prove the opposite of what the model says now, and I've held the verdict until an owner confirms these are defects rather than intended behaviour (the record calls this DEFER).\n\n**Why it matters:** If tests are written to match the model as stated, they lock in privilege escalation, invitations from people who no longer have the right, workspaces with no owner, and leftover disabled user rows that later block the real user. If nothing is tested, the same four defects ship with no signal.\n\n**Do this first:**\n1. Get the product owner to confirm that all four behaviours are defects. Then write the generative property (row 5) against a pure access-decision function.\n2. Add the four negative tests. Each one asserts that **the store is unchanged**, not just that the status is 403 or 409.\n3. Run the last-owner interleaving test (row 3) against the real store.\n\n**What I did not check:**\n- Existing code and tests in this repo: run `Glob **/*{test,spec}*` and map what turns up to the rows below.\n- How the store does conditional writes: hand off to `concurrency-control` once the architecture is fixed.\n- The identity provider's provisioning contract: get the provider's schema or spec.\n\n| Risk / criterion | Failure mode | Oracle | Technique | Scope / fidelity | Dependencies | Data / environment | Evidence | Residual blind spot |\n|---|---|---|---|---|---|---|---|---|\n| R1 Attenuation | An editor invites someone at a role above their own (owner, or anything above editor) | Invite with role > grantor's role → denied; no invitation row, no outbound invite, an audit entry exists. Invite with role ≤ grantor's role → allowed | Decision table: grantor role × invited role, every cell. Plus row 5 | Pure decision function for the table; one store-backed test proving no row is written on denial | Real store for the no-write check; stub the mail sender and assert it was not called | Seeded workspace with one actor per role | None yet | Roles added later that aren't in the table. Row 5 covers them if it generates roles from the role model |\n| R2 Re-check at acceptance | An invitation is accepted after its grantor was removed, or demoted below the invited role | At acceptance, the grantor's *current* rights are checked: rejected, no membership row, invitation closed | State transitions: send → demote or remove grantor → accept; send → accept (control) | Accept path against the real store | Real store | Invitation created at T0, grantor changed at T1, accept at T2 | None yet | Grantor demoted at the same moment someone accepts (race). Becomes an interleaving test if the architecture allows concurrent acceptance |\n| R3 Last owner | The sole owner leaves; two owners leave or demote each other at once and the workspace ends with no owner | Sole owner's leave → rejected, store unchanged. Two concurrent removals → exactly one succeeds, at least one owner remains | Negative example, plus a concurrent interleaving test | **Real store only.** A fake can't prove that the conditional write serializes the two removals | Real store; no doubles | Two-owner workspace, two parallel clients, a barrier so both requests actually overlap | None yet | Other paths that also remove an owner (account deletion, provisioning a deprovisioned user). Each needs the same oracle |\n| R4 Denial writes nothing | A denied provisioning call leaves a disabled user row | Denied call → zero user rows for that identity, of any status; an audit entry exists. A later valid provisioning of the same identity succeeds | Negative example plus a sequence (deny → valid provision) | Provisioning endpoint against the real store; the provider's payload checked against its contract | Real store; the provider's request shape from a shared schema or contract | Synthetic identities only, no real directory data | None yet | Which denial reasons the provider can actually send. Needs the provider contract |\n| R5 Grant-model invariant | Some sequence of grants reaches a state the individual rules miss | For random actors, roles, and grant, accept, leave, demote and revoke sequences: no actor holds a right that no grant chain from an owner justifies, and every workspace has at least one owner | Property-based / model-based | Pure decision function plus an in-memory model; no store | None | Generated | None yet | Concurrency and persistence. R3 and the store-backed negatives cover those |\n\n```text\nSubject:              Workspace access model: invite, accept, leave/demote, IdP provisioning\nMode:                 Design\nStrategy pass:        Obligation\nDecision:             DEFER\nTest basis:           access-control.md §1 rules (attenuation, re-check at acceptance, last owner, denial writes nothing), §3 verification\nArchitecture basis:   not yet fixed\nQuality risks:        1 privilege escalation (R1, R2) · 2 ownerless workspace (R3) · 3 identity lockout and stray account rows (R4)\nManual evaluation:    none\nAdequacy signals:     none; no portfolio inspected\nHandoffs:             concurrency-control (R3 conditional write); requirements-grounding (owner confirmation); defect-shift-left after the Portfolio pass (R5 property test at stage 6); requirements-traceability (R1–R5 mappings)\nResidual risk:        Revocation cascade (a removed member's open invitations, sessions and tokens) is implied by R2 but not stated in the model. Confirm whether it's in scope.\nNext action:          Get owner confirmation that the four stated behaviours are defects, then write R5 against a pure decision function.\nVerification:         Not run. Obligation pass only; no code or tests inspected.\n```"
+}

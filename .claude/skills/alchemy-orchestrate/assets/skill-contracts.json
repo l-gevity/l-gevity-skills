@@ -113,6 +113,13 @@
       "verify": "Old and new code versions pass against the expanded schema",
       "completion": ["COMPATIBLE", "STAGED"], "failure": ["BREAKING", "DEFER"]
     },
+    "concurrency-control": {
+      "capability": "architecture", "stage": "companion",
+      "inputs": ["change that writes a shared persisted record"], "outputs": ["write-model record per shared record"],
+      "parallel": "per-subject", "writes": "none", "exclusive": [],
+      "verify": "An interleaving test runs the losing schedule and the losing write is rejected or merged",
+      "completion": ["DECLARED", "NOT-SHARED"], "failure": ["UNGUARDED"]
+    },
     "requirements-traceability": {
       "capability": "lead", "stage": "companion",
       "inputs": ["passing readiness and admitted criterion IDs"], "outputs": ["trace links and evidence state"],
