@@ -28,7 +28,7 @@ ADAPTER_RUNTIME="claude-code"
 REPO="l-gevity/l-gevity-skills"
 # The release this script ships with. A release bump changes it together with
 # package.json; scripts/validate-skills.py fails while the two differ.
-DEFAULT_REF="v5.8.0"
+DEFAULT_REF="v5.9.0"
 REF="${L_GEVITY_SKILLS_REF:-$DEFAULT_REF}"
 REPO_TARBALL="https://github.com/$REPO/archive/$REF.tar.gz"
 TARGET="$PWD"
