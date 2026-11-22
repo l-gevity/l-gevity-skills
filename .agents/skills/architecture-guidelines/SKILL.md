@@ -123,7 +123,7 @@ Every shared mutable state must declare its concurrency model:
 
 - **Per-instance** (multi-tab) → use `navigator.locks` or `BroadcastChannel`.
 - **Per-tab** → fine; document in JSDoc.
-- **Global** → atomic writes or locks.
+- **Global (in-process)** → atomic writes or locks.
 
 **Review check:** if state is modified after an `await`, ask: _"is this guarded
 against concurrent mutation?"_ A record persisted where several writers reach

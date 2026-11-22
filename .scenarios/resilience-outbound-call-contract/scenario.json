@@ -24,7 +24,7 @@
       "id": "requires-timeouts",
       "criterion": "runtime-resilience #2: every outbound call declares a timeout",
       "check": "text_matches",
-      "pattern": "(?i)timeout"
+      "pattern": "(?i)(?:every|each)[^\\n]{0,60}call[^\\n]{0,60}timeout|timeout[^\\n]{0,60}(?:every|each)[^\\n]{0,30}call"
     },
     {
       "id": "unknown-error-is-500",
@@ -43,6 +43,12 @@
       "criterion": "runtime-resilience #5: a stream or job ends with its real outcome, not a short success",
       "check": "text_matches",
       "pattern": "(?i)terminal event|real outcome|completed/failed|explicit\\W{0,3}completed\\W{0,3} event|(?:cut|dropped)[^\\n]{0,40}(?:ends?|marked?|counts?)[^\\n]{0,20}failed"
+    },
+    {
+      "id": "retries-only-temporary",
+      "criterion": "runtime-resilience #6: only temporary failures retry; permanent ones fail fast",
+      "check": "text_matches",
+      "pattern": "(?i)(?:only|never) retr[^\\n]{0,40}(?:temporary|permanent)|permanent[^\\n]{0,40}(?:fail fast|no retry|not retr)"
     }
   ]
 }

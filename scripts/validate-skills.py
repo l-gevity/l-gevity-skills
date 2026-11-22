@@ -569,7 +569,7 @@ SKILL_REQUIRED_TERMS = {
         "A conflict is an answer",
         "Prove the interleaving",
         "Last-writer-wins is not a model",
-        "Write model:  Version check | Single writer | Idempotency key | Commutative merge | Ordered start-up | None + reason",
+        "Write model:  Version check | Single writer | Idempotency key | Commutative merge | Ordered start-up | None (NOT-SHARED only)",
         "DECLARED | UNGUARDED | NOT-SHARED",
     ),
     "observability-design": (
@@ -1016,7 +1016,8 @@ REFERENCE_REQUIRED_TERMS = {
         "references/access-control.md": (
             "A grant never exceeds what the grantor holds",
             "A denied request, a provisioning call included, leaves no record",
-            "never from an identifier in the request",
+            "every query is filtered to the granted scope",
+            "a condition on the member row alone admits write skew",
         ),
         "references/enforcement-handoffs.md": (
             "Principle:   aspect coverage",
@@ -1036,6 +1037,7 @@ REFERENCE_REQUIRED_TERMS = {
             "A fencing token rises with every lease",
             "Fetching a fresh version just before the write turns the check off",
             "Control the schedule with barriers or hooks, never sleeps",
+            "A bounded counter is not commutative",
         ),
     },
     "test-strategy": {

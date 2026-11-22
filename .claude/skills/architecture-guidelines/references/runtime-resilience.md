@@ -26,7 +26,7 @@ A read needs none.
 ## 2. Temporary or permanent
 | Class | Examples | Action |
 |:--|:--|:--|
-| Temporary | Timeout; connection refused or reset; DNS failure; 429 or 503, honouring `Retry-After`; throttling; a paused or serverless database waking up; a stream cut before its first byte | Retry within the budget, exponential backoff with jitter |
+| Temporary | Timeout; 408, 502, 504; connection refused or reset; DNS failure; 429 or 503, honouring `Retry-After`; throttling; a paused or serverless database waking up; a stream cut before its first byte | Retry within the budget, exponential backoff with jitter |
 | Permanent | 400, 401, 403, 404, 422; validation and schema errors; a quota that resets on a calendar; a content-policy refusal | Fail fast; map per §3 |
 | Conflict | 409, 412 | Not a retry: the record's write model decides (`concurrency-control`) |
 | Unknown | Anything the client does not classify | Permanent for retry; 500 |
@@ -36,7 +36,7 @@ or the design keeps it warm.
 
 ## 3. Map errors to what the caller can do
 - A status is a promise about recovery: 503 says retry later, 409 says you lost
-  a race, 4xx says change the request. Send one only when the code knows it is true.
+  a race, any other 4xx says change the request. Send one only when the code knows it is true.
 - An unknown error is a 500 with its cause logged. Never a guessed 503, 409, or
   404: the wrong status sends the caller into the wrong recovery.
 - Log the cause of every 5xx once, at the boundary that maps it, with the

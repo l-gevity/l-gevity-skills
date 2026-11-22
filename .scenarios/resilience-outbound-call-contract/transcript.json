@@ -1,6 +1,6 @@
 {
   "scenario": "resilience-outbound-call-contract",
-  "revision": "b504fd986689",
+  "revision": "bdbf39dcae16",
   "recorded_with": "claude-code 2.1.325, model claude-opus-5-5",
   "skills_available": [
     "alchemy",
@@ -57,16 +57,16 @@
   "paths_searched": [],
   "turns": 4,
   "metrics": {
-    "duration_ms": 21194,
-    "duration_api_ms": 23107,
-    "total_cost_usd": 0.19315700000000002,
+    "duration_ms": 31618,
+    "duration_api_ms": 34363,
+    "total_cost_usd": 0.20906790000000003,
     "usage": {
       "input_tokens": 8,
-      "cache_creation_input_tokens": 18905,
-      "cache_read_input_tokens": 41816,
-      "output_tokens": 1666,
+      "cache_creation_input_tokens": 18939,
+      "cache_read_input_tokens": 41853,
+      "output_tokens": 2441,
       "output_tokens_details": {
-        "thinking_tokens": 64
+        "thinking_tokens": 547
       },
       "server_tool_use": {
         "web_search_requests": 0,
@@ -74,19 +74,19 @@
       },
       "service_tier": "standard",
       "cache_creation": {
-        "ephemeral_1h_input_tokens": 18905,
+        "ephemeral_1h_input_tokens": 18939,
         "ephemeral_5m_input_tokens": 0
       },
       "inference_geo": "global",
       "iterations": [
         {
           "input_tokens": 2,
-          "output_tokens": 1351,
-          "cache_read_input_tokens": 21188,
-          "cache_creation_input_tokens": 1561,
+          "output_tokens": 2122,
+          "cache_read_input_tokens": 21228,
+          "cache_creation_input_tokens": 1555,
           "cache_creation": {
             "ephemeral_5m_input_tokens": 0,
-            "ephemeral_1h_input_tokens": 1561
+            "ephemeral_1h_input_tokens": 1555
           },
           "type": "message"
         }
@@ -97,14 +97,14 @@
     "modelUsage": {
       "claude-haiku-5-5": {
         "inputTokens": 1283,
-        "outputTokens": 147,
+        "outputTokens": 410,
         "cacheReadInputTokens": 0,
         "cacheCreationInputTokens": 0,
         "webSearchRequests": 0,
-        "costUSD": 0.0002018,
+        "costUSD": 0.0003333,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
-        "thinkingTokens": 131,
+        "thinkingTokens": 394,
         "cacheCreationEphemeral5mInputTokens": 0,
         "cacheCreationEphemeral1hInputTokens": 0,
         "canonicalModel": "claude-haiku-5-5",
@@ -113,21 +113,21 @@
       },
       "claude-opus-5-5": {
         "inputTokens": 8,
-        "outputTokens": 1666,
-        "cacheReadInputTokens": 41816,
-        "cacheCreationInputTokens": 18905,
+        "outputTokens": 2441,
+        "cacheReadInputTokens": 41853,
+        "cacheCreationInputTokens": 18939,
         "webSearchRequests": 0,
-        "costUSD": 0.1929552,
+        "costUSD": 0.20873460000000002,
         "contextWindow": 1000000,
         "maxOutputTokens": 128000,
-        "thinkingTokens": 64,
+        "thinkingTokens": 547,
         "cacheCreationEphemeral5mInputTokens": 0,
-        "cacheCreationEphemeral1hInputTokens": 18905,
+        "cacheCreationEphemeral1hInputTokens": 18939,
         "canonicalModel": "claude-opus-5-5",
         "provider": "firstParty",
         "costBasis": "list"
       }
     }
   },
-  "output": "**What I found:** This design for the import service's outbound calls is not sound. It needs to be reworked before it is built (the record calls this Simplify). No call has a timeout, every error is retried the same way including writes, every database error is reported as 503 whether or not retrying later would help, and the summary job counts a cut-off stream as a success.\n\n**Why it matters:** As designed, a hung dependency hangs the import, and a retried write without an idempotency key can save the same data twice. A user told to retry a validation error will just hit it again, and a partial summary gets stored as done. Fixing these items replaces the generic helper with one small call contract per dependency.\n\n**Do this first:**\n1. Give each outbound call (database, object store, model API) a timeout shorter than the request's own deadline, and classify its errors (`references/runtime-resilience.md` §1–2).\n2. Follow-up: only retry temporary errors, and only retry a write when it has an idempotency precondition (`concurrency-control`).\n3. Follow-up: mark the summary job done only after an explicit \"completed\" event from the stream and after its last write has committed.\n\n**What I did not check:** I had a description, not code, so nothing was run.\n- Call sites and the retry helper itself: no code was given. Searching for the helper and its callers closes this.\n- Which model API error codes mean \"retry later\": that needs the provider's error documentation.\n- Whether a paused or serverless database needs longer than 3 s to wake: that needs its documented wake time.\n\n```\nSubject:        Import service outbound calls (DB, object store, model API), retry helper, summary job\nDecision:       Simplify\nPrinciple:      fail-fast, idempotency, atomicity\nEvidence:       Design as stated, checked against runtime-resilience.md:\n                - No timeout → each call inherits its dependency's hang (§1). A\n                  1 s × 3 retry around an unbounded call just multiplies the hang.\n                - Retry \"whatever the error\" → retries permanent errors (400/401/\n                  403/404/422, validation, content-policy refusal) that will fail\n                  again (§2). Conflicts (409/412) must go to the record's write\n                  model instead.\n                - Retrying writes with no idempotency precondition → each retry\n                  can write again: duplicate object-store objects, duplicate\n                  rows, model calls billed twice (§1).\n                - Fixed 1 s delay, no jitter, no Retry-After → retries arrive\n                  in sync and ignore the dependency's own backoff hint on 429/503.\n                - Any DB exception → 503 → promises \"retry later\" for errors\n                  that won't clear (constraint violation, bad input, schema\n                  error). Unknown errors must be a 500 with the cause logged.\n                  Sending the DB message to the browser leaks internals (§3).\n                - Done-on-stream-close → a dropped connection counts as success\n                  and a partial summary is stored as complete (§4).\n                - One generic helper for all calls is the wrong shape (also\n                  \"helpers\" naming, §6): the timeout, retry class, and budget\n                  are set per dependency, not shared.\nEnforcement:    none (not an import/dependency rule). Lint for outbound calls\n                without a timeout via defect-shift-left (stage 5).\nNext action:    Per dependency, set timeout + retry class + budget (exponential\n                backoff, jitter, Retry-After, inside the request deadline) +\n                idempotency key on writes + caller-visible error. Map DB errors:\n                known temporary → 503, conflict → 409, validation → 4xx, else 500\n                with the cause logged. The stream must end with completed/failed/\n                cancelled; the job is done only after its last write commits;\n                otherwise mark failed or partial.\nVerification:   Not run (no code). Oracles to add (fault injection at each\n                dependency boundary): timeout fires; temporary error retries\n                within budget then stops; permanent error does not retry;\n                unknown error → 500 with cause logged; stream cut midway → job\n                failed.\n```"
+  "output": "**What I found:** The import service's call design is not sound. Reject it as designed and rebuild it around a per-call contract (the record calls this **Reject**). There is no timeout anywhere, the retry policy treats every error the same, database errors are reported to the browser as 503 when most of them aren't temporary, and the summary job reports success when the stream simply stops.\n\n**Why it matters:** As it stands, hung dependencies block requests with no limit, retried writes can create duplicate rows, objects and model charges, and cut-off summaries get stored as finished. Each of these quietly corrupts data or retries forever instead of failing loudly.\n\n**Do this first:**\n1. Change the retry helper so every call must pass its own policy: `{timeout, retryClass(err), budget, backoff+jitter, idempotencyKey?}`. Make the timeout required, and refuse to retry a write that has no idempotency precondition.\n2. Change the import endpoint so it returns 503 only for database errors known to be temporary, 4xx for permanent ones and 500 with the cause logged for anything unknown.\n3. Change the summary job so it is done only after an explicit completed event and its last write commits. A stream that closes without that event marks the job failed.\n\n**What I did not check:** I reviewed the design text only, with no code in scope, so I did not open the helper, the endpoint or the job. Run `rg -n \"retry|timeout|503\" src/` to find the call sites. There is also no fault-injection evidence yet; `test-strategy` should pick tests for the timeout, temporary versus permanent errors, and a stream cut partway through.\n\n### Defects\n\n| # | Design element | Defect | Fix |\n|---|---|---|---|\n| 1 | No timeouts | A hung database, object store or model API hangs the request with no limit. The retry helper never runs, because a hang never throws. | Every call gets a timeout, shorter than the request deadline. The total time across all retries must fit inside that deadline. |\n| 2 | Retry 3× on any error | **Permanent errors get retried:** bad requests (400, 401, 403, 404, 422), validation and schema errors, and content-policy refusals. **Writes get retried with no idempotency key:** a timeout after the database commit or object PUT becomes a second write, and a retried model call is a second charge. **Conflicts get retried:** a 409 or 412 means a lost race, which the record's write model should settle, not a blind repeat. **Fixed 1 s delay, no jitter:** all callers retry at the same moment. | Classify each error as temporary, permanent, conflict or unknown. Retry only temporary ones, with exponential backoff and jitter, and honour `Retry-After` on 429/503. Writes carry an idempotency key or a version check (see `concurrency-control`). |\n| 3 | Any database exception → 503 | 503 tells the user \"retry later\". For constraint violations, bad input or schema errors that's false, so the user retries forever. Combined with the helper, each user retry turns into 3 server-side attempts, which adds load exactly when the system is struggling. | Temporary error after the retry budget runs out → 503. Permanent → the matching 4xx. Unknown → 500. Log the cause once at this boundary, with dependency, attempt count and elapsed time. Never send the database's error message to the browser. |\n| 4 | Stream close = done | A stream that drops halfway is recorded as a successful, finished summary. | Done requires an explicit `completed` event. Ending without one, or failing on the final write, means failed. A partial result is labelled partial. A retry resumes from a checkpoint that is safe to repeat. |\n| 5 | Name \"helper\" | The name gives no hint of its layer or job. | Rename it after what it does, e.g. `outbound_call_policy`. One shared mechanism is right here; the bug is that it applies one policy to every call. |\n\n### Decision record\n```\nSubject:        import-service outbound calls (DB, object store, model API), DB→HTTP error mapping, streaming summary job\nDecision:       Reject\nPrinciple:      fail-fast, idempotency, atomicity\nEvidence:       design statement only; runtime-resilience.md §1–§4 (timeout mandatory; retry class + budget + idempotency precondition; unknown → 500; stream needs terminal event)\nEnforcement:    none (not an import/dependency constraint). Hand off to defect-shift-left: stage-5 lint \"outbound call without timeout\"; stage-7 fault-injection tests otherwise\nNext action:    edit retry helper to require per-call policy; edit error mapper; edit summary job completion condition; add fault-injection tests\nVerification:   Not run — no code in scope; oracles: timeout fires, temporary error retries then stops, permanent error does not retry, unknown → 500 logged, mid-stream cut → job failed\n```"
 }

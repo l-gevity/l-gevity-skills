@@ -14,6 +14,8 @@ the lease and token handling, or the test recipe is needed.
 - Key-value stores: compare-and-set on the stored revision.
 - Send the version the user's edit was based on. Fetching a fresh version just
   before the write turns the check off.
+- Reject a write that carries no `If-Match` with 428; never treat it as
+  unconditional.
 
 ## Single writer
 - A lease is a record with an owner and an expiry, taken by a conditional write
@@ -31,9 +33,14 @@ the lease and token handling, or the test recipe is needed.
   transaction as the effect; a second arrival returns the stored result.
 - Keep keys at least as long as the longest retry, replay, or redelivery window.
 - The same key with a different payload is rejected, never silently merged.
+- When the effect lives in another system, pass the key on to it. A duplicate
+  that arrives while the first is still running waits for it or gets 409.
 
 ## Commutative merge
 - Use the store's atomic operators: increment, patch, set-add, append.
+- A bounded counter is not commutative: two decrements that each pass a
+  stock or balance check can overdraw it. Use a conditional atomic operation
+  (decrement only where the value is at least n) or a version check.
 - Clients that edit offline need a merge type that converges (for example a
   CRDT); a timestamp comparison is last-writer-wins.
 
