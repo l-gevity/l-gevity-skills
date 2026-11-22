@@ -122,7 +122,7 @@ the runtime transcript).
    producing it.
 3. **Check the plan.** Run `python <skill>/scripts/check_orchestration.py plan
    <plan.json> --profile alchemy-workspace.json --root .`; its codes are in
-   [references/contracts.md](references/contracts.md) Check Codes. It prints
+   [references/check-codes.md](references/check-codes.md). It prints
    waves and the derived mode; a `mode_override`
    it prints needs its reason on the execution block. Spawning a package
    agent without a passing plan check is a skipped check: report it. For a run that
@@ -138,7 +138,8 @@ the runtime transcript).
    "fix it all" approves no protected path the human has not seen.
 5. **Spawn ready packages.** Delegate one sub-agent per package with the runtime's
    agent tool and its envelope (`alchemy-analyst` or `alchemy-implementer`),
-   package, skills, budget, hand-off format, and the tool quirks the lead
+   package, skills, budget, hand-off format
+   ([references/handoff.md](references/handoff.md)), and the tool quirks the lead
    knows that bear on its commands. Use `plan --completed <id>
    --running <id>` per [references/contracts.md](references/contracts.md) to
    release dependencies after acceptance and integration. Stream only with

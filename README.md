@@ -530,7 +530,9 @@ coverage among 240 [adversarial cases](./.adversarial/).
 | `gate` | a missing or stale preflight, skipped criteria, verdicts without passing evidence on the final commit, self-verification, open blocking findings, risk accepted by an agent, disputes settled by vote, rework beyond its bound or spent on minor findings only, patching that does not converge |
 
 [contracts.md](./.agents/skills/alchemy-orchestrate/references/contracts.md)
-defines every rule; the
+defines every rule and
+[check-codes.md](./.agents/skills/alchemy-orchestrate/references/check-codes.md)
+every code; the
 [adapter reference](./.agents/skills/alchemy-orchestrate/adapters/README.md)
 covers runtime mechanisms.
 
